@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { ROUTES } from "../router/routes";
+import { ButtonGroup } from "../components/ui/button-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 
 export default function MainPage() {
     const navigate = useNavigate();
@@ -51,34 +53,24 @@ export default function MainPage() {
                 </div>
 
                 {/* CENTER: The 3 Section Buttons */}
-                <nav className="flex gap-3">
-                    <Button
-                        className="flex-1"
-                        variant={activeTab === "owner" ? "default" : "ghost"}
-                        onClick={() => setActiveTab("owner")}
-                    >
-                        Horse Owner
-                    </Button>
-
-                    <Button
-                        className="flex-1"
-                        variant={activeTab === "jockey" ? "default" : "ghost"}
-                        onClick={() => setActiveTab("jockey")}
-                    >
-                        Jockey
-                    </Button>
-
-                    <Button
-                        className="flex-1"
-                        variant={activeTab === "spectator" ? "default" : "ghost"}
-                        onClick={() => setActiveTab("spectator")}
-                    >
-                        Spectator
-                    </Button>
-                </nav>
+                    <Tabs value={activeTab} onValueChange={setActiveTab}>
+                        <TabsList>
+                            <TabsTrigger value="owner">Horse Owner</TabsTrigger>
+                            <TabsTrigger value="jockey">Jockey</TabsTrigger>
+                            <TabsTrigger value="spectator">Spectator</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
 
                 {/* RIGHT: Login Button */}
-                <div className="flex gap-4">
+                <div className="flex items-center gap-4">
+                    <Button
+                        onClick={toggleTheme}
+                        variant="outline"
+                        size="icon"
+                    >
+                        {isDarkMode ? "☀️" : "🌙"}
+                    </Button>
+
                     <Button
                         variant="outline"
                         onClick={() => navigate(ROUTES.LOGIN)}
@@ -142,15 +134,6 @@ export default function MainPage() {
                     </div>
                 )}
             </main>
-
-            <Button
-                onClick={toggleTheme}
-                variant="outline"
-                className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg text-2xl flex items-center justify-center z-50 bg-background"
-            >
-                {isDarkMode ? "☀️" : "🌙"}
-            </Button>
-
         </div>
     );
 }
