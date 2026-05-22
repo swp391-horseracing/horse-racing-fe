@@ -53,13 +53,13 @@ export default function MainPage() {
                 </div>
 
                 {/* CENTER: The 3 Section Buttons */}
-                    <Tabs value={activeTab} onValueChange={setActiveTab}>
-                        <TabsList>
-                            <TabsTrigger value="owner">Horse Owner</TabsTrigger>
-                            <TabsTrigger value="jockey">Jockey</TabsTrigger>
-                            <TabsTrigger value="spectator">Spectator</TabsTrigger>
-                        </TabsList>
-                    </Tabs>
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                    <TabsList variant="line">
+                        <TabsTrigger value="owner">Horse Owner</TabsTrigger>
+                        <TabsTrigger value="jockey">Jockey</TabsTrigger>
+                        <TabsTrigger value="spectator">Spectator</TabsTrigger>
+                    </TabsList>
+                </Tabs>
 
                 {/* RIGHT: Login Button */}
                 <div className="flex items-center gap-4">
