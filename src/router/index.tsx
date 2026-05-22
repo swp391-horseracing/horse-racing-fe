@@ -4,12 +4,16 @@ import LoginPage from "../pages/LoginPage";
 import { ROUTES } from "./routes";
 
 export const router = createBrowserRouter([
-    {
-        path: ROUTES.HOME,
-        element: <MainPage />
-    },
-    {
-        path: ROUTES.LOGIN,
-        element: <LoginPage />
-    }
+  {
+    path: ROUTES.HOME,
+    element: <MainPage />,
+  },
+  {
+    path: ROUTES.LOGIN,
+    element: <LoginPage />,
+  },
+  {
+    path: ROUTES.REGISTER,
+    element: <LoginPage />,
+  },
 ]);

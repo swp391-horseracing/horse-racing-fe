@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { ROUTES } from "../router/routes";
 import { ButtonGroup } from "../components/ui/button-group";
@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 
 export default function MainPage() {
     const navigate = useNavigate();
-
+    const location = useLocation();
     const [activeTab, setActiveTab] = useState("home");
     
     const [isDarkMode, setIsDarkMode] = useState(false);
@@ -65,17 +65,19 @@ export default function MainPage() {
                 <div className="flex items-center gap-4">
                     <Button
                         onClick={toggleTheme}
-                        variant="outline"
+                        variant="ghost"
                         size="icon"
                     >
                         {isDarkMode ? "☀️" : "🌙"}
                     </Button>
 
                     <Button
-                        variant="outline"
-                        onClick={() => navigate(ROUTES.LOGIN)}
+                    variant="outline"
+                    onClick={() => navigate(ROUTES.LOGIN, { 
+                        state: { background: location }
+                    })}
                     >
-                        Login Page
+                    Login
                     </Button>
                 </div>
             </header>
