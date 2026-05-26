@@ -1,11 +1,8 @@
 export const ROUTES = {
-    GUIDE_PAGE:"/",
-    CALENDAR_PAGE: "/calendar",
-    DASHBOARD_PAGE: "/dashboard",
-    HORSE_PAGE: "/horse",
-}
+  HOME: "/",
+  LOGIN: "/login",
+  REGISTER: "/register",
+};
 
-export const buildRoutes = (path: string, id: string) => {
-    path.replace(":id", id)
-}
-
+export const buildRoute = (path: string, id: string) =>
+    path.replace(":id", id);
