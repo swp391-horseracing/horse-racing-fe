@@ -16,6 +16,7 @@ import AdminPage from "../pages/AdminPage.tsx";
 import UserPage from "../pages/UserPage.tsx";
 import SpectatorPage from "../pages/SpectatorPage.tsx";
 import LeaderBoardPage from "../pages/LeaderBoardPage.tsx";
+import ReportsPage from "../pages/ReportsPage.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -27,24 +28,60 @@ export const router = createBrowserRouter([
     path: ROUTES.GUIDE,
     element: <GuidesPage />,
   },
+
   {
     path: ROUTES.LOGIN,
     element: <LoginLayout />,
     children: [{ index: true, element: <LoginPage /> }],
   },
+
   {
     element: <MainLayout />,
     children: [
-      { path: ROUTES.DASHBOARD, element: <DashboardPage /> },
-      { path: ROUTES.CALENDAR, element: <CalendarPage /> },
-      { path: ROUTES.HORSES, element: <HorsePage /> },
-      { path: ROUTES.RACES, element: <RacesPage /> },
-      { path: ROUTES.LEADERBOARD, element: <LeaderBoardPage /> },
-      { path: ROUTES.JOCKEY_DASHBOARD, element: <JockeyPage /> },
-      { path: ROUTES.OWNER_DASHBOARD, element: <OwnerPage /> },
-      { path: ROUTES.SPECTATOR_DASHBOARD, element: <SpectatorPage /> },
-      { path: ROUTES.ADMIN_DASHBOARD, element: <AdminPage /> },
-      { path: ROUTES.USER_PROFILE, element: <UserPage /> },
+      {
+        path: ROUTES.DASHBOARD,
+        element: <DashboardPage />,
+      },
+      {
+        path: ROUTES.CALENDAR,
+        element: <CalendarPage />,
+      },
+      {
+        path: ROUTES.HORSE,
+        element: <HorsePage />,
+      },
+      {
+        path: ROUTES.RACES,
+        element: <RacesPage />,
+      },
+      {
+        path: ROUTES.LEADERBOARD,
+        element: <LeaderBoardPage />,
+      },
+      {
+        path: ROUTES.REPORTS,
+        element: <ReportsPage />,
+      },
+      {
+        path: ROUTES.JOCKEY,
+        element: <JockeyPage />,
+      },
+      {
+        path: ROUTES.OWNER,
+        element: <OwnerPage />,
+      },
+      {
+        path: ROUTES.SPECTATOR,
+        element: <SpectatorPage />,
+      },
+      {
+        path: ROUTES.ADMIN,
+        element: <AdminPage />,
+      },
+      {
+        path: ROUTES.USER,
+        element: <UserPage />,
+      },
     ],
   },
 ]);
