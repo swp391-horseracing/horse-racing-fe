@@ -1,21 +1,56 @@
 export const ROUTES = {
+  // GENERAL
   GUIDE: "/",
   HOME: "/landing",
+  DASHBOARD: "/dashboard",
   LOGIN: "/login",
   REGISTER: "/register",
   CALENDAR: "/calendar",
-  HORSE: "/horse",
-  JOCKEY: "/jockey",
+  HORSES: "/horses",
   RACES: "/races",
-  SPECTATOR: "/spectator",
-  OWNER: "/owner",
-  ADMIN: "/admin",
-  DASHBOARD: "/dashboard",
-  USER: "/user",
   LEADERBOARD: "/leaderboard",
-  REPORTS: "/reports",
 
+  // USER
+  USER_PROFILE: "/user/profile",
+  USER_NOTIFICATION: "/user/notifications",
 
+  // SPECTATOR
+  SPECTATOR_DASHBOARD: "/spectator",
+  SPECTATOR_BET: "/spectator/bet",
+  SPECTATOR_TRACK_RESULT: "/spectator/track-result",
+
+  // OWNER
+  OWNER_DASHBOARD: "/owner",
+  OWNER_HORSE_LIST: "/owner/horses",
+  OWNER_JOCKEY_LIST: "/owner/jockeys",
+  OWNER_REGISTER_HORSE: "/owner/tournament/register-horse",
+  OWNER_EDIT_HORSE: "/owner/horse/edit/:id",
+  OWNER_EDIT_HORSE_TOURNAMENT: "/owner/tournament/edit-horse/:id",
+  OWNER_SELECT_JOCKEY: "/owner/tournament/select-jockey",
+
+  // JOCKEY
+  JOCKEY_DASHBOARD: "/jockey",
+  JOCKEY_SCHEDULE: "/jockey/schedule",
+  JOCKEY_INVITATIONS: "/jockey/invitations",
+
+  // REFEREE
+  REFEREE_DASHBOARD: "/referee",
+  REFEREE_RACE_LIST: "/referee/races",
+  REFEREE_TRACKS: "/referee/race/:id/monitor",
+
+  // ADMIN
+  ADMIN_DASHBOARD: "/admin/dashboard",
+  ADMIN_USER_LIST: "/admin/users",
+  ADMIN_USER_PROFILE: "/admin/users/:id",
+  ADMIN_TOURNAMENT_LIST: "/admin/tournaments",
+  ADMIN_TOURNAMENT_PROFILE: "/admin/tournaments/:id",
+  ADMIN_CALENDAR: "/admin/calendar",
+  ADMIN_REPORTS: "/admin/reports",
+
+  // DYNAMIC
+  HORSE_DETAIL: "/horses/:id",
+  JOCKEY_DETAIL: "/jockeys/:id",
+  RACE_DETAIL: "/races/:id"
 };
 
 export const buildRoute = (path: string, id: string) => {
