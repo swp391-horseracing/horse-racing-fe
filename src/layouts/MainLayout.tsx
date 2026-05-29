@@ -1,9 +1,31 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import {Outlet, useLocation, useNavigate} from "react-router-dom";
 import { Button } from "../components/ui/button.tsx";
 import { ROUTES } from "../router/routes.tsx";
 
+
+
 export default function MainLayout() {
+    interface LinkItem {
+        label: string;
+        to: string;
+    }
+    const generalLinks: LinkItem[] = [
+        { label: "Dashboard", to: ROUTES.DASHBOARD },
+        { label: "Schedule", to: ROUTES.CALENDAR },
+        { label: "Horses", to: ROUTES.HORSES },
+        { label: "Races", to: ROUTES.RACES },
+        { label: "LeaderBoard", to: ROUTES.LEADERBOARD },
+    ];
+
+    const roleLinks: LinkItem[] = [
+        { label: "Jockeys", to: ROUTES.JOCKEY_DASHBOARD },
+        { label: "Owners", to: ROUTES.OWNER_DASHBOARD },
+        { label: "Spectators", to: ROUTES.SPECTATOR_DASHBOARD },
+        { label: "Admin", to: ROUTES.ADMIN_DASHBOARD },
+    ];
+
     const navigate = useNavigate();
+    const location = useLocation();
 
     return (
         <div className="flex flex-col justify-center items-center h-screen w-screen bg-gray-200 pb-2 px-2 pt-4">
@@ -20,132 +42,61 @@ export default function MainLayout() {
                     </Button>
                 </div>
 
-                {/* Dashboard */}
-                <div className="flex justify-center items-center h-8">
-                    <Button
-                        onClick={() => navigate(ROUTES.DASHBOARD)}
-                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-                        variant="ghost"
-                    >
-                        Dashboard
-                    </Button>
+                {generalLinks.map((link) => (
+                    <div key={link.to} className="flex justify-center items-center h-8">
+                        <Button
+                            onClick={() => navigate(link.to)}
+                            variant="ghost"
+                            className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-5 py-2
+                            ${
+                                location.pathname === link.to ?
+                                    "bg-gray-100 text-gray-600"
+                                    : "text-gray-600 hover:text-gray-900"
+
+                            }`}
+                        >
+                            {link.label}
+                        </Button>
+                    </div>
+                ))}
+
+
+                <div className="flex justify-center items-center h-8 text-gray-400 px-1">
+                    [
                 </div>
 
-                {/* Schedule */}
-                <div className="flex justify-center items-center h-8">
-                    <Button
-                        onClick={() => navigate(ROUTES.CALENDAR)}
-                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-                        variant="ghost"
-                    >
-                        Schedule
-                    </Button>
-                </div>
+                {roleLinks.map((link) => (
+                    <div key={link.to} className="flex justify-center items-center h-8">
+                        <Button
+                            onClick={() => navigate(link.to)}
+                            variant="ghost"
+                            className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-5 py-2
+                            ${
+                                location.pathname === link.to ?
+                                    "bg-gray-100 text-gray-600"
+                                    : "text-gray-600 hover:text-gray-900"
+                            }`}
+                        >
+                            {link.label}
+                        </Button>
+                    </div>
+                ))}
 
-                {/* Horses */}
-                <div className="flex justify-center items-center h-8">
-                    <Button
-                        onClick={() => navigate(ROUTES.HORSE)}
-                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-                        variant="ghost"
-                    >
-                        Horses
-                    </Button>
-                </div>
-
-                {/* Races */}
-                <div className="flex justify-center items-center h-8">
-                    <Button
-                        onClick={() => navigate(ROUTES.RACES)}
-                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-                        variant="ghost"
-                    >
-                        Races
-                    </Button>
-                </div>
-
-                {/* LeaderBoard */}
-                <div className="flex justify-center items-center h-8">
-                    <Button
-                        onClick={() => navigate(ROUTES.LEADERBOARD)}
-                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-                        variant="ghost"
-                    >
-                        LeaderBoard
-                    </Button>
-                </div>
-
-                {/* Reports */}
-                <div className="flex justify-center items-center h-8">
-                    <Button
-                        onClick={() => navigate(ROUTES.REPORTS)}
-                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-                        variant="ghost"
-                    >
-                        Reports
-                    </Button>
-                </div>
-
-
-                {/* Roles */}
-                <div className="flex justify-center items-center h-8">
-                        [
-                </div>
-
-                {/* Jockeys */}
-                <div className="flex justify-center items-center h-8">
-                    <Button
-                        onClick={() => navigate(ROUTES.JOCKEY)}
-                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-                        variant="ghost"
-                    >
-                        Jockeys
-                    </Button>
-                </div>
-
-                {/* Owners */}
-                <div className="flex justify-center items-center h-8">
-                    <Button
-                        onClick={() => navigate(ROUTES.OWNER)}
-                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-                        variant="ghost"
-                    >
-                        Owners
-                    </Button>
-                </div>
-
-                {/* Spectators */}
-                <div className="flex justify-center items-center h-8">
-                    <Button
-                        onClick={() => navigate(ROUTES.SPECTATOR)}
-                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-                        variant="ghost"
-                    >
-                        Spectators
-                    </Button>
-                </div>
-
-                {/* Admin */}
-                <div className="flex justify-center items-center h-8">
-                    <Button
-                        onClick={() => navigate(ROUTES.ADMIN)}
-                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-                        variant="ghost"
-                    >
-                        Admin
-                    </Button>
-                </div>
-
-                {/* Roles */}
-                <div className="flex justify-center items-center h-8">
+                <div className="flex justify-center items-center h-8 text-gray-400 px-1">
                     ]
                 </div>
 
                 <div className="flex justify-center items-center h-8 ml-auto">
                     <Button
-                        onClick={() => navigate(ROUTES.USER)}
-                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                        onClick={() => navigate(ROUTES.USER_PROFILE)}
                         variant="ghost"
+                        className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-5 py-2
+                            ${
+                            location.pathname === ROUTES.USER_PROFILE ?
+                                "bg-gray-100 text-gray-600"
+                                : "text-gray-600 hover:text-gray-900"
+
+                        }`}
                     >
                         User
                     </Button>

@@ -16,7 +16,6 @@ import AdminPage from "../pages/AdminPage.tsx";
 import UserPage from "../pages/UserPage.tsx";
 import SpectatorPage from "../pages/SpectatorPage.tsx";
 import LeaderBoardPage from "../pages/LeaderBoardPage.tsx";
-import ReportsPage from "../pages/ReportsPage.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -47,7 +46,7 @@ export const router = createBrowserRouter([
         element: <CalendarPage />,
       },
       {
-        path: ROUTES.HORSE,
+        path: ROUTES.HORSES,
         element: <HorsePage />,
       },
       {
@@ -59,27 +58,23 @@ export const router = createBrowserRouter([
         element: <LeaderBoardPage />,
       },
       {
-        path: ROUTES.REPORTS,
-        element: <ReportsPage />,
-      },
-      {
-        path: ROUTES.JOCKEY,
+        path: ROUTES.JOCKEY_DASHBOARD,
         element: <JockeyPage />,
       },
       {
-        path: ROUTES.OWNER,
+        path: ROUTES.OWNER_DASHBOARD,
         element: <OwnerPage />,
       },
       {
-        path: ROUTES.SPECTATOR,
+        path: ROUTES.SPECTATOR_DASHBOARD,
         element: <SpectatorPage />,
       },
       {
-        path: ROUTES.ADMIN,
+        path: ROUTES.ADMIN_DASHBOARD,
         element: <AdminPage />,
       },
       {
-        path: ROUTES.USER,
+        path: ROUTES.USER_PROFILE,
         element: <UserPage />,
       },
     ],
