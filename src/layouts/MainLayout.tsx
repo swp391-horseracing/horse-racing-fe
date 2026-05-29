@@ -22,6 +22,7 @@ export default function MainLayout() {
         { label: "Owners", to: ROUTES.OWNER_DASHBOARD },
         { label: "Spectators", to: ROUTES.SPECTATOR_DASHBOARD },
         { label: "Admin", to: ROUTES.ADMIN_DASHBOARD },
+        //This for specific role like jockey/schedule or owners/horseManagement
     ];
 
     const navigate = useNavigate();
@@ -104,7 +105,7 @@ export default function MainLayout() {
 
             </div>
 
-            <div className="w-full h-full bg-white rounded-sm overflow-hidden">
+            <div className="w-full flex-1 bg-white rounded-sm overflow-hidden min-h-0">
                 <Outlet />
             </div>
         </div>
