@@ -1,7 +1,6 @@
-import { Outlet } from "react-router-dom";
-import {Button} from "../components/ui/button.tsx";
-import {ROUTES} from "../router/routes.tsx";
-import {useNavigate} from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
+import { Button } from "../components/ui/button.tsx";
+import { ROUTES } from "../router/routes.tsx";
 
 export default function MainLayout() {
     const navigate = useNavigate();
@@ -13,7 +12,7 @@ export default function MainLayout() {
                 {/* Logo */}
                 <div className="flex justify-center items-center h-8">
                     <Button
-                        onClick={() => navigate(ROUTES.HOME_PAGE)}
+                        onClick={() => navigate(ROUTES.HOME)}
                         className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
                         variant="ghost"
                     >
@@ -24,7 +23,7 @@ export default function MainLayout() {
                 {/* Dashboard */}
                 <div className="flex justify-center items-center h-8">
                     <Button
-                        onClick={() => navigate(ROUTES.DASHBOARD_PAGE)}
+                        onClick={() => navigate(ROUTES.DASHBOARD)}
                         className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
                         variant="ghost"
                     >
@@ -32,21 +31,21 @@ export default function MainLayout() {
                     </Button>
                 </div>
 
-                {/* Races */}
+                {/* Schedule */}
                 <div className="flex justify-center items-center h-8">
                     <Button
-                        onClick={() => navigate(ROUTES.CALENDAR_PAGE)}
+                        onClick={() => navigate(ROUTES.CALENDAR)}
                         className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
                         variant="ghost"
                     >
-                        Races
+                        Schedule
                     </Button>
                 </div>
 
                 {/* Horses */}
                 <div className="flex justify-center items-center h-8">
                     <Button
-                        onClick={() => navigate(ROUTES.HORSE_PAGE)}
+                        onClick={() => navigate(ROUTES.HORSE)}
                         className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
                         variant="ghost"
                     >
@@ -54,54 +53,32 @@ export default function MainLayout() {
                     </Button>
                 </div>
 
-                {/* Tournament */}
+                {/* Races */}
                 <div className="flex justify-center items-center h-8">
                     <Button
-                        onClick={() => navigate(ROUTES.TOURNAMENT_PAGE)}
+                        onClick={() => navigate(ROUTES.RACES)}
                         className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
                         variant="ghost"
                     >
-                        Tournament
+                        Races
                     </Button>
                 </div>
 
-                {/* People */}
+                {/* LeaderBoard */}
                 <div className="flex justify-center items-center h-8">
                     <Button
-                        onClick={() => navigate(ROUTES.PEOPLE_PAGE)}
+                        onClick={() => navigate(ROUTES.LEADERBOARD)}
                         className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
                         variant="ghost"
                     >
-                        People
-                    </Button>
-                </div>
-
-                {/* Ranking */}
-                <div className="flex justify-center items-center h-8">
-                    <Button
-                        onClick={() => navigate(ROUTES.RANKING_PAGE)}
-                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-                        variant="ghost"
-                    >
-                        Ranking
-                    </Button>
-                </div>
-
-                {/* Finance */}
-                <div className="flex justify-center items-center h-8">
-                    <Button
-                        onClick={() => navigate(ROUTES.FINANCE_PAGE)}
-                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-                        variant="ghost"
-                    >
-                        Finance
+                        LeaderBoard
                     </Button>
                 </div>
 
                 {/* Reports */}
                 <div className="flex justify-center items-center h-8">
                     <Button
-                        onClick={() => navigate(ROUTES.REPORTS_PAGE)}
+                        onClick={() => navigate(ROUTES.REPORTS)}
                         className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
                         variant="ghost"
                     >
@@ -109,20 +86,74 @@ export default function MainLayout() {
                     </Button>
                 </div>
 
-                {/* Settings */}
-                <div className="flex justify-center items-center h-8 ml-auto">
+
+                {/* Roles */}
+                <div className="flex justify-center items-center h-8">
+                        [
+                </div>
+
+                {/* Jockeys */}
+                <div className="flex justify-center items-center h-8">
                     <Button
-                        onClick={() => navigate(ROUTES.SETTINGS_PAGE)}
+                        onClick={() => navigate(ROUTES.JOCKEY)}
                         className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
                         variant="ghost"
                     >
-                        Avatar
+                        Jockeys
+                    </Button>
+                </div>
+
+                {/* Owners */}
+                <div className="flex justify-center items-center h-8">
+                    <Button
+                        onClick={() => navigate(ROUTES.OWNER)}
+                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                        variant="ghost"
+                    >
+                        Owners
+                    </Button>
+                </div>
+
+                {/* Spectators */}
+                <div className="flex justify-center items-center h-8">
+                    <Button
+                        onClick={() => navigate(ROUTES.SPECTATOR)}
+                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                        variant="ghost"
+                    >
+                        Spectators
+                    </Button>
+                </div>
+
+                {/* Admin */}
+                <div className="flex justify-center items-center h-8">
+                    <Button
+                        onClick={() => navigate(ROUTES.ADMIN)}
+                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                        variant="ghost"
+                    >
+                        Admin
+                    </Button>
+                </div>
+
+                {/* Roles */}
+                <div className="flex justify-center items-center h-8">
+                    ]
+                </div>
+
+                <div className="flex justify-center items-center h-8 ml-auto">
+                    <Button
+                        onClick={() => navigate(ROUTES.USER)}
+                        className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                        variant="ghost"
+                    >
+                        User
                     </Button>
                 </div>
 
             </div>
 
-            <div className="w-full h-full bg-white rounded-sm">
+            <div className="w-full h-full bg-white rounded-sm overflow-hidden">
                 <Outlet />
             </div>
         </div>
