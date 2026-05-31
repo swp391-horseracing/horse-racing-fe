@@ -38,15 +38,6 @@ type Toast = {
     type: ToastType;
 };
 
-type SystemNotification = {
-    id: number;
-    title: string;
-    description: string;
-    time: string;
-    read: boolean;
-    invitationId?: number;
-};
-
 // ─── Inline SVG Icons ────────────────────────────────────────────────────────
 
 const Icons = {
@@ -132,12 +123,6 @@ const Icons = {
             <polyline points="17 11 19 13 23 9"/>
         </svg>
     ),
-    Bell: () => (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-        </svg>
-    ),
     Search: () => (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -198,14 +183,7 @@ export default function JockeyPage() {
     // Simulator states
     const [deadlinePassedSim, setDeadlinePassedSim] = useState(false);
     const [concurrencyConflictSim, setConcurrencyConflictSim] = useState(false);
-
-    // Navigation and notifications states
-    const [showNotifications, setShowNotifications] = useState(false);
-    const [notifications, setNotifications] = useState<SystemNotification[]>([
-        { id: 1, title: "New Ride Offer", description: "Lord Alistair invited you to ride Thunder Blaze in Royal Cup 2026", time: "10 mins ago", read: false, invitationId: 1 },
-        { id: 2, title: "Upcoming Deadline", description: "Registration deadline for Royal Cup 2026 is approaching!", time: "1 hour ago", read: false },
-        { id: 3, title: "Invitation Cancelled", description: "The offer for Eclipse Gold has been cancelled by the owner.", time: "1 day ago", read: true },
-    ]);
+    const [selectedInvId, setSelectedInvId] = useState<number | null>(1);
 
     // Toast triggers
     const addToast = (message: string, type: ToastType = "success") => {
@@ -216,7 +194,6 @@ export default function JockeyPage() {
         }, 4000);
     };
 
-    const unreadNotificationsCount = notifications.filter(n => !n.read).length;
     const pendingCount = invitations.filter((i) => i.status === "Pending").length;
 
     // Jockey Navigation menu
@@ -246,7 +223,6 @@ export default function JockeyPage() {
         const target = invitations.find(inv => inv.id === id);
         updateInvitationStatus(id, "Accepted");
         addToast(`Response recorded successfully! Tentatively registered to ride ${target?.horse}. Awaiting final Owner confirmation.`, "success");
-        addToast(`[Alert] Real-time notification delivered to Owner (${target?.owner})!`, "info");
     };
 
     const handleDeclineInvitation = (id: number) => {
@@ -259,20 +235,7 @@ export default function JockeyPage() {
         const target = invitations.find(inv => inv.id === id);
         updateInvitationStatus(id, "Declined");
         addToast(`You declined the invitation to ride ${target?.horse}. Deep access revoked.`, "info");
-        addToast(`[Alert] Real-time notification sent to ${target?.owner}.`, "info");
     };
-
-    const handleNotificationClick = (n: SystemNotification) => {
-        setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, read: true } : item));
-        setShowNotifications(false);
-        if (n.invitationId) {
-            setActive(ROUTES.JOCKEY_INVITATIONS);
-            setSelectedInvId(n.invitationId);
-            addToast(`Navigated directly to deep access records for ${invitations.find(d => d.id === n.invitationId)?.horse}`, "success");
-        }
-    };
-
-    const [selectedInvId, setSelectedInvId] = useState<number | null>(1);
 
     const renderContent = () => {
         switch (active) {
@@ -307,17 +270,18 @@ export default function JockeyPage() {
 
     return (
         <TooltipProvider>
-            <SidebarProvider>
-                <div className="flex h-screen w-screen overflow-hidden relative bg-[#F4F6F5] text-slate-800 font-body">
+            <SidebarProvider style={{ minHeight: "100vh" }}>
+                {/* Root container: min-h-screen expands with content and allows scroll when zoomed */}
+                <div className="flex min-h-screen w-full overflow-x-hidden relative bg-[#F4F6F5] text-slate-800 font-body">
                     
                     <style dangerouslySetInnerHTML={{__html: `
-                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+                        @import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:wght@400;500;700&display=swap');
                         
                         .font-headline {
                             font-family: 'Playfair Display', Georgia, serif;
                         }
                         .font-body {
-                            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                            font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
                             letter-spacing: -0.011em;
                         }
                         .font-label {
@@ -355,31 +319,11 @@ export default function JockeyPage() {
                         ))}
                     </div>
 
-                    {/* Elite Turf Deep Emerald Sidebar */}
-                    <Sidebar collapsible="none" className="!static h-full border-r border-[#064E3B]/10 shrink-0 bg-[#064E3B] text-slate-100">
-                        <SidebarHeader className="px-4 py-6 border-b border-[#ffffff]/10">
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-tr from-[#EAB308] to-[#F5C518] text-[#064E3B] shadow-lg shadow-black/25 shrink-0">
-                                    <Icons.Horse />
-                                </div>
-                                <div className="overflow-hidden">
-                                    <p className="truncate text-sm font-black font-headline tracking-wider text-white uppercase">Elite Turf</p>
-                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                        <span className="h-2 w-2 rounded-full bg-[#EAB308] animate-pulse"></span>
-                                        <p className="truncate text-xs text-slate-200 font-medium">James Nguyen</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Verified badge */}
-                            <div className="mt-5 flex items-center justify-between rounded-xl bg-[#043E2F] border border-white/10 p-3 shadow-inner">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[#EAB308]"><Icons.UserCheck /></span>
-                                    <span className="text-xs font-bold text-slate-100 font-body">Tier 2 Verified Jockey</span>
-                                </div>
-                                <span className="rounded bg-[#EAB308] px-1.5 py-0.5 text-[9px] font-black text-[#064E3B] uppercase tracking-widest border border-white/20 font-label">
-                                    Active
-                                </span>
+                    {/* Elite Turf Deep Emerald Sidebar — sticky, full viewport height */}
+                    <Sidebar collapsible="none" className="!static self-stretch border-r border-[#064E3B]/10 shrink-0 bg-[#064E3B] text-slate-100">
+                        <SidebarHeader className="px-4 py-6 border-b border-[#ffffff]/10 flex items-center justify-center">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-tr from-[#EAB308] to-[#F5C518] text-[#064E3B] shadow-lg shadow-black/25 shrink-0">
+                                <Icons.Horse />
                             </div>
                         </SidebarHeader>
 
@@ -414,72 +358,20 @@ export default function JockeyPage() {
                         </SidebarContent>
                     </Sidebar>
 
-                    {/* Main content viewport */}
-                    <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#F4F6F5]">
+                    {/* Main content — grows to fill width, scrolls independently */}
+                    <main className="flex-1 flex flex-col min-w-0 bg-[#F4F6F5]">
                         
                         {/* Context-driven Top bar */}
-                        <div className="flex h-16 shrink-0 items-center justify-between border-b border-[#064E3B]/10 px-6 bg-white shadow-sm">
+                        <div className="flex h-16 shrink-0 items-center justify-between border-b border-[#064E3B]/10 px-6 bg-white shadow-sm sticky top-0 z-10">
                             <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
                                 <span className="font-headline text-[#064E3B] text-sm">Elite Turf Registry</span>
                                 <span className="text-slate-400"><Icons.ChevronRight /></span>
                                 <span className="font-body text-[#1E293B] font-bold">{activeLabel}</span>
                             </div>
-
-                            <div className="flex items-center gap-4 relative">
-                                {/* Simulated Notifications Bell */}
-                                <button 
-                                    onClick={() => setShowNotifications(!showNotifications)}
-                                    className="relative p-2 rounded-xl border border-slate-200 bg-white text-slate-650 hover:text-[#064E3B] hover:bg-slate-50 hover:border-slate-300 transition duration-200 shadow-sm"
-                                >
-                                    <Icons.Bell />
-                                    {unreadNotificationsCount > 0 && (
-                                        <span className="absolute top-0 right-0 h-4 w-4 bg-[#D97706] text-[9px] text-white font-black rounded-full flex items-center justify-center animate-bounce font-label">
-                                            {unreadNotificationsCount}
-                                        </span>
-                                    )}
-                                </button>
-
-                                {/* Notification Dropdown */}
-                                {showNotifications && (
-                                    <div className="absolute right-0 top-12 w-80 bg-white border border-[#064E3B]/10 rounded-2xl shadow-2xl z-50 p-3 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                                        <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
-                                            <h4 className="text-xs font-bold text-[#064E3B] uppercase tracking-wider font-headline">Turf Notifications</h4>
-                                            <button 
-                                                onClick={() => setNotifications(prev => prev.map(n => ({...n, read: true})))}
-                                                className="text-[10px] text-[#D97706] hover:underline font-bold"
-                                            >
-                                                Mark all read
-                                            </button>
-                                        </div>
-                                        <div className="space-y-1.5 max-h-64 overflow-y-auto">
-                                            {notifications.length === 0 ? (
-                                                <p className="text-xs text-slate-400 text-center py-4">No new system alerts</p>
-                                            ) : (
-                                                notifications.map(n => (
-                                                    <div 
-                                                        key={n.id} 
-                                                        onClick={() => handleNotificationClick(n)}
-                                                        className={cn(
-                                                            "p-2.5 rounded-xl text-left cursor-pointer transition-colors border text-xs",
-                                                            n.read ? "bg-slate-50/50 border-slate-100 text-slate-500 hover:bg-slate-50" : "bg-emerald-50/40 border-emerald-100 text-slate-800 border-l-4 border-l-[#064E3B] hover:bg-emerald-50/70"
-                                                        )}
-                                                    >
-                                                        <div className="flex justify-between items-start gap-1">
-                                                            <span className="font-bold truncate text-[#064E3B]">{n.title}</span>
-                                                            <span className="text-[9px] text-slate-400 font-label shrink-0">{n.time}</span>
-                                                        </div>
-                                                        <p className="text-[11px] mt-0.5 leading-relaxed text-slate-650 font-body">{n.description}</p>
-                                                    </div>
-                                                ))
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
                         </div>
 
-                        {/* Layout Inner Content */}
-                        <div className="flex-1 overflow-hidden min-h-0">
+                        {/* Layout Inner Content — scrolls with page */}
+                        <div className="flex-1 flex flex-col">
                             {renderContent()}
                         </div>
                     </main>
@@ -504,7 +396,7 @@ function DashboardOverview({
     const activeRaces = data.filter(inv => inv.status === "Accepted");
 
     return (
-        <div className="p-6 space-y-6 h-full overflow-y-auto max-w-7xl mx-auto font-body">
+        <div className="p-6 space-y-6 flex-1 overflow-y-auto max-w-7xl w-full mx-auto font-body min-h-0">
             {/* Welcoming Dashboard Grid Header */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
@@ -588,7 +480,7 @@ function DashboardOverview({
                         </div>
                     </div>
 
-                    {/* SVG Line Graph (Using a responsive 600x200 canvas with no aspect ratio distortion to keep indicators perfectly round) */}
+                    {/* SVG Line Graph */}
                     <div className="h-64 relative flex flex-col justify-between">
                         <div className="absolute inset-0 grid grid-rows-4 pointer-events-none">
                             {[75, 50, 25, 0].map((val) => (
@@ -750,7 +642,7 @@ function DashboardOverview({
                                     </div>
                                 ))}
                             </div>
-                            <p className="text-xs text-slate-500 font-semibold mt-3">Streak status: Excellent (W-W-L-W-L)</p>
+                            <p className="text-xs text-slate-555 font-semibold mt-3">Streak status: Excellent (W-W-L-W-L)</p>
                         </div>
 
                         {/* Milestones list */}
@@ -777,25 +669,25 @@ function RidingSchedule({ data, eventList }: { data: Invitation[]; eventList: an
     const assignedRaces = data.filter(inv => inv.status === "Accepted");
 
     return (
-        <div className="p-6 space-y-6 h-full overflow-y-auto max-w-4xl mx-auto font-body">
+        <div className="p-6 space-y-6 flex-1 overflow-y-auto max-w-7xl w-full mx-auto font-body min-h-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#064E3B]/10 pb-5">
                 <div>
                     <h2 className="text-xl font-bold font-headline text-[#064E3B]">Racing Schedule</h2>
                     <p className="text-xs text-slate-500 font-semibold mt-1">Confirmed upcoming tournament runs and active riding assignments</p>
                 </div>
             </div>
-
-            <div className="space-y-6">
-                {/* Section 1: Confirmed Jockey Rides */}
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Left: Assigned Races List */}
                 <div className="space-y-4">
                     <h3 className="font-bold font-headline text-[#064E3B] text-md">Your Confirmed Ride Schedule</h3>
                     {assignedRaces.length === 0 ? (
                         <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 text-center text-slate-500 shadow-sm">
-                            <p className="text-xs font-semibold text-slate-500">You have no upcoming confirmed rides scheduled.</p>
+                            <p className="text-xs font-semibold text-slate-550">You have no upcoming confirmed rides scheduled.</p>
                         </div>
                     ) : (
                         assignedRaces.map((r, index) => (
-                            <div 
+                            <div
                                 key={r.id}
                                 className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 hover:border-[#064E3B]/20 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm"
                             >
@@ -813,14 +705,12 @@ function RidingSchedule({ data, eventList }: { data: Invitation[]; eventList: an
                                         <span>🏇 Owner: <span className="text-[#064E3B] font-semibold">{r.owner}</span></span>
                                     </div>
                                 </div>
-
                                 <div className="border-t border-slate-100 md:border-t-0 md:border-l md:border-slate-100 pt-4 md:pt-0 md:pl-6 space-y-2.5 text-left md:text-right shrink-0">
                                     <p className="text-xs font-black font-label text-[#064E3B]">{r.raceTime}</p>
                                     <div className="flex items-center md:justify-end gap-1.5 mt-1">
                                         <span className="h-2.5 w-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
                                         <span className="text-[11px] text-[#064E3B] font-bold">Turf • 1600m Sprint</span>
                                     </div>
-                                    
                                     <button className="w-full md:w-auto rounded-lg bg-[#064E3B] text-white hover:bg-[#043E2F] px-3.5 py-2 text-xs font-bold transition shadow-sm">
                                         Download Race Guide
                                     </button>
@@ -830,8 +720,8 @@ function RidingSchedule({ data, eventList }: { data: Invitation[]; eventList: an
                     )}
                 </div>
 
-                {/* Section 2: Calendar Events from useEvent */}
-                <div className="space-y-4 pt-4 border-t border-[#064E3B]/10">
+                {/* Right: List of Events */}
+                <div className="space-y-4">
                     <h3 className="font-bold font-headline text-[#064E3B] text-md flex items-center gap-2">
                         <span>🏆</span>
                         System Race Calendar Events
@@ -966,7 +856,7 @@ function InvitationsView({
                 </div>
 
                 {/* List Container */}
-                <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
+                <div className="flex-1 overflow-y-auto p-3 space-y-2.5 font-body">
                     {filtered.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-48 text-slate-400 text-sm gap-2">
                             <span className="h-10 w-10 opacity-30 text-[#064E3B]"><Icons.Mail /></span>
@@ -1002,14 +892,14 @@ function InvitationsView({
                                                 {cfg.label}
                                             </span>
                                         </div>
-                                        <p className="text-xs text-slate-500 font-semibold truncate">{inv.tournament}</p>
+                                        <p className="text-xs text-slate-555 font-semibold truncate">{inv.tournament}</p>
                                         
                                         <div className="flex items-center justify-between mt-3.5 text-[9px] text-slate-400 font-bold border-t border-slate-100 pt-2 pb-1 font-label">
                                             <span>Owner: {inv.owner}</span>
                                             <span>🕒 {inv.raceTime}</span>
                                         </div>
                                         
-                                        {/* Deep access indicator statically flows below to prevent overlap issues */}
+                                        {/* Deep access indicator */}
                                         {isPending && (
                                             <div className="mt-1.5">
                                                 <span className="inline-block text-[8px] text-[#D97706] font-black bg-[#EAB308]/10 px-2 py-0.5 rounded border border-[#EAB308]/20 group-hover:scale-105 duration-200 font-label">
@@ -1101,7 +991,7 @@ function InvitationDetail({
     const isPending = inv.status === "Pending";
 
     return (
-        <div className="p-6 h-full overflow-y-auto space-y-6">
+        <div className="p-6 h-full overflow-y-auto space-y-6 font-body">
             
             {/* Header info */}
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-[#064E3B]/10 pb-5">
@@ -1192,14 +1082,14 @@ function InvitationDetail({
                         
                         <div className="col-span-1 sm:col-span-2 bg-white/90 p-3.5 rounded-xl border border-[#064E3B]/10 shadow-sm">
                             <span className="text-slate-500 font-bold block text-[10px] mb-1">Trainer Track Notes</span>
-                            <p className="text-slate-750 leading-relaxed text-xs italic">
+                            <p className="text-slate-755 leading-relaxed text-xs italic">
                                 "{inv.medicalLogs.trainerNotes}"
                             </p>
                         </div>
                     </div>
                 </div>
             ) : (
-                <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 text-center space-y-3 shadow-sm font-body">
+                <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 text-center space-y-3 shadow-sm">
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 border border-slate-100 text-slate-450 mx-auto">
                         <Icons.Lock />
                     </div>
@@ -1216,13 +1106,13 @@ function InvitationDetail({
 
             {/* Actions for Pending invitation (UC-JO-03) */}
             {isPending && (
-                <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 space-y-4 shadow-sm font-body">
+                <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 space-y-4 shadow-sm">
                     <div className="border-b border-slate-100 pb-2.5">
                         <h4 className="text-xs font-bold text-[#064E3B] uppercase tracking-wide">Submit Ride Decision</h4>
                         <p className="text-[11px] text-slate-500 mt-0.5">Accepting registers you tentatively. Declining releases the hold instantly.</p>
                     </div>
                     
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 font-body">
                         <button
                             onClick={() => onAccept(inv.id)}
                             className="flex-1 rounded-xl bg-[#064E3B] text-white hover:bg-[#043E2F] px-4 py-3.5 text-xs font-bold shadow-sm transition active:scale-95 duration-200"
