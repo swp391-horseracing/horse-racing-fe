@@ -14,6 +14,8 @@ import {
 import { TooltipProvider } from "../components/ui/tooltip";
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
+import { useHorseList } from "../hooks/useHorseList.ts";
+import { useEvent } from "../hooks/useEvent.ts";
 
 // ─── Inline SVG Icons ────────────────────────────────────────────────────────
 
@@ -153,6 +155,7 @@ type NavItem = {
 };
 
 type InvStatus = "Pending" | "Accepted" | "Declined" | "Expired" | "Cancelled" | "Superseded";
+type FilterType = "All" | InvStatus;
 
 type Invitation = {
     id: number;
@@ -328,6 +331,10 @@ export default function JockeyPage() {
     const [data, setData] = useState<Invitation[]>(initialInvitations);
     const [toasts, setToasts] = useState<Toast[]>([]);
     
+    // Loaded placeholder hook data
+    const { horseList } = useHorseList();
+    const { eventList } = useEvent();
+
     // Simulator states
     const [deadlinePassedSim, setDeadlinePassedSim] = useState(false);
     const [concurrencyConflictSim, setConcurrencyConflictSim] = useState(false);
@@ -395,12 +402,6 @@ export default function JockeyPage() {
         addToast(`[Alert] Real-time notification sent to ${target?.owner}.`, "info");
     };
 
-    const handleBulkDecline = (ids: number[]) => {
-        setData(prev => prev.map(inv => ids.includes(inv.id) ? { ...inv, status: "Declined" } : inv));
-        addToast(`Successfully declined ${ids.length} selected invitations. All deep access credentials revoked.`, "success");
-        addToast(`[Alert] Real-time decline notifications fired to respective Horse Owners.`, "info");
-    };
-
     const handleNotificationClick = (n: SystemNotification) => {
         setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, read: true } : item));
         setShowNotifications(false);
@@ -420,10 +421,11 @@ export default function JockeyPage() {
                     <DashboardOverview 
                         data={data} 
                         setActiveTab={(tab) => setActive(tab)} 
+                        horseList={horseList}
                     />
                 );
             case ROUTES.JOCKEY_SCHEDULE:    
-                return <RidingSchedule data={data} />;
+                return <RidingSchedule data={data} eventList={eventList} />;
             case ROUTES.JOCKEY_INVITATIONS: 
                 return (
                     <InvitationsView 
@@ -432,7 +434,6 @@ export default function JockeyPage() {
                         setSelectedId={setSelectedInvId}
                         onAccept={handleAcceptInvitation}
                         onDecline={handleDeclineInvitation}
-                        onBulkDecline={handleBulkDecline}
                         deadlinePassedSim={deadlinePassedSim}
                         setDeadlinePassedSim={setDeadlinePassedSim}
                         concurrencyConflictSim={concurrencyConflictSim}
@@ -551,29 +552,6 @@ export default function JockeyPage() {
                                     ))}
                                 </SidebarMenu>
                             </SidebarGroup>
-
-                            {/* License & Physical Status inside sidebar */}
-                            <div className="mt-8 mx-4 p-4 rounded-xl bg-[#043E2F]/60 border border-white/5 space-y-3">
-                                <h4 className="text-[10px] font-black text-[#EAB308] uppercase tracking-widest border-b border-white/10 pb-1.5 font-label">Jockey Registry Metrics</h4>
-                                <div className="grid grid-cols-2 gap-2 text-xs font-body">
-                                    <div>
-                                        <span className="text-slate-350 block text-[10px]">Height Limit</span>
-                                        <span className="font-bold text-white">158 cm</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-slate-350 block text-[10px]">Active Weight</span>
-                                        <span className="font-bold text-[#EAB308]">52.8 kg</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-slate-350 block text-[10px]">Rider Style</span>
-                                        <span className="font-bold text-white">Aerodynamic</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-slate-350 block text-[10px]">Pro Experience</span>
-                                        <span className="font-bold text-white">8 Years</span>
-                                    </div>
-                                </div>
-                            </div>
                         </SidebarContent>
                     </Sidebar>
 
@@ -592,7 +570,7 @@ export default function JockeyPage() {
                                 {/* Simulated Notifications Bell */}
                                 <button 
                                     onClick={() => setShowNotifications(!showNotifications)}
-                                    className="relative p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-[#064E3B] hover:bg-slate-50 hover:border-slate-300 transition duration-200 shadow-sm"
+                                    className="relative p-2 rounded-xl border border-slate-200 bg-white text-slate-650 hover:text-[#064E3B] hover:bg-slate-50 hover:border-slate-300 transition duration-200 shadow-sm"
                                 >
                                     <Icons.Bell />
                                     {unreadNotificationsCount > 0 && (
@@ -654,7 +632,15 @@ export default function JockeyPage() {
 
 // ─── Component 1: DashboardOverview ──────────────────────────────────────────
 
-function DashboardOverview({ data, setActiveTab }: { data: Invitation[]; setActiveTab: (k: string) => void }) {
+function DashboardOverview({ 
+    data, 
+    setActiveTab,
+    horseList
+}: { 
+    data: Invitation[]; 
+    setActiveTab: (k: string) => void;
+    horseList: any[];
+}) {
     const pendingInvites = data.filter(inv => inv.status === "Pending");
     const activeRaces = data.filter(inv => inv.status === "Accepted");
 
@@ -794,48 +780,43 @@ function DashboardOverview({ data, setActiveTab }: { data: Invitation[]; setActi
                     </div>
                 </div>
 
-                {/* Jockey Leaderboard Sidebar */}
+                {/* Regional Standings - Using horseList from useHorseList */}
                 <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 flex flex-col justify-between shadow-sm">
                     <div>
                         <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
                             <h3 className="font-bold text-md font-headline text-[#064E3B] flex items-center gap-2">
                                 <span className="text-[#D97706]"><Icons.Award /></span>
-                                Regional Standings
+                                Registry Standings
                             </h3>
-                            <span className="text-[9px] font-label text-slate-400 font-bold uppercase">Rankings</span>
+                            <span className="text-[9px] font-label text-slate-400 font-bold uppercase">Performance</span>
                         </div>
 
                         <div className="space-y-2.5">
-                            {[
-                                { rank: 1, name: "Christian Demuro", winRate: "42.5%", color: "text-[#D97706]" },
-                                { rank: 2, name: "Lanfranco Dettori", winRate: "39.8%", color: "text-slate-400" },
-                                { rank: 3, name: "Ryan Moore", winRate: "38.2%", color: "text-[#064E3B]" },
-                                { rank: 13, name: "Yutaka Take", winRate: "34.0%", color: "text-slate-400" },
-                                { rank: 14, name: "James Nguyen (You)", winRate: "33.3%", color: "text-[#064E3B]", active: true }
-                            ].map((jc) => (
+                            {horseList.map((horse, idx) => (
                                 <div 
-                                    key={jc.rank} 
-                                    className={cn(
-                                        "flex items-center justify-between p-2.5 rounded-xl border transition",
-                                        jc.active 
-                                            ? "bg-[#064E3B]/5 border-[#064E3B]/30 text-[#064E3B] font-extrabold" 
-                                            : "bg-slate-50/50 border-slate-100 hover:border-slate-200"
-                                    )}
+                                    key={horse.id} 
+                                    className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-slate-50/50 hover:border-slate-200 transition"
                                 >
-                                    <div className="flex items-center gap-2.5">
-                                        <span className={cn("text-xs font-black w-5 text-center block font-label", jc.color)}>
-                                            #{jc.rank}
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                        <span className="text-xs font-black w-5 text-center block font-label text-slate-400">
+                                            #{idx + 1}
                                         </span>
-                                        <span className="text-xs truncate max-w-[125px] text-slate-700 font-semibold">{jc.name}</span>
+                                        <div className="flex flex-col min-w-0">
+                                            <span className="text-xs truncate text-slate-700 font-semibold">{horse.name}</span>
+                                            <span className="text-[10px] text-slate-450 truncate">{horse.breed} • {horse.gender}</span>
+                                        </div>
                                     </div>
-                                    <span className="text-xs font-bold text-slate-500 font-label">{jc.winRate}</span>
+                                    <div className="text-right shrink-0">
+                                        <span className="text-xs font-bold text-[#064E3B] font-label block">{horse.performance}</span>
+                                        <span className="text-[9px] text-slate-400 font-semibold block">{horse.status}</span>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-slate-100 text-[10px] font-bold text-slate-400 text-center font-label">
-                        Keep win count high to advance rankings!
+                        Live Registry Feed Loaded
                     </div>
                 </div>
             </div>
@@ -933,7 +914,7 @@ function DashboardOverview({ data, setActiveTab }: { data: Invitation[]; setActi
 
 // ─── Component 2: RidingSchedule ───────────────────────────────────────────────
 
-function RidingSchedule({ data }: { data: Invitation[] }) {
+function RidingSchedule({ data, eventList }: { data: Invitation[]; eventList: any[] }) {
     const assignedRaces = data.filter(inv => inv.status === "Accepted");
 
     return (
@@ -945,48 +926,92 @@ function RidingSchedule({ data }: { data: Invitation[] }) {
                 </div>
             </div>
 
-            <div className="space-y-4">
-                {assignedRaces.length === 0 ? (
-                    <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-10 text-center text-slate-500 shadow-sm max-w-xl mx-auto">
-                        <span className="block text-4xl mb-3 opacity-35">📅</span>
-                        <p className="text-sm font-semibold text-slate-600">You have no upcoming confirmed races scheduled.</p>
-                        <p className="text-xs text-slate-400 mt-1.5">Go to the Invitations tab to review and accept ride offers.</p>
-                    </div>
-                ) : (
-                    assignedRaces.map((r, index) => (
-                        <div 
-                            key={r.id}
-                            className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 hover:border-[#064E3B]/20 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm"
-                        >
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="bg-[#064E3B]/10 text-[#064E3B] font-extrabold px-2 py-0.5 rounded text-[9px] border border-[#064E3B]/20 font-label">
-                                        RACE #{index + 1}
-                                    </span>
-                                    <span className="text-[9px] text-slate-400 font-bold uppercase font-label">Registry Confirmed</span>
-                                </div>
-                                <h4 className="text-lg font-black font-headline text-[#064E3B]">{r.horse}</h4>
-                                <p className="text-xs text-slate-555 font-semibold">{r.tournament}</p>
-                                <div className="flex items-center gap-4 text-xs text-slate-500 mt-2">
-                                    <span>🧬 Breed: <span className="text-[#064E3B] font-semibold">{r.breed}</span></span>
-                                    <span>🏇 Owner: <span className="text-[#064E3B] font-semibold">{r.owner}</span></span>
-                                </div>
-                            </div>
-
-                            <div className="border-t border-slate-100 md:border-t-0 md:border-l md:border-slate-100 pt-4 md:pt-0 md:pl-6 space-y-2.5 text-left md:text-right shrink-0">
-                                <p className="text-xs font-black font-label text-[#064E3B]">{r.raceTime}</p>
-                                <div className="flex items-center md:justify-end gap-1.5 mt-1">
-                                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                                    <span className="text-[11px] text-[#064E3B] font-bold">Turf • 1600m Sprint</span>
-                                </div>
-                                
-                                <button className="w-full md:w-auto rounded-lg bg-[#064E3B] text-white hover:bg-[#043E2F] px-3.5 py-2 text-xs font-bold transition shadow-sm">
-                                    Download Race Guide
-                                </button>
-                            </div>
+            <div className="space-y-6">
+                {/* Section 1: Confirmed Jockey Rides */}
+                <div className="space-y-4">
+                    <h3 className="font-bold font-headline text-[#064E3B] text-md">Your Confirmed Ride Schedule</h3>
+                    {assignedRaces.length === 0 ? (
+                        <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 text-center text-slate-500 shadow-sm">
+                            <p className="text-xs font-semibold text-slate-500">You have no upcoming confirmed rides scheduled.</p>
                         </div>
-                    ))
-                )}
+                    ) : (
+                        assignedRaces.map((r, index) => (
+                            <div 
+                                key={r.id}
+                                className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 hover:border-[#064E3B]/20 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm"
+                            >
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className="bg-[#064E3B]/10 text-[#064E3B] font-extrabold px-2 py-0.5 rounded text-[9px] border border-[#064E3B]/20 font-label">
+                                            RACE #{index + 1}
+                                        </span>
+                                        <span className="text-[9px] text-slate-400 font-bold uppercase font-label">Registry Confirmed</span>
+                                    </div>
+                                    <h4 className="text-lg font-black font-headline text-[#064E3B]">{r.horse}</h4>
+                                    <p className="text-xs text-slate-555 font-semibold">{r.tournament}</p>
+                                    <div className="flex items-center gap-4 text-xs text-slate-500 mt-2">
+                                        <span>🧬 Breed: <span className="text-[#064E3B] font-semibold">{r.breed}</span></span>
+                                        <span>🏇 Owner: <span className="text-[#064E3B] font-semibold">{r.owner}</span></span>
+                                    </div>
+                                </div>
+
+                                <div className="border-t border-slate-100 md:border-t-0 md:border-l md:border-slate-100 pt-4 md:pt-0 md:pl-6 space-y-2.5 text-left md:text-right shrink-0">
+                                    <p className="text-xs font-black font-label text-[#064E3B]">{r.raceTime}</p>
+                                    <div className="flex items-center md:justify-end gap-1.5 mt-1">
+                                        <span className="h-2.5 w-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                                        <span className="text-[11px] text-[#064E3B] font-bold">Turf • 1600m Sprint</span>
+                                    </div>
+                                    
+                                    <button className="w-full md:w-auto rounded-lg bg-[#064E3B] text-white hover:bg-[#043E2F] px-3.5 py-2 text-xs font-bold transition shadow-sm">
+                                        Download Race Guide
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                {/* Section 2: Calendar Events from useEvent */}
+                <div className="space-y-4 pt-4 border-t border-[#064E3B]/10">
+                    <h3 className="font-bold font-headline text-[#064E3B] text-md flex items-center gap-2">
+                        <span>🏆</span>
+                        System Race Calendar Events
+                    </h3>
+                    <div className="grid grid-cols-1 gap-3">
+                        {eventList.map((event) => (
+                            <div 
+                                key={event.id} 
+                                className="p-4 rounded-xl border border-slate-250/70 bg-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-[#064E3B]/20 transition"
+                            >
+                                <div className="flex items-start sm:items-center gap-3">
+                                    <span className={cn(
+                                        "h-3.5 w-3.5 rounded-full shrink-0 mt-1 sm:mt-0",
+                                        event.className?.includes("bg-yellow-600") && "bg-yellow-600",
+                                        event.className?.includes("bg-red-600") && "bg-red-600",
+                                        event.className?.includes("bg-green-600") && "bg-green-600"
+                                    )} />
+                                    <div>
+                                        <p className="font-bold text-slate-800 text-sm leading-snug">{event.title}</p>
+                                        <div className="flex items-center gap-3 mt-1 text-[11px] text-slate-450 font-medium">
+                                            <span>Editable: {event.editable ? "Yes" : "No"}</span>
+                                            <span>•</span>
+                                            <span>Overlap: {event.overlap ? "Allowed" : "Blocked"}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="text-left sm:text-right font-label text-xs font-bold text-[#064E3B] pt-2 sm:pt-0 border-t border-slate-100 sm:border-0">
+                                    {event.start ? (
+                                        <span>
+                                            {event.start.replace("T", " ")} {event.end ? `to ${event.end.split("T")[1]}` : ""}
+                                        </span>
+                                    ) : (
+                                        <span>{event.date}</span>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         </div>
     );
@@ -1000,7 +1025,6 @@ function InvitationsView({
     setSelectedId,
     onAccept,
     onDecline,
-    onBulkDecline,
     deadlinePassedSim,
     setDeadlinePassedSim,
     concurrencyConflictSim,
@@ -1011,7 +1035,6 @@ function InvitationsView({
     setSelectedId: (id: number | null) => void;
     onAccept: (id: number) => void;
     onDecline: (id: number) => void;
-    onBulkDecline: (ids: number[]) => void;
     deadlinePassedSim: boolean;
     setDeadlinePassedSim: (v: boolean) => void;
     concurrencyConflictSim: boolean;
@@ -1019,8 +1042,6 @@ function InvitationsView({
 }) {
     const [filter, setFilter] = useState<FilterType>("All");
     const [search, setSearch] = useState("");
-    const [bulkSelectMode, setBulkSelectMode] = useState(false);
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const filters: FilterType[] = ["All", "Pending", "Accepted", "Declined", "Expired"];
 
@@ -1037,27 +1058,6 @@ function InvitationsView({
 
     const selectedInv = data.find((i) => i.id === selectedId) ?? null;
     const pendingInvites = data.filter((i) => i.status === "Pending");
-
-    const toggleSelectAllPending = () => {
-        if (selectedIds.length === pendingInvites.length) {
-            setSelectedIds([]);
-        } else {
-            setSelectedIds(pendingInvites.map(i => i.id));
-        }
-    };
-
-    const toggleSelectInv = (id: number) => {
-        setSelectedIds(prev => 
-            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-        );
-    };
-
-    const executeBulkDecline = () => {
-        if (selectedIds.length === 0) return;
-        onBulkDecline(selectedIds);
-        setSelectedIds([]);
-        setBulkSelectMode(false);
-    };
 
     return (
         <div className="flex h-full w-full overflow-hidden font-body">
@@ -1104,52 +1104,7 @@ function InvitationsView({
                             </button>
                         ))}
                     </div>
-
-                    {/* Bulk Selection toggle */}
-                    {pendingInvites.length > 0 && (
-                        <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
-                            <span className="text-[9px] font-label text-slate-400 font-bold uppercase tracking-wider">Bulk Actions</span>
-                            <button 
-                                onClick={() => {
-                                    setBulkSelectMode(!bulkSelectMode);
-                                    setSelectedIds([]);
-                                }}
-                                className={cn(
-                                    "text-xs px-2.5 py-1 rounded-lg border font-bold transition",
-                                    bulkSelectMode 
-                                        ? "bg-rose-50 border-rose-350 text-rose-700 hover:bg-rose-100" 
-                                        : "bg-white border-slate-200 text-slate-550 hover:bg-[#F4F6F5]"
-                                )}
-                            >
-                                {bulkSelectMode ? "Cancel Bulk Mode" : "Bulk Decline Mode"}
-                            </button>
-                        </div>
-                    )}
                 </div>
-
-                {/* Bulk Select Control Bar */}
-                {bulkSelectMode && (
-                    <div className="bg-[#F4F6F5]/80 border-b border-slate-200 p-3 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-2">
-                            <input 
-                                type="checkbox" 
-                                checked={selectedIds.length === pendingInvites.length}
-                                onChange={toggleSelectAllPending}
-                                className="rounded border-slate-350 bg-white text-[#064E3B] focus:ring-[#064E3B] focus:ring-offset-0 h-4.5 w-4.5"
-                            />
-                            <span className="text-xs text-[#064E3B] font-extrabold">All Pending ({selectedIds.length})</span>
-                        </div>
-                        
-                        <button 
-                            disabled={selectedIds.length === 0}
-                            onClick={executeBulkDecline}
-                            className="bg-rose-600 hover:bg-rose-750 disabled:opacity-40 disabled:hover:bg-rose-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition shadow-sm"
-                        >
-                            <Icons.Trash />
-                            <span>Decline Selected</span>
-                        </button>
-                    </div>
-                )}
 
                 {/* List Container */}
                 <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
@@ -1169,28 +1124,15 @@ function InvitationsView({
                             return (
                                 <div
                                     key={inv.id}
-                                    onClick={() => !bulkSelectMode && setSelectedId(inv.id)}
+                                    onClick={() => setSelectedId(inv.id)}
                                     className={cn(
-                                        "relative group flex items-start gap-3 rounded-2xl border p-4 transition-all duration-300",
-                                        bulkSelectMode ? "" : "cursor-pointer",
-                                        isSelected && !bulkSelectMode
+                                        "relative group flex items-start gap-3 rounded-2xl border p-4 transition-all duration-300 cursor-pointer",
+                                        isSelected
                                             ? "border-[#064E3B] bg-[#064E3B]/5 shadow-md shadow-black/5"
                                             : "border-slate-200/80 bg-white hover:bg-[#F4F6F5]/50 shadow-sm"
                                     )}
                                 >
-                                    {/* Bulk Selection Checkbox */}
-                                    {bulkSelectMode && isPending && (
-                                        <div className="pt-0.5 shrink-0">
-                                            <input 
-                                                type="checkbox" 
-                                                checked={selectedIds.includes(inv.id)}
-                                                onChange={() => toggleSelectInv(inv.id)}
-                                                className="rounded border-slate-350 bg-white text-[#064E3B] focus:ring-[#064E3B] focus:ring-offset-0 h-4.5 w-4.5"
-                                            />
-                                        </div>
-                                    )}
-
-                                    <div className="flex-1 min-w-0">
+                                    <div className="flex-1 min-w-0 flex flex-col">
                                         <div className="flex items-center justify-between gap-2 mb-1.5">
                                             <p className="font-bold font-headline text-[#064E3B] truncate text-sm">{inv.horse}</p>
                                             <span className={cn(
@@ -1203,18 +1145,20 @@ function InvitationsView({
                                         </div>
                                         <p className="text-xs text-slate-500 font-semibold truncate">{inv.tournament}</p>
                                         
-                                        <div className="flex items-center justify-between mt-3.5 text-[9px] text-slate-400 font-bold border-t border-slate-100 pt-2 font-label">
+                                        <div className="flex items-center justify-between mt-3.5 text-[9px] text-slate-400 font-bold border-t border-slate-100 pt-2 pb-1 font-label">
                                             <span>Owner: {inv.owner}</span>
                                             <span>🕒 {inv.raceTime}</span>
                                         </div>
+                                        
+                                        {/* Deep access indicator statically flows below to prevent overlap issues */}
+                                        {isPending && (
+                                            <div className="mt-1.5">
+                                                <span className="inline-block text-[8px] text-[#D97706] font-black bg-[#EAB308]/10 px-2 py-0.5 rounded border border-[#EAB308]/20 group-hover:scale-105 duration-200 font-label">
+                                                    🔓 DEEP ACCESS ACTIVE
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
-
-                                    {/* Small indicator when deep access is active */}
-                                    {isPending && !bulkSelectMode && (
-                                        <span className="absolute bottom-3 left-4 text-[8px] text-[#D97706] font-black bg-[#EAB308]/10 px-2 py-0.5 rounded border border-[#EAB308]/20 group-hover:scale-105 duration-200 font-label">
-                                            🔓 DEEP ACCESS ACTIVE
-                                        </span>
-                                    )}
                                 </div>
                             );
                         })
@@ -1310,7 +1254,7 @@ function InvitationDetail({
                         <span className="text-[9px] text-slate-400 font-label">ID: #0087{inv.id}</span>
                     </div>
                     <h2 className="text-2xl font-black font-headline text-[#064E3B] tracking-tight">{inv.horse}</h2>
-                    <p className="text-xs font-semibold text-slate-550 font-body">{inv.tournament}</p>
+                    <p className="text-xs font-semibold text-slate-555 font-body">{inv.tournament}</p>
                 </div>
 
                 <span className={cn(
