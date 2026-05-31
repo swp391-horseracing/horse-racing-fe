@@ -4,7 +4,6 @@ import {
     SidebarContent,
     SidebarGroup,
     SidebarGroupLabel,
-    SidebarHeader,
     SidebarMenu,
     SidebarMenuBadge,
     SidebarMenuButton,
@@ -270,9 +269,9 @@ export default function JockeyPage() {
 
     return (
         <TooltipProvider>
-            <SidebarProvider style={{ minHeight: "100vh" }}>
+            <SidebarProvider style={{ height: "100%" }}>
                 {/* Root container: min-h-screen expands with content and allows scroll when zoomed */}
-                <div className="flex min-h-screen w-full overflow-x-hidden relative bg-[#F4F6F5] text-slate-800 font-body">
+                <div className="flex h-full w-full overflow-x-hidden relative bg-[#F4F6F5] text-slate-800 font-body">
                     
                     <style dangerouslySetInnerHTML={{__html: `
                         @import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:wght@400;500;700&display=swap');
@@ -321,12 +320,7 @@ export default function JockeyPage() {
 
                     {/* Elite Turf Deep Emerald Sidebar — sticky, full viewport height */}
                     <Sidebar collapsible="none" className="!static self-stretch border-r border-[#064E3B]/10 shrink-0 bg-[#064E3B] text-slate-100">
-                        <SidebarHeader className="px-4 py-6 border-b border-[#ffffff]/10 flex items-center justify-center">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-tr from-[#EAB308] to-[#F5C518] text-[#064E3B] shadow-lg shadow-black/25 shrink-0">
-                                <Icons.Horse />
-                            </div>
-                        </SidebarHeader>
-
+                        {/* Logo header elements removed as requested */}
                         <SidebarContent className="py-4">
                             <SidebarGroup>
                                 <SidebarGroupLabel className="px-3 text-slate-350 text-[10px] uppercase font-black tracking-widest mb-3 font-body">Jockey Operations</SidebarGroupLabel>
@@ -370,8 +364,8 @@ export default function JockeyPage() {
                             </div>
                         </div>
 
-                        {/* Layout Inner Content — scrolls with page */}
-                        <div className="flex-1 flex flex-col">
+                        {/* Layout Inner Content — handles scrolling naturally for child views */}
+                        <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
                             {renderContent()}
                         </div>
                     </main>
@@ -396,7 +390,7 @@ function DashboardOverview({
     const activeRaces = data.filter(inv => inv.status === "Accepted");
 
     return (
-        <div className="p-6 space-y-6 flex-1 overflow-y-auto max-w-7xl w-full mx-auto font-body min-h-0">
+        <div className="p-6 space-y-6 max-w-7xl w-full mx-auto font-body">
             {/* Welcoming Dashboard Grid Header */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
@@ -669,7 +663,7 @@ function RidingSchedule({ data, eventList }: { data: Invitation[]; eventList: an
     const assignedRaces = data.filter(inv => inv.status === "Accepted");
 
     return (
-        <div className="p-6 space-y-6 flex-1 overflow-y-auto max-w-7xl w-full mx-auto font-body min-h-0">
+        <div className="p-6 space-y-6 max-w-7xl w-full mx-auto font-body">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#064E3B]/10 pb-5">
                 <div>
                     <h2 className="text-xl font-bold font-headline text-[#064E3B]">Racing Schedule</h2>
