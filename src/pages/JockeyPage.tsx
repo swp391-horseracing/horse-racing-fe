@@ -16,6 +16,36 @@ import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
 import { useHorseList } from "../hooks/useHorseList.ts";
 import { useEvent } from "../hooks/useEvent.ts";
+import { useInvitations } from "../hooks/useInvitations.ts";
+import type { Invitation, InvStatus } from "../services/invitationService.ts";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type NavItem = {
+    label: string;
+    icon: React.ElementType;
+    key: string;
+    badge?: number;
+};
+
+type FilterType = "All" | InvStatus;
+
+type ToastType = "success" | "error" | "warning" | "info";
+
+type Toast = {
+    id: number;
+    message: string;
+    type: ToastType;
+};
+
+type SystemNotification = {
+    id: number;
+    title: string;
+    description: string;
+    time: string;
+    read: boolean;
+    invitationId?: number;
+};
 
 // ─── Inline SVG Icons ────────────────────────────────────────────────────────
 
@@ -145,174 +175,6 @@ const Icons = {
     )
 };
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type NavItem = {
-    label: string;
-    icon: React.ElementType;
-    key: string;
-    badge?: number;
-};
-
-type InvStatus = "Pending" | "Accepted" | "Declined" | "Expired" | "Cancelled" | "Superseded";
-type FilterType = "All" | InvStatus;
-
-type Invitation = {
-    id: number;
-    horse: string;
-    tournament: string;
-    raceTime: string;
-    status: InvStatus;
-    breed: string;
-    winRate: string;
-    owner: string;
-    regDeadline: string;
-    medicalLogs: {
-        lastCheck: string;
-        checkResult: string;
-        weight: string;
-        restingHeartRate: string;
-        injuryHistory: string;
-        trainerNotes: string;
-    };
-};
-
-type ToastType = "success" | "error" | "warning" | "info";
-
-type Toast = {
-    id: number;
-    message: string;
-    type: ToastType;
-};
-
-type SystemNotification = {
-    id: number;
-    title: string;
-    description: string;
-    time: string;
-    read: boolean;
-    invitationId?: number;
-};
-
-// ─── Invitation data ──────────────────────────────────────────────────────────
-
-const initialInvitations: Invitation[] = [
-    {
-        id: 1,
-        horse: "Thunder Blaze",
-        tournament: "Royal Cup 2026",
-        raceTime: "2026-06-14 14:00",
-        status: "Pending",
-        breed: "Thoroughbred",
-        winRate: "72%",
-        owner: "Lord Alistair",
-        regDeadline: "2026-06-10T23:59:59Z",
-        medicalLogs: {
-            lastCheck: "2026-05-28",
-            checkResult: "Perfect (Clear)",
-            weight: "492 kg",
-            restingHeartRate: "36 bpm",
-            injuryHistory: "None recorded",
-            trainerNotes: "Responds well to firm leads; prefers outside track position."
-        }
-    },
-    {
-        id: 2,
-        horse: "Silver Wind",
-        tournament: "Grand Prix Spring",
-        raceTime: "2026-06-20 10:00",
-        status: "Accepted",
-        breed: "Arabian",
-        winRate: "68%",
-        owner: "Marcus Vance",
-        regDeadline: "2026-06-15T23:59:59Z",
-        medicalLogs: {
-            lastCheck: "2026-05-25",
-            checkResult: "Healthy",
-            weight: "475 kg",
-            restingHeartRate: "38 bpm",
-            injuryHistory: "Slight tendon strain (Oct 2025), fully recovered",
-            trainerNotes: "Exceptional explosive start. Keep calm in heavy dirt packs."
-        }
-    },
-    {
-        id: 3,
-        horse: "Dark Matter",
-        tournament: "National Derby",
-        raceTime: "2026-07-01 09:30",
-        status: "Pending",
-        breed: "Quarter Horse",
-        winRate: "55%",
-        owner: "Seraphina Vance",
-        regDeadline: "2026-06-25T23:59:59Z",
-        medicalLogs: {
-            lastCheck: "2026-05-29",
-            checkResult: "Optimal Condition",
-            weight: "510 kg",
-            restingHeartRate: "35 bpm",
-            injuryHistory: "None",
-            trainerNotes: "Prefers shorter sprint runs. Keep riding whip actions minimal."
-        }
-    },
-    {
-        id: 4,
-        horse: "Golden Flash",
-        tournament: "Summer Classic",
-        raceTime: "2026-05-10 15:00",
-        status: "Expired",
-        breed: "Appaloosa",
-        winRate: "61%",
-        owner: "Elena Rostova",
-        regDeadline: "2026-05-05T23:59:59Z",
-        medicalLogs: {
-            lastCheck: "2026-05-01",
-            checkResult: "Fair",
-            weight: "482 kg",
-            restingHeartRate: "40 bpm",
-            injuryHistory: "Splint bone bruise (Dec 2025)",
-            trainerNotes: "Strong finish, needs dynamic encouragement in final 200m."
-        }
-    },
-    {
-        id: 5,
-        horse: "Storm Rider",
-        tournament: "Champion League 2026",
-        raceTime: "2026-06-28 11:00",
-        status: "Declined",
-        breed: "Standardbred",
-        winRate: "48%",
-        owner: "Roderick Cole",
-        regDeadline: "2026-06-22T23:59:59Z",
-        medicalLogs: {
-            lastCheck: "2026-05-18",
-            checkResult: "Perfect",
-            weight: "498 kg",
-            restingHeartRate: "37 bpm",
-            injuryHistory: "None",
-            trainerNotes: "Tends to lean left on tight corners. Watch alignment."
-        }
-    },
-    {
-        id: 6,
-        horse: "Midnight Shadow",
-        tournament: "Royal Cup 2026",
-        raceTime: "2026-06-14 14:00",
-        status: "Pending",
-        breed: "Thoroughbred",
-        winRate: "64%",
-        owner: "Lady Genevieve",
-        regDeadline: "2026-06-10T23:59:59Z",
-        medicalLogs: {
-            lastCheck: "2026-05-27",
-            checkResult: "Healthy",
-            weight: "488 kg",
-            restingHeartRate: "39 bpm",
-            injuryHistory: "None",
-            trainerNotes: "Loves wet tracks. Highly energetic when leading the pack."
-        }
-    }
-];
-
 // ─── Status Config ────────────────────────────────────────────────────────────
 
 const statusConfig: Record<InvStatus, { color: string; bg: string; border: string; Icon: React.ElementType; label: string }> = {
@@ -324,16 +186,14 @@ const statusConfig: Record<InvStatus, { color: string; bg: string; border: strin
     Superseded: { color: "text-slate-500", bg: "bg-slate-500/10", border: "border-slate-500/20",          Icon: Icons.XCircle,     label: "Superseded" },
 };
 
-// ─── Main Page Component ───────────────────────────────────────────────────────
-
 export default function JockeyPage() {
     const [active, setActive] = useState<string>(ROUTES.JOCKEY_INVITATIONS);
-    const [data, setData] = useState<Invitation[]>(initialInvitations);
     const [toasts, setToasts] = useState<Toast[]>([]);
     
-    // Loaded placeholder hook data
+    // Shared hooks data
     const { horseList } = useHorseList();
     const { eventList } = useEvent();
+    const { invitations, updateInvitationStatus } = useInvitations();
 
     // Simulator states
     const [deadlinePassedSim, setDeadlinePassedSim] = useState(false);
@@ -357,7 +217,7 @@ export default function JockeyPage() {
     };
 
     const unreadNotificationsCount = notifications.filter(n => !n.read).length;
-    const pendingCount = data.filter((i) => i.status === "Pending").length;
+    const pendingCount = invitations.filter((i) => i.status === "Pending").length;
 
     // Jockey Navigation menu
     const jockeyNav: NavItem[] = [
@@ -372,32 +232,32 @@ export default function JockeyPage() {
 
     const handleAcceptInvitation = (id: number) => {
         if (deadlinePassedSim) {
-            setData(prev => prev.map(inv => inv.id === id ? { ...inv, status: "Expired" } : inv));
+            updateInvitationStatus(id, "Expired");
             addToast("This invitation has expired due to the tournament registration deadline.", "error");
             return;
         }
 
         if (concurrencyConflictSim) {
-            setData(prev => prev.map(inv => inv.id === id ? { ...inv, status: "Cancelled" } : inv));
+            updateInvitationStatus(id, "Cancelled");
             addToast("This offer is no longer available. (Concurrency Conflict: Horse Owner confirmed another rider).", "warning");
             return;
         }
 
-        const target = data.find(inv => inv.id === id);
-        setData(prev => prev.map(inv => inv.id === id ? { ...inv, status: "Accepted" } : inv));
+        const target = invitations.find(inv => inv.id === id);
+        updateInvitationStatus(id, "Accepted");
         addToast(`Response recorded successfully! Tentatively registered to ride ${target?.horse}. Awaiting final Owner confirmation.`, "success");
         addToast(`[Alert] Real-time notification delivered to Owner (${target?.owner})!`, "info");
     };
 
     const handleDeclineInvitation = (id: number) => {
         if (deadlinePassedSim) {
-            setData(prev => prev.map(inv => inv.id === id ? { ...inv, status: "Expired" } : inv));
+            updateInvitationStatus(id, "Expired");
             addToast("This invitation has expired due to the registration deadline.", "error");
             return;
         }
 
-        const target = data.find(inv => inv.id === id);
-        setData(prev => prev.map(inv => inv.id === id ? { ...inv, status: "Declined" } : inv));
+        const target = invitations.find(inv => inv.id === id);
+        updateInvitationStatus(id, "Declined");
         addToast(`You declined the invitation to ride ${target?.horse}. Deep access revoked.`, "info");
         addToast(`[Alert] Real-time notification sent to ${target?.owner}.`, "info");
     };
@@ -408,7 +268,7 @@ export default function JockeyPage() {
         if (n.invitationId) {
             setActive(ROUTES.JOCKEY_INVITATIONS);
             setSelectedInvId(n.invitationId);
-            addToast(`Navigated directly to deep access records for ${data.find(d => d.id === n.invitationId)?.horse}`, "success");
+            addToast(`Navigated directly to deep access records for ${invitations.find(d => d.id === n.invitationId)?.horse}`, "success");
         }
     };
 
@@ -419,17 +279,17 @@ export default function JockeyPage() {
             case ROUTES.JOCKEY_DASHBOARD:   
                 return (
                     <DashboardOverview 
-                        data={data} 
+                        data={invitations} 
                         setActiveTab={(tab) => setActive(tab)} 
                         horseList={horseList}
                     />
                 );
             case ROUTES.JOCKEY_SCHEDULE:    
-                return <RidingSchedule data={data} eventList={eventList} />;
+                return <RidingSchedule data={invitations} eventList={eventList} />;
             case ROUTES.JOCKEY_INVITATIONS: 
                 return (
                     <InvitationsView 
-                        data={data}
+                        data={invitations}
                         selectedId={selectedInvId}
                         setSelectedId={setSelectedInvId}
                         onAccept={handleAcceptInvitation}
@@ -450,7 +310,6 @@ export default function JockeyPage() {
             <SidebarProvider>
                 <div className="flex h-screen w-screen overflow-hidden relative bg-[#F4F6F5] text-slate-800 font-body">
                     
-                    {/* Embedded custom styling for Playfair Display and Inter fonts to implement the "Elite Turf" design language */}
                     <style dangerouslySetInnerHTML={{__html: `
                         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:wght@400;500;700&display=swap');
                         
@@ -846,7 +705,7 @@ function DashboardOverview({
                                 <div key={r.id} className="p-3.5 rounded-xl border border-slate-100 bg-[#F4F6F5]/40 flex items-center justify-between gap-4 shadow-sm hover:border-[#064E3B]/10 duration-200">
                                     <div>
                                         <p className="font-bold text-[#064E3B] text-sm font-headline">{r.horse}</p>
-                                        <p className="text-xs text-slate-500 font-medium mt-0.5">{r.tournament}</p>
+                                        <p className="text-xs text-slate-555 font-medium mt-0.5">{r.tournament}</p>
                                         <span className="text-[10px] text-[#D97706] font-bold mt-1 block">Owner: {r.owner}</span>
                                     </div>
                                     <div className="text-right shrink-0">
@@ -981,7 +840,7 @@ function RidingSchedule({ data, eventList }: { data: Invitation[]; eventList: an
                         {eventList.map((event) => (
                             <div 
                                 key={event.id} 
-                                className="p-4 rounded-xl border border-slate-250/70 bg-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-[#064E3B]/20 transition"
+                                className="p-4 rounded-xl border border-slate-200 bg-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-[#064E3B]/20 transition"
                             >
                                 <div className="flex items-start sm:items-center gap-3">
                                     <span className={cn(
@@ -992,7 +851,7 @@ function RidingSchedule({ data, eventList }: { data: Invitation[]; eventList: an
                                     )} />
                                     <div>
                                         <p className="font-bold text-slate-800 text-sm leading-snug">{event.title}</p>
-                                        <div className="flex items-center gap-3 mt-1 text-[11px] text-slate-450 font-medium">
+                                        <div className="flex items-center gap-3 mt-1 text-[11px] text-slate-500 font-medium">
                                             <span>Editable: {event.editable ? "Yes" : "No"}</span>
                                             <span>•</span>
                                             <span>Overlap: {event.overlap ? "Allowed" : "Blocked"}</span>
