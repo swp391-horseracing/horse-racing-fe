@@ -179,9 +179,6 @@ export default function JockeyPage() {
     const { eventList } = useEvent();
     const { invitations, updateInvitationStatus } = useInvitations();
 
-    // Simulator states
-    const [deadlinePassedSim, setDeadlinePassedSim] = useState(false);
-    const [concurrencyConflictSim, setConcurrencyConflictSim] = useState(false);
     const [selectedInvId, setSelectedInvId] = useState<number | null>(1);
 
     // Toast triggers
@@ -207,30 +204,12 @@ export default function JockeyPage() {
     // ─── Actions handlers ─────────────────────────────────────────────────────
 
     const handleAcceptInvitation = (id: number) => {
-        if (deadlinePassedSim) {
-            updateInvitationStatus(id, "Expired");
-            addToast("This invitation has expired due to the tournament registration deadline.", "error");
-            return;
-        }
-
-        if (concurrencyConflictSim) {
-            updateInvitationStatus(id, "Cancelled");
-            addToast("This offer is no longer available. (Concurrency Conflict: Horse Owner confirmed another rider).", "warning");
-            return;
-        }
-
         const target = invitations.find(inv => inv.id === id);
         updateInvitationStatus(id, "Accepted");
         addToast(`Response recorded successfully! Tentatively registered to ride ${target?.horse}. Awaiting final Owner confirmation.`, "success");
     };
 
     const handleDeclineInvitation = (id: number) => {
-        if (deadlinePassedSim) {
-            updateInvitationStatus(id, "Expired");
-            addToast("This invitation has expired due to the registration deadline.", "error");
-            return;
-        }
-
         const target = invitations.find(inv => inv.id === id);
         updateInvitationStatus(id, "Declined");
         addToast(`You declined the invitation to ride ${target?.horse}. Deep access revoked.`, "info");
@@ -256,10 +235,6 @@ export default function JockeyPage() {
                         setSelectedId={setSelectedInvId}
                         onAccept={handleAcceptInvitation}
                         onDecline={handleDeclineInvitation}
-                        deadlinePassedSim={deadlinePassedSim}
-                        setDeadlinePassedSim={setDeadlinePassedSim}
-                        concurrencyConflictSim={concurrencyConflictSim}
-                        setConcurrencyConflictSim={setConcurrencyConflictSim}
                     />
                 );
             default:                        
@@ -566,8 +541,8 @@ function DashboardOverview({
                 </div>
             </div>
 
-            {/* Assigned Riding Matches & Career History */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Assigned Riding Matches */}
+            <div className="grid grid-cols-1 gap-6">
                 
                 {/* Active Riding Matches */}
                 <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 shadow-sm">
@@ -603,53 +578,6 @@ function DashboardOverview({
                                 </div>
                             ))
                         )}
-                    </div>
-                </div>
-
-                {/* Form & Recent Achievements */}
-                <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 shadow-sm">
-                    <h3 className="font-bold font-headline text-[#064E3B] text-md border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
-                        <span className="text-[#064E3B]"><Icons.Activity /></span>
-                        Active Form & Achievements
-                    </h3>
-                    
-                    <div className="space-y-4">
-                        {/* Form Indicator */}
-                        <div className="p-4 rounded-xl bg-[#F4F6F5]/40 border border-slate-150 shadow-inner">
-                            <span className="text-[10px] text-slate-500 block uppercase font-bold tracking-wider mb-2.5 font-label">Recent Race Finish Sequences</span>
-                            <div className="flex gap-2.5">
-                                {[
-                                    { pos: "1st", color: "bg-[#064E3B] text-white" },
-                                    { pos: "2nd", color: "bg-[#064E3B]/20 text-[#064E3B]" },
-                                    { pos: "1st", color: "bg-[#064E3B] text-white" },
-                                    { pos: "4th", color: "bg-slate-100 text-slate-400" },
-                                    { pos: "3rd", color: "bg-[#EAB308]/20 text-[#D97706]" }
-                                ].map((item, idx) => (
-                                    <div 
-                                        key={idx} 
-                                        className={cn(
-                                            "h-10 w-10 rounded-xl flex items-center justify-center font-black text-xs tracking-tight shadow-sm border",
-                                            item.color
-                                        )}
-                                    >
-                                        {item.pos}
-                                    </div>
-                                ))}
-                            </div>
-                            <p className="text-xs text-slate-555 font-semibold mt-3">Streak status: Excellent (W-W-L-W-L)</p>
-                        </div>
-
-                        {/* Milestones list */}
-                        <div className="grid grid-cols-2 gap-3 text-xs">
-                            <div className="p-3 border border-slate-100 bg-[#F4F6F5]/20 rounded-xl">
-                                <span className="text-[#D97706] block font-bold mb-1">🏅 Golden Spur</span>
-                                <p className="text-[10px] text-slate-500 leading-normal">Won 3 Consecutive Tournaments in May 2026.</p>
-                            </div>
-                            <div className="p-3 border border-slate-100 bg-[#F4F6F5]/20 rounded-xl">
-                                <span className="text-[#064E3B] block font-bold mb-1">🛡️ Safety Mastery</span>
-                                <p className="text-[10px] text-slate-500 leading-normal">No riding infractions or track fouls recorded in 12 months.</p>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -768,20 +696,12 @@ function InvitationsView({
     setSelectedId,
     onAccept,
     onDecline,
-    deadlinePassedSim,
-    setDeadlinePassedSim,
-    concurrencyConflictSim,
-    setConcurrencyConflictSim,
 }: {
     data: Invitation[];
     selectedId: number | null;
     setSelectedId: (id: number | null) => void;
     onAccept: (id: number) => void;
     onDecline: (id: number) => void;
-    deadlinePassedSim: boolean;
-    setDeadlinePassedSim: (v: boolean) => void;
-    concurrencyConflictSim: boolean;
-    setConcurrencyConflictSim: (v: boolean) => void;
 }) {
     const [filter, setFilter] = useState<FilterType>("All");
     const [search, setSearch] = useState("");
@@ -906,42 +826,6 @@ function InvitationsView({
                             );
                         })
                     )}
-                </div>
-
-                {/* Scenario Conflict Simulators bottom panel */}
-                <div className="p-4 border-t border-slate-100 bg-[#F4F6F5]/40 space-y-3.5">
-                    <h4 className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 font-label">
-                        <span className="text-[#064E3B]"><Icons.Compass /></span>
-                        Scenario Conflict Simulators
-                    </h4>
-                    
-                    <div className="space-y-3">
-                        <label className="flex items-center gap-2 cursor-pointer group text-xs text-slate-650 hover:text-[#064E3B]">
-                            <input 
-                                type="checkbox"
-                                checked={deadlinePassedSim}
-                                onChange={(e) => setDeadlinePassedSim(e.target.checked)}
-                                className="rounded border-slate-350 bg-white text-rose-750 focus:ring-offset-0 focus:ring-rose-500 h-4.5 w-4.5"
-                            />
-                            <div>
-                                <span className="font-bold text-[#064E3B] block">Registration Deadline Passed</span>
-                                <span className="text-[10px] text-slate-400 block leading-tight">Simulates tournament deadline lock & Expired state</span>
-                            </div>
-                        </label>
-
-                        <label className="flex items-center gap-2 cursor-pointer group text-xs text-slate-650 hover:text-[#064E3B]">
-                            <input 
-                                type="checkbox"
-                                checked={concurrencyConflictSim}
-                                onChange={(e) => setConcurrencyConflictSim(e.target.checked)}
-                                className="rounded border-slate-350 bg-white text-rose-750 focus:ring-offset-0 focus:ring-rose-500 h-4.5 w-4.5"
-                            />
-                            <div>
-                                <span className="font-bold text-[#064E3B] block">Owner Concurrency Conflict</span>
-                                <span className="text-[10px] text-slate-400 block leading-tight">Simulates owner booking alternative riders</span>
-                            </div>
-                        </label>
-                    </div>
                 </div>
             </div>
 
