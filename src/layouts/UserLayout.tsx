@@ -6,11 +6,9 @@ import {
     Calendar,
     Mail,
     ChevronRight,
-    Trophy,
     TrendingUp,
     Activity,
-    UserCheck,
-    Lock
+    UserCheck
 } from "lucide-react";
 import {
     Sidebar,
@@ -83,32 +81,29 @@ export default function UserLayout({ children, activeKey, onActiveKeyChange }: U
         sidebarGroupLabel = "Admin Controls";
     }
 
-    // Role-based Nav configurations (Balanced Simplification)
+    // Role-based Nav configurations 
     const navConfigurations: Record<"Jockey" | "Owner" | "Spectator" | "Admin", NavItem[]> = {
         Jockey: [
             { label: "Dashboard",   icon: LayoutDashboard, key: ROUTES.JOCKEY_DASHBOARD },
-            { label: "Schedule",    icon: Calendar,        key: ROUTES.JOCKEY_SCHEDULE },
+            { label: "My Rides",    icon: Calendar,        key: ROUTES.JOCKEY_SCHEDULE },
             { label: "Invitations", icon: Mail,            key: ROUTES.JOCKEY_INVITATIONS, badge: pendingCount },
         ],
         Owner: [
-            { label: "Dashboard",       icon: LayoutDashboard, key: ROUTES.OWNER_DASHBOARD },
-            { label: "My Horses",       icon: HorseIcon,       key: "/owner/horses" },      // UC-HO-02, UC-HO-03 (Manage & Register Horses)
-            { label: "Jockey Roster",   icon: UserCheck,       key: "/owner/jockeys" },     // UC-HO-04, UC-HO-05 (Find & Manage Jockeys)
-            { label: "Race Schedule",   icon: Calendar,        key: "/owner/schedule" },    // UC-SH-02 (View Track Info)
+            { label: "Dashboard",              icon: LayoutDashboard, key: ROUTES.OWNER_DASHBOARD },
+            { label: "Stables & Registration", icon: HorseIcon,       key: "/owner/stables" },
+            { label: "Jockey Roster",          icon: UserCheck,       key: "/owner/jockeys" }, 
+            { label: "Horse Schedule",         icon: Calendar,        key: "/owner/schedule" }, // Restored personal horse schedule
         ],
         Spectator: [
-            { label: "Arena Overview",  icon: LayoutDashboard, key: ROUTES.SPECTATOR_DASHBOARD },
-            { label: "Race Schedule",   icon: Calendar,        key: "/spectator/schedule" },    // UC-SH-02
-            { label: "Predictions",     icon: TrendingUp,      key: "/spectator/predictions" }, // UC-SP-03, UC-SP-04 (Predict & View Ledger)
-            { label: "Leaderboards",    icon: Trophy,          key: "/spectator/leaderboards" },// UC-SH-04 (Results & Rankings)
+            { label: "Arena Overview",       icon: LayoutDashboard, key: ROUTES.SPECTATOR_DASHBOARD },
+            { label: "Predictions Hub",      icon: Activity,        key: "/spectator/predictions" }, 
         ],
         Admin: [
             { label: "Control Center",      icon: LayoutDashboard, key: ROUTES.ADMIN_DASHBOARD },
-            { label: "User Management",     icon: UserCheck,       key: "/admin/users" },        // UC-AD-01, UC-AD-02, UC-AD-07
-            { label: "Verification Queue",  icon: Mail,            key: "/admin/verifications" },// UC-AD-05
-            { label: "Tournaments & Races", icon: Calendar,        key: "/admin/tournaments" },  // UC-AD-03, UC-AD-04
-            { label: "Competitor Registry", icon: HorseIcon,       key: "/admin/competitors" },  // UC-AD-06
-            { label: "Virtual Economy",     icon: Activity,        key: "/admin/economy" },      // UC-AD-09
+            { label: "Access Management",   icon: UserCheck,       key: "/admin/access" },       
+            { label: "Registry & Approvals",icon: Mail,            key: "/admin/registry" },     
+            { label: "Tournaments & Races", icon: Calendar,        key: "/admin/tournaments" },  
+            { label: "Virtual Economy",     icon: TrendingUp,      key: "/admin/economy" },      
         ]
     };
 
@@ -149,7 +144,7 @@ export default function UserLayout({ children, activeKey, onActiveKeyChange }: U
                                 <SidebarMenu className="space-y-1.5 px-2">
                                     {currentNav.map((item) => {
                                         const IconComponent = item.icon;
-                                        const isActive = activePath.includes(item.key); // Supports sub-routes natively
+                                        const isActive = activePath.includes(item.key);
                                         
                                         return (
                                             <SidebarMenuItem key={item.key}>
