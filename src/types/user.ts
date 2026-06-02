@@ -1,17 +1,17 @@
 export type User = {
-    id: string;
-    email: string;
-    password: string;
-    full_name: string;
-    phone: string;
-    address: string;
-    avatar_url: string;
-    roles: string[];
-    status: string;
-    extendedProps?: ExtendedProps;
-    created_at: string;
-    updated_at: string;
-}
+  id: string;
+  email: string;
+  password: string;
+  full_name: string;
+  phone: string;
+  address: string;
+  avatar_url: string;
+  roles: string[];
+  status: string;
+  extendedProps?: ExtendedProps;
+  created_at: string;
+  updated_at: string;
+};
 
 export type ExtendedProps = {
   roles?: string[];
