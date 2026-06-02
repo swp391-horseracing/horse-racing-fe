@@ -1,21 +1,21 @@
-import { createBrowserRouter } from "react-router-dom";
-import { ROUTES } from "./routes";
-import LandingLayout from "../layouts/LandingLayout";
-import LoginLayout from "../layouts/LoginLayout.tsx";
-import MainLayout from "../layouts/MainLayout.tsx";
-import GuidesPage from "../pages/GuidesPage";
-import MainPage from "../pages/MainPage";
-import LoginPage from "../pages/LoginPage";
-import DashboardPage from "../pages/DashboardPage.tsx";
-import CalendarPage from "../pages/CalendarPage.tsx";
-import HorsePage from "../pages/HorsePage.tsx";
-import RacesPage from "../pages/RacesPage.tsx";
-import JockeyPage from "../pages/JockeyPage.tsx";
-import OwnerPage from "../pages/OwnerPage.tsx";
-import AdminPage from "../pages/AdminPage.tsx";
-import UserPage from "../pages/UserPage.tsx";
-import SpectatorPage from "../pages/SpectatorPage.tsx";
-import LeaderBoardPage from "../pages/LeaderBoardPage.tsx";
+import { createBrowserRouter } from 'react-router-dom';
+import { ROUTES } from './routes';
+import LandingLayout from '../layouts/LandingLayout';
+import LoginLayout from '../layouts/LoginLayout.tsx';
+import MainLayout from '../layouts/MainLayout.tsx';
+import GuidesPage from '../pages/GuidesPage';
+import MainPage from '../pages/MainPage';
+import LoginPage from '../pages/LoginPage';
+import DashboardPage from '../pages/DashboardPage.tsx';
+import CalendarPage from '../pages/CalendarPage.tsx';
+import HorsePage from '../pages/HorsePage.tsx';
+import RacesPage from '../pages/RacesPage.tsx';
+import JockeyPage from '../pages/JockeyPage.tsx';
+import OwnerPage from '../pages/OwnerPage.tsx';
+import AdminPage from '../pages/AdminPage.tsx';
+import UserPage from '../pages/UserPage.tsx';
+import SpectatorPage from '../pages/SpectatorPage.tsx';
+import LeaderBoardPage from '../pages/LeaderBoardPage.tsx';
 
 export const router = createBrowserRouter([
   {

@@ -14,13 +14,13 @@ export type User = {
 }
 
 export type ExtendedProps = {
-    roles?: string[];
-}
+  roles?: string[];
+};
 
 export type jockey = {
-    id: string;
-    user_id: string;
-    weight: number;
-    license_number: string;
-    experience: string;
-}
+  id: string;
+  user_id: string;
+  weight: number;
+  license_number: string;
+  experience: string;
+};

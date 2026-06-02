@@ -1,5 +1,3 @@
 export default function SpectatorPage() {
-    return (
-        <>Spectator</>
-    )
+  return <>Spectator</>;
 }
