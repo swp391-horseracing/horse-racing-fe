@@ -1,12 +1,12 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 export default function LoginPage() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,7 +22,7 @@ export default function LoginPage() {
     console.log(form);
 
     // login success
-    navigate('/');
+    navigate("/");
   };
 
   return (
@@ -67,7 +67,7 @@ export default function LoginPage() {
         </button>
 
         <p className="mt-4 text-sm text-center text-gray-500">
-          Back to{' '}
+          Back to{" "}
           <Link
             to="/"
             className="font-semibold text-indigo-600 hover:underline"

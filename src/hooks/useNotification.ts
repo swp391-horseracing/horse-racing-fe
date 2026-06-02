@@ -1,5 +1,5 @@
-import {useEffect, useState} from "react";
-import {NotificationService} from "../services/NotificationService.ts";
+import { useEffect, useState } from "react";
+import { NotificationService } from "../services/NotificationService.ts";
 import type { Notification } from "../types/notification.ts";
 
 // function formatNotificationDate(dateString: string): string {
@@ -38,25 +38,25 @@ import type { Notification } from "../types/notification.ts";
 //     return "just now";
 // }
 
-export function useNotification(){
-    const [NotificationList,setList] = useState<Notification[]>([]);
+export function useNotification() {
+  const [NotificationList, setList] = useState<Notification[]>([]);
 
-    const handleNotification = (notification:Notification)=>{
-        // notification.date = formatNotificationDate(notification.date);
-        console.log(notification.date);
+  const handleNotification = (notification: Notification) => {
+    // notification.date = formatNotificationDate(notification.date);
+    console.log(notification.date);
+  };
+
+  const getNotificationList = async () => {
+    const data = await NotificationService.getNotification();
+    for (let i = 0; i < data.length; i++) {
+      handleNotification(data[i]);
     }
+    setList(data);
+  };
 
-    const getNotificationList= async () => {
-        const data =   await NotificationService.getNotification();
-        for(let i=0;i<data.length;i++){
-            handleNotification(data[i]);
-        }
-        setList(data);
-    }
+  useEffect(() => {
+    getNotificationList();
+  });
 
-    useEffect(() => {
-        getNotificationList();
-    })
-
-    return  {NotificationList,getNotificationList};
+  return { NotificationList, getNotificationList };
 }

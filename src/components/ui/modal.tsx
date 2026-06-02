@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 export function Modal({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();

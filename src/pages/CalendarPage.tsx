@@ -1,5 +1,3 @@
 export default function CalendarPage() {
-    return (
-        <>Calendar</>
-    )
+  return <>Calendar</>;
 }

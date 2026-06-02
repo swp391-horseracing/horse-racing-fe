@@ -3,9 +3,9 @@
  * Used for rendering pages
  */
 
-import { Button } from '../components/ui/button.tsx';
-import { useNavigate } from 'react-router-dom';
-import { ROUTES } from '../router/routes.tsx';
+import { Button } from "../components/ui/button.tsx";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../router/routes.tsx";
 
 export default function ExamplePage() {
   const navigate = useNavigate();

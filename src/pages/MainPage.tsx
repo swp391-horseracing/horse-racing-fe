@@ -1,18 +1,18 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '../components/ui/button';
-import { ROUTES } from '../router/routes';
-import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Button } from "../components/ui/button";
+import { ROUTES } from "../router/routes";
+import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
 
 export default function MainPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState("home");
 
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark');
+    const isDark = document.documentElement.classList.contains("dark");
     setIsDarkMode(isDark);
   }, []);
 
@@ -20,10 +20,10 @@ export default function MainPage() {
   const toggleTheme = () => {
     const html = document.documentElement;
     if (isDarkMode) {
-      html.classList.remove('dark');
+      html.classList.remove("dark");
       setIsDarkMode(false);
     } else {
-      html.classList.add('dark');
+      html.classList.add("dark");
       setIsDarkMode(true);
     }
   };
@@ -42,7 +42,7 @@ export default function MainPage() {
         <div className="flex items-center">
           <Button
             variant="ghost"
-            onClick={() => setActiveTab('home')}
+            onClick={() => setActiveTab("home")}
             className="text-xl font-bold"
           >
             Logo:3
@@ -61,7 +61,7 @@ export default function MainPage() {
         {/* RIGHT: Login Button */}
         <div className="flex items-center gap-4">
           <Button onClick={toggleTheme} variant="ghost" size="icon">
-            {isDarkMode ? '☀️' : '🌙'}
+            {isDarkMode ? "☀️" : "🌙"}
           </Button>
 
           <Button
@@ -79,7 +79,7 @@ export default function MainPage() {
 
       {/* MAIN CONTENT */}
       <main className="flex-1 flex flex-col items-center text-center p-8 gap-8">
-        {activeTab === 'home' && (
+        {activeTab === "home" && (
           <div className="max-w-3xl space-y-6">
             <h1 className="text-5xl font-bold">Welcome to horse racing!</h1>
 
@@ -87,7 +87,7 @@ export default function MainPage() {
           </div>
         )}
 
-        {activeTab === 'owner' && (
+        {activeTab === "owner" && (
           <div className="max-w-3xl space-y-6">
             <h1 className="text-4xl font-bold">Horse Owner Dashboard</h1>
             <p className="text-lg">Horse Owner Stuff (Use Case)</p>
@@ -102,7 +102,7 @@ export default function MainPage() {
           </div>
         )}
 
-        {activeTab === 'jockey' && (
+        {activeTab === "jockey" && (
           <div className="max-w-3xl space-y-6">
             <h1 className="text-4xl font-bold">Jockey Dashboard</h1>
             <p className="text-lg">Jockey Stuff (Use Case)</p>
@@ -117,7 +117,7 @@ export default function MainPage() {
           </div>
         )}
 
-        {activeTab === 'spectator' && (
+        {activeTab === "spectator" && (
           <div className="max-w-3xl space-y-6">
             <h1 className="text-4xl font-bold">Spectator Dashboard</h1>
             <p className="text-lg">Spectator Stuff (Use Case)</p>
