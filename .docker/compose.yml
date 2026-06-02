@@ -1,0 +1,9 @@
+services:
+  fe:
+    image: ${REGISTRY}/fe:latest
+    container_name: horse-racing-fe
+    restart: on-failure:5
+    environment:
+      PORT: ${PORT}
+    ports:
+      - ${PORT}:${PORT}
