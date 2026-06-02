@@ -21,6 +21,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "fullcalendar": "^6.1.20",
+    "lucide": "^1.3.0",
     "lucide-react": "^1.17.0",
     "radix-ui": "^1.4.3",
     "react": "^19.2.6",
