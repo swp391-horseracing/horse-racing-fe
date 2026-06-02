@@ -128,7 +128,7 @@ export default function MainLayout() {
 
             </div>
 
-            <div className="w-full flex-1 bg-white rounded-sm overflow-auto min-h-0">
+            <div className="w-full flex-1 bg-white rounded-sm min-h-0">
                 <Outlet />
             </div>
         </div>
