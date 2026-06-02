@@ -24,7 +24,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push api image
+      - name: Build and push fe image
         run: |
           docker compose -f .docker/compose.build.yaml build
           docker compose -f .docker/compose.build.yaml push
