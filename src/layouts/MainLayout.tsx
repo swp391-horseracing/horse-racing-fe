@@ -1,8 +1,9 @@
 import {Outlet, useLocation, useNavigate} from "react-router-dom";
 import { Button } from "../components/ui/button.tsx";
 import { ROUTES } from "../router/routes.tsx";
-
-
+import {Bell} from "@phosphor-icons/react";
+import React from "react";
+import NotificationTab from "../components/NotificationTab.tsx";
 
 export default function MainLayout() {
     interface LinkItem {
@@ -23,6 +24,8 @@ export default function MainLayout() {
         { label: "Spectators", to: ROUTES.SPECTATOR_DASHBOARD },
         { label: "Admin", to: ROUTES.ADMIN_DASHBOARD },
     ];
+
+    const [show, setShow] = React.useState(false);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -49,9 +52,10 @@ export default function MainLayout() {
                             variant="ghost"
                             className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-5 py-2
                             ${
+                                console.log(location.pathname),
                                 location.pathname === link.to ?
-                                    "bg-gray-100 text-gray-600"
-                                    : "text-gray-600 hover:text-gray-900"
+                                    "bg-green-100 text-gray-600 hover:bg-green-200 hover:border-green-300 hover:border-1"
+                                    : "text-gray-600 hover:text-gray-900 hover:bg-green-100 hover:border-green-300 hover:border-1"
 
                             }`}
                         >
@@ -87,10 +91,29 @@ export default function MainLayout() {
                 </div>
 
                 <div className="flex justify-center items-center h-8 ml-auto">
+                    <div className="flex flex-row justify-end h-8">
+                        <Button
+                            onClick={() => setShow(!show)}
+                            variant="ghost"
+                            className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 mx-1 py-2
+                                ${
+                                show ?
+                                    "bg-gray-100 text-gray-600"
+                                    : "text-gray-600 hover:text-gray-900"
+    
+                            }`}
+                        >
+                            <Bell />
+                        </Button>
+                        {show && (
+                            <NotificationTab/>
+                        )}
+                    </div>
+
                     <Button
                         onClick={() => navigate(ROUTES.USER_PROFILE)}
                         variant="ghost"
-                        className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-5 py-2
+                        className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-2 ml-1 py-2
                             ${
                             location.pathname === ROUTES.USER_PROFILE ?
                                 "bg-gray-100 text-gray-600"
