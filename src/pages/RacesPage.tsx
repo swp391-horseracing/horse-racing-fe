@@ -1,5 +1,3 @@
 export default function RacesPage() {
-    return (
-        <>Races</>
-    )
+  return <>Races</>;
 }

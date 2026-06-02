@@ -1,5 +1,3 @@
 export default function LeaderBoardPage() {
-    return (
-        <>LeaderBoard</>
-    )
+  return <>LeaderBoard</>;
 }

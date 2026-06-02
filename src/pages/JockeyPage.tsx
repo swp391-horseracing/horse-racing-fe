@@ -1,5 +1,3 @@
 export default function JockeyPage() {
-    return (
-        <>Jockey</>
-    )
+  return <>Jockey</>;
 }

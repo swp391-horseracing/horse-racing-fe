@@ -1,5 +1,3 @@
 export default function RefereePage() {
-    return (
-        <>Referee</>
-    )
+  return <>Referee</>;
 }
