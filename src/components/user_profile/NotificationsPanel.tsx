@@ -1,36 +1,15 @@
 import { useNotification } from "../../hooks/useNotification.ts";
-import { useEffect, useState } from "react";
 
 export default function NotificationsPanel() {
-  const { NotificationList } = useNotification();
-  // const navigate = useNavigate();
-  const [list, setNotifications] = useState(NotificationList);
+  const { NotificationList, handleRead } = useNotification();
 
-  useEffect(() => {
-    setNotifications(NotificationList);
-  }, [NotificationList]);
-
-  const handleRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, isRead: true } : item))
-    );
-  };
-
-  // const handleReadAll = () => {
-  //     setNotifications(prev =>
-  //         prev.map(item => ({
-  //             ...item,
-  //             isRead: true,
-  //         }))
-  //     );
-  // };
   return (
     <div className="flex flex-col w-full h-full bg-white rounded-2xl p-6">
       <div className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-4 ">
         Notifications
       </div>
       <div className="w-full h-full overflow-y-auto bg-red-600 flex flex-col">
-        {list.map((notification) => (
+        {NotificationList.map((notification) => (
           <button
             key={notification.id}
             onClick={() => {
