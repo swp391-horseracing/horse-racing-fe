@@ -50,9 +50,9 @@ export const ROUTES = {
   // DYNAMIC
   HORSE_DETAIL: "/horses/:id",
   JOCKEY_DETAIL: "/jockeys/:id",
-  RACE_DETAIL: "/races/:id"
+  RACE_DETAIL: "/races/:id",
 };
 
 export const buildRoute = (path: string, id: string) => {
   path.replace(":id", id);
-}
+};

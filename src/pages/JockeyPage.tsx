@@ -29,9 +29,9 @@ import {
 type FilterType = "All" | InvStatus;
 type ToastType = "success" | "error" | "warning" | "info";
 type Toast = {
-    id: number;
-    message: string;
-    type: ToastType;
+  id: number;
+  message: string;
+  type: ToastType;
 };
 
 // ─── Inline SVG Icons ────────────────────────────────────────────────────────
@@ -167,17 +167,17 @@ export default function JockeyPage() {
 
 // ─── Component 1: DashboardOverview ──────────────────────────────────────────
 
-function DashboardOverview({ 
-    data, 
-    setActiveTab,
-    horseList
-}: { 
-    data: Invitation[]; 
-    setActiveTab: (k: string) => void;
-    horseList: any[];
+function DashboardOverview({
+  data,
+  setActiveTab,
+  horseList,
+}: {
+  data: Invitation[];
+  setActiveTab: (k: string) => void;
+  horseList: any[];
 }) {
-    const pendingInvites = data.filter(inv => inv.status === "Pending");
-    const activeRaces = data.filter(inv => inv.status === "Accepted");
+  const pendingInvites = data.filter((inv) => inv.status === "Pending");
+  const activeRaces = data.filter((inv) => inv.status === "Accepted");
 
     return (
         <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-7xl w-full mx-auto font-body h-full">
@@ -204,65 +204,168 @@ function DashboardOverview({
                     <p className="text-xs text-slate-500 mt-2 font-body font-medium">Ranked #14 of 120 Pro Jockeys</p>
                 </div>
 
-                {/* Stats 2: Total Earnings */}
-                <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 hover:shadow-lg transition-all duration-300 relative group overflow-hidden shadow-sm">
-                    <div className="absolute right-0 bottom-0 translate-y-4 translate-x-4 opacity-5 group-hover:scale-110 duration-500 text-[#D97706]">
-                        <Icons.TrendingUp />
-                    </div>
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-slate-500 font-bold text-xs tracking-wider uppercase">Total Earnings</span>
-                        <span className="p-2 rounded-xl bg-[#D97706]/10 text-[#D97706]">
-                            <Icons.TrendingUp />
-                        </span>
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-black font-headline text-[#064E3B] tracking-tight">$142,500</span>
-                        <span className="text-xs text-slate-500 font-semibold font-body">
-                            (70% Owner split)
-                        </span>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-2 font-body font-medium">84 Career Turf Starts (28 Wins, 18 Seconds)</p>
-                </div>
+        {/* Stats 2: Total Earnings */}
+        <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 hover:shadow-lg transition-all duration-300 relative group overflow-hidden shadow-sm">
+          <div className="absolute right-0 bottom-0 translate-y-4 translate-x-4 opacity-5 group-hover:scale-110 duration-500 text-[#D97706]">
+            <Icons.TrendingUp />
+          </div>
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-slate-500 font-bold text-xs tracking-wider uppercase">
+              Total Earnings
+            </span>
+            <span className="p-2 rounded-xl bg-[#D97706]/10 text-[#D97706]">
+              <Icons.TrendingUp />
+            </span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-black font-headline text-[#064E3B] tracking-tight">
+              $142,500
+            </span>
+            <span className="text-xs text-slate-500 font-semibold font-body">
+              (70% Owner split)
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-2 font-body font-medium">
+            84 Career Turf Starts (28 Wins, 18 Seconds)
+          </p>
+        </div>
 
-                {/* Stats 3: Inbound Invites */}
-                <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 hover:shadow-lg transition-all duration-300 relative group overflow-hidden shadow-sm">
-                    <div className="absolute right-0 bottom-0 translate-y-4 translate-x-4 opacity-5 group-hover:scale-110 duration-500 text-[#064E3B]">
-                        <Icons.Mail />
-                    </div>
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-slate-500 font-bold text-xs tracking-wider uppercase">Ride Invitations</span>
-                        <span className="p-2 rounded-xl bg-[#064E3B]/10 text-[#064E3B]">
-                            <Icons.Mail />
-                        </span>
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-black font-headline text-[#064E3B] tracking-tight">{pendingInvites.length} Pending</span>
-                        {pendingInvites.length > 0 && (
-                            <span className="animate-pulse h-2.5 w-2.5 rounded-full bg-[#D97706]"></span>
-                        )}
-                    </div>
-                    <p className="text-xs text-[#D97706] font-bold mt-2 hover:underline cursor-pointer" onClick={() => setActiveTab(ROUTES.JOCKEY_INVITATIONS)}>
-                        Inspect pending owner offers →
-                    </p>
+        {/* Stats 3: Inbound Invites */}
+        <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 hover:shadow-lg transition-all duration-300 relative group overflow-hidden shadow-sm">
+          <div className="absolute right-0 bottom-0 translate-y-4 translate-x-4 opacity-5 group-hover:scale-110 duration-500 text-[#064E3B]">
+            <Icons.Mail />
+          </div>
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-slate-500 font-bold text-xs tracking-wider uppercase">
+              Ride Invitations
+            </span>
+            <span className="p-2 rounded-xl bg-[#064E3B]/10 text-[#064E3B]">
+              <Icons.Mail />
+            </span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-black font-headline text-[#064E3B] tracking-tight">
+              {pendingInvites.length} Pending
+            </span>
+            {pendingInvites.length > 0 && (
+              <span className="animate-pulse h-2.5 w-2.5 rounded-full bg-[#D97706]"></span>
+            )}
+          </div>
+          <p
+            className="text-xs text-[#D97706] font-bold mt-2 hover:underline cursor-pointer"
+            onClick={() => setActiveTab(ROUTES.JOCKEY_INVITATIONS)}
+          >
+            Inspect pending owner offers →
+          </p>
+        </div>
+      </div>
+
+      {/* Performance Graphs / Charts Mock and Leaderboard */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Visual Chart - pure CSS & SVG representation of Win Rate per month */}
+        <div className="lg:col-span-2 bg-white border border-[#064E3B]/10 rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="font-bold font-headline text-lg text-[#064E3B]">
+                Win Rate Performance Trend
+              </h3>
+              <p className="text-xs text-slate-500 font-medium">
+                Turf win percentages for the past 5 months
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold bg-[#064E3B]/10 text-[#064E3B] border border-[#064E3B]/20">
+                2026 Season
+              </span>
+            </div>
+          </div>
+
+          {/* SVG Line Graph */}
+          <div className="h-64 relative flex flex-col justify-between">
+            <div className="absolute inset-0 grid grid-rows-4 pointer-events-none">
+              {[75, 50, 25, 0].map((val) => (
+                <div
+                  key={val}
+                  className="border-t border-slate-100 text-[9px] font-label text-slate-400 pt-1 flex items-start"
+                >
+                  {val}%
                 </div>
+              ))}
             </div>
 
-            {/* Performance Graphs / Charts Mock and Leaderboard */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                {/* Visual Chart - pure CSS & SVG representation of Win Rate per month */}
-                <div className="lg:col-span-2 bg-white border border-[#064E3B]/10 rounded-2xl p-6 shadow-sm">
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 className="font-bold font-headline text-lg text-[#064E3B]">Win Rate Performance Trend</h3>
-                            <p className="text-xs text-slate-500 font-medium">Turf win percentages for the past 5 months</p>
-                        </div>
-                        <div className="flex gap-2">
-                            <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold bg-[#064E3B]/10 text-[#064E3B] border border-[#064E3B]/20">
-                                2026 Season
-                            </span>
-                        </div>
-                    </div>
+            <div className="w-full h-48 mt-4 relative">
+              <svg
+                className="w-full h-full overflow-visible"
+                viewBox="0 0 600 200"
+              >
+                <defs>
+                  <linearGradient
+                    id="chartGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop offset="0%" stopColor="#064E3B" stopOpacity="0.15" />
+                    <stop offset="100%" stopColor="#064E3B" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                {/* Area under line */}
+                <path
+                  d="M 40,180 L 40,150 Q 160,130 280,95 T 520,40 L 520,180 Z"
+                  fill="url(#chartGradient)"
+                />
+                {/* Trend Line */}
+                <path
+                  d="M 40,150 Q 160,130 280,95 T 520,40"
+                  fill="none"
+                  stroke="#064E3B"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                />
+                {/* Perfectly Round Dot Indicators */}
+                <circle
+                  cx="40"
+                  cy="150"
+                  r="6"
+                  fill="#EAB308"
+                  stroke="#064E3B"
+                  strokeWidth="2.5"
+                />
+                <circle
+                  cx="160"
+                  cy="130"
+                  r="6"
+                  fill="#EAB308"
+                  stroke="#064E3B"
+                  strokeWidth="2.5"
+                />
+                <circle
+                  cx="280"
+                  cy="95"
+                  r="6"
+                  fill="#EAB308"
+                  stroke="#064E3B"
+                  strokeWidth="2.5"
+                />
+                <circle
+                  cx="400"
+                  cy="68"
+                  r="6"
+                  fill="#EAB308"
+                  stroke="#064E3B"
+                  strokeWidth="2.5"
+                />
+                <circle
+                  cx="520"
+                  cy="40"
+                  r="6"
+                  fill="#EAB308"
+                  stroke="#064E3B"
+                  strokeWidth="2.5"
+                />
+              </svg>
+            </div>
 
                     {/* SVG Line Graph */}
                     <div className="h-64 relative flex flex-col justify-between">
@@ -346,11 +449,37 @@ function DashboardOverview({
                         </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-slate-100 text-[10px] font-bold text-slate-400 text-center font-label">
-                        Live Registry Feed Loaded
+            <div className="space-y-2.5">
+              {horseList.map((horse, idx) => (
+                <div
+                  key={horse.id}
+                  className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-slate-50/50 hover:border-slate-200 transition"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="text-xs font-black w-5 text-center block font-label text-slate-400">
+                      #{idx + 1}
+                    </span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs truncate text-slate-700 font-semibold">
+                        {horse.name}
+                      </span>
+                      <span className="text-[10px] text-slate-450 truncate">
+                        {horse.breed} • {horse.gender}
+                      </span>
                     </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-xs font-bold text-[#064E3B] font-label block">
+                      {horse.performance}
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-semibold block">
+                      {horse.status}
+                    </span>
+                  </div>
                 </div>
+              ))}
             </div>
+          </div>
 
             {/* Assigned Riding Matches */}
             <div className="grid grid-cols-1 gap-6">
@@ -365,39 +494,73 @@ function DashboardOverview({
                         </span>
                     </div>
 
-                    <div className="space-y-3">
-                        {activeRaces.length === 0 ? (
-                            <div className="text-center py-8 text-slate-450 text-xs">
-                                No confirmed active races. Navigate to "Invitations" to accept incoming offers.
-                            </div>
-                        ) : (
-                            activeRaces.map((r) => (
-                                <div key={r.id} className="p-3.5 rounded-xl border border-slate-100 bg-[#F4F6F5]/40 flex items-center justify-between gap-4 shadow-sm hover:border-[#064E3B]/10 duration-200">
-                                    <div>
-                                        <p className="font-bold text-[#064E3B] text-sm font-headline">{r.horse}</p>
-                                        <p className="text-xs text-slate-555 font-medium mt-0.5">{r.tournament}</p>
-                                        <span className="text-[10px] text-[#D97706] font-bold mt-1 block">Owner: {r.owner}</span>
-                                    </div>
-                                    <div className="text-right shrink-0">
-                                        <span className="inline-block text-[9px] bg-slate-150 border border-slate-200 text-slate-650 font-black px-2 py-0.5 rounded-full mb-1 font-label">
-                                            Gate 5 • Turf
-                                        </span>
-                                        <p className="text-xs text-slate-600 font-black font-label">{r.raceTime}</p>
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
+      {/* Assigned Riding Matches */}
+      <div className="grid grid-cols-1 gap-6">
+        {/* Active Riding Matches */}
+        <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+            <h3 className="font-bold font-headline text-[#064E3B] text-md flex items-center gap-2">
+              <span className="text-[#064E3B]">
+                <Icons.Calendar />
+              </span>
+              Your Confirmed Agenda
+            </h3>
+            <span className="rounded bg-[#064E3B]/10 text-[#064E3B] font-bold px-2 py-0.5 text-[9px] uppercase border border-[#064E3B]/20 font-label">
+              {activeRaces.length} Confirmed
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {activeRaces.length === 0 ? (
+              <div className="text-center py-8 text-slate-450 text-xs">
+                No confirmed active races. Navigate to "Invitations" to accept
+                incoming offers.
+              </div>
+            ) : (
+              activeRaces.map((r) => (
+                <div
+                  key={r.id}
+                  className="p-3.5 rounded-xl border border-slate-100 bg-[#F4F6F5]/40 flex items-center justify-between gap-4 shadow-sm hover:border-[#064E3B]/10 duration-200"
+                >
+                  <div>
+                    <p className="font-bold text-[#064E3B] text-sm font-headline">
+                      {r.horse}
+                    </p>
+                    <p className="text-xs text-slate-555 font-medium mt-0.5">
+                      {r.tournament}
+                    </p>
+                    <span className="text-[10px] text-[#D97706] font-bold mt-1 block">
+                      Owner: {r.owner}
+                    </span>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="inline-block text-[9px] bg-slate-150 border border-slate-200 text-slate-650 font-black px-2 py-0.5 rounded-full mb-1 font-label">
+                      Gate 5 • Turf
+                    </span>
+                    <p className="text-xs text-slate-600 font-black font-label">
+                      {r.raceTime}
+                    </p>
+                  </div>
                 </div>
-            </div>
+              ))
+            )}
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 }
 
 // ─── Component 2: RidingSchedule ───────────────────────────────────────────────
 
-function RidingSchedule({ data, eventList }: { data: Invitation[]; eventList: any[] }) {
-    const assignedRaces = data.filter(inv => inv.status === "Accepted");
+function RidingSchedule({
+  data,
+  eventList,
+}: {
+  data: Invitation[];
+  eventList: any[];
+}) {
+  const assignedRaces = data.filter((inv) => inv.status === "Accepted");
 
     return (
         <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-7xl w-full mx-auto font-body h-full">
@@ -450,86 +613,105 @@ function RidingSchedule({ data, eventList }: { data: Invitation[]; eventList: an
                         ))
                     )}
                 </div>
-
-                {/* Right: List of Events */}
-                <div className="space-y-4">
-                    <h3 className="font-bold font-headline text-[#064E3B] text-md flex items-center gap-2">
-                        <span>🏆</span>
-                        System Race Calendar Events
-                    </h3>
-                    <div className="grid grid-cols-1 gap-3">
-                        {eventList.map((event) => (
-                            <div 
-                                key={event.id} 
-                                className="p-4 rounded-xl border border-slate-200 bg-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-[#064E3B]/20 transition"
-                            >
-                                <div className="flex items-start sm:items-center gap-3">
-                                    <span className={cn(
-                                        "h-3.5 w-3.5 rounded-full shrink-0 mt-1 sm:mt-0",
-                                        event.className?.includes("bg-yellow-600") && "bg-yellow-600",
-                                        event.className?.includes("bg-red-600") && "bg-red-600",
-                                        event.className?.includes("bg-green-600") && "bg-green-600"
-                                    )} />
-                                    <div>
-                                        <p className="font-bold text-slate-800 text-sm leading-snug">{event.title}</p>
-                                        <div className="flex items-center gap-3 mt-1 text-[11px] text-slate-500 font-medium">
-                                            <span>Editable: {event.editable ? "Yes" : "No"}</span>
-                                            <span>•</span>
-                                            <span>Overlap: {event.overlap ? "Allowed" : "Blocked"}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="text-left sm:text-right font-label text-xs font-bold text-[#064E3B] pt-2 sm:pt-0 border-t border-slate-100 sm:border-0">
-                                    {event.start ? (
-                                        <span>
-                                            {event.start.replace("T", " ")} {event.end ? `to ${event.end.split("T")[1]}` : ""}
-                                        </span>
-                                    ) : (
-                                        <span>{event.date}</span>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
+              </div>
+            ))
+          )}
         </div>
-    );
+
+        {/* Right: List of Events */}
+        <div className="space-y-4">
+          <h3 className="font-bold font-headline text-[#064E3B] text-md flex items-center gap-2">
+            <span>🏆</span>
+            System Race Calendar Events
+          </h3>
+          <div className="grid grid-cols-1 gap-3">
+            {eventList.map((event) => (
+              <div
+                key={event.id}
+                className="p-4 rounded-xl border border-slate-200 bg-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-[#064E3B]/20 transition"
+              >
+                <div className="flex items-start sm:items-center gap-3">
+                  <span
+                    className={cn(
+                      "h-3.5 w-3.5 rounded-full shrink-0 mt-1 sm:mt-0",
+                      event.className?.includes("bg-yellow-600") &&
+                        "bg-yellow-600",
+                      event.className?.includes("bg-red-600") && "bg-red-600",
+                      event.className?.includes("bg-green-600") &&
+                        "bg-green-600"
+                    )}
+                  />
+                  <div>
+                    <p className="font-bold text-slate-800 text-sm leading-snug">
+                      {event.title}
+                    </p>
+                    <div className="flex items-center gap-3 mt-1 text-[11px] text-slate-500 font-medium">
+                      <span>Editable: {event.editable ? "Yes" : "No"}</span>
+                      <span>•</span>
+                      <span>
+                        Overlap: {event.overlap ? "Allowed" : "Blocked"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-left sm:text-right font-label text-xs font-bold text-[#064E3B] pt-2 sm:pt-0 border-t border-slate-100 sm:border-0">
+                  {event.start ? (
+                    <span>
+                      {event.start.replace("T", " ")}{" "}
+                      {event.end ? `to ${event.end.split("T")[1]}` : ""}
+                    </span>
+                  ) : (
+                    <span>{event.date}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ─── Component 3: InvitationsView ───────────────────────────────────────────────
 
 function InvitationsView({
-    data,
-    selectedId,
-    setSelectedId,
-    onAccept,
-    onDecline,
+  data,
+  selectedId,
+  setSelectedId,
+  onAccept,
+  onDecline,
 }: {
-    data: Invitation[];
-    selectedId: number | null;
-    setSelectedId: (id: number | null) => void;
-    onAccept: (id: number) => void;
-    onDecline: (id: number) => void;
+  data: Invitation[];
+  selectedId: number | null;
+  setSelectedId: (id: number | null) => void;
+  onAccept: (id: number) => void;
+  onDecline: (id: number) => void;
 }) {
-    const [filter, setFilter] = useState<FilterType>("All");
-    const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<FilterType>("All");
+  const [search, setSearch] = useState("");
 
-    const filters: FilterType[] = ["All", "Pending", "Accepted", "Declined", "Expired"];
+  const filters: FilterType[] = [
+    "All",
+    "Pending",
+    "Accepted",
+    "Declined",
+    "Expired",
+  ];
 
-    const filtered = useMemo(() => {
-        return data.filter((item) => {
-            const matchesFilter = filter === "All" || item.status === filter;
-            const matchesSearch = 
-                item.horse.toLowerCase().includes(search.toLowerCase()) || 
-                item.tournament.toLowerCase().includes(search.toLowerCase()) ||
-                item.owner.toLowerCase().includes(search.toLowerCase());
-            return matchesFilter && matchesSearch;
-        });
-    }, [data, filter, search]);
+  const filtered = useMemo(() => {
+    return data.filter((item) => {
+      const matchesFilter = filter === "All" || item.status === filter;
+      const matchesSearch =
+        item.horse.toLowerCase().includes(search.toLowerCase()) ||
+        item.tournament.toLowerCase().includes(search.toLowerCase()) ||
+        item.owner.toLowerCase().includes(search.toLowerCase());
+      return matchesFilter && matchesSearch;
+    });
+  }, [data, filter, search]);
 
-    const selectedInv = data.find((i) => i.id === selectedId) ?? null;
-    const pendingInvites = data.filter((i) => i.status === "Pending");
+  const selectedInv = data.find((i) => i.id === selectedId) ?? null;
+  const pendingInvites = data.filter((i) => i.status === "Pending");
 
     return (
         <div className="flex-1 flex h-full w-full overflow-hidden font-body">
@@ -545,192 +727,202 @@ function InvitationsView({
                         )}
                     </div>
 
-                    {/* Search bar */}
-                    <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                            <Icons.Search />
-                        </span>
-                        <input
-                            type="text"
-                            placeholder="Search horse, tournament, owner..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="w-full bg-[#F4F6F5]/50 border border-slate-200 hover:border-slate-350 focus:border-[#064E3B] rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-800 outline-none transition"
-                        />
-                    </div>
+          {/* Search bar */}
+          <div className="relative">
+            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+              <Icons.Search />
+            </span>
+            <input
+              type="text"
+              placeholder="Search horse, tournament, owner..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-[#F4F6F5]/50 border border-slate-200 hover:border-slate-350 focus:border-[#064E3B] rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-800 outline-none transition"
+            />
+          </div>
 
-                    {/* Tabs / Filters */}
-                    <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-                        {filters.map((f) => (
-                            <button
-                                key={f}
-                                onClick={() => setFilter(f)}
-                                className={cn(
-                                    "rounded-xl px-3 py-2 text-xs font-bold whitespace-nowrap transition-colors",
-                                    filter === f
-                                        ? "bg-[#064E3B] text-white shadow-md"
-                                        : "bg-[#F4F6F5] text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-                                )}
-                            >
-                                {f}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* List Container */}
-                <div className="flex-1 overflow-y-auto p-3 space-y-2.5 font-body">
-                    {filtered.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-48 text-slate-400 text-sm gap-2">
-                            <span className="h-10 w-10 opacity-30 text-[#064E3B]"><Icons.Mail /></span>
-                            <p className="font-bold text-slate-500">No invitations found</p>
-                            <p className="text-xs text-slate-400 text-center px-4">There are no matching ride offers in this selection.</p>
-                        </div>
-                    ) : (
-                        filtered.map((inv) => {
-                            const cfg = statusConfig[inv.status];
-                            const StatusIcon = cfg.Icon;
-                            const isPending = inv.status === "Pending";
-                            const isSelected = selectedId === inv.id;
-
-                            return (
-                                <div
-                                    key={inv.id}
-                                    onClick={() => setSelectedId(inv.id)}
-                                    className={cn(
-                                        "relative group flex items-start gap-3 rounded-2xl border p-4 transition-all duration-300 cursor-pointer",
-                                        isSelected
-                                            ? "border-[#064E3B] bg-[#064E3B]/5 shadow-md shadow-black/5"
-                                            : "border-slate-200/80 bg-white hover:bg-[#F4F6F5]/50 shadow-sm"
-                                    )}
-                                >
-                                    <div className="flex-1 min-w-0 flex flex-col">
-                                        <div className="flex items-center justify-between gap-2 mb-1.5">
-                                            <p className="font-bold font-headline text-[#064E3B] truncate text-sm">{inv.horse}</p>
-                                            <span className={cn(
-                                                "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[8px] font-black uppercase shrink-0 font-label",
-                                                cfg.color, cfg.bg, cfg.border
-                                            )}>
-                                                <StatusIcon />
-                                                {cfg.label}
-                                            </span>
-                                        </div>
-                                        <p className="text-xs text-slate-555 font-semibold truncate">{inv.tournament}</p>
-                                        
-                                        <div className="flex items-center justify-between mt-3.5 text-[9px] text-slate-400 font-bold border-t border-slate-100 pt-2 pb-1 font-label">
-                                            <span>Owner: {inv.owner}</span>
-                                            <span>🕒 {inv.raceTime}</span>
-                                        </div>
-                                        
-                                        {/* Deep access indicator */}
-                                        {isPending && (
-                                            <div className="mt-1.5">
-                                                <span className="inline-block text-[8px] text-[#D97706] font-black bg-[#EAB308]/10 px-2 py-0.5 rounded border border-[#EAB308]/20 group-hover:scale-105 duration-200 font-label">
-                                                    🔓 DEEP ACCESS ACTIVE
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })
-                    )}
-                </div>
-            </div>
-
-            {/* Right details panel */}
-            <div className="flex-1 h-full overflow-hidden bg-[#F4F6F5]/30">
-                <InvitationDetail 
-                    inv={selectedInv} 
-                    onAccept={onAccept}
-                    onDecline={onDecline}
-                />
-            </div>
+          {/* Tabs / Filters */}
+          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            {filters.map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={cn(
+                  "rounded-xl px-3 py-2 text-xs font-bold whitespace-nowrap transition-colors",
+                  filter === f
+                    ? "bg-[#064E3B] text-white shadow-md"
+                    : "bg-[#F4F6F5] text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                )}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
         </div>
-    );
+
+        {/* List Container */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-2.5 font-body">
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-48 text-slate-400 text-sm gap-2">
+              <span className="h-10 w-10 opacity-30 text-[#064E3B]">
+                <Icons.Mail />
+              </span>
+              <p className="font-bold text-slate-500">No invitations found</p>
+              <p className="text-xs text-slate-400 text-center px-4">
+                There are no matching ride offers in this selection.
+              </p>
+            </div>
+          ) : (
+            filtered.map((inv) => {
+              const cfg = statusConfig[inv.status];
+              const StatusIcon = cfg.Icon;
+              const isPending = inv.status === "Pending";
+              const isSelected = selectedId === inv.id;
+
+              return (
+                <div
+                  key={inv.id}
+                  onClick={() => setSelectedId(inv.id)}
+                  className={cn(
+                    "relative group flex items-start gap-3 rounded-2xl border p-4 transition-all duration-300 cursor-pointer",
+                    isSelected
+                      ? "border-[#064E3B] bg-[#064E3B]/5 shadow-md shadow-black/5"
+                      : "border-slate-200/80 bg-white hover:bg-[#F4F6F5]/50 shadow-sm"
+                  )}
+                >
+                  <div className="flex-1 min-w-0 flex flex-col">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <p className="font-bold font-headline text-[#064E3B] truncate text-sm">
+                        {inv.horse}
+                      </p>
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[8px] font-black uppercase shrink-0 font-label",
+                          cfg.color,
+                          cfg.bg,
+                          cfg.border
+                        )}
+                      >
+                        <StatusIcon />
+                        {cfg.label}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-555 font-semibold truncate">
+                      {inv.tournament}
+                    </p>
+
+                    <div className="flex items-center justify-between mt-3.5 text-[9px] text-slate-400 font-bold border-t border-slate-100 pt-2 pb-1 font-label">
+                      <span>Owner: {inv.owner}</span>
+                      <span>🕒 {inv.raceTime}</span>
+                    </div>
+
+                    {/* Deep access indicator */}
+                    {isPending && (
+                      <div className="mt-1.5">
+                        <span className="inline-block text-[8px] text-[#D97706] font-black bg-[#EAB308]/10 px-2 py-0.5 rounded border border-[#EAB308]/20 group-hover:scale-105 duration-200 font-label">
+                          🔓 DEEP ACCESS ACTIVE
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* Right details panel */}
+      <div className="flex-1 h-full overflow-hidden bg-[#F4F6F5]/30">
+        <InvitationDetail
+          inv={selectedInv}
+          onAccept={onAccept}
+          onDecline={onDecline}
+        />
+      </div>
+    </div>
+  );
 }
 
 // ─── Component 4: InvitationDetail ───────────────────────────────────────────────
 
 function InvitationDetail({
-    inv,
-    onAccept,
-    onDecline,
+  inv,
+  onAccept,
+  onDecline,
 }: {
-    inv: Invitation | null;
-    onAccept: (id: number) => void;
-    onDecline: (id: number) => void;
+  inv: Invitation | null;
+  onAccept: (id: number) => void;
+  onDecline: (id: number) => void;
 }) {
-    if (!inv) {
-        return (
-            <div className="flex flex-col items-center justify-center h-full text-center text-slate-400 gap-4 p-8">
-                <span className="h-16 w-16 opacity-30 text-[#064E3B]"><Icons.Mail /></span>
-                <div>
-                    <h3 className="font-bold text-slate-500">No Offer Selected</h3>
-                    <p className="text-xs text-slate-400 mt-1 max-w-sm">Select an inbound invitation from the dashboard list to securely inspect race parameters and private horse records.</p>
-                </div>
-            </div>
-        );
-    }
-
-    const cfg = statusConfig[inv.status];
-    const StatusIcon = cfg.Icon;
-    const isPending = inv.status === "Pending";
-
+  if (!inv) {
     return (
-        <div className="p-6 h-full overflow-y-auto space-y-6 font-body">
-            
-            {/* Header info */}
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-[#064E3B]/10 pb-5">
-                <div>
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="text-[9px] text-[#064E3B] font-extrabold bg-[#064E3B]/10 px-2.5 py-0.5 rounded border border-[#064E3B]/20 font-label">
-                            RIDING OFFER
-                        </span>
-                        <span className="text-[9px] text-slate-400 font-label">ID: #0087{inv.id}</span>
-                    </div>
-                    <h2 className="text-2xl font-black font-headline text-[#064E3B] tracking-tight">{inv.horse}</h2>
-                    <p className="text-xs font-semibold text-slate-555 font-body">{inv.tournament}</p>
-                </div>
+      <div className="flex flex-col items-center justify-center h-full text-center text-slate-400 gap-4 p-8">
+        <span className="h-16 w-16 opacity-30 text-[#064E3B]">
+          <Icons.Mail />
+        </span>
+        <div>
+          <h3 className="font-bold text-slate-500">No Offer Selected</h3>
+          <p className="text-xs text-slate-400 mt-1 max-w-sm">
+            Select an inbound invitation from the dashboard list to securely
+            inspect race parameters and private horse records.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-                <span className={cn(
-                    "self-start sm:self-auto inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[10px] font-black uppercase font-label",
-                    cfg.color, cfg.bg, cfg.border
-                )}>
-                    <StatusIcon />
-                    {cfg.label}
-                </span>
-            </div>
+  const cfg = statusConfig[inv.status];
+  const StatusIcon = cfg.Icon;
+  const isPending = inv.status === "Pending";
 
-            {/* Public profile stats card */}
-            <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 space-y-4 shadow-sm">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <h3 className="text-[10px] font-bold font-headline uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                        <span className="text-[#064E3B]"><Icons.Horse /></span>
-                        Standard Horse Profile (Public)
-                    </h3>
-                    <span className="text-[9px] text-[#064E3B] font-extrabold font-label bg-[#064E3B]/5 px-2 py-0.5 rounded border border-[#064E3B]/10">Public Registry Verified</span>
-                </div>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-body">
-                    <div>
-                        <span className="text-slate-400 block text-[10px] font-semibold uppercase tracking-wider">Breed</span>
-                        <span className="font-bold text-[#064E3B]">{inv.breed}</span>
-                    </div>
-                    <div>
-                        <span className="text-slate-400 block text-[10px] font-semibold uppercase tracking-wider">Public Win Rate</span>
-                        <span className="font-bold text-[#064E3B]">{inv.winRate}</span>
-                    </div>
-                    <div>
-                        <span className="text-slate-400 block text-[10px] font-semibold uppercase tracking-wider">Issued By Owner</span>
-                        <span className="font-bold text-[#064E3B]">{inv.owner}</span>
-                    </div>
-                    <div>
-                        <span className="text-slate-400 block text-[10px] font-semibold uppercase tracking-wider">Race Time</span>
-                        <span className="font-bold text-[#064E3B] font-label text-[11px]">{inv.raceTime}</span>
-                    </div>
-                </div>
-            </div>
+  return (
+    <div className="p-6 h-full overflow-y-auto space-y-6 font-body">
+      {/* Header info */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-[#064E3B]/10 pb-5">
+        <div>
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <span className="text-[9px] text-[#064E3B] font-extrabold bg-[#064E3B]/10 px-2.5 py-0.5 rounded border border-[#064E3B]/20 font-label">
+              RIDING OFFER
+            </span>
+            <span className="text-[9px] text-slate-400 font-label">
+              ID: #0087{inv.id}
+            </span>
+          </div>
+          <h2 className="text-2xl font-black font-headline text-[#064E3B] tracking-tight">
+            {inv.horse}
+          </h2>
+          <p className="text-xs font-semibold text-slate-555 font-body">
+            {inv.tournament}
+          </p>
+        </div>
+
+        <span
+          className={cn(
+            "self-start sm:self-auto inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[10px] font-black uppercase font-label",
+            cfg.color,
+            cfg.bg,
+            cfg.border
+          )}
+        >
+          <StatusIcon />
+          {cfg.label}
+        </span>
+      </div>
+
+      {/* Public profile stats card */}
+      <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 space-y-4 shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+          <h3 className="text-[10px] font-bold font-headline uppercase tracking-wider text-slate-400 flex items-center gap-2">
+            <span className="text-[#064E3B]">
+              <Icons.Horse />
+            </span>
+            Standard Horse Profile (Public)
+          </h3>
+          <span className="text-[9px] text-[#064E3B] font-extrabold font-label bg-[#064E3B]/5 px-2 py-0.5 rounded border border-[#064E3B]/10">
+            Public Registry Verified
+          </span>
+        </div>
 
             {/* Deep access / private metrics card */}
             {isPending ? (
@@ -739,57 +931,23 @@ function InvitationDetail({
                         <Icons.Compass />
                     </div>
 
-                    <div className="border-b border-[#064E3B]/10 pb-3 mb-4">
-                        <h3 className="text-xs font-bold font-headline uppercase tracking-widest text-[#064E3B] flex items-center gap-2">
-                            <span>🔓</span>
-                            Private Health Metrics (Deep Access BR-SCHED-03)
-                        </h3>
-                        <p className="text-[10px] text-slate-500 font-semibold mt-1 leading-normal font-body">
-                            Jockey Portal temporarily grants Deep Access to private veterinary, biological, and trainer track logs.
-                        </p>
-                    </div>
+      {/* Deep access / private metrics card (UC-JO-02) */}
+      {isPending ? (
+        <div className="bg-gradient-to-tr from-[#064E3B]/5 to-[#EAB308]/5 border border-[#064E3B]/20 rounded-2xl p-5 relative overflow-hidden shadow-sm">
+          <div className="absolute top-3 right-3 text-[#D97706] animate-pulse">
+            <Icons.Compass />
+          </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-body">
-                        <div className="bg-white/90 p-3 rounded-xl border border-[#064E3B]/10 hover:border-[#064E3B]/20 transition shadow-sm">
-                            <span className="text-slate-500 font-bold block text-[10px] mb-0.5">Last Veterinary Check</span>
-                            <span className="font-bold text-[#064E3B]">{inv.medicalLogs.lastCheck} — {inv.medicalLogs.checkResult}</span>
-                        </div>
-                        <div className="bg-white/90 p-3 rounded-xl border border-[#064E3B]/10 hover:border-[#064E3B]/20 transition shadow-sm">
-                            <span className="text-slate-500 font-bold block text-[10px] mb-0.5">Recent Training Weight</span>
-                            <span className="font-bold text-[#064E3B]">{inv.medicalLogs.weight}</span>
-                        </div>
-                        <div className="bg-white/90 p-3 rounded-xl border border-[#064E3B]/10 hover:border-[#064E3B]/20 transition shadow-sm">
-                            <span className="text-slate-500 font-bold block text-[10px] mb-0.5">Resting Heart Rate</span>
-                            <span className="font-bold text-[#064E3B]">{inv.medicalLogs.restingHeartRate}</span>
-                        </div>
-                        <div className="bg-white/90 p-3 rounded-xl border border-[#064E3B]/10 hover:border-[#064E3B]/20 transition shadow-sm">
-                            <span className="text-slate-500 font-bold block text-[10px] mb-0.5">Injury/Medical History</span>
-                            <span className="font-bold text-[#064E3B]">{inv.medicalLogs.injuryHistory}</span>
-                        </div>
-                        
-                        <div className="col-span-1 sm:col-span-2 bg-white/90 p-3.5 rounded-xl border border-[#064E3B]/10 shadow-sm">
-                            <span className="text-slate-500 font-bold block text-[10px] mb-1">Trainer Track Notes</span>
-                            <p className="text-slate-755 leading-relaxed text-xs italic">
-                                "{inv.medicalLogs.trainerNotes}"
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            ) : (
-                <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 text-center space-y-3 shadow-sm">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 border border-slate-100 text-slate-450 mx-auto">
-                        <Icons.Lock />
-                    </div>
-                    <div>
-                        <h3 className="font-bold font-headline text-md text-[#064E3B] flex items-center justify-center gap-1.5">
-                            🔒 Private Records Locked
-                        </h3>
-                        <p className="text-xs text-slate-400 mt-1.5 max-w-md mx-auto leading-relaxed">
-                            Under security business rule <strong className="text-[#064E3B] font-label text-[10px]">BR-SCHED-03</strong>, "Deep Access" is strictly revoked for offers with a status of Expired, Declined, Cancelled, or Superseded to protect the Owner's proprietary track data.
-                        </p>
-                    </div>
-                </div>
-            )}
+          <div className="border-b border-[#064E3B]/10 pb-3 mb-4">
+            <h3 className="text-xs font-bold font-headline uppercase tracking-widest text-[#064E3B] flex items-center gap-2">
+              <span>🔓</span>
+              Private Health Metrics (Deep Access BR-SCHED-03)
+            </h3>
+            <p className="text-[10px] text-slate-500 font-semibold mt-1 leading-normal font-body">
+              Jockey Portal temporarily grants Deep Access to private
+              veterinary, biological, and trainer track logs.
+            </p>
+          </div>
 
             {/* Actions for Pending invitation */}
             {isPending && (
@@ -816,6 +974,67 @@ function InvitationDetail({
                 </div>
             )}
 
+            <div className="col-span-1 sm:col-span-2 bg-white/90 p-3.5 rounded-xl border border-[#064E3B]/10 shadow-sm">
+              <span className="text-slate-500 font-bold block text-[10px] mb-1">
+                Trainer Track Notes
+              </span>
+              <p className="text-slate-755 leading-relaxed text-xs italic">
+                "{inv.medicalLogs.trainerNotes}"
+              </p>
+            </div>
+          </div>
         </div>
-    );
+      ) : (
+        <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 text-center space-y-3 shadow-sm">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 border border-slate-100 text-slate-450 mx-auto">
+            <Icons.Lock />
+          </div>
+          <div>
+            <h3 className="font-bold font-headline text-md text-[#064E3B] flex items-center justify-center gap-1.5">
+              🔒 Private Records Locked
+            </h3>
+            <p className="text-xs text-slate-400 mt-1.5 max-w-md mx-auto leading-relaxed">
+              Under security business rule{" "}
+              <strong className="text-[#064E3B] font-label text-[10px]">
+                BR-SCHED-03
+              </strong>
+              , "Deep Access" is strictly revoked for offers with a status of
+              Expired, Declined, Cancelled, or Superseded to protect the Owner's
+              proprietary track data.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Actions for Pending invitation (UC-JO-03) */}
+      {isPending && (
+        <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 space-y-4 shadow-sm">
+          <div className="border-b border-slate-100 pb-2.5">
+            <h4 className="text-xs font-bold text-[#064E3B] uppercase tracking-wide">
+              Submit Ride Decision
+            </h4>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Accepting registers you tentatively. Declining releases the hold
+              instantly.
+            </p>
+          </div>
+
+          <div className="flex gap-4 font-body">
+            <button
+              onClick={() => onAccept(inv.id)}
+              className="flex-1 rounded-xl bg-[#064E3B] text-white hover:bg-[#043E2F] px-4 py-3.5 text-xs font-bold shadow-sm transition active:scale-95 duration-200"
+            >
+              ✓ Accept Riding Invitation
+            </button>
+            <button
+              onClick={() => onDecline(inv.id)}
+              className="flex-1 rounded-xl border border-slate-200 bg-[#F4F6F5] text-slate-650 hover:bg-slate-100 px-4 py-3.5 text-xs font-bold transition active:scale-95 duration-200"
+            >
+              ✕ Decline Invitation
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

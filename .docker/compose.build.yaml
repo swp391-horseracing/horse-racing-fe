@@ -1,0 +1,6 @@
+services:
+  horse-racing-fe:
+    image: ${REGISTRY}/fe:latest
+    build:
+      context: ../
+      dockerfile: Dockerfile

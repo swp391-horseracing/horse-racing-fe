@@ -1,9 +1,9 @@
-import { Outlet} from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
 export default function LandingLayout() {
-    return (
-        <div className="relative min-h-screen">
-            <Outlet />
-        </div>
-    );
+  return (
+    <div className="relative min-h-screen">
+      <Outlet />
+    </div>
+  );
 }
