@@ -14,18 +14,24 @@ export function useInvitations() {
     }
   }, []);
 
-  const updateInvitationStatus = useCallback(async (id: number, status: InvStatus) => {
-    try {
-      const updated = await InvitationService.updateInvitationStatus(id, status);
-      if (updated) {
-        setInvitations((prev) =>
-          prev.map((inv) => (inv.id === id ? { ...inv, status } : inv))
+  const updateInvitationStatus = useCallback(
+    async (id: number, status: InvStatus) => {
+      try {
+        const updated = await InvitationService.updateInvitationStatus(
+          id,
+          status
         );
+        if (updated) {
+          setInvitations((prev) =>
+            prev.map((inv) => (inv.id === id ? { ...inv, status } : inv))
+          );
+        }
+      } catch (error) {
+        console.error("Error updating invitation status:", error);
       }
-    } catch (error) {
-      console.error("Error updating invitation status:", error);
-    }
-  }, []);
+    },
+    []
+  );
 
   useEffect(() => {
     let active = true;
