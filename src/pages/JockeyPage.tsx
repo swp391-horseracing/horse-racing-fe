@@ -6,6 +6,8 @@ import { cn } from "../lib/utils";
 import { useHorseList } from "../hooks/useHorseList.ts";
 import { useEvent } from "../hooks/useEvent.ts";
 import { useInvitations } from "../hooks/useInvitations.ts";
+import type { Horse } from "../types/horse.ts";
+import type { CalendarEvent } from "../types/event.ts";
 import type { Invitation, InvStatus } from "../services/invitationService.ts";
 import { 
     Calendar, 
@@ -174,7 +176,7 @@ function DashboardOverview({
 }: {
   data: Invitation[];
   setActiveTab: (k: string) => void;
-  horseList: any[];
+  horseList: Horse[];
 }) {
   const pendingInvites = data.filter((inv) => inv.status === "Pending");
   const activeRaces = data.filter((inv) => inv.status === "Accepted");
@@ -438,7 +440,7 @@ function RidingSchedule({
   eventList,
 }: {
   data: Invitation[];
-  eventList: any[];
+  eventList: CalendarEvent[];
 }) {
   const assignedRaces = data.filter((inv) => inv.status === "Accepted");
 
@@ -475,7 +477,7 @@ function RidingSchedule({
                   <h4 className="text-lg font-black font-headline text-[#064E3B]">{r.horse}</h4>
                   <p className="text-xs text-slate-555 font-semibold">{r.tournament}</p>
                   <div className="flex items-center gap-4 text-xs text-slate-500 mt-2">
-                    <span>🧬 Breed: <span className="text-[#064E3B] font-semibold">{(r as any).breed || "Thoroughbred"}</span></span>
+                    <span>🧬 Breed: <span className="text-[#064E3B] font-semibold">{(r as Invitation & { breed?: string }).breed || "Thoroughbred"}</span></span>
                     <span>🏇 Owner: <span className="text-[#064E3B] font-semibold">{r.owner}</span></span>
                   </div>
                 </div>
@@ -829,9 +831,9 @@ function InvitationDetail({
               <span className="text-slate-500 font-bold block text-[10px] mb-1">
                 Trainer Track Notes
               </span>
-              <p className="text-slate-755 leading-relaxed text-xs italic">
-                "{((inv as any).medicalLogs?.trainerNotes) || "Horse is looking strong in the final furlong. Responds well to the whip."}"
-              </p>
+                <p className="text-slate-755 leading-relaxed text-xs italic">
+                  "{((inv as Invitation & { medicalLogs?: { trainerNotes?: string } }).medicalLogs?.trainerNotes) || "Horse is looking strong in the final furlong. Responds well to the whip."}"
+                </p>
             </div>
           </div>
         </div>
