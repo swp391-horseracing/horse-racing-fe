@@ -1,29 +1,7 @@
 import { useNotification } from "../hooks/useNotification.ts";
-import { useEffect, useState } from "react";
 
 export default function NotificationTab() {
-  const { NotificationList } = useNotification();
-  // const navigate = useNavigate();
-  const [list, setNotifications] = useState(NotificationList);
-
-  useEffect(() => {
-    setNotifications(NotificationList);
-  }, [NotificationList]);
-
-  const handleRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, isRead: true } : item))
-    );
-  };
-
-  const handleReadAll = () => {
-    setNotifications((prev) =>
-      prev.map((item) => ({
-        ...item,
-        isRead: true,
-      }))
-    );
-  };
+  const { NotificationList, handleRead, handleReadAll } = useNotification();
   const size = 100;
 
   return (
@@ -40,7 +18,7 @@ export default function NotificationTab() {
         </div>
 
         <div className="flex flex-col justify-start">
-          {list.map((notification) => (
+          {NotificationList.map((notification) => (
             <button
               key={notification.id}
               onClick={() => {
