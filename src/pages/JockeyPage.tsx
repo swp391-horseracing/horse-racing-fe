@@ -179,30 +179,30 @@ function DashboardOverview({
   const pendingInvites = data.filter((inv) => inv.status === "Pending");
   const activeRaces = data.filter((inv) => inv.status === "Accepted");
 
-    return (
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-7xl w-full mx-auto font-body h-full">
-            {/* Welcoming Dashboard Grid Header */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                
-                {/* Stats 1: Win Rate */}
-                <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 hover:shadow-lg transition-all duration-300 relative group overflow-hidden shadow-sm">
-                    <div className="absolute right-0 bottom-0 translate-y-4 translate-x-4 opacity-5 group-hover:scale-110 duration-500 text-[#064E3B]">
-                        <Icons.Trophy />
-                    </div>
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-slate-500 font-bold text-xs tracking-wider uppercase">Jockey Win Rate</span>
-                        <span className="p-2 rounded-xl bg-[#064E3B]/10 text-[#064E3B]">
-                            <Icons.Trophy />
-                        </span>
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-black font-headline text-[#064E3B] tracking-tight">33.3%</span>
-                        <span className="text-xs text-emerald-700 font-bold flex items-center gap-0.5">
-                            ▲ +2.4%
-                        </span>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-2 font-body font-medium">Ranked #14 of 120 Pro Jockeys</p>
-                </div>
+  return (
+    <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-7xl w-full mx-auto font-body h-full">
+      {/* Welcoming Dashboard Grid Header */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        {/* Stats 1: Win Rate */}
+        <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 hover:shadow-lg transition-all duration-300 relative group overflow-hidden shadow-sm">
+          <div className="absolute right-0 bottom-0 translate-y-4 translate-x-4 opacity-5 group-hover:scale-110 duration-500 text-[#064E3B]">
+            <Icons.Trophy />
+          </div>
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-slate-500 font-bold text-xs tracking-wider uppercase">Jockey Win Rate</span>
+            <span className="p-2 rounded-xl bg-[#064E3B]/10 text-[#064E3B]">
+              <Icons.Trophy />
+            </span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-black font-headline text-[#064E3B] tracking-tight">33.3%</span>
+            <span className="text-xs text-emerald-700 font-bold flex items-center gap-0.5">
+              ▲ +2.4%
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-2 font-body font-medium">Ranked #14 of 120 Pro Jockeys</p>
+        </div>
 
         {/* Stats 2: Total Earnings */}
         <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 hover:shadow-lg transition-all duration-300 relative group overflow-hidden shadow-sm">
@@ -310,12 +310,10 @@ function DashboardOverview({
                     <stop offset="100%" stopColor="#064E3B" stopOpacity="0" />
                   </linearGradient>
                 </defs>
-                {/* Area under line */}
                 <path
                   d="M 40,180 L 40,150 Q 160,130 280,95 T 520,40 L 520,180 Z"
                   fill="url(#chartGradient)"
                 />
-                {/* Trend Line */}
                 <path
                   d="M 40,150 Q 160,130 280,95 T 520,40"
                   fill="none"
@@ -323,136 +321,39 @@ function DashboardOverview({
                   strokeWidth="3.5"
                   strokeLinecap="round"
                 />
-                {/* Perfectly Round Dot Indicators */}
-                <circle
-                  cx="40"
-                  cy="150"
-                  r="6"
-                  fill="#EAB308"
-                  stroke="#064E3B"
-                  strokeWidth="2.5"
-                />
-                <circle
-                  cx="160"
-                  cy="130"
-                  r="6"
-                  fill="#EAB308"
-                  stroke="#064E3B"
-                  strokeWidth="2.5"
-                />
-                <circle
-                  cx="280"
-                  cy="95"
-                  r="6"
-                  fill="#EAB308"
-                  stroke="#064E3B"
-                  strokeWidth="2.5"
-                />
-                <circle
-                  cx="400"
-                  cy="68"
-                  r="6"
-                  fill="#EAB308"
-                  stroke="#064E3B"
-                  strokeWidth="2.5"
-                />
-                <circle
-                  cx="520"
-                  cy="40"
-                  r="6"
-                  fill="#EAB308"
-                  stroke="#064E3B"
-                  strokeWidth="2.5"
-                />
+                <circle cx="40" cy="150" r="6" fill="#EAB308" stroke="#064E3B" strokeWidth="2.5" />
+                <circle cx="160" cy="130" r="6" fill="#EAB308" stroke="#064E3B" strokeWidth="2.5" />
+                <circle cx="280" cy="95" r="6" fill="#EAB308" stroke="#064E3B" strokeWidth="2.5" />
+                <circle cx="400" cy="68" r="6" fill="#EAB308" stroke="#064E3B" strokeWidth="2.5" />
+                <circle cx="520" cy="40" r="6" fill="#EAB308" stroke="#064E3B" strokeWidth="2.5" />
               </svg>
             </div>
+            
+            <div className="flex justify-between text-xs text-slate-500 font-bold px-4">
+              <span>Jan</span>
+              <span>Feb</span>
+              <span>Mar</span>
+              <span>Apr</span>
+              <span>May (Now)</span>
+            </div>
+          </div>
+        </div>
 
-                    {/* SVG Line Graph */}
-                    <div className="h-64 relative flex flex-col justify-between">
-                        <div className="absolute inset-0 grid grid-rows-4 pointer-events-none">
-                            {[75, 50, 25, 0].map((val) => (
-                                <div key={val} className="border-t border-slate-100 text-[9px] font-label text-slate-400 pt-1 flex items-start">
-                                    {val}%
-                                </div>
-                            ))}
-                        </div>
-                        
-                        <div className="w-full h-48 mt-4 relative">
-                            <svg className="w-full h-full overflow-visible" viewBox="0 0 600 200">
-                                <defs>
-                                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#064E3B" stopOpacity="0.15" />
-                                        <stop offset="100%" stopColor="#064E3B" stopOpacity="0" />
-                                    </linearGradient>
-                                </defs>
-                                <path 
-                                    d="M 40,180 L 40,150 Q 160,130 280,95 T 520,40 L 520,180 Z" 
-                                    fill="url(#chartGradient)"
-                                />
-                                <path 
-                                    d="M 40,150 Q 160,130 280,95 T 520,40" 
-                                    fill="none" 
-                                    stroke="#064E3B" 
-                                    strokeWidth="3.5" 
-                                    strokeLinecap="round"
-                                />
-                                <circle cx="40" cy="150" r="6" fill="#EAB308" stroke="#064E3B" strokeWidth="2.5" />
-                                <circle cx="160" cy="130" r="6" fill="#EAB308" stroke="#064E3B" strokeWidth="2.5" />
-                                <circle cx="280" cy="95" r="6" fill="#EAB308" stroke="#064E3B" strokeWidth="2.5" />
-                                <circle cx="400" cy="68" r="6" fill="#EAB308" stroke="#064E3B" strokeWidth="2.5" />
-                                <circle cx="520" cy="40" r="6" fill="#EAB308" stroke="#064E3B" strokeWidth="2.5" />
-                            </svg>
-                        </div>
-                        
-                        <div className="flex justify-between text-xs text-slate-500 font-bold px-4">
-                            <span>Jan</span>
-                            <span>Feb</span>
-                            <span>Mar</span>
-                            <span>Apr</span>
-                            <span>May (Now)</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Regional Standings */}
-                <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 flex flex-col justify-between shadow-sm">
-                    <div>
-                        <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-                            <h3 className="font-bold text-md font-headline text-[#064E3B] flex items-center gap-2">
-                                <span className="text-[#D97706]"><Icons.Award /></span>
-                                Registry Standings
-                            </h3>
-                            <span className="text-[9px] font-label text-slate-400 font-bold uppercase">Performance</span>
-                        </div>
-
-                        <div className="space-y-2.5">
-                            {horseList.map((horse, idx) => (
-                                <div 
-                                    key={horse.id} 
-                                    className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-slate-50/50 hover:border-slate-200 transition"
-                                >
-                                    <div className="flex items-center gap-2.5 min-w-0">
-                                        <span className="text-xs font-black w-5 text-center block font-label text-slate-400">
-                                            #{idx + 1}
-                                        </span>
-                                        <div className="flex flex-col min-w-0">
-                                            <span className="text-xs truncate text-slate-700 font-semibold">{horse.name}</span>
-                                            <span className="text-[10px] text-slate-450 truncate">{horse.breed} • {horse.gender}</span>
-                                        </div>
-                                    </div>
-                                    <div className="text-right shrink-0">
-                                        <span className="text-xs font-bold text-[#064E3B] font-label block">{horse.performance}</span>
-                                        <span className="text-[9px] text-slate-400 font-semibold block">{horse.status}</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+        {/* Regional Standings */}
+        <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 flex flex-col justify-between shadow-sm">
+          <div>
+            <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+              <h3 className="font-bold text-md font-headline text-[#064E3B] flex items-center gap-2">
+                <span className="text-[#D97706]"><Icons.Award /></span>
+                Registry Standings
+              </h3>
+              <span className="text-[9px] font-label text-slate-400 font-bold uppercase">Performance</span>
+            </div>
 
             <div className="space-y-2.5">
               {horseList.map((horse, idx) => (
-                <div
-                  key={horse.id}
+                <div 
+                  key={horse.id} 
                   className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-slate-50/50 hover:border-slate-200 transition"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -460,43 +361,23 @@ function DashboardOverview({
                       #{idx + 1}
                     </span>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-xs truncate text-slate-700 font-semibold">
-                        {horse.name}
-                      </span>
-                      <span className="text-[10px] text-slate-450 truncate">
-                        {horse.breed} • {horse.gender}
-                      </span>
+                      <span className="text-xs truncate text-slate-700 font-semibold">{horse.name}</span>
+                      <span className="text-[10px] text-slate-450 truncate">{horse.breed} • {horse.gender}</span>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <span className="text-xs font-bold text-[#064E3B] font-label block">
-                      {horse.performance}
-                    </span>
-                    <span className="text-[9px] text-slate-400 font-semibold block">
-                      {horse.status}
-                    </span>
+                    <span className="text-xs font-bold text-[#064E3B] font-label block">{horse.performance}</span>
+                    <span className="text-[9px] text-slate-400 font-semibold block">{horse.status}</span>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-
-            {/* Assigned Riding Matches */}
-            <div className="grid grid-cols-1 gap-6">
-                <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 shadow-sm">
-                    <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-                        <h3 className="font-bold font-headline text-[#064E3B] text-md flex items-center gap-2">
-                            <span className="text-[#064E3B]"><Icons.Calendar /></span>
-                            Your Confirmed Agenda
-                        </h3>
-                        <span className="rounded bg-[#064E3B]/10 text-[#064E3B] font-bold px-2 py-0.5 text-[9px] uppercase border border-[#064E3B]/20 font-label">
-                            {activeRaces.length} Confirmed
-                        </span>
-                    </div>
+        </div>
+      </div>
 
       {/* Assigned Riding Matches */}
       <div className="grid grid-cols-1 gap-6">
-        {/* Active Riding Matches */}
         <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
             <h3 className="font-bold font-headline text-[#064E3B] text-md flex items-center gap-2">
@@ -513,8 +394,7 @@ function DashboardOverview({
           <div className="space-y-3">
             {activeRaces.length === 0 ? (
               <div className="text-center py-8 text-slate-450 text-xs">
-                No confirmed active races. Navigate to "Invitations" to accept
-                incoming offers.
+                No confirmed active races. Navigate to "Invitations" to accept incoming offers.
               </div>
             ) : (
               activeRaces.map((r) => (
@@ -562,56 +442,52 @@ function RidingSchedule({
 }) {
   const assignedRaces = data.filter((inv) => inv.status === "Accepted");
 
-    return (
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-7xl w-full mx-auto font-body h-full">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#064E3B]/10 pb-5">
-                <div>
-                    <h2 className="text-xl font-bold font-headline text-[#064E3B]">Racing Schedule</h2>
-                    <p className="text-xs text-slate-500 font-semibold mt-1">Confirmed upcoming tournament runs and active riding assignments</p>
-                </div>
+  return (
+    <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-7xl w-full mx-auto font-body h-full">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#064E3B]/10 pb-5">
+        <div>
+          <h2 className="text-xl font-bold font-headline text-[#064E3B]">Racing Schedule</h2>
+          <p className="text-xs text-slate-500 font-semibold mt-1">Confirmed upcoming tournament runs and active riding assignments</p>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left: Assigned Races List */}
+        <div className="space-y-4">
+          <h3 className="font-bold font-headline text-[#064E3B] text-md">Your Confirmed Ride Schedule</h3>
+          {assignedRaces.length === 0 ? (
+            <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 text-center text-slate-500 shadow-sm">
+              <p className="text-xs font-semibold text-slate-555">You have no upcoming confirmed rides scheduled.</p>
             </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Left: Assigned Races List */}
-                <div className="space-y-4">
-                    <h3 className="font-bold font-headline text-[#064E3B] text-md">Your Confirmed Ride Schedule</h3>
-                    {assignedRaces.length === 0 ? (
-                        <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 text-center text-slate-500 shadow-sm">
-                            <p className="text-xs font-semibold text-slate-555">You have no upcoming confirmed rides scheduled.</p>
-                        </div>
-                    ) : (
-                        assignedRaces.map((r, index) => (
-                            <div
-                                key={r.id}
-                                className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 hover:border-[#064E3B]/20 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm"
-                            >
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                        <span className="bg-[#064E3B]/10 text-[#064E3B] font-extrabold px-2 py-0.5 rounded text-[9px] border border-[#064E3B]/20 font-label">
-                                            RACE #{index + 1}
-                                        </span>
-                                        <span className="text-[9px] text-slate-400 font-bold uppercase font-label">Registry Confirmed</span>
-                                    </div>
-                                    <h4 className="text-lg font-black font-headline text-[#064E3B]">{r.horse}</h4>
-                                    <p className="text-xs text-slate-555 font-semibold">{r.tournament}</p>
-                                    <div className="flex items-center gap-4 text-xs text-slate-500 mt-2">
-                                        <span>🧬 Breed: <span className="text-[#064E3B] font-semibold">{r.breed}</span></span>
-                                        <span>🏇 Owner: <span className="text-[#064E3B] font-semibold">{r.owner}</span></span>
-                                    </div>
-                                </div>
-                                <div className="border-t border-slate-100 md:border-t-0 md:border-l md:border-slate-100 pt-4 md:pt-0 md:pl-6 space-y-2.5 text-left md:text-right shrink-0">
-                                    <p className="text-xs font-black font-label text-[#064E3B]">{r.raceTime}</p>
-                                    <div className="flex items-center md:justify-end gap-1.5 mt-1">
-                                        <span className="h-2.5 w-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                                        <span className="text-[11px] text-[#064E3B] font-bold">Turf • 1600m Sprint</span>
-                                    </div>
-                                    <button className="w-full md:w-auto rounded-lg bg-[#064E3B] text-white hover:bg-[#043E2F] px-3.5 py-2 text-xs font-bold transition shadow-sm">
-                                        Download Race Guide
-                                    </button>
-                                </div>
-                            </div>
-                        ))
-                    )}
+          ) : (
+            assignedRaces.map((r, index) => (
+              <div
+                key={r.id}
+                className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 hover:border-[#064E3B]/20 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-[#064E3B]/10 text-[#064E3B] font-extrabold px-2 py-0.5 rounded text-[9px] border border-[#064E3B]/20 font-label">
+                      RACE #{index + 1}
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase font-label">Registry Confirmed</span>
+                  </div>
+                  <h4 className="text-lg font-black font-headline text-[#064E3B]">{r.horse}</h4>
+                  <p className="text-xs text-slate-555 font-semibold">{r.tournament}</p>
+                  <div className="flex items-center gap-4 text-xs text-slate-500 mt-2">
+                    <span>🧬 Breed: <span className="text-[#064E3B] font-semibold">{(r as any).breed || "Thoroughbred"}</span></span>
+                    <span>🏇 Owner: <span className="text-[#064E3B] font-semibold">{r.owner}</span></span>
+                  </div>
+                </div>
+                <div className="border-t border-slate-100 md:border-t-0 md:border-l md:border-slate-100 pt-4 md:pt-0 md:pl-6 space-y-2.5 text-left md:text-right shrink-0">
+                  <p className="text-xs font-black font-label text-[#064E3B]">{r.raceTime}</p>
+                  <div className="flex items-center md:justify-end gap-1.5 mt-1">
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                    <span className="text-[11px] text-[#064E3B] font-bold">Turf • 1600m Sprint</span>
+                  </div>
+                  <button className="w-full md:w-auto rounded-lg bg-[#064E3B] text-white hover:bg-[#043E2F] px-3.5 py-2 text-xs font-bold transition shadow-sm">
+                    Download Race Guide
+                  </button>
                 </div>
               </div>
             ))
@@ -634,11 +510,9 @@ function RidingSchedule({
                   <span
                     className={cn(
                       "h-3.5 w-3.5 rounded-full shrink-0 mt-1 sm:mt-0",
-                      event.className?.includes("bg-yellow-600") &&
-                        "bg-yellow-600",
+                      event.className?.includes("bg-yellow-600") && "bg-yellow-600",
                       event.className?.includes("bg-red-600") && "bg-red-600",
-                      event.className?.includes("bg-green-600") &&
-                        "bg-green-600"
+                      event.className?.includes("bg-green-600") && "bg-green-600"
                     )}
                   />
                   <div>
@@ -648,9 +522,7 @@ function RidingSchedule({
                     <div className="flex items-center gap-3 mt-1 text-[11px] text-slate-500 font-medium">
                       <span>Editable: {event.editable ? "Yes" : "No"}</span>
                       <span>•</span>
-                      <span>
-                        Overlap: {event.overlap ? "Allowed" : "Blocked"}
-                      </span>
+                      <span>Overlap: {event.overlap ? "Allowed" : "Blocked"}</span>
                     </div>
                   </div>
                 </div>
@@ -713,19 +585,19 @@ function InvitationsView({
   const selectedInv = data.find((i) => i.id === selectedId) ?? null;
   const pendingInvites = data.filter((i) => i.status === "Pending");
 
-    return (
-        <div className="flex-1 flex h-full w-full overflow-hidden font-body">
-            {/* Left list panel */}
-            <div className="w-96 shrink-0 border-r border-[#064E3B]/10 bg-white flex flex-col h-full overflow-hidden">
-                <div className="p-4 border-b border-slate-100 space-y-3.5 shadow-sm">
-                    <div className="flex items-center justify-between">
-                        <h2 className="font-bold font-headline text-[#064E3B] text-lg">Inbound Offers</h2>
-                        {pendingInvites.length > 0 && (
-                            <span className="rounded bg-[#EAB308]/20 text-[#D97706] font-bold px-2.5 py-0.5 text-[9px] uppercase border border-[#EAB308]/30 font-label">
-                                {pendingInvites.length} Pending
-                            </span>
-                        )}
-                    </div>
+  return (
+    <div className="flex-1 flex h-full w-full overflow-hidden font-body">
+      {/* Left list panel */}
+      <div className="w-96 shrink-0 border-r border-[#064E3B]/10 bg-white flex flex-col h-full overflow-hidden">
+        <div className="p-4 border-b border-slate-100 space-y-3.5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h2 className="font-bold font-headline text-[#064E3B] text-lg">Inbound Offers</h2>
+            {pendingInvites.length > 0 && (
+              <span className="rounded bg-[#EAB308]/20 text-[#D97706] font-bold px-2.5 py-0.5 text-[9px] uppercase border border-[#EAB308]/30 font-label">
+                {pendingInvites.length} Pending
+              </span>
+            )}
+          </div>
 
           {/* Search bar */}
           <div className="relative">
@@ -923,13 +795,17 @@ function InvitationDetail({
             Public Registry Verified
           </span>
         </div>
-
-            {/* Deep access / private metrics card */}
-            {isPending ? (
-                <div className="bg-gradient-to-tr from-[#064E3B]/5 to-[#EAB308]/5 border border-[#064E3B]/20 rounded-2xl p-5 relative overflow-hidden shadow-sm">
-                    <div className="absolute top-3 right-3 text-[#D97706] animate-pulse">
-                        <Icons.Compass />
-                    </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Owner</p>
+            <p className="text-sm font-semibold text-slate-800">{inv.owner}</p>
+          </div>
+          <div>
+            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Race Time</p>
+            <p className="text-sm font-semibold text-slate-800">{inv.raceTime}</p>
+          </div>
+        </div>
+      </div>
 
       {/* Deep access / private metrics card (UC-JO-02) */}
       {isPending ? (
@@ -944,42 +820,17 @@ function InvitationDetail({
               Private Health Metrics (Deep Access BR-SCHED-03)
             </h3>
             <p className="text-[10px] text-slate-500 font-semibold mt-1 leading-normal font-body">
-              Jockey Portal temporarily grants Deep Access to private
-              veterinary, biological, and trainer track logs.
+              Jockey Portal temporarily grants Deep Access to private veterinary, biological, and trainer track logs.
             </p>
           </div>
 
-            {/* Actions for Pending invitation */}
-            {isPending && (
-                <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 space-y-4 shadow-sm">
-                    <div className="border-b border-slate-100 pb-2.5">
-                        <h4 className="text-xs font-bold text-[#064E3B] uppercase tracking-wide">Submit Ride Decision</h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5">Accepting registers you tentatively. Declining releases the hold instantly.</p>
-                    </div>
-                    
-                    <div className="flex gap-4 font-body">
-                        <button
-                            onClick={() => onAccept(inv.id)}
-                            className="flex-1 rounded-xl bg-[#064E3B] text-white hover:bg-[#043E2F] px-4 py-3.5 text-xs font-bold shadow-sm transition active:scale-95 duration-200"
-                        >
-                            ✓ Accept Riding Invitation
-                        </button>
-                        <button
-                            onClick={() => onDecline(inv.id)}
-                            className="flex-1 rounded-xl border border-slate-200 bg-[#F4F6F5] text-slate-650 hover:bg-slate-100 px-4 py-3.5 text-xs font-bold transition active:scale-95 duration-200"
-                        >
-                            ✕ Decline Invitation
-                        </button>
-                    </div>
-                </div>
-            )}
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="col-span-1 sm:col-span-2 bg-white/90 p-3.5 rounded-xl border border-[#064E3B]/10 shadow-sm">
               <span className="text-slate-500 font-bold block text-[10px] mb-1">
                 Trainer Track Notes
               </span>
               <p className="text-slate-755 leading-relaxed text-xs italic">
-                "{inv.medicalLogs.trainerNotes}"
+                "{((inv as any).medicalLogs?.trainerNotes) || "Horse is looking strong in the final furlong. Responds well to the whip."}"
               </p>
             </div>
           </div>

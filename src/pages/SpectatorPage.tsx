@@ -1,4 +1,3 @@
-import React from "react";
 import UserLayout from "../layouts/UserLayout"; // Adjust path as needed
 
 export default function SpectatorPage() {

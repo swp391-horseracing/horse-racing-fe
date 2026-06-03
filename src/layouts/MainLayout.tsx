@@ -1,7 +1,7 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button.tsx";
 import { ROUTES } from "../router/routes.tsx";
-import { Bell } from "@phosphor-icons/react";
+import { Bell, Newspaper } from "lucide-react";
 import React from "react";
 import NotificationTab from "../components/NotificationTab.tsx";
 
@@ -126,36 +126,12 @@ export default function MainLayout() {
                     </Button>
                 </div>
 
-        {roleLinks.map((link) => (
-          <div key={link.to} className="flex justify-center items-center h-8">
-            <Button
-              onClick={() => navigate(link.to)}
-              variant="ghost"
-              className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-5 py-2 ${
-                location.pathname === link.to
-                  ? "bg-gray-100 text-gray-600"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              {link.label}
-            </Button>
-          </div>
-        ))}
-
-        <div className="flex justify-center items-center h-8 text-gray-400 px-1">
-          ]
-        </div>
+            </div>
 
             {/* Application Viewport */}
             <div className="w-full flex-1 bg-white rounded-sm min-h-0 overflow-hidden shadow-sm border border-gray-200">
                 <Outlet />
             </div>
         </div>
-      </div>
-
-      <div className="w-full flex-1 bg-white rounded-sm overflow-auto min-h-0">
-        <Outlet />
-      </div>
-    </div>
-  );
+    );
 }
