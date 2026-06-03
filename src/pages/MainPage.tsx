@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { ROUTES } from "../router/routes";
@@ -9,12 +9,13 @@ export default function MainPage() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("home");
 
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  useEffect(() => {
-    const isDark = document.documentElement.classList.contains("dark");
-    setIsDarkMode(isDark);
-  }, []);
+  // Initialize state directly from document.documentElement if available
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof document !== "undefined") {
+      return document.documentElement.classList.contains("dark");
+    }
+    return false;
+  });
 
   // Toggle the theme
   const toggleTheme = () => {

@@ -1,62 +1,62 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { NotificationService } from "../services/NotificationService.ts";
 import type { Notification } from "../types/notification.ts";
-
-// function formatNotificationDate(dateString: string): string {
-//     const now = new Date();
-//     const date = new Date(dateString);
-//
-//     const diffMs = now.getTime() - date.getTime();
-//     console.log("current",diffMs);
-//
-//     const diffMinutes = Math.floor(diffMs / (1000 * 60));
-//     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-//     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-//     const diffWeeks = Math.floor(diffDays / 7);
-//     const diffMonths = Math.floor(diffDays / 30);
-//
-//     if (diffMonths >= 1) {
-//         return `${diffMonths} month${diffMonths > 1 ? "s" : ""} ago`;
-//     }
-//
-//     if (diffWeeks >= 1) {
-//         return `${diffWeeks} week${diffWeeks > 1 ? "s" : ""} ago`;
-//     }
-//
-//     if (diffDays >= 1) {
-//         return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
-//     }
-//
-//     if (diffHours >= 1) {
-//         return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-//     }
-//
-//     if (diffMinutes >= 1) {
-//         return `${diffMinutes} minute${diffMinutes > 1 ? "s" : ""} ago`;
-//     }
-//
-//     return "just now";
-// }
 
 export function useNotification() {
   const [NotificationList, setList] = useState<Notification[]>([]);
 
-  const handleNotification = (notification: Notification) => {
-    // notification.date = formatNotificationDate(notification.date);
-    console.log(notification.date);
-  };
-
-  const getNotificationList = async () => {
-    const data = await NotificationService.getNotification();
-    for (let i = 0; i < data.length; i++) {
-      handleNotification(data[i]);
+  // Keep a stable callback for manual refreshes if needed
+  const getNotificationList = useCallback(async () => {
+    try {
+      const data = await NotificationService.getNotification();
+      setList(data);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
     }
-    setList(data);
-  };
+  }, []);
 
+  // Fetch notifications safely on mount using an active flag to prevent state updates if unmounted
   useEffect(() => {
-    getNotificationList();
-  });
+    let active = true;
 
-  return { NotificationList, getNotificationList };
+    const fetchNotifications = async () => {
+      try {
+        const data = await NotificationService.getNotification();
+        if (active) {
+          setList(data);
+        }
+      } catch (error) {
+        console.error("Error fetching notifications on mount:", error);
+      }
+    };
+
+    fetchNotifications();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // State modification actions defined inside the hook
+  const handleRead = useCallback((id: string) => {
+    setList((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, isRead: true } : item))
+    );
+  }, []);
+
+  const handleReadAll = useCallback(() => {
+    setList((prev) =>
+      prev.map((item) => ({
+        ...item,
+        isRead: true,
+      }))
+    );
+  }, []);
+
+  return {
+    NotificationList,
+    getNotificationList,
+    handleRead,
+    handleReadAll,
+  };
 }
