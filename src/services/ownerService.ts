@@ -106,7 +106,7 @@ const mockRegistrations: TournamentRegistration[] = [
 const mockJockeys: Jockey[] = [
   {
     id: 201,
-    name: "Trần Trí Đức",
+    name: "Nguyễn Văn A",
     licenseId: "JC-VN-9921",
     winRate: "34.5%",
     totalRuns: 110,
@@ -115,7 +115,7 @@ const mockJockeys: Jockey[] = [
   },
   {
     id: 202,
-    name: "Chu Minh Đức",
+    name: "Nguyễn Văn B",
     licenseId: "JC-VN-1104",
     winRate: "28.1%",
     totalRuns: 95,
@@ -124,7 +124,7 @@ const mockJockeys: Jockey[] = [
   },
   {
     id: 203,
-    name: "Trần Ngọc Thanh",
+    name: "Nguyễn Văn C",
     licenseId: "JC-VN-4822",
     winRate: "21.9%",
     totalRuns: 140,
@@ -133,7 +133,7 @@ const mockJockeys: Jockey[] = [
   },
   {
     id: 204,
-    name: "Nguyễn Khoa",
+    name: "Nguyễn Văn D",
     licenseId: "JC-VN-5039",
     winRate: "19.5%",
     totalRuns: 72,
