@@ -4,7 +4,7 @@ const mockUser: User = {
   id: "u_001",
   email: "j.thorne@eliteturf.com",
   password: "hashed_password",
-  full_name: "Julian Thorne",
+  fullName: "Julian Thorne",
   phone: "+44 7700 900 123",
   address: "12 Newmarket Road, Suffolk",
   avatar_url: "https://example.com/avatar.jpg",

@@ -119,7 +119,7 @@ export default function SpectatorPage() {
       hasWelcomed.current = true;
       const timer = setTimeout(() => {
         addToast(
-          `Welcome ${user.full_name}! 1,000 Token Genesis Drop credited to your wallet.`,
+          `Welcome ${user.fullName}! 1,000 Token Genesis Drop credited to your wallet.`,
           "info"
         );
       }, 300);

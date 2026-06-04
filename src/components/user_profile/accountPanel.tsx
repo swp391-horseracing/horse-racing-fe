@@ -24,7 +24,7 @@ export default function AccountPanel({
     <div className="flex gap-5 flex-wrap">
       {/* Profile card */}
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 flex flex-col items-center gap-3 w-56 shrink-0">
-        ${user.full_name}
+        ${user.fullName}
         <div className="text-center">
           {/*<p className="font-bold text-lg text-gray-900 dark:text-gray-100 font-['Playfair_Display',serif]">{user.name}</p>*/}
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
