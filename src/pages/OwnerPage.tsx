@@ -19,6 +19,13 @@ import {
   XCircle,
   Trophy,
   AlertTriangle,
+  Search,
+  SlidersHorizontal,
+  ArrowUpDown,
+  MapPin,
+  Zap,
+  ArrowUpRight,
+  ArrowRight,
 } from "lucide-react";
 
 type ToastType = "success" | "error" | "warning" | "info";
@@ -318,11 +325,11 @@ export default function OwnerPage() {
               className={cn(
                 "p-3 rounded-lg border shadow-lg backdrop-blur-md flex items-center gap-2 pointer-events-auto transform animate-in slide-in-from-top duration-200 text-xs font-semibold",
                 t.type === "success" &&
-                  "bg-emerald-50 border-emerald-200 text-emerald-950",
+                  "bg-emerald-50 border-emerald-200 text-emerald-955",
                 t.type === "error" &&
                   "bg-rose-50 border-rose-200 text-rose-955",
                 t.type === "warning" &&
-                  "bg-amber-50 border-amber-200 text-amber-950",
+                  "bg-amber-50 border-amber-200 text-amber-955",
                 t.type === "info" &&
                   "bg-indigo-50 border-indigo-200 text-indigo-955"
               )}
@@ -357,7 +364,7 @@ export default function OwnerPage() {
                 </h3>
                 <button
                   onClick={() => setShowAddHorse(false)}
-                  className="text-slate-400 hover:text-slate-650 text-sm"
+                  className="text-slate-400 hover:text-slate-655 text-sm"
                 >
                   ✕
                 </button>
@@ -743,7 +750,8 @@ function HorseManagement({
             Horse Registry
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Manage your stable profiles, view horse details, and retire active horses.
+            Manage your stable profiles, view horse details, and retire active
+            horses.
           </p>
         </div>
         <button
@@ -814,7 +822,7 @@ function HorseManagement({
                   <button
                     onClick={() => onRetire(horse.id)}
                     disabled={locked}
-                    className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 hover:border-rose-250 text-slate-500 hover:text-rose-650 py-2 transition disabled:opacity-40 disabled:hover:border-slate-200 disabled:hover:text-slate-500"
+                    className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 hover:border-rose-250 text-slate-500 hover:text-rose-655 py-2 transition disabled:opacity-40 disabled:hover:border-slate-200 disabled:hover:text-slate-500"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Retire Horse</span>
@@ -830,6 +838,27 @@ function HorseManagement({
 
 // ─── Component 2.5: RaceRegister ─────────────────────────────────────────────
 
+type TournamentFilter =
+  | "All"
+  | "Live now"
+  | "Registration open"
+  | "Upcoming"
+  | "Completed";
+
+const STATUS_FILTER_MAP: Record<TournamentFilter, Tournament["status"][]> = {
+  All: [
+    "Registration Open",
+    "Registration Closed",
+    "Scheduled",
+    "Live",
+    "Concluded",
+  ],
+  "Live now": ["Live"],
+  "Registration open": ["Registration Open"],
+  Upcoming: ["Scheduled", "Registration Closed"],
+  Completed: ["Concluded"],
+};
+
 function RaceRegister({
   horses,
   tournaments,
@@ -839,135 +868,310 @@ function RaceRegister({
   horses: Horse[];
   tournaments: Tournament[];
   registrations: TournamentRegistration[];
-  onOpenRegisterModal: (horseId?: number | null, tournamentId?: number | null) => void;
+  onOpenRegisterModal: (
+    horseId?: number | null,
+    tournamentId?: number | null
+  ) => void;
 }) {
-  const openTournaments = tournaments.filter((t) => t.status === "Registration Open");
+  const [search, setSearch] = useState("");
+  const [activeFilter, setActiveFilter] = useState<TournamentFilter>("All");
+
+  const FILTER_TABS: TournamentFilter[] = [
+    "All",
+    "Live now",
+    "Registration open",
+    "Upcoming",
+    "Completed",
+  ];
+
+  const filteredTournaments = tournaments.filter((t) => {
+    const matchesSearch =
+      t.name.toLowerCase().includes(search.toLowerCase()) ||
+      t.allowedBreed.toLowerCase().includes(search.toLowerCase());
+    const allowedStatuses = STATUS_FILTER_MAP[activeFilter];
+    const matchesFilter = allowedStatuses.includes(t.status);
+    return matchesSearch && matchesFilter;
+  });
+
+  const getStatusBadge = (status: Tournament["status"]) => {
+    switch (status) {
+      case "Live":
+        return (
+          <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-blue-600 text-white shadow-sm">
+            Live now
+          </span>
+        );
+      case "Registration Open":
+        return (
+          <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-600 text-white shadow-sm">
+            Registration open
+          </span>
+        );
+      case "Scheduled":
+      case "Registration Closed":
+        return (
+          <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+            Upcoming
+          </span>
+        );
+      case "Concluded":
+        return (
+          <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-500 border border-slate-200">
+            Completed
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const getTopRightLabel = (t: Tournament) => {
+    if (t.status === "Live") {
+      return (
+        <span className="text-[12px] text-slate-500 font-medium">
+          Round 1 of 3
+        </span>
+      );
+    }
+    if (t.status === "Registration Open") {
+      return (
+        <span className="flex items-center gap-1 text-[12px] text-amber-600 font-bold">
+          <Clock className="w-3.5 h-3.5" /> 6 days left
+        </span>
+      );
+    }
+    if (t.status === "Scheduled" || t.status === "Registration Closed") {
+      return (
+        <span className="text-[12px] text-slate-500 font-medium">
+          Reg. opens in 14d
+        </span>
+      );
+    }
+    return (
+      <span className="text-[12px] text-slate-500 font-medium">Dec 2025</span>
+    );
+  };
+
+  const renderCardAction = (t: Tournament) => {
+    const myReg = registrations.find((r) => r.tournamentId === t.id);
+    const horse = myReg ? horses.find((h) => h.id === myReg.horseId) : null;
+
+    if (t.status === "Live") {
+      return (
+        <div className="bg-[#064E3B]/5 border border-[#064E3B]/10 rounded-xl p-3.5 flex items-center justify-between">
+          {horse ? (
+            <span className="text-[12px] text-[#064E3B] font-bold flex items-center gap-1.5">
+              <Zap className="w-4 h-4 text-[#064E3B]" /> {horse.name} · Race 3
+              at 14:30 today
+            </span>
+          ) : (
+            <span className="text-[12px] text-slate-500 font-medium">
+              No active stable entries
+            </span>
+          )}
+          <button className="flex items-center gap-1 text-[13px] font-bold text-[#064E3B] hover:text-[#043E2F] transition">
+            View <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      );
+    }
+    if (t.status === "Registration Open") {
+      return (
+        <button
+          onClick={() => onOpenRegisterModal(null, t.id)}
+          className="w-full rounded-xl border border-slate-200 bg-white text-slate-800 py-3 text-[13px] font-bold hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-1.5 shadow-sm"
+        >
+          Register horse <ArrowUpRight className="w-4 h-4" />
+        </button>
+      );
+    }
+    if (t.status === "Scheduled" || t.status === "Registration Closed") {
+      return (
+        <button className="w-full rounded-xl border border-slate-200 bg-white text-slate-800 py-3 text-[13px] font-bold hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-1.5 shadow-sm">
+          View details
+        </button>
+      );
+    }
+    if (t.status === "Concluded") {
+      return (
+        <div className="bg-slate-50 border border-slate-100 rounded-xl p-3.5 flex items-center justify-between">
+          <span className="text-[12px] text-slate-600 font-medium">
+            {horse
+              ? `${horse.name} — 1st place · $12,000 earned`
+              : "Tournament concluded"}
+          </span>
+          <button className="flex items-center gap-1 text-[13px] font-bold text-slate-800 hover:text-black transition">
+            Results <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="p-5 space-y-5 max-w-6xl mx-auto font-body">
+      {/* Header */}
       <div className="flex items-center justify-between border-b pb-4">
         <div>
           <h2 className="text-xl font-black text-[#064E3B] tracking-tight">
             Race & Tournament Registration
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Register your active horses for upcoming events and monitor application statuses.
+            Register your active horses for upcoming events and monitor
+            application statuses.
           </p>
         </div>
-        <button
-          onClick={() => onOpenRegisterModal(null, null)}
-          className="flex items-center gap-1.5 rounded-lg bg-[#064E3B] text-white px-3.5 py-2 text-xs font-bold shadow-xs hover:bg-[#043E2F] transition"
-        >
-          <Plus className="w-3.5 h-3.5" /> Register Entry
+      </div>
+
+      {/* Search + Controls */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            type="text"
+            placeholder="Search tournaments..."
+            className="w-full pl-9 pr-4 py-2.5 text-[13px] bg-white border border-slate-200 rounded-xl outline-none focus:border-[#064E3B] transition shadow-xs"
+          />
+        </div>
+        <button className="flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-bold bg-white border border-slate-200 rounded-xl hover:border-[#064E3B]/40 transition shadow-xs text-slate-700">
+          <SlidersHorizontal className="w-4 h-4" /> Filter
+        </button>
+        <button className="flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-bold bg-white border border-slate-200 rounded-xl hover:border-[#064E3B]/40 transition shadow-xs text-slate-700">
+          <ArrowUpDown className="w-4 h-4" /> Sort
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Columns: Open Events */}
-        <div className="lg:col-span-2 space-y-4">
-          <h3 className="font-bold text-sm text-[#064E3B]">Upcoming Tournaments</h3>
-          {openTournaments.length === 0 ? (
-            <div className="bg-white border rounded-xl p-8 text-center text-slate-400">
-              <Trophy className="w-7 h-7 mx-auto mb-2 text-slate-300" />
-              <p className="text-xs font-semibold">No tournaments currently open for registration.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {openTournaments.map((t) => (
-                <div key={t.id} className="bg-white border rounded-xl p-4 shadow-xs flex flex-col justify-between hover:shadow-md transition">
-                  <div className="space-y-3.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex gap-2 items-center">
-                        <div className="p-1.5 bg-emerald-50 text-[#064E3B] rounded-lg border border-emerald-100">
-                          <Trophy className="w-4 h-4" />
-                        </div>
-                        <h4 className="font-bold text-xs text-slate-800 line-clamp-1">
-                          {t.name}
-                        </h4>
-                      </div>
-                    </div>
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-2 flex-wrap mt-2">
+        {FILTER_TABS.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveFilter(tab)}
+            className={cn(
+              "px-4 py-1.5 rounded-full text-[13px] font-bold transition border",
+              activeFilter === tab
+                ? "bg-slate-800 text-white border-slate-800"
+                : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:text-slate-800"
+            )}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-[10px] bg-slate-50/50 p-2 rounded-lg border border-slate-100">
-                      <div>
-                        <span className="text-slate-400 block font-semibold uppercase text-[8px]">
-                          Allowed Breed
-                        </span>
-                        <span className="font-bold text-slate-700">
-                          {t.allowedBreed}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block font-semibold uppercase text-[8px]">
-                          Age Requirement
-                        </span>
-                        <span className="font-bold text-slate-700">
-                          {t.minAge} - {t.maxAge} years
-                        </span>
-                      </div>
-                      <div className="col-span-2 mt-1 border-t pt-1 border-slate-100 flex justify-between items-center text-[9px]">
-                        <span className="text-slate-400 font-semibold uppercase text-[8px]">
-                          Capacity Slots
-                        </span>
-                        <span className="font-bold text-[#064E3B]">
-                          {t.currentCount} / {t.maxCapacity} Registered
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+      {/* Count */}
+      <p className="text-[13px] text-slate-500 font-medium mt-4">
+        {filteredTournaments.length} tournament
+        {filteredTournaments.length !== 1 ? "s" : ""}
+      </p>
 
-                  <div className="mt-4 pt-3.5 border-t">
-                    <button
-                      onClick={() => onOpenRegisterModal(null, t.id)}
-                      className="w-full rounded-lg bg-[#064E3B] text-white py-2 text-xs font-bold hover:bg-[#043E2F] transition text-center shadow-xs"
-                    >
-                      Register for Race
-                    </button>
+      {/* Cards Grid */}
+      {filteredTournaments.length === 0 ? (
+        <div className="bg-white border rounded-2xl p-12 text-center text-slate-400 border-dashed">
+          <Trophy className="w-8 h-8 mx-auto mb-3 text-slate-300" />
+          <p className="text-sm font-semibold text-slate-500">
+            No tournaments found
+          </p>
+          <p className="text-xs text-slate-400 mt-1">
+            Try adjusting your search or filter
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredTournaments.map((t) => {
+            const fillPct = Math.round((t.currentCount / t.maxCapacity) * 100);
+            const slotsLeft = t.maxCapacity - t.currentCount;
+            const isOpen = t.status === "Registration Open";
+            const isConcluded = t.status === "Concluded";
+
+            return (
+              <div
+                key={t.id}
+                className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col hover:shadow-md transition-all duration-200"
+              >
+                {/* Top row: status badge + right label */}
+                <div className="flex items-center justify-between mb-4">
+                  {getStatusBadge(t.status)}
+                  {getTopRightLabel(t)}
+                </div>
+
+                {/* Tournament name + location + dates */}
+                <div className="mb-4">
+                  <h3 className="font-black text-[17px] tracking-tight text-[#064E3B] mb-2 leading-tight">
+                    {t.name}
+                  </h3>
+                  <div className="flex items-center gap-1.5 text-[13px] text-slate-500">
+                    <MapPin className="w-3.5 h-3.5 shrink-0" />
+                    <span>Ho Chi Minh City, VN</span>
+                    <span className="mx-1.5">·</span>
+                    <span>15–30 Jun 2026</span>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* Right Column: Applications */}
-        <div className="space-y-4">
-          <h3 className="font-bold text-sm text-[#064E3B]">Your Applications</h3>
-          {registrations.length === 0 ? (
-            <div className="bg-white border rounded-xl p-8 text-center text-slate-400">
-              <Activity className="w-7 h-7 mx-auto mb-2 text-slate-300" />
-              <p className="text-xs font-semibold">No tournament registration submissions.</p>
-            </div>
-          ) : (
-            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-              {[...registrations].reverse().map((reg) => {
-                const horse = horses.find((h) => h.id === reg.horseId);
-                const tour = tournaments.find((t) => t.id === reg.tournamentId);
-                return (
-                  <div key={reg.id} className="p-3.5 bg-white border rounded-xl shadow-xs space-y-2">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-bold text-xs text-slate-800">{horse?.name ?? "Unknown Horse"}</h4>
-                        <p className="text-[10px] text-slate-400 truncate max-w-[150px]">{tour?.name ?? "Unknown Event"}</p>
-                      </div>
-                      <span
-                        className={cn(
-                          "text-[8px] font-black uppercase px-2 py-0.5 rounded border",
-                          reg.status === "Approved" && "bg-emerald-50 border-emerald-200 text-emerald-800",
-                          reg.status === "Pending Approval" && "bg-amber-50 border-amber-200 text-amber-800",
-                          reg.status === "Waitlisted" && "bg-indigo-50 border-indigo-200 text-indigo-800",
-                          reg.status === "Withdrawn" && "bg-slate-100 border-slate-200 text-slate-500"
-                        )}
-                      >
-                        {reg.status}
+                {/* Registration progress (only for open) */}
+                {isOpen && (
+                  <div className="mb-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-[12px] text-slate-500 font-medium">
+                        {t.currentCount} / {t.maxCapacity} horses registered
+                      </span>
+                      <span className="text-[12px] font-bold text-emerald-600">
+                        {slotsLeft} slots left
                       </span>
                     </div>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-emerald-500 transition-all"
+                        style={{ width: `${fillPct}%` }}
+                      />
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
+                )}
+
+                {/* Separator Line */}
+                <div className="border-t border-slate-100 mt-4 mb-4" />
+
+                {/* Stats row (Updated to 2-column format without Prize Pool) */}
+                <div className="grid grid-cols-2 gap-4 mb-5">
+                  {[
+                    {
+                      label: "Races",
+                      value: isOpen ? "8" : "12",
+                    },
+                    {
+                      label: isOpen
+                        ? "Rounds"
+                        : isConcluded
+                          ? "Horses"
+                          : "Max horses",
+                      value: isOpen
+                        ? "3"
+                        : isConcluded
+                          ? `${t.currentCount}`
+                          : `${t.maxCapacity}`,
+                    },
+                  ].map((stat) => (
+                    <div key={stat.label}>
+                      <span className="block text-[11px] font-medium text-slate-500 mb-1">
+                        {stat.label}
+                      </span>
+                      <span className="block text-[15px] font-black text-slate-800">
+                        {stat.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Action container placed at bottom */}
+                <div className="mt-auto">{renderCardAction(t)}</div>
+              </div>
+            );
+          })}
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -1096,13 +1300,13 @@ function JockeyRosterManagement({
                                 className={cn(
                                   "text-[8px] font-black uppercase px-1.5 py-0.5 rounded border",
                                   inv.status === "Accepted" &&
-                                    "bg-emerald-50 border-emerald-200 text-emerald-800",
+                                    "bg-emerald-50 border-emerald-200 text-emerald-850",
                                   inv.status === "Pending" &&
-                                    "bg-amber-50 border-amber-200 text-amber-800",
+                                    "bg-amber-50 border-amber-200 text-amber-850",
                                   inv.status === "Declined" &&
-                                    "bg-rose-50 border-rose-200 text-rose-800",
+                                    "bg-rose-50 border-rose-200 text-rose-855",
                                   inv.status === "Superseded" &&
-                                    "bg-slate-100 border-slate-200 text-slate-450"
+                                    "bg-slate-100 border-slate-200 text-slate-455"
                                 )}
                               >
                                 {inv.status}
@@ -1209,7 +1413,7 @@ function JockeyInviteSelector({
                 <span className="font-bold text-[#064E3B] block">
                   {j.winRate} WR
                 </span>
-                <span className="text-[9px] text-slate-450 block">
+                <span className="text-[9px] text-slate-455 block">
                   {j.totalRuns} Matches
                 </span>
               </div>
@@ -1320,8 +1524,8 @@ function HorseScheduleView({
                       className={cn(
                         "text-[8px] font-black uppercase px-2 py-0.5 rounded border",
                         reg.status === "Waitlisted"
-                          ? "bg-indigo-50 border-indigo-200 text-indigo-800"
-                          : "bg-amber-50 border-amber-200 text-amber-800"
+                          ? "bg-indigo-50 border-indigo-200 text-indigo-805"
+                          : "bg-amber-50 border-amber-200 text-amber-805"
                       )}
                     >
                       {reg.status}
