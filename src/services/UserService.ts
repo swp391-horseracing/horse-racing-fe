@@ -8,7 +8,7 @@ const mockUser: User = {
   phone: "+44 7700 900 123",
   address: "12 Newmarket Road, Suffolk",
   avatar_url: "https://example.com/avatar.jpg",
-    token: "1",
+  token: "1",
   role: "Spectator",
   status: "ACTIVE",
   created_at: "2025-01-15T10:00:00Z",

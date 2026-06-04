@@ -4,7 +4,11 @@ import { AuthService } from "../services/authService.ts";
 export default function useAuth() {
   const [token, setToken] = useState<string | null>(null);
 
-  const login = async (email: string, password: string, captchaToken:string) => {
+  const login = async (
+    email: string,
+    password: string,
+    captchaToken: string
+  ) => {
     const user = await AuthService.login(email, password, captchaToken);
 
     const jwt = user.token;
@@ -33,7 +37,13 @@ export default function useAuth() {
     captchaToken: string
   ) => {
     try {
-      const user = await AuthService.register(fullName, email, password, role, captchaToken);
+      const user = await AuthService.register(
+        fullName,
+        email,
+        password,
+        role,
+        captchaToken
+      );
       console.log(user);
     } catch (error) {
       console.log(error);
@@ -49,5 +59,5 @@ export default function useAuth() {
     }
   };
 
-  return { token, login, logout, register, getToken};
+  return { token, login, logout, register, getToken };
 }

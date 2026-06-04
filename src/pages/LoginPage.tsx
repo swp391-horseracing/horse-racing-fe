@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue} from "../components/ui/select.tsx";
-import {ROUTES} from "../router/routes.tsx";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select.tsx";
+import { ROUTES } from "../router/routes.tsx";
 import * as axios from "axios";
 import useAuth from "../hooks/useAuth.ts";
 import ReCaptchaPanel from "../components/reCapchaPanel.tsx";
@@ -20,8 +27,8 @@ const roles = [
   {
     text: "Horse owner",
     value: "horse_owner",
-  }
-]
+  },
+];
 
 export default function Login() {
   const navigate = useNavigate();
@@ -33,7 +40,7 @@ export default function Login() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const {login, register} = useAuth();
+  const { login, register } = useAuth();
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const validate = (): string | null => {
@@ -110,7 +117,10 @@ export default function Login() {
       }
       navigate(ROUTES.DASHBOARD);
     } catch (err: unknown) {
-      let errorMessage = mode === "login" ? "Invalid email or password." : "Registration failed.";
+      let errorMessage =
+        mode === "login"
+          ? "Invalid email or password."
+          : "Registration failed.";
 
       if (axios.isAxiosError(err)) {
         errorMessage = err.response?.data?.message || errorMessage;
@@ -133,19 +143,16 @@ export default function Login() {
   };
 
   return (
-    <div
-      className="min-h-screen bg-[#F9FAFB] dark:bg-gray-900 flex items-center justify-center px-4"
-    >
-
+    <div className="min-h-screen bg-[#F9FAFB] dark:bg-gray-900 flex items-center justify-center px-4">
       <div className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-3xl shadow-xl flex flex-col md:flex-row overflow-hidden min-h-[520px]">
         <div className="flex-1 bg-[#064E3B] text-white p-10 flex flex-col justify-between">
           <div>
             <p className="flex w-full justify-center items-center text-[#D4AF37] text-xs font-bold tracking-widest uppercase mb-6">
               <span>Horse Racing</span>
               <button
-                  type="button"
-                  onClick={() => navigate(ROUTES.HOME)}
-                  className="ml-auto px-2 py-0.5 rounded-sm bg-green-800 font-medium text-sm hover:bg-green-600 hover:text-white transition-colors"
+                type="button"
+                onClick={() => navigate(ROUTES.HOME)}
+                className="ml-auto px-2 py-0.5 rounded-sm bg-green-800 font-medium text-sm hover:bg-green-600 hover:text-white transition-colors"
               >
                 Home Page
               </button>
@@ -170,8 +177,10 @@ export default function Login() {
         </div>
 
         <div className="flex-1 p-10 flex flex-col justify-center w-full">
-
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50" style={{marginBottom: 20}}>
+          <h2
+            className="text-2xl font-bold text-gray-900 dark:text-gray-50"
+            style={{ marginBottom: 20 }}
+          >
             {mode === "login" ? "Sign in" : "Create account"}
           </h2>
 
@@ -210,22 +219,29 @@ export default function Login() {
             )}
 
             {mode === "register" && (
-                <Select onValueChange={setRole}>
-                  <SelectTrigger className="w-full rounded-sm border-1 border-gray-400">
-                    <SelectValue placeholder="Select your role" />
-                  </SelectTrigger>
-                  <SelectContent className="w-full rounded-sm">
-                    <SelectGroup>
-                      {roles.map((role) => (
-                          <SelectItem className="w-full rounded-sm" key={role.value} value={role.value}>{role.text}</SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+              <Select onValueChange={setRole}>
+                <SelectTrigger className="w-full rounded-sm border-1 border-gray-400">
+                  <SelectValue placeholder="Select your role" />
+                </SelectTrigger>
+                <SelectContent className="w-full rounded-sm">
+                  <SelectGroup>
+                    {roles.map((role) => (
+                      <SelectItem
+                        className="w-full rounded-sm"
+                        key={role.value}
+                        value={role.value}
+                      >
+                        {role.text}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             )}
 
-            <div className=""><ReCaptchaPanel onVerify={setCaptchaToken} /></div>
-
+            <div className="">
+              <ReCaptchaPanel onVerify={setCaptchaToken} />
+            </div>
 
             {error && (
               <p className="text-red-500 dark:text-red-400 text-xs">{error}</p>
@@ -244,13 +260,15 @@ export default function Login() {
             </button>
 
             <p className="text-sm text-gray-400 mb-8">
-              {mode === "login" ? "Don't have an account? " : "Already have an account? "}
+              {mode === "login"
+                ? "Don't have an account? "
+                : "Already have an account? "}
               <button
-                  onClick={() => {
-                    switchMode(mode === "login" ? "register" : "login");
-                    navigate(ROUTES.REGISTER)
-                  }}
-                  className="text-[#064E3B] font-semibold hover:underline"
+                onClick={() => {
+                  switchMode(mode === "login" ? "register" : "login");
+                  navigate(ROUTES.REGISTER);
+                }}
+                className="text-[#064E3B] font-semibold hover:underline"
               >
                 {mode === "login" ? "Create account" : "Sign in"}
               </button>
@@ -291,4 +309,3 @@ function FloatingInput({
     </div>
   );
 }
-

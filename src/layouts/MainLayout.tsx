@@ -7,7 +7,6 @@ import NotificationTab from "../components/NotificationTab.tsx";
 import useAuth from "../hooks/useAuth.ts";
 
 export default function MainLayout() {
-
   interface LinkItem {
     label: string;
     to: string;
@@ -39,8 +38,10 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const token = useAuth().getToken()
-  if (token == null) { navigate(ROUTES.LOGIN)}
+  const token = useAuth().getToken();
+  if (token == null) {
+    navigate(ROUTES.LOGIN);
+  }
 
   return (
     <div className="flex flex-col justify-center items-center h-screen w-screen bg-gray-200 pb-2 px-2 pt-4">

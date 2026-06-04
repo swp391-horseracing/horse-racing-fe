@@ -5,7 +5,7 @@ import ProfileSidebar from "../components/user_profile/ProfileSidebar.tsx";
 // import PrivacyPanel from "../components/user_profile/PrivacyPanel.tsx";
 import NotificationsPanel from "../components/user_profile/NotificationsPanel.tsx";
 import useAuth from "../hooks/useAuth.ts";
-import {ROUTES} from "../router/routes.tsx";
+import { ROUTES } from "../router/routes.tsx";
 
 export default function UserPage() {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ export default function UserPage() {
     cancelEdit,
   } = useUserProfile();
 
-  const {logout} = useAuth();
+  const { logout } = useAuth();
   //
   // if (loading) return (
   //     <div className="flex items-center justify-center h-64 text-sm text-gray-400">
