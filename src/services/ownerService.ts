@@ -68,7 +68,7 @@ const mockTournaments: Tournament[] = [
     allowedBreed: "Thoroughbred",
     minAge: 3,
     maxAge: 6,
-    maxCapacity: 3,
+    maxCapacity: 10,
     currentCount: 2,
   },
   {
