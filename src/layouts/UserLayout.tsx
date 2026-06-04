@@ -171,7 +171,6 @@ export default function UserLayout({
         This prevents the sidebar wrapper from pushing 70px below the screen.
       */}
       <SidebarProvider className="!min-h-0 !h-full w-full overflow-hidden flex">
-        
         <style
           dangerouslySetInnerHTML={{
             __html: `
@@ -229,7 +228,6 @@ export default function UserLayout({
 
         {/* Main content viewport */}
         <main className="flex-1 flex flex-col min-w-0 bg-[#F4F6F5] h-full overflow-hidden">
-          
           <div className="flex h-16 shrink-0 items-center justify-between border-b border-[#064E3B]/10 px-6 bg-white shadow-sm z-10">
             <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
               <span className="font-headline text-[#064E3B] text-sm">
@@ -254,7 +252,6 @@ export default function UserLayout({
               {children || <Outlet />}
             </div>
           </div>
-
         </main>
       </SidebarProvider>
     </TooltipProvider>
