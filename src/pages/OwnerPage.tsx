@@ -453,7 +453,7 @@ export default function OwnerPage() {
                   <button
                     type="button"
                     onClick={() => setShowAddHorse(false)}
-                    className="rounded-md border px-3 py-1.5 text-xs text-slate-550 hover:bg-slate-50"
+                    className="rounded-md border px-3 py-1.5 text-xs text-slate-555 hover:bg-slate-50"
                   >
                     Cancel
                   </button>
@@ -749,7 +749,7 @@ function HorseManagement({
           <h2 className="text-xl font-black text-[#064E3B] tracking-tight">
             Horse Registry
           </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-555 mt-1">
             Manage your stable profiles, view horse details, and retire active
             horses.
           </p>
@@ -1212,18 +1212,16 @@ function JockeyRosterManagement({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 space-y-4">
-          <h3 className="font-bold text-sm text-[#064E3B]">Approved Entries</h3>
-          {approvedRegistrations.length === 0 ? (
-            <div className="bg-white border rounded-xl p-8 text-center text-slate-400">
-              <Clock className="w-7 h-7 mx-auto mb-2 text-slate-355" />
-              <p className="text-xs font-semibold">
-                No approved horse entries.
-              </p>
-            </div>
-          ) : (
-            approvedRegistrations.map((reg) => {
+      <div className="space-y-4">
+        <h3 className="font-bold text-sm text-[#064E3B]">Approved Entries</h3>
+        {approvedRegistrations.length === 0 ? (
+          <div className="bg-white border rounded-xl p-8 text-center text-slate-400">
+            <Clock className="w-7 h-7 mx-auto mb-2 text-slate-355" />
+            <p className="text-xs font-semibold">No approved horse entries.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {approvedRegistrations.map((reg) => {
               const horse = horses.find((h) => h.id === reg.horseId);
               const tournament = tournaments.find(
                 (t) => t.id === reg.tournamentId
@@ -1242,123 +1240,109 @@ function JockeyRosterManagement({
               return (
                 <div
                   key={reg.id}
-                  className="bg-white border rounded-xl p-4 shadow-xs space-y-3.5"
+                  className="bg-white border rounded-xl p-4 shadow-xs space-y-3.5 flex flex-col justify-between"
                 >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="font-bold text-sm text-[#064E3B]">
-                        {horse.name}
-                      </h4>
-                      <p className="text-[10px] text-slate-450">
-                        {tournament.name}
-                      </p>
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="font-bold text-sm text-[#064E3B]">
+                          {horse.name}
+                        </h4>
+                        <p className="text-[10px] text-slate-450 leading-tight mt-0.5">
+                          {tournament.name}
+                        </p>
+                      </div>
+                      {lockedJockey ? (
+                        <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[8px] font-black uppercase px-2 py-0.5 rounded shrink-0">
+                          Pairing Locked
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() =>
+                            onOpenInviteModal(horse.id, tournament.id)
+                          }
+                          className="rounded-lg bg-[#064E3B] text-white px-2.5 py-1.5 text-[10px] font-bold hover:bg-[#043E2F] transition shadow-xs shrink-0"
+                        >
+                          Hire Jockey
+                        </button>
+                      )}
                     </div>
-                    {lockedJockey ? (
-                      <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[8px] font-black uppercase px-2 py-0.5 rounded">
-                        Pairing Locked
+
+                    <div className="space-y-1.5 pt-2 border-t text-xs">
+                      <span className="text-[9px] font-extrabold uppercase text-slate-400 tracking-wider block">
+                        Sent Invitations
                       </span>
-                    ) : (
-                      <button
-                        onClick={() =>
-                          onOpenInviteModal(horse.id, tournament.id)
-                        }
-                        className="rounded-lg bg-[#064E3B] text-white px-2.5 py-1.5 text-[10px] font-bold hover:bg-[#043E2F] transition shadow-xs"
-                      >
-                        Hire Jockey
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="space-y-1.5 pt-2 border-t text-xs">
-                    <span className="text-[9px] font-extrabold uppercase text-slate-400 tracking-wider block">
-                      Sent Invitations
-                    </span>
-                    {matchingInvites.length === 0 ? (
-                      <p className="text-[10px] text-slate-400 italic">
-                        No invitations sent yet.
-                      </p>
-                    ) : (
-                      matchingInvites.map((inv) => {
-                        const jockey = jockeys.find(
-                          (j) => j.id === inv.jockeyId
-                        );
-                        return (
-                          <div
-                            key={inv.id}
-                            className="p-2 bg-slate-50 border rounded-lg flex items-center justify-between"
-                          >
-                            <div>
-                              <p className="font-bold text-slate-700 text-xs">
-                                {jockey?.name}
-                              </p>
-                              <span className="text-[9px] text-slate-400">
-                                Club: {jockey?.club}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={cn(
-                                  "text-[8px] font-black uppercase px-1.5 py-0.5 rounded border",
-                                  inv.status === "Accepted" &&
-                                    "bg-emerald-50 border-emerald-200 text-emerald-850",
-                                  inv.status === "Pending" &&
-                                    "bg-amber-50 border-amber-200 text-amber-850",
-                                  inv.status === "Declined" &&
-                                    "bg-rose-50 border-rose-200 text-rose-855",
-                                  inv.status === "Superseded" &&
-                                    "bg-slate-100 border-slate-200 text-slate-455"
-                                )}
+                      {matchingInvites.length === 0 ? (
+                        <p className="text-[10px] text-slate-400 italic">
+                          No invitations sent yet.
+                        </p>
+                      ) : (
+                        <div className="space-y-1.5">
+                          {matchingInvites.map((inv) => {
+                            const jockey = jockeys.find(
+                              (j) => j.id === inv.jockeyId
+                            );
+                            return (
+                              <div
+                                key={inv.id}
+                                className="p-2 bg-slate-50 border rounded-lg flex items-center justify-between"
                               >
-                                {inv.status}
-                              </span>
+                                <div>
+                                  <p className="font-bold text-slate-700 text-xs">
+                                    {jockey?.name}
+                                  </p>
+                                  <span className="text-[9px] text-slate-400">
+                                    Club: {jockey?.club}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className={cn(
+                                      "text-[8px] font-black uppercase px-1.5 py-0.5 rounded border",
+                                      inv.status === "Accepted" &&
+                                        "bg-emerald-50 border-emerald-200 text-emerald-850",
+                                      inv.status === "Pending" &&
+                                        "bg-amber-50 border-amber-200 text-amber-850",
+                                      inv.status === "Declined" &&
+                                        "bg-rose-50 border-rose-200 text-rose-855",
+                                      inv.status === "Superseded" &&
+                                        "bg-slate-100 border-slate-200 text-slate-455"
+                                    )}
+                                  >
+                                    {inv.status}
+                                  </span>
 
-                              {inv.status === "Accepted" && !lockedJockey && (
-                                <button
-                                  onClick={() => onConfirmPairing(inv.id)}
-                                  className="rounded bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-0.5 text-[9px] font-extrabold"
-                                >
-                                  Lock Pairing
-                                </button>
-                              )}
+                                  {inv.status === "Accepted" &&
+                                    !lockedJockey && (
+                                      <button
+                                        onClick={() => onConfirmPairing(inv.id)}
+                                        className="rounded bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-0.5 text-[9px] font-extrabold"
+                                      >
+                                        Lock
+                                      </button>
+                                    )}
 
-                              {inv.status === "Pending" && (
-                                <button
-                                  onClick={() => onCancelInvite(inv.id)}
-                                  className="text-rose-600 hover:text-rose-850 text-[10px] font-bold"
-                                >
-                                  Cancel
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
+                                  {inv.status === "Pending" && (
+                                    <button
+                                      onClick={() => onCancelInvite(inv.id)}
+                                      className="text-rose-600 hover:text-rose-855 text-[10px] font-bold"
+                                    >
+                                      Cancel
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
-            })
-          )}
-        </div>
-
-        <div className="bg-white border rounded-xl p-4 shadow-xs h-fit space-y-3">
-          <h3 className="font-bold text-sm text-[#064E3B] border-b pb-2">
-            Bidding & Rules
-          </h3>
-          <ul className="space-y-2.5 text-[11px] text-slate-550 leading-relaxed list-disc list-inside">
-            <li>
-              <strong>Multiple Bids:</strong> Invite multiple Jockeys for the
-              same horse.
-            </li>
-            <li>
-              <strong>Cascade Supersede:</strong> Locking a Jockey cancels all
-              other invites.
-            </li>
-            <li>
-              <strong>Expiry:</strong> Invites expire in 48 hours automatically.
-            </li>
-          </ul>
-        </div>
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1423,7 +1407,7 @@ function JockeyInviteSelector({
       </div>
 
       <div className="border-t pt-3 flex items-center justify-between">
-        <span className="text-[10px] text-slate-550 font-semibold">
+        <span className="text-[10px] text-slate-555 font-semibold">
           {selectedIds.length} Selected
         </span>
         <button
@@ -1524,8 +1508,8 @@ function HorseScheduleView({
                       className={cn(
                         "text-[8px] font-black uppercase px-2 py-0.5 rounded border",
                         reg.status === "Waitlisted"
-                          ? "bg-indigo-50 border-indigo-200 text-indigo-805"
-                          : "bg-amber-50 border-amber-200 text-amber-805"
+                          ? "bg-indigo-50 border-indigo-200 text-indigo-855"
+                          : "bg-amber-50 border-amber-200 text-amber-855"
                       )}
                     >
                       {reg.status}
