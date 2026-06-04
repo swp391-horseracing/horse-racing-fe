@@ -21,7 +21,7 @@ export function useUserProfile() {
 
   const startEdit = useCallback(() => {
     if (!user) return;
-    setDraft({ phone: user.phone, address: user.address, roles: user.roles });
+    setDraft({ phone: user.phone, address: user.address, role: user.role });
     setEditing(true);
   }, [user]);
 

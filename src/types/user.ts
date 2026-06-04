@@ -2,19 +2,20 @@ export type User = {
   id: string;
   email: string;
   password: string;
-  full_name: string;
+  fullName: string;
   phone: string;
   address: string;
   avatar_url: string;
-  roles: string[];
+  role: string;
   status: string;
-  extendedProps?: ExtendedProps;
+  token: string;
+  extendedProps?: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 };
 
 export type ExtendedProps = {
-  roles?: string[];
+  email: string;
 };
 
 export type jockey = {
