@@ -4,8 +4,6 @@ import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
 import {
-  LayoutDashboard,
-  Users,
   ShieldAlert,
   ClipboardCheck,
   Calendar,
@@ -17,12 +15,8 @@ import {
   AlertTriangle,
   Activity,
   Lock,
-  FileText,
   Flag,
-  Gavel,
-  Coins,
-  ShieldCheck,
-  Eye
+  ShieldCheck
 } from "lucide-react";
 
 // ─── Type Definitions & Mocks ────────────────────────────────────────────────
