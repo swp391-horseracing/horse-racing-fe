@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Activity,
   UserCheck,
+  ClipboardList,
 } from "lucide-react";
 import {
   Sidebar,
@@ -111,9 +112,14 @@ export default function UserLayout({
         key: ROUTES.OWNER_DASHBOARD,
       },
       {
-        label: "Stables & Registration",
+        label: "Horse Management",
         icon: HorseIcon,
-        key: "/owner/stables",
+        key: "/owner/horseManagement",
+      },
+      {
+        label: "Race Registration",
+        icon: ClipboardList,
+        key: "/owner/raceRegister",
       },
       { label: "Jockey Roster", icon: UserCheck, key: "/owner/jockeys" },
       { label: "Horse Schedule", icon: Calendar, key: "/owner/schedule" },
