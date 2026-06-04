@@ -32,13 +32,9 @@ export default function AccountPanel({
           </p>
         </div>
         <div className="flex flex-wrap gap-1 justify-center items-center w-full">
-          {user.roles.map((role) => (
-            <div key={role}>
-              <span className="flex items-center gap-1.5 px-1.5 py-1.5 rounded-full bg-[#D1FAE5] text-[#064E3B] text-xs font-bold border border-[#064E3B]/20">
-                {role}
-              </span>
-            </div>
-          ))}
+          <span className="flex items-center gap-1.5 px-1.5 py-1.5 rounded-full bg-[#D1FAE5] text-[#064E3B] text-xs font-bold border border-[#064E3B]/20">
+            {user.role}
+          </span>
         </div>
       </div>
 
