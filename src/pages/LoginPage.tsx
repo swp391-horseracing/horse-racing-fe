@@ -1,84 +1,294 @@
 import React, { useState } from "react";
-import { AuthService } from "../services/authService.ts";
+import { useNavigate } from "react-router-dom";
+import {Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue} from "../components/ui/select.tsx";
+import {ROUTES} from "../router/routes.tsx";
+import * as axios from "axios";
+import useAuth from "../hooks/useAuth.ts";
+import ReCaptchaPanel from "../components/reCapchaPanel.tsx";
+
+type Mode = "login" | "register";
+
+const roles = [
+  {
+    text: "Spectator",
+    value: "spectator",
+  },
+  {
+    text: "Jockey",
+    value: "jockey",
+  },
+  {
+    text: "Horse owner",
+    value: "horse_owner",
+  }
+]
 
 export default function Login() {
+  const navigate = useNavigate();
+  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [role, setRole] = useState("");
+  const [name, setName] = useState("");
   const [error, setError] = useState("");
-  const { login } = AuthService;
+  const [loading, setLoading] = useState(false);
+  const {login, register} = useAuth();
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+
+  const validate = (): string | null => {
+    if (!email.trim()) {
+      return "Email is required.";
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      return "Invalid email format.";
+    }
+
+    if (!password.trim()) {
+      return "Password is required.";
+    }
+
+    if (password.length < 6) {
+      return "Password must be at least 6 characters.";
+    }
+
+    if (mode === "register") {
+      if (!name.trim()) {
+        return "Full name is required.";
+      }
+
+      const nameRegex = /^[A-Za-z\s]{2,}$/;
+      if (!nameRegex.test(name.trim())) {
+        return "Full name must contain at least 2 words and no numbers.";
+      }
+
+      if (!role) {
+        return "Please select a role.";
+      }
+
+      if (!confirm.trim()) {
+        return "Please confirm your password.";
+      }
+
+      if (password !== confirm) {
+        return "Passwords do not match.";
+      }
+    }
+
+    if (!captchaToken) {
+      return "Please complete the reCAPTCHA.";
+    }
+
+    return null;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
+    const validationError = validate();
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    if (!captchaToken) {
+      setError("Please complete the reCAPTCHA.");
+      return;
+    }
+
     try {
-      setError("");
-      const user = await login(email, password);
-      console.log("Đăng nhập thành công, user dữ liệu:", user);
-    } catch (err: any) {
-      setError(
-        err.response?.data?.message || "Email hoặc mật khẩu không chính xác."
-      );
+      setLoading(true);
+      if (mode === "login") {
+        await login(email, password);
+      } else {
+        await register(name, email, password, role);
+      }
+      navigate(ROUTES.DASHBOARD);
+    } catch (err: unknown) {
+      let errorMessage = mode === "login" ? "Invalid email or password." : "Registration failed.";
+
+      if (axios.isAxiosError(err)) {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
+
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const switchMode = (next: Mode) => {
+    setMode(next);
+    setError("");
+    setEmail("");
+    setPassword("");
+    setConfirm("");
+    setRole("");
+    setName("");
+  };
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-200 flex items-center justify-center font-sans antialiased">
-      <div className="w-full max-w-[1048px] min-h-[500px] bg-zinc-900 rounded-3xl p-10 flex flex-col md:flex-row justify-between box-border shadow-2xl">
-        <div className="flex flex-col justify-between flex-1 pb-8 md:pb-0">
+    <div
+      className="min-h-screen bg-[#F9FAFB] dark:bg-gray-900 flex items-center justify-center px-4"
+    >
+
+      <div className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-3xl shadow-xl flex flex-col md:flex-row overflow-hidden min-h-[520px]">
+        <div className="flex-1 bg-[#064E3B] text-white p-10 flex flex-col justify-between">
           <div>
-            <h1 className="text-[40px] font-normal text-white leading-tight mb-4">
-              Sign in
+            <p className="flex w-full justify-center items-center text-[#D4AF37] text-xs font-bold tracking-widest uppercase mb-6">
+              <span>Horse Racing</span>
+              <button
+                  type="button"
+                  onClick={() => navigate(ROUTES.HOME)}
+                  className="ml-auto px-2 py-0.5 rounded-sm bg-green-800 font-medium text-sm hover:bg-green-600 hover:text-white transition-colors"
+              >
+                Home Page
+              </button>
+            </p>
+            <h1 className="text-4xl font-bold leading-tight mb-4">
+              {mode === "login" ? "Welcome back." : "Join the stable."}
             </h1>
+            <p className="text-white/60 text-sm leading-relaxed max-w-xs">
+              {mode === "login"
+                ? "Sign in to manage your horses, races, and performance data."
+                : "Create your professional equestrian account and get started today."}
+            </p>
+          </div>
+          <div className="flex gap-2 mt-10">
+            {(["login", "register"] as Mode[]).map((m) => (
+              <span
+                key={m}
+                className={`h-1.5 rounded-full transition-all duration-300 ${mode === m ? "w-8 bg-[#D4AF37]" : "w-3 bg-white/30"}`}
+              />
+            ))}
           </div>
         </div>
 
-        <div className="flex flex-col justify-between flex-1 max-w-[448px] w-full pt-4">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="relative group">
-              <input
+        <div className="flex-1 p-10 flex flex-col justify-center w-full">
+
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50" style={{marginBottom: 20}}>
+            {mode === "login" ? "Sign in" : "Create account"}
+          </h2>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {mode === "register" && (
+              <FloatingInput
+                id="name"
+                label="Full Name"
                 type="text"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder=" "
-                className="w-full bg-transparent border border-zinc-500 rounded-md px-4 py-4 text-base text-white focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all peer"
+                value={name}
+                onChange={setName}
               />
-
-              <label className="absolute left-4 top-4 text-zinc-400 text-base transition-all duration-200 transform -translate-y-1/2 scale-75 top-2 z-10 origin-[0] bg-zinc-900 px-1 peer-placeholder-shown:scale-100 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:text-sky-400">
-                Email
-              </label>
-            </div>
-            <div className="relative group">
-              <input
-                type="text"
-                id="email"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder=" "
-                className="w-full bg-transparent border border-zinc-500 rounded-md px-4 py-4 text-base text-white focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all peer"
+            )}
+            <FloatingInput
+              id="email"
+              label="Email"
+              type="text"
+              value={email}
+              onChange={setEmail}
+            />
+            <FloatingInput
+              id="password"
+              label="Password"
+              type="password"
+              value={password}
+              onChange={setPassword}
+            />
+            {mode === "register" && (
+              <FloatingInput
+                id="confirm"
+                label="Confirm Password"
+                type="password"
+                value={confirm}
+                onChange={setConfirm}
               />
+            )}
 
-              <label className="absolute left-4 top-4 text-zinc-400 text-base transition-all duration-200 transform -translate-y-1/2 scale-75 top-2 z-10 origin-[0] bg-zinc-900 px-1 peer-placeholder-shown:scale-100 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:text-sky-400">
-                Password
-              </label>
-            </div>
+            {mode === "register" && (
+                <Select onValueChange={setRole}>
+                  <SelectTrigger className="w-full rounded-sm border-1 border-gray-400">
+                    <SelectValue placeholder="Select your role" />
+                  </SelectTrigger>
+                  <SelectContent className="w-full rounded-sm">
+                    <SelectGroup>
+                      {roles.map((role) => (
+                          <SelectItem className="w-full rounded-sm" key={role.value} value={role.value}>{role.text}</SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+            )}
 
-            {error && <p className="text-red-400 text-sm">{error}</p>}
+            <div className=""><ReCaptchaPanel onVerify={setCaptchaToken} /></div>
 
-            <div className="flex items-center justify-between pt-8">
-              <a className="text-sky-400 font-medium text-sm hover:underline">
-                Create account
-              </a>
 
+            {error && (
+              <p className="text-red-500 dark:text-red-400 text-xs">{error}</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 w-full py-3 rounded-xl bg-[#064E3B] text-white font-semibold text-sm hover:bg-[#053d2f] active:bg-[#042e23] transition-colors disabled:opacity-50"
+            >
+              {loading
+                ? "Please wait…"
+                : mode === "login"
+                  ? "Sign in"
+                  : "Create account"}
+            </button>
+
+            <p className="text-sm text-gray-400 mb-8">
+              {mode === "login" ? "Don't have an account? " : "Already have an account? "}
               <button
-                type="submit"
-                className="bg-sky-400 text-sky-950 font-semibold px-6 py-2.5 rounded-full hover:bg-sky-300 active:bg-sky-200 transition-colors text-sm"
+                  onClick={() => {
+                    switchMode(mode === "login" ? "register" : "login");
+                    navigate(ROUTES.REGISTER)
+                  }}
+                  className="text-[#064E3B] font-semibold hover:underline"
               >
-                login
+                {mode === "login" ? "Create account" : "Sign in"}
               </button>
-            </div>
+            </p>
           </form>
         </div>
       </div>
     </div>
   );
 }
+
+function FloatingInput({
+  id,
+  label,
+  type,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  type: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="relative">
+      <input
+        id={id}
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder=" "
+        className="peer w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 pt-5 pb-2 text-sm text-gray-900 dark:text-gray-100 outline-none focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B] transition-all"
+      />
+      <label className="absolute left-4 top-3.5 text-xs text-gray-400 transition-all duration-200 peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:text-[#064E3B] peer-not-placeholder-shown:top-1.5 peer-not-placeholder-shown:text-[10px]">
+        {label}
+      </label>
+    </div>
+  );
+}
+
