@@ -1,17 +1,22 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
+
+// Shared Hook Integrations
+import { useHorseList } from "../hooks/useHorseList.ts";
+import { useEvent } from "../hooks/useEvent.ts";
+import { useUserProfile } from "../hooks/useUserProfile.ts";
+import { useNotification } from "../hooks/useNotification.ts";
+
 import {
   Trophy,
   Coins,
-  History,
   Timer,
   Play,
   CheckCircle2,
   XCircle,
   AlertTriangle,
-  TrendingUp,
   Wallet,
   ShieldCheck,
   Zap,
@@ -19,25 +24,7 @@ import {
 
 // ─── Type Definitions ────────────────────────────────────────────────────────
 
-interface ParticipantHorse {
-  name: string;
-  jockey: string;
-  odds: number;
-  winRate: string;
-}
-
-interface SpectatorRace {
-  id: string;
-  tournamentName: string;
-  raceName: string;
-  trackType: "Turf" | "Dirt";
-  distance: string;
-  status: "Scheduled" | "Live" | "Concluded" | "Published";
-  postTime: string;
-  horses: ParticipantHorse[];
-}
-
-interface PredictionRecord {
+interface ActivePrediction {
   id: string;
   raceId: string;
   raceName: string;
@@ -57,126 +44,80 @@ interface LedgerEntry {
   reference: string;
 }
 
-// ─── Initial Seed / Mock Database ─────────────────────────────────────────────
-
-const MOCK_RACES: SpectatorRace[] = [
-  {
-    id: "r-101",
-    tournamentName: "Royal Cup 2026",
-    raceName: "Race 3 — Elite Turf Sprint",
-    trackType: "Turf",
-    distance: "1200m",
-    status: "Scheduled",
-    postTime: "Today, 14:00",
-    horses: [
-      { name: "Thunder Bolt", jockey: "Michael Lee", odds: 2.2, winRate: "72%" },
-      { name: "Silver Storm", jockey: "David Kim", odds: 3.5, winRate: "61%" },
-      { name: "Midnight Majesty", jockey: "Trần Trí Đức", odds: 5.0, winRate: "48%" },
-    ],
-  },
-  {
-    id: "r-102",
-    tournamentName: "Grand Prix Spring",
-    raceName: "Race 5 — Muddy Grounds Classic",
-    trackType: "Dirt",
-    distance: "1600m",
-    status: "Scheduled",
-    postTime: "Today, 16:30",
-    horses: [
-      { name: "Dark Phantom", jockey: "Chris Evans", odds: 1.8, winRate: "81%" },
-      { name: "Gilded Gallop", jockey: "Chu Minh Đức", odds: 4.2, winRate: "54%" },
-      { name: "Desert Wind", jockey: "Nguyen Khoa", odds: 8.5, winRate: "33%" },
-    ],
-  },
-  {
-    id: "r-103",
-    tournamentName: "National Derby",
-    raceName: "Race 1 — Golden Sands Sprint",
-    trackType: "Dirt",
-    distance: "1000m",
-    status: "Live",
-    postTime: "Started 3m ago",
-    horses: [
-      { name: "Thunder Blaze", jockey: "Lord Alistair", odds: 2.1, winRate: "65%" },
-      { name: "Silver Wind", jockey: "Marcus Vance", odds: 3.0, winRate: "59%" },
-    ],
-  },
-];
-
-const INITIAL_PREDICTIONS: PredictionRecord[] = [
-  {
-    id: "pred-901",
-    raceId: "r-100",
-    raceName: "Race 2 — Pre-Season Trial",
-    horseName: "Silver Storm",
-    stake: 200,
-    odds: 3.2,
-    status: "Won",
-    payout: 640,
-    date: "2026-06-02T10:15:00Z",
-  },
-  {
-    id: "pred-902",
-    raceId: "r-100",
-    raceName: "Race 2 — Pre-Season Trial",
-    horseName: "Dark Phantom",
-    stake: 150,
-    odds: 2.1,
-    status: "Lost",
-    payout: 0,
-    date: "2026-06-02T10:15:00Z",
-  },
-];
-
-const INITIAL_LEDGER: LedgerEntry[] = [
-  {
-    id: "tx-001",
-    type: "Genesis Drop",
-    amount: 1000,
-    date: "2026-06-01T08:00:00Z",
-    reference: "System Welcome Bonus (BR-BET-05)",
-  },
-  {
-    id: "tx-002",
-    type: "Prediction Stake",
-    amount: -200,
-    date: "2026-06-02T10:10:00Z",
-    reference: "Escrowed on Silver Storm",
-  },
-  {
-    id: "tx-003",
-    type: "Prediction Stake",
-    amount: -150,
-    date: "2026-06-02T10:11:00Z",
-    reference: "Escrowed on Dark Phantom",
-  },
-  {
-    id: "tx-004",
-    type: "Reward Payout",
-    amount: 640,
-    date: "2026-06-02T11:45:00Z",
-    reference: "Published Payout (BR-BET-04)",
-  },
-];
+// Helper to calculate odds based on performance ranking (BR-SP-01)
+const calculateOdds = (performance: number): number => {
+  const baseOdds = 1.5 + (performance % 100) / 15;
+  return Number(baseOdds.toFixed(1));
+};
 
 export default function SpectatorPage() {
   // Sync page state with routing structure keys mapped inside UserLayout (Active state handles navigation)
   const [active, setActive] = useState<string>(ROUTES.SPECTATOR_DASHBOARD);
 
-  // ─── Closed-Loop Wallet Ledger States (BR-BET-01) ───────────────────────
-  const [balance, setBalance] = useState<number>(1290);
-  const [predictions, setPredictions] = useState<PredictionRecord[]>(INITIAL_PREDICTIONS);
-  const [ledger, setLedger] = useState<LedgerEntry[]>(INITIAL_LEDGER);
+  // ─── Shared System Hooks ───────────────────────────────────────────────────
+  const { user } = useUserProfile();
+  const { horseList } = useHorseList();
+  const { eventList } = useEvent();
+  const { NotificationList } = useNotification();
+
+  // ─── Local Virtual Economy States (BR-BET-01) ──────────────────────────────
+  const [balance, setBalance] = useState<number>(1000); // Defaults to 1,000 Token Genesis Drop (BR-BET-05)
+  const [predictions, setPredictions] = useState<ActivePrediction[]>([]);
+  const [ledger, setLedger] = useState<LedgerEntry[]>([
+    {
+      id: "tx-genesis",
+      type: "Genesis Drop",
+      amount: 1000,
+      date: new Date().toISOString(),
+      reference: "1,000 Token Genesis Drop upon account verification (BR-BET-05)",
+    }
+  ]);
 
   // ─── Modal and Notification States ──────────────────────────────────────────
-  const [selectedRace, setSelectedRace] = useState<SpectatorRace | null>(null);
-  const [selectedHorse, setSelectedHorse] = useState<ParticipantHorse | null>(null);
+  const [selectedRaceId, setSelectedRaceId] = useState<string | null>(null);
+  const [selectedHorseId, setSelectedHorseId] = useState<string | null>(null);
   const [stakeValue, setStakeValue] = useState<string>("");
   const [showPredictionModal, setShowPredictionModal] = useState<boolean>(false);
   const [showTopUpModal, setShowTopUpModal] = useState<boolean>(false);
   
   const [toasts, setToasts] = useState<{ id: number; message: string; type: "success" | "error" | "warning" | "info" }[]>([]);
 
+  // Genesis Drop Validation Trigger (BR-BET-05)
+  useEffect(() => {
+    if (user && balance === 1000 && ledger.length === 1) {
+      addToast(`Welcome ${user.full_name}! 1,000 Token Genesis Drop credited to your wallet.`, "info");
+    }
+  }, [user]);
+
+  // Dynamic mapping of Event List and Horse List (Simulating active pairings)
+  const integratedRaces = useMemo(() => {
+    return eventList.map((evt, index) => {
+      // Rotate active competitors to populate the track
+      const raceCompetitors = horseList.slice(index % horseList.length, (index % horseList.length) + 3);
+      
+      return {
+        id: evt.id || `evt-${index}`,
+        tournamentName: "Elite Turf Season",
+        raceName: evt.title || "Championship Stakes",
+        trackType: (evt.overlap ? "Dirt" : "Turf") as "Dirt" | "Turf", // Fixed compile issue here
+        distance: "1400m",
+        status: evt.editable ? ("Scheduled" as const) : ("Live" as const),
+        postTime: evt.start ? evt.start.replace("T", " ") : (evt.date || "Post time pending"),
+        horses: raceCompetitors.map((h) => ({
+          id: h.id,
+          name: h.name,
+          jockey: h.jockey,
+          odds: calculateOdds(h.performance),
+          winRate: `${Math.floor(85 - (h.performance % 30))}%`
+        }))
+      };
+    });
+  }, [eventList, horseList]);
+
+  const activeRaceSelection = integratedRaces.find(r => r.id === selectedRaceId);
+  const activeHorseSelection = activeRaceSelection?.horses.find(h => h.id === selectedHorseId);
+
+  // Toast System
   const addToast = (message: string, type: "success" | "error" | "warning" | "info" = "success") => {
     const id = Date.now() + Math.random();
     setToasts((prev) => [...prev, { id, message, type }]);
@@ -185,42 +126,46 @@ export default function SpectatorPage() {
     }, 4000);
   };
 
-  // UC-SP-03: Prediction Form Init
-  const handleOpenPredictionModal = (race: SpectatorRace, horse: ParticipantHorse) => {
-    if (race.status !== "Scheduled") {
-      addToast("Prediction Error: Outcomes can only be placed on Scheduled matches (BR-BET-02).", "error");
+  // UC-SP-03: Predicting Race Outcomes
+  const handleOpenPrediction = (raceId: string, horseId: string) => {
+    const targetRace = integratedRaces.find(r => r.id === raceId);
+    if (!targetRace) return;
+
+    if (targetRace.status !== "Scheduled") {
+      addToast("Window Logic Violation: Predictions are restricted to Scheduled races (BR-BET-02).", "error");
       return;
     }
-    setSelectedRace(race);
-    setSelectedHorse(horse);
+
+    setSelectedRaceId(raceId);
+    setSelectedHorseId(horseId);
     setStakeValue("");
     setShowPredictionModal(true);
   };
 
   const handleConfirmPrediction = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedRace || !selectedHorse) return;
+    if (!activeRaceSelection || !activeHorseSelection) return;
 
     const stake = Number(stakeValue);
 
     if (isNaN(stake) || stake <= 0) {
-      addToast("Input Error: Please enter a valid stake coefficient.", "error");
+      addToast("Input Error: Please specify a valid Virtual Token stake amount.", "error");
       return;
     }
 
     if (stake > balance) {
-      addToast("Insufficient Funds: Selected stake exceeds available wallet balance.", "error");
+      addToast("Validation Error: Stake exceeds available wallet balance.", "error");
       return;
     }
 
-    // Atomic Stake Escrow Deduction (BR-BET-03)
-    const newPrediction: PredictionRecord = {
+    // Atomic Stake Escrow Block (BR-BET-03)
+    const newPrediction: ActivePrediction = {
       id: `pred-${Date.now()}`,
-      raceId: selectedRace.id,
-      raceName: selectedRace.raceName,
-      horseName: selectedHorse.name,
+      raceId: activeRaceSelection.id,
+      raceName: activeRaceSelection.raceName,
+      horseName: activeHorseSelection.name,
       stake,
-      odds: selectedHorse.odds,
+      odds: activeHorseSelection.odds,
       status: "Pending",
       payout: 0,
       date: new Date().toISOString(),
@@ -231,7 +176,7 @@ export default function SpectatorPage() {
       type: "Prediction Stake",
       amount: -stake,
       date: new Date().toISOString(),
-      reference: `Escrowed on ${selectedHorse.name}`,
+      reference: `Escrowed on ${activeHorseSelection.name} in ${activeRaceSelection.raceName}`,
     };
 
     setBalance((prev) => prev - stake);
@@ -239,23 +184,23 @@ export default function SpectatorPage() {
     setLedger((prev) => [newTx, ...prev]);
     setShowPredictionModal(false);
 
-    addToast(`Outcome prediction confirmed. ${stake} tokens escrowed.`, "success");
+    addToast(`Prediction submitted. ${stake} Virtual Tokens held in escrow.`, "success");
   };
 
-  // Simulated Sandbox Deposit (BR-BET-01)
+  // UC-SP-03 Top-up / IAP (VNPay Sandbox BR-BET-01)
   const handleExecuteIAP = (amount: number) => {
     const tx: LedgerEntry = {
       id: `tx-${Date.now()}`,
       type: "IAP Deposit",
       amount,
       date: new Date().toISOString(),
-      reference: "VNPay Sandbox Top-Up (Zero Real-World Fiat Value)",
+      reference: "Simulated Sandbox IAP Deposit (Zero Real-World Fiat Value)",
     };
 
     setBalance((prev) => prev + amount);
     setLedger((prev) => [tx, ...prev]);
     setShowTopUpModal(false);
-    addToast(`Replenished wallet. Added ${amount} Virtual Tokens.`, "success");
+    addToast(`Replenished wallet. Credited ${amount} Virtual Tokens.`, "success");
   };
 
   const activeEscrowPredictions = useMemo(() => {
@@ -270,7 +215,7 @@ export default function SpectatorPage() {
     switch (active) {
       case ROUTES.SPECTATOR_DASHBOARD:
         return (
-          <ArenaOverview rList={MOCK_RACES} onPredict={handleOpenPredictionModal} />
+          <ArenaOverview rList={integratedRaces} onPredict={handleOpenPrediction} />
         );
       case "/spectator/predictions":
         return (
@@ -278,6 +223,7 @@ export default function SpectatorPage() {
             active={activeEscrowPredictions}
             resolved={resolvedPredictions}
             ledger={ledger}
+            notifications={NotificationList}
           />
         );
       default:
@@ -339,13 +285,13 @@ export default function SpectatorPage() {
         </div>
 
         {/* MODAL 1: UC-SP-03 Prediction Placement Form */}
-        {showPredictionModal && selectedRace && selectedHorse && (
+        {showPredictionModal && activeRaceSelection && activeHorseSelection && (
           <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl border border-slate-100 p-5 max-w-sm w-full shadow-2xl">
               <div className="flex items-center justify-between border-b pb-2.5 mb-3.5">
                 <div className="text-left">
                   <h3 className="font-bold text-base text-[#064E3B] font-headline">Outcome Prediction</h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{selectedRace.tournamentName}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{activeRaceSelection.tournamentName}</p>
                 </div>
                 <button onClick={() => setShowPredictionModal(false)} className="text-slate-400 text-sm">✕</button>
               </div>
@@ -353,8 +299,8 @@ export default function SpectatorPage() {
               <form onSubmit={handleConfirmPrediction} className="space-y-4">
                 <div className="bg-slate-50/50 p-3 rounded-xl border border-slate-100 text-xs space-y-1">
                   <p className="font-semibold text-slate-500">Horse:</p>
-                  <p className="font-bold text-[#064E3B] text-sm">{selectedHorse.name}</p>
-                  <p className="text-slate-455 text-[10px]">Jockey: {selectedHorse.jockey} • Odds: {selectedHorse.odds}x</p>
+                  <p className="font-bold text-[#064E3B] text-sm">{activeHorseSelection.name}</p>
+                  <p className="text-slate-455 text-[10px]">Jockey: {activeHorseSelection.jockey} • Odds: {activeHorseSelection.odds}x</p>
                 </div>
 
                 <div>
@@ -370,14 +316,14 @@ export default function SpectatorPage() {
                   <div className="flex items-center justify-between mt-2 text-[10px] text-slate-400 font-bold">
                     <span>Balance: {balance} Tokens</span>
                     {Number(stakeValue) > 0 && (
-                      <span className="text-emerald-700">Possible Return: {Math.floor(Number(stakeValue) * selectedHorse.odds)} Tokens</span>
+                      <span className="text-emerald-700">Possible Return: {Math.floor(Number(stakeValue) * activeHorseSelection.odds)} Tokens</span>
                     )}
                   </div>
                 </div>
 
                 <div className="bg-amber-50/50 border border-amber-200/50 p-2.5 rounded-lg flex items-start gap-2 text-[10px] text-amber-850">
                   <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                  <p>Strict virtual currency system limit: All transactions occur closed-loop. Withdrawal/Fiat payout channels are blocked (BR-BET-01).</p>
+                  <p>Closed-Loop Rule (BR-BET-01): Simulated tokens have zero external fiat cashout mechanisms.</p>
                 </div>
 
                 <div className="flex gap-2 justify-end pt-2 border-t border-slate-100">
@@ -444,8 +390,23 @@ function ArenaOverview({
   rList,
   onPredict,
 }: {
-  rList: SpectatorRace[];
-  onPredict: (race: SpectatorRace, horse: ParticipantHorse) => void;
+  rList: {
+    id: string;
+    tournamentName: string;
+    raceName: string;
+    trackType: "Turf" | "Dirt";
+    distance: string;
+    status: "Scheduled" | "Live";
+    postTime: string;
+    horses: {
+      id: string;
+      name: string;
+      jockey: string;
+      odds: number;
+      winRate: string;
+    }[];
+  }[];
+  onPredict: (raceId: string, horseId: string) => void;
 }) {
   return (
     <div className="p-5 space-y-5 max-w-5xl mx-auto font-body">
@@ -490,7 +451,7 @@ function ArenaOverview({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {race.horses.map((horse) => (
                 <div
-                  key={horse.name}
+                  key={horse.id}
                   className="p-3 border rounded-xl bg-slate-50/40 hover:bg-slate-50 transition-all flex flex-col justify-between"
                 >
                   <div className="space-y-1 text-left">
@@ -505,13 +466,13 @@ function ArenaOverview({
                     </div>
 
                     <button
-                      onClick={() => onPredict(race, horse)}
+                      onClick={() => onPredict(race.id, horse.id)}
                       disabled={race.status !== "Scheduled"}
                       className={cn(
                         "rounded-lg px-3 py-1.5 text-[10px] font-bold shadow-sm transition",
                         race.status === "Scheduled"
                           ? "bg-[#064E3B] hover:bg-[#043E2F] text-white"
-                          : "bg-slate-100 text-slate-450 cursor-not-allowed"
+                          : "bg-slate-100 text-slate-455 cursor-not-allowed"
                       )}
                     >
                       Predict
@@ -535,12 +496,14 @@ function PredictionsHub({
   active,
   resolved,
   ledger,
+  notifications,
 }: {
-  active: PredictionRecord[];
-  resolved: PredictionRecord[];
+  active: ActivePrediction[];
+  resolved: ActivePrediction[];
   ledger: LedgerEntry[];
+  notifications: any[];
 }) {
-  const [panel, setPanel] = useState<"escrow" | "history" | "ledger">("escrow");
+  const [panel, setPanel] = useState<"escrow" | "history" | "ledger" | "alerts" >("escrow");
 
   return (
     <div className="p-5 space-y-5 max-w-5xl mx-auto font-body">
@@ -550,10 +513,11 @@ function PredictionsHub({
           { key: "escrow", label: "Active Predictions" },
           { key: "history", label: "Settled History" },
           { key: "ledger", label: "Transaction Ledger" },
+          { key: "alerts", label: "Reward Alerts" },
         ].map((item) => (
           <button
             key={item.key}
-            onClick={() => setPanel(item.key as "escrow" | "history" | "ledger")}
+            onClick={() => setPanel(item.key as "escrow" | "history" | "ledger" | "alerts")}
             className={cn(
               "rounded-xl px-3.5 py-2 text-xs font-bold whitespace-nowrap transition",
               panel === item.key
@@ -572,7 +536,7 @@ function PredictionsHub({
           <div className="space-y-3">
             <h3 className="font-bold text-sm text-[#064E3B] border-b pb-2">Active Predictions (In Escrow)</h3>
             {active.length === 0 ? (
-              <p className="text-xs text-slate-450 italic text-center py-8">No predictions pending settlement.</p>
+              <p className="text-xs text-slate-455 italic text-center py-8">No predictions pending settlement.</p>
             ) : (
               <div className="divide-y">
                 {active.map((p) => (
@@ -598,7 +562,7 @@ function PredictionsHub({
           <div className="space-y-3">
             <h3 className="font-bold text-sm text-[#064E3B] border-b pb-2">Prediction Settlement History</h3>
             {resolved.length === 0 ? (
-              <p className="text-xs text-slate-450 italic text-center py-8">No settled predictions in history.</p>
+              <p className="text-xs text-slate-455 italic text-center py-8">No settled predictions in history.</p>
             ) : (
               <div className="divide-y">
                 {resolved.map((p) => (
@@ -659,6 +623,27 @@ function PredictionsHub({
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {panel === "alerts" && (
+          <div className="space-y-3">
+            <h3 className="font-bold text-sm text-[#064E3B] border-b pb-2">Rewards Alert Inbox (UC-SP-05)</h3>
+            {notifications.length === 0 ? (
+              <p className="text-xs text-slate-455 italic text-center py-8">No notifications received.</p>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {notifications.map((n) => (
+                  <div key={n.id} className="py-3 text-xs text-left space-y-1">
+                    <div className="flex items-center justify-between">
+                      <p className="font-bold text-slate-800">{n.title}</p>
+                      <span className="text-[9px] text-slate-400 font-label">{new Date(n.date).toLocaleDateString()}</span>
+                    </div>
+                    <p className="text-slate-555 leading-relaxed text-[11px]">{n.description}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
