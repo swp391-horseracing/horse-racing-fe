@@ -4,8 +4,8 @@ import { AuthService } from "../services/authService.ts";
 export default function useAuth() {
   const [token, setToken] = useState<string | null>(null);
 
-  const login = async (email: string, password: string) => {
-    const user = await AuthService.login(email, password);
+  const login = async (email: string, password: string, captchaToken:string) => {
+    const user = await AuthService.login(email, password, captchaToken);
 
     const jwt = user.token;
 
@@ -29,10 +29,11 @@ export default function useAuth() {
     fullName: string,
     email: string,
     password: string,
-    role: string
+    role: string,
+    captchaToken: string
   ) => {
     try {
-      const user = await AuthService.register(fullName, email, password, role);
+      const user = await AuthService.register(fullName, email, password, role, captchaToken);
       console.log(user);
     } catch (error) {
       console.log(error);

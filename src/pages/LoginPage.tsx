@@ -104,9 +104,9 @@ export default function Login() {
     try {
       setLoading(true);
       if (mode === "login") {
-        await login(email, password);
+        await login(email, password, captchaToken);
       } else {
-        await register(name, email, password, role);
+        await register(name, email, password, role, captchaToken);
       }
       navigate(ROUTES.DASHBOARD);
     } catch (err: unknown) {
