@@ -1,4 +1,3 @@
-// src/layouts/UserLayout.tsx
 import React from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -117,7 +116,7 @@ export default function UserLayout({
         key: "/owner/stables",
       },
       { label: "Jockey Roster", icon: UserCheck, key: "/owner/jockeys" },
-      { label: "Horse Schedule", icon: Calendar, key: "/owner/schedule" }, // Restored personal horse schedule
+      { label: "Horse Schedule", icon: Calendar, key: "/owner/schedule" },
     ],
     Spectator: [
       {
@@ -153,7 +152,9 @@ export default function UserLayout({
   // Safely handles exact matching, or falls back to 'Dashboard' as the default label
   const activePath = activeKey || location.pathname;
   const activeLabel =
-    currentNav.find((n) => activePath.includes(n.key))?.label ?? "Portal";
+    currentNav.find(
+      (n) => activePath === n.key || activePath.startsWith(n.key + "/")
+    )?.label ?? "Portal";
 
   const handleNavigation = (key: string) => {
     if (onActiveKeyChange) {
@@ -165,85 +166,96 @@ export default function UserLayout({
 
   return (
     <TooltipProvider>
-      <SidebarProvider style={{ height: "100%" }}>
-        <div className="flex h-full w-full overflow-hidden relative bg-[#F4F6F5] text-slate-800 font-body">
-          <style
-            dangerouslySetInnerHTML={{
-              __html: `
-                        @import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:wght@400;500;700&display=swap');
-                        
-                        .font-headline { font-family: 'Playfair Display', Georgia, serif; }
-                        .font-body { font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif; letter-spacing: -0.011em; }
-                        .font-label { font-family: 'JetBrains Mono', monospace; }
-                    `,
-            }}
-          />
+      {/* 
+        CRITICAL FIX: !min-h-0 !h-full overrides shadcn's default min-h-svh.
+        This prevents the sidebar wrapper from pushing 70px below the screen.
+      */}
+      <SidebarProvider className="!min-h-0 !h-full w-full overflow-hidden flex">
+        
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              @import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+              .font-headline { font-family: 'Playfair Display', Georgia, serif; }
+              .font-body { font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif; letter-spacing: -0.011em; }
+              .font-label { font-family: 'JetBrains Mono', monospace; }
+          `,
+          }}
+        />
 
-          {/* Dynamic Sidebar */}
-          <Sidebar
-            collapsible="none"
-            className="!static self-stretch border-r border-[#064E3B]/10 shrink-0 bg-[#064E3B] text-slate-100 h-full overflow-hidden z-20"
-          >
-            <SidebarContent className="py-4">
-              <SidebarGroup>
-                <SidebarGroupLabel className="px-3 text-slate-350 text-[10px] uppercase font-black tracking-widest mb-3 font-body">
-                  {sidebarGroupLabel}
-                </SidebarGroupLabel>
-                <SidebarMenu className="space-y-1.5 px-2">
-                  {currentNav.map((item) => {
-                    const IconComponent = item.icon;
-                    const isActive = activePath.includes(item.key);
+        {/* Dynamic Sidebar */}
+        <Sidebar
+          collapsible="none"
+          className="!static self-stretch border-r border-[#064E3B]/10 shrink-0 bg-[#064E3B] text-slate-100 h-full overflow-hidden z-20"
+        >
+          <SidebarContent className="py-4">
+            <SidebarGroup>
+              <SidebarGroupLabel className="px-3 text-slate-350 text-[10px] uppercase font-black tracking-widest mb-3 font-body">
+                {sidebarGroupLabel}
+              </SidebarGroupLabel>
+              <SidebarMenu className="space-y-1.5 px-2">
+                {currentNav.map((item) => {
+                  const IconComponent = item.icon;
+                  // Exact match fixes the highlight bug
+                  const isActive = activePath === item.key;
 
-                    return (
-                      <SidebarMenuItem key={item.key}>
-                        <SidebarMenuButton
-                          isActive={isActive}
-                          onClick={() => handleNavigation(item.key)}
-                          className={cn(
-                            "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all duration-200 font-body",
-                            isActive
-                              ? "bg-[#EAB308] text-[#064E3B] font-extrabold shadow-md"
-                              : "hover:bg-[#043E2F] text-slate-200 hover:text-white"
-                          )}
-                        >
-                          <IconComponent className="w-4 h-4 shrink-0" />
-                          <span>{item.label}</span>
-                        </SidebarMenuButton>
-                        {item.badge !== undefined && item.badge > 0 && (
-                          <SidebarMenuBadge className="bg-[#EAB308] text-[#064E3B] font-black px-2 py-0.5 text-[9px] rounded-full mr-2 font-label">
-                            {item.badge}
-                          </SidebarMenuBadge>
+                  return (
+                    <SidebarMenuItem key={item.key}>
+                      <SidebarMenuButton
+                        isActive={isActive}
+                        onClick={() => handleNavigation(item.key)}
+                        className={cn(
+                          "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all duration-200 font-body",
+                          isActive
+                            ? "bg-[#EAB308] text-[#064E3B] font-extrabold shadow-md"
+                            : "hover:bg-[#043E2F] text-slate-200 hover:text-white"
                         )}
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroup>
-            </SidebarContent>
-          </Sidebar>
+                      >
+                        <IconComponent className="w-4 h-4 shrink-0" />
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <SidebarMenuBadge className="bg-[#EAB308] text-[#064E3B] font-black px-2 py-0.5 text-[9px] rounded-full mr-2 font-label">
+                          {item.badge}
+                        </SidebarMenuBadge>
+                      )}
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroup>
+          </SidebarContent>
+        </Sidebar>
 
-          {/* Main content viewport */}
-          <main className="flex-1 flex flex-col min-w-0 bg-[#F4F6F5] h-full overflow-hidden">
-            <div className="flex h-16 shrink-0 items-center justify-between border-b border-[#064E3B]/10 px-6 bg-white shadow-sm z-10">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-                <span className="font-headline text-[#064E3B] text-sm">
-                  Elite Turf Registry
-                </span>
-                <span className="text-slate-400">
-                  <ChevronRight className="w-3 h-3" />
-                </span>
-                <span className="font-body text-[#1E293B] font-bold">
-                  {activeLabel}
-                </span>
-              </div>
+        {/* Main content viewport */}
+        <main className="flex-1 flex flex-col min-w-0 bg-[#F4F6F5] h-full overflow-hidden">
+          
+          <div className="flex h-16 shrink-0 items-center justify-between border-b border-[#064E3B]/10 px-6 bg-white shadow-sm z-10">
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <span className="font-headline text-[#064E3B] text-sm">
+                Elite Turf Registry
+              </span>
+              <span className="text-slate-400">
+                <ChevronRight className="w-3 h-3" />
+              </span>
+              <span className="font-body text-[#1E293B] font-bold">
+                {activeLabel}
+              </span>
             </div>
+          </div>
 
-            {/* Content Render Area */}
-            <div className="flex-1 min-h-0 h-full overflow-hidden relative flex flex-col">
+          {/* 
+            CRITICAL FIX: Absolute inset trick.
+            This completely insulates the children (Pages) from the parent Flex container,
+            ensuring `flex-1 overflow-y-auto` behaves flawlessly on every page.
+          */}
+          <div className="flex-1 relative min-h-0">
+            <div className="absolute inset-0 flex flex-col overflow-hidden pb-4">
               {children || <Outlet />}
             </div>
-          </main>
-        </div>
+          </div>
+
+        </main>
       </SidebarProvider>
     </TooltipProvider>
   );
