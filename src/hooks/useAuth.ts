@@ -3,7 +3,11 @@ import { AuthService } from "../services/authService.ts";
 
 declare global {
   interface Window {
-    grecaptcha: any;
+    grecaptcha?: {
+      reset: (widgetId?: number) => void;
+      getResponse: (widgetId?: number) => string;
+      execute: (widgetId?: number | string, options?: object) => void;
+    };
   }
 }
 
@@ -20,12 +24,9 @@ export default function useAuth() {
     email: string,
     password: string,
     captchaToken: string
-  ) => {try {
-      const user = await AuthService.login(
-          email,
-          password,
-          captchaToken
-      );
+  ) => {
+    try {
+      const user = await AuthService.login(email, password, captchaToken);
 
       const jwt = user.token;
 
