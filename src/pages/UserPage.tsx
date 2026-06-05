@@ -1,4 +1,13 @@
 import { useNavigate } from "react-router-dom";
+import { SidebarProvider } from "../components/ui/sidebar";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "../components/ui/breadcrumb";
 import { useUserProfile } from "../hooks/useUserProfile.ts";
 import AccountPanel from "../components/user_profile/accountPanel.tsx";
 import ProfileSidebar from "../components/user_profile/ProfileSidebar.tsx";
@@ -23,14 +32,6 @@ export default function UserPage() {
   } = useUserProfile();
 
   const { logout } = useAuth();
-  //
-  // if (loading) return (
-  //     <div className="flex items-center justify-center h-64 text-sm text-gray-400">
-  //         Loading profile…
-  //     </div>
-  // )
-  // if (!user) return null
-  //
 
   const handleLogout = async () => {
     logout();
@@ -38,52 +39,76 @@ export default function UserPage() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-full text-sm text-gray-400">
+        Loading...
+      </div>
+    );
   }
 
   if (!user) {
-    return <div>User not found</div>;
+    return (
+      <div className="flex items-center justify-center h-full text-sm text-gray-400">
+        User not found
+      </div>
+    );
   }
 
-  return (
-    <div className="flex flex-col h-full w-full dark:bg-gray-900">
-      {/* Sidebar + content */}
-      <div className="flex gap-6 items-start h-full w-full">
-        <div className="flex flex-col justify-center items-center h-full w-60 border-black text-gray-900">
-          <ProfileSidebar
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            onLogout={handleLogout}
-          />
-        </div>
+  const formatTabName = (tab: string) =>
+    tab.charAt(0).toUpperCase() + tab.slice(1);
 
-        <div className="flex-1 min-w-0">
-          <div className="w-full h-20 py-4 flex flex-col justify-top pl-5 items-start">
-            <div>
-              <div className="flex flex-col justify-top items-start text-2xl font-bold text-gray-900">
-                Account &amp; Settings
-              </div>
-              <p className="flex flex-col justify-top items-start text-sm text-gray-500 mt-1">
-                Manage your profile and security preferences.
-              </p>
+  return (
+    <SidebarProvider className="!min-h-0 !h-full w-full overflow-hidden flex">
+      <ProfileSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onLogout={handleLogout}
+      />
+
+      {/* Main content viewport matching UserLayout */}
+      <main className="flex-1 flex flex-col min-w-0 bg-[#F4F6F5] h-full overflow-hidden">
+        
+        {/* Top Header Bar using Custom Breadcrumb components */}
+      <div className="flex h-16 shrink-0 items-center justify-between border-b border-[#064E3B]/10 px-6 bg-white shadow-sm z-10">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink className="font-headline text-[#064E3B] text-sm hover:text-[#043E2F] transition-colors cursor-pointer">
+                Profile
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="font-body text-[#1E293B] font-bold">
+                {formatTabName(activeTab)}
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+
+        {/* Inner Content Area */}
+        <div className="flex-1 relative min-h-0">
+          <div className="absolute inset-0 flex flex-col overflow-y-auto p-8">
+            <div className="flex-1">
+              {activeTab === "account" && (
+                <AccountPanel
+                  user={user}
+                  editing={editing}
+                  draft={draft}
+                  setDraft={setDraft}
+                  startEdit={startEdit}
+                  saveEdit={saveEdit}
+                  cancelEdit={cancelEdit}
+                />
+              )}
+              {activeTab === "notifications" && <NotificationsPanel />}
+              {/*{activeTab === "privacy" && <PrivacyPanel user={user}/>}*/}
+              {/*{activeTab === "settings" && <SettingsPanel user={user} />}*/}
             </div>
           </div>
-          {activeTab === "account" && (
-            <AccountPanel
-              user={user}
-              editing={editing}
-              draft={draft}
-              setDraft={setDraft}
-              startEdit={startEdit}
-              saveEdit={saveEdit}
-              cancelEdit={cancelEdit}
-            />
-          )}
-          {activeTab === "notifications" && <NotificationsPanel />}
-          {/*{activeTab === "privacy"       && <PrivacyPanel user={user}/>}*/}
-          {/*{activeTab === "settings"      && <SettingsPanel user={user} />}*/}
         </div>
-      </div>
-    </div>
+      </main>
+    </SidebarProvider>
   );
 }

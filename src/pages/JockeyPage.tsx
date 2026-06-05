@@ -626,9 +626,6 @@ function RidingSchedule({
                       Turf • 1600m Sprint
                     </span>
                   </div>
-                  <button className="w-full md:w-auto rounded-lg bg-[#064E3B] text-white hover:bg-[#043E2F] px-3.5 py-2 text-xs font-bold transition shadow-sm">
-                    Download Race Guide
-                  </button>
                 </div>
               </div>
             ))
