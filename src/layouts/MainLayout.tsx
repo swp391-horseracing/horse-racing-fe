@@ -120,7 +120,7 @@ export default function MainLayout() {
               <Bell className="w-5 h-5" />
             </Button>
             {show && (
-              <div className="absolute top-10 right-12 z-50">
+              <div className="absolute mr-110 top-0 z-50">
                 <NotificationTab />
               </div>
             )}
