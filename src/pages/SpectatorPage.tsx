@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback} from "react";
+import { useState, useMemo, useCallback } from "react";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
@@ -102,7 +102,6 @@ export default function SpectatorPage() {
     },
     []
   );
-
 
   // Dynamic mapping of Event List and Horse List (Simulating active pairings)
   const integratedRaces = useMemo(() => {
