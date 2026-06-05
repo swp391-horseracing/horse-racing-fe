@@ -84,7 +84,7 @@ export default function LeaderBoardPage() {
   }
 
   return (
-    <section className="flex h-full w-full flex-col gap-6 p-6">
+    <section className="flex h-full w-full flex-col gap-6 p-6 overflow-y-auto">
       <header className="space-y-1">
         <h1 className="text-3xl font-extrabold text-[#064E3B]">
           Global Leaderboard
