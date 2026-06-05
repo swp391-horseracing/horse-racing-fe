@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback} from "react";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
@@ -6,7 +6,6 @@ import { cn } from "../lib/utils";
 // Shared Hook Integrations
 import { useHorseList } from "../hooks/useHorseList.ts";
 import { useEvent } from "../hooks/useEvent.ts";
-import { useUserProfile } from "../hooks/useUserProfile.ts";
 import { useNotification } from "../hooks/useNotification.ts";
 import type { Notification } from "../types/notification.ts";
 
@@ -56,7 +55,6 @@ export default function SpectatorPage() {
   const [active, setActive] = useState<string>(ROUTES.SPECTATOR_DASHBOARD);
 
   // ─── Shared System Hooks ───────────────────────────────────────────────────
-  const { user } = useUserProfile();
   const { horseList } = useHorseList();
   const { eventList } = useEvent();
   const { NotificationList } = useNotification();
@@ -90,8 +88,6 @@ export default function SpectatorPage() {
       type: "success" | "error" | "warning" | "info";
     }[]
   >([]);
-  const hasWelcomed = useRef(false);
-
   // Toast System
   const addToast = useCallback(
     (
@@ -107,25 +103,6 @@ export default function SpectatorPage() {
     []
   );
 
-  // Genesis Drop Validation Trigger (BR-BET-05)
-  // Wrapped in setTimeout to satisfy set-state-in-effect lint rules and prevent render cycle blocking
-  useEffect(() => {
-    if (
-      user &&
-      balance === 1000 &&
-      ledger.length === 1 &&
-      !hasWelcomed.current
-    ) {
-      hasWelcomed.current = true;
-      const timer = setTimeout(() => {
-        addToast(
-          `Welcome ${user.fullName}! 1,000 Token Genesis Drop credited to your wallet.`,
-          "info"
-        );
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [user, balance, ledger.length, addToast]);
 
   // Dynamic mapping of Event List and Horse List (Simulating active pairings)
   const integratedRaces = useMemo(() => {
