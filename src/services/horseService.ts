@@ -52,7 +52,9 @@ export const HorseService = {
   },
 
   getHorsesByRanking: async (): Promise<Horse[]> => {
-    const rankings = [...mockList].sort((a, b) => b.performance - a.performance);
+    const rankings = [...mockList].sort(
+      (a, b) => b.performance - a.performance
+    );
     return rankings;
   },
 
