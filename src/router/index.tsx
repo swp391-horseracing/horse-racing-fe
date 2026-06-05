@@ -16,6 +16,7 @@ import AdminPage from "../pages/AdminPage.tsx";
 import UserPage from "../pages/UserPage.tsx";
 import SpectatorPage from "../pages/SpectatorPage.tsx";
 import LeaderBoardPage from "../pages/LeaderBoardPage.tsx";
+import TournamentPage from "../pages/TournamentPage.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -58,6 +59,10 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.RACES,
         element: <RacesPage />,
+      },
+      {
+        path: ROUTES.TOURNAMENT,
+        element: <TournamentPage />,
       },
       {
         path: ROUTES.LEADERBOARD,

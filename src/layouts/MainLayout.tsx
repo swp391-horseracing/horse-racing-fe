@@ -23,6 +23,7 @@ export default function MainLayout() {
     { label: "Schedule", to: ROUTES.CALENDAR },
     { label: "Horses", to: ROUTES.HORSES },
     { label: "Races", to: ROUTES.RACES },
+    { label: "Tournament", to: ROUTES.TOURNAMENT },
     { label: "LeaderBoard", to: ROUTES.LEADERBOARD },
   ];
 

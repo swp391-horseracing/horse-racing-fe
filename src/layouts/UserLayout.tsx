@@ -9,6 +9,8 @@ import {
   Activity,
   UserCheck,
   ClipboardList,
+  ChessKnight,
+  TextAlignJustify,
 } from "lucide-react";
 import {
   Sidebar,
@@ -88,7 +90,7 @@ export default function UserLayout({
 
   // Role-based Nav configurations
   const navConfigurations: Record<
-    "Jockey" | "Owner" | "Spectator" | "Admin",
+    "Jockey" | "Owner" | "Spectator" | "Tournament" | "Admin",
     NavItem[]
   > = {
     Jockey: [
@@ -135,6 +137,14 @@ export default function UserLayout({
         icon: Activity,
         key: "/spectator/predictions",
       },
+    ],
+    Tournament: [
+      {
+        label: "List",
+        icon: TextAlignJustify,
+        key: ROUTES.TOURNAMENT,
+      },
+      { label: "Races", icon: ChessKnight, key: "Tournament/:id/races" },
     ],
     Admin: [
       {

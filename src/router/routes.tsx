@@ -8,6 +8,7 @@ export const ROUTES = {
   CALENDAR: "/calendar",
   HORSES: "/horses",
   RACES: "/races",
+  TOURNAMENT: "/tournament",
   LEADERBOARD: "/leaderboard",
 
   // USER
