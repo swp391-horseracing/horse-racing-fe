@@ -1,24 +1,44 @@
 import { useState } from "react";
 import { AuthService } from "../services/authService.ts";
 
+declare global {
+  interface Window {
+    grecaptcha: any;
+  }
+}
+
 export default function useAuth() {
   const [token, setToken] = useState<string | null>(null);
+
+  const resetCaptcha = () => {
+    if (typeof window !== "undefined" && window.grecaptcha) {
+      window.grecaptcha.reset();
+    }
+  };
 
   const login = async (
     email: string,
     password: string,
     captchaToken: string
-  ) => {
-    const user = await AuthService.login(email, password, captchaToken);
+  ) => {try {
+      const user = await AuthService.login(
+          email,
+          password,
+          captchaToken
+      );
 
-    const jwt = user.token;
+      const jwt = user.token;
 
-    if (jwt) {
-      localStorage.setItem("token", jwt);
-      setToken(jwt);
+      if (jwt) {
+        localStorage.setItem("token", jwt);
+        setToken(jwt);
+      }
+
+      return user;
+    } catch (error) {
+      resetCaptcha();
+      throw error;
     }
-
-    return user;
   };
 
   const getToken = (): string | null => {
@@ -46,6 +66,7 @@ export default function useAuth() {
       );
       console.log(user);
     } catch (error) {
+      resetCaptcha();
       console.log(error);
     }
   };
