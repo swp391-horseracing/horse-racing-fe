@@ -51,8 +51,8 @@ export default function ProfileSidebar({
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all duration-200 font-body",
                       isActive
-                            ? "bg-[#EAB308] text-[#064E3B] font-extrabold shadow-md"
-                            : "hover:bg-[#043E2F] text-slate-200 hover:text-white"
+                        ? "bg-[#EAB308] text-[#064E3B] font-extrabold shadow-md"
+                        : "hover:bg-[#043E2F] text-slate-200 hover:text-white"
                     )}
                   >
                     <IconComponent className="w-4 h-4 shrink-0" />

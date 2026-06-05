@@ -237,23 +237,23 @@ export default function UserLayout({
         {/* Main content viewport */}
         <main className="flex-1 flex flex-col min-w-0 bg-[#F4F6F5] h-full overflow-hidden">
           {/* Header Bar using Custom Breadcrumb components */}
-            <div className="flex h-16 shrink-0 items-center justify-between border-b border-[#064E3B]/10 px-6 bg-white shadow-sm z-10">
-              <Breadcrumb>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink className="font-headline text-[#064E3B] text-sm hover:text-[#043E2F] transition-colors cursor-pointer">
-                      {currentRole}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage className="font-body text-[#1E293B] font-bold">
-                      {activeLabel}
-                    </BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </Breadcrumb>
-            </div>
+          <div className="flex h-16 shrink-0 items-center justify-between border-b border-[#064E3B]/10 px-6 bg-white shadow-sm z-10">
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink className="font-headline text-[#064E3B] text-sm hover:text-[#043E2F] transition-colors cursor-pointer">
+                    {currentRole}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="font-body text-[#1E293B] font-bold">
+                    {activeLabel}
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
 
           <div className="flex-1 relative min-h-0">
             <div className="absolute inset-0 flex flex-col overflow-hidden pb-4">
