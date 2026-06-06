@@ -463,6 +463,7 @@ export default function RacesPage() {
         </div>
 
         {/* --- DYNAMIC GRID LAYOUT --- */}
+        {/* --- DYNAMIC GRID LAYOUT --- */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start transition-all">
           {/* LEFT SIDE CONTENT */}
           <div
@@ -471,7 +472,7 @@ export default function RacesPage() {
               isCalendarMode
                 ? panelOpen
                   ? "lg:col-span-4"
-                  : "lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-start" // items-start prevents container height scaling
+                  : "lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-start" // Increased gap here
                 : panelOpen
                   ? "lg:col-span-3"
                   : "lg:col-span-12"
@@ -481,10 +482,10 @@ export default function RacesPage() {
             {/* Calendar Block */}
             {isCalendarMode && (
               <div
-                className={`${!panelOpen ? "lg:col-span-5 lg:sticky lg:top-8 flex lg:justify-center" : "w-full lg:sticky lg:top-8"}`}
+                className={`${!panelOpen ? "lg:col-span-5 flex lg:justify-center mb-8 lg:mb-0" : "w-full mb-6"}`} // Added mb-8 for mobile spacing
               >
                 <div
-                  className={`rounded-2xl border border-border bg-card shadow-sm flex items-center justify-center transition-all mx-auto ${!panelOpen ? "w-fit" : "w-full"} ${calendarScaleClasses}`}
+                  className={`rounded-2xl border border-border bg-card shadow-sm flex items-center justify-center transition-all mx-auto w-fit ${calendarScaleClasses}`}
                 >
                   <div
                     className={`transform-origin-center ${!panelOpen ? "scale-100 xl:scale-105" : "scale-100"}`}
@@ -583,132 +584,132 @@ export default function RacesPage() {
           </div>
 
           {/* RIGHT SIDE DETAIL PANEL */}
-          {panelOpen && selectedRace && (
-            <div
-              className={`${isCalendarMode ? "lg:col-span-8" : "lg:col-span-9"} lg:sticky lg:top-8 overflow-hidden border border-border bg-card rounded-2xl shadow-lg flex flex-col min-h-[500px] xl:min-h-[640px] animate-in fade-in slide-in-from-right-8 duration-200`}
-            >
-              {/* Context Header */}
-              <div className="flex items-start justify-between gap-4 px-8 py-6 border-b border-border bg-background">
-                <div className="min-w-0 flex-1">
-                  {tournamentName && (
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 truncate">
-                      {tournamentName}
-                    </p>
-                  )}
-                  <h2 className="text-3xl font-bold font-headline text-primary tracking-tight leading-tight">
-                    {selectedRace.title}
-                  </h2>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2 font-medium tracking-tight">
-                    <span className="px-2 py-0.5 rounded border border-border bg-card">
-                      {selectedRace.className}
-                    </span>
-                    <span>
-                      {selectedRace.distance} • {selectedRace.surface} Phase Run
-                    </span>
+            {panelOpen && selectedRace && (
+              <div
+                className={`${isCalendarMode ? "lg:col-span-8" : "lg:col-span-9"} lg:sticky lg:top-8 overflow-hidden border border-border bg-card rounded-2xl shadow-lg flex flex-col min-h-[500px] xl:min-h-[640px] animate-in fade-in slide-in-from-right-8 duration-200`}
+              >
+                {/* Context Header */}
+                <div className="flex items-start justify-between gap-4 px-8 py-6 border-b border-border bg-background">
+                  <div className="min-w-0 flex-1">
+                    {tournamentName && (
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 truncate">
+                        {tournamentName}
+                      </p>
+                    )}
+                    <h2 className="text-3xl font-bold font-headline text-primary tracking-tight leading-tight">
+                      {selectedRace.title}
+                    </h2>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2 font-medium tracking-tight">
+                      <span className="px-2 py-0.5 rounded border border-border bg-card">
+                        {selectedRace.className}
+                      </span>
+                      <span>
+                        {selectedRace.distance} • {selectedRace.surface} Phase Run
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <button
-                  onClick={() => setSelectedRace(null)}
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-background hover:text-foreground transition-all shadow-sm active:scale-95"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              {/* Central Information Stack */}
-              <div className="flex-1 p-8 space-y-10 overflow-y-auto custom-scrollbar">
-                {/* Embedded Horse Draw Registry Block */}
-                <div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">
-                    Confirmed Runner Line-up
-                  </h3>
-
-                  {horseList && horseList.length > 0 ? (
-                    <div className="overflow-hidden rounded-xl border border-border bg-background shadow-sm">
-                      <table className="w-full text-left">
-                        <thead className="bg-muted/30 border-b border-border">
-                          <tr>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground w-20 text-center">
-                              Cloth #
-                            </th>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                              Nominee Registration
-                            </th>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                              Active Jockey
-                            </th>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden md:table-cell">
-                              Reg Trainer
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border text-sm bg-card">
-                          {horseList
-                            .slice(
-                              selectedRace.id % 2,
-                              (selectedRace.id % 2) + 7
-                            )
-                            .map((horse, idx) => (
-                              <tr
-                                key={idx}
-                                className="hover:bg-primary/5 transition-colors cursor-default"
-                              >
-                                <td className="px-6 py-4.5 text-center">
-                                  <span className="flex h-6 w-6 items-center justify-center rounded-md border border-border bg-background shadow-sm text-xs font-black text-foreground mx-auto">
-                                    {idx + 1}
-                                  </span>
-                                </td>
-                                <td className="px-6 py-4.5 font-bold font-headline text-primary text-base leading-snug">
-                                  {horse.name}
-                                </td>
-                                <td className="px-6 py-4.5 font-medium text-foreground">
-                                  {horse.jockey}
-                                </td>
-                                <td className="px-6 py-4.5 text-muted-foreground hidden md:table-cell">
-                                  {horse.owner}
-                                </td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="rounded-2xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground font-medium bg-background">
-                      No verified roster loaded. Final draws unlisted.
-                    </div>
-                  )}
+                  <button
+                    onClick={() => setSelectedRace(null)}
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-background hover:text-foreground transition-all shadow-sm active:scale-95"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
 
-                {/* Technical Board Roster Block */}
-                <div className="border-t border-border pt-10">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">
-                    Racing Officials Board
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {officials.map((o) => (
-                      <div
-                        key={o.initials}
-                        className="flex items-center gap-4 rounded-xl border border-border p-4 bg-background"
-                      >
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg shadow-sm bg-card text-primary text-sm font-black border border-border">
-                          {o.initials}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-black font-headline text-foreground truncate leading-tight">
-                            {o.name}
-                          </p>
-                          <p className="text-xs font-medium text-muted-foreground truncate leading-tight mt-1">
-                            {o.title}
-                          </p>
-                        </div>
+                {/* Central Information Stack */}
+                <div className="flex-1 p-8 space-y-10 overflow-y-auto custom-scrollbar">
+                  {/* Embedded Horse Draw Registry Block */}
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">
+                      Confirmed Runner Line-up
+                    </h3>
+
+                    {horseList && horseList.length > 0 ? (
+                      <div className="overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+                        <table className="w-full text-left">
+                          <thead className="bg-muted/30 border-b border-border">
+                            <tr>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground w-20 text-center">
+                                Cloth #
+                              </th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                Nominee Registration
+                              </th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                Active Jockey
+                              </th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden md:table-cell">
+                                Reg Trainer
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border text-sm bg-card">
+                            {horseList
+                              .slice(
+                                selectedRace.id % 2,
+                                (selectedRace.id % 2) + 7
+                              )
+                              .map((horse, idx) => (
+                                <tr
+                                  key={idx}
+                                  className="hover:bg-primary/5 transition-colors cursor-default"
+                                >
+                                  <td className="px-6 py-4.5 text-center">
+                                    <span className="flex h-6 w-6 items-center justify-center rounded-md border border-border bg-background shadow-sm text-xs font-black text-foreground mx-auto">
+                                      {idx + 1}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4.5 font-bold font-headline text-primary text-base leading-snug">
+                                    {horse.name}
+                                  </td>
+                                  <td className="px-6 py-4.5 font-medium text-foreground">
+                                    {horse.jockey}
+                                  </td>
+                                  <td className="px-6 py-4.5 text-muted-foreground hidden md:table-cell">
+                                    {horse.owner}
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
                       </div>
-                    ))}
+                    ) : (
+                      <div className="rounded-2xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground font-medium bg-background">
+                        No verified roster loaded. Final draws unlisted.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Technical Board Roster Block */}
+                  <div className="border-t border-border pt-10">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">
+                      Racing Officials Board
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {officials.map((o) => (
+                        <div
+                          key={o.initials}
+                          className="flex items-center gap-4 rounded-xl border border-border p-4 bg-background"
+                        >
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg shadow-sm bg-card text-primary text-sm font-black border border-border">
+                            {o.initials}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-black font-headline text-foreground truncate leading-tight">
+                              {o.name}
+                            </p>
+                            <p className="text-xs font-medium text-muted-foreground truncate leading-tight mt-1">
+                              {o.title}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
       </div>
     </div>
   );
