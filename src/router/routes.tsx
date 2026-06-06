@@ -7,6 +7,7 @@ export const ROUTES = {
   REGISTER: "/register",
   CALENDAR: "/calendar",
   HORSES: "/horses",
+  RACES: "/races",
   TOURNAMENTS: "/tournaments",
   LEADERBOARD: "/leaderboard",
 
@@ -53,6 +54,6 @@ export const ROUTES = {
   RACE_DETAIL: "/races/:id",
 };
 
-export const buildRoute = (path: string, id: string) => {
-  path.replace(":id", id);
+export const buildRoute = (path: string, id: string | number) => {
+  return path.replace(":id", String(id));
 };
