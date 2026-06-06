@@ -4,11 +4,12 @@ import {
   ArrowLeft,
   Search,
   X,
-  ExternalLink,
+  CalendarDays,
 } from "lucide-react";
 import { ROUTES, buildRoute } from "../router/routes.tsx";
 import { useHorseList } from "../hooks/useHorseList";
 import { useEvent } from "../hooks/useEvent";
+import { Calendar } from "../components/ui/calendar";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -57,6 +58,11 @@ const officials = [
 
 const fmtShort = (d: string) =>
   new Date(d).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+
+const parseLocalDate = (dateStr: string) => {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
 
 const STATUS_ORDER: Record<RaceStatus, number> = { Live: 0, Upcoming: 1, Completed: 2 };
 
@@ -145,6 +151,8 @@ export default function RacesPage() {
   const [statusFilter, setStatusFilter]   = useState<StatusFilter>("All");
   const [search, setSearch]               = useState("");
   const [selectedRace, setSelectedRace]   = useState<Race | null>(null);
+  
+  const [selectedDate, setSelectedDate]   = useState<Date | undefined>(parseLocalDate("2026-06-18"));
 
   const tournamentName = useMemo(() => {
     if (!tournamentId) return null;
@@ -187,26 +195,38 @@ export default function RacesPage() {
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [filteredRaces]);
 
+  const formattedSelectedDate = useMemo(() => {
+    if (!selectedDate) return "";
+    const yyyy = selectedDate.getFullYear();
+    const mm = String(selectedDate.getMonth() + 1).padStart(2, "0");
+    const dd = String(selectedDate.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }, [selectedDate]);
+
+  const calendarFilteredRaces = useMemo(() => {
+    return filteredRaces.filter((r) => r.date === formattedSelectedDate);
+  }, [filteredRaces, formattedSelectedDate]);
+
+  const raceDays = useMemo(() => {
+    return baseRaces.map(r => parseLocalDate(r.date));
+  }, [baseRaces]);
+
   const handleSelectRace = useCallback((race: Race) => {
     setSelectedRace((prev) => (prev?.id === race.id ? null : race));
   }, []);
 
-  const handleViewFull = useCallback(() => {
-    if (selectedRace) navigate(buildRoute(ROUTES.RACE_DETAIL, selectedRace.id));
-  }, [selectedRace, navigate]);
-
   const panelOpen = selectedRace !== null;
+  const isCalendarMode = !tournamentId;
 
   return (
-    <div className="h-full w-full overflow-hidden bg-slate-50/40 flex flex-col">
-      <div className="mx-auto max-w-5xl w-full px-4 py-4 sm:py-6 flex-1 flex flex-col overflow-hidden">
+    <div className="min-h-screen w-full bg-slate-50/40 flex flex-col">
+      <div className="mx-auto max-w-5xl w-full px-4 py-4 sm:py-6 flex-1 flex flex-col">
 
-        {/* --- TOP FIXED AREA (Top Right Search Bar Layout) --- */}
+        {/* --- TOP FIXED AREA --- */}
         <div className="flex-shrink-0">
           
-          {/* Header Row: Title on Left, Search Bar on Right */}
+          {/* Header Row */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            
             <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={() => tournamentId ? navigate(ROUTES.TOURNAMENTS) : navigate(-1)}
@@ -224,7 +244,7 @@ export default function RacesPage() {
               </div>
             </div>
 
-            {/* SPACIOUS SEARCH BAR (Top Right Position) */}
+            {/* SPACIOUS SEARCH BAR */}
             <div className="relative w-full sm:w-72 md:w-80 shadow-sm rounded-xl border border-slate-200 bg-white">
               <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
@@ -246,44 +266,104 @@ export default function RacesPage() {
           </div>
         </div>
 
-        {/* --- BOTTOM SCROLLABLE AREA (1/3 Left, 2/3 Right) --- */}
-        <div className={`flex-1 overflow-hidden transition-all duration-300 ${
-          panelOpen ? "grid grid-cols-1 lg:grid-cols-[1.1fr_2fr] gap-6 lg:gap-8 animate-in fade-in duration-200" : "w-full"
-        }`}>
+        {/* --- DYNAMIC GRID LAYOUT (Addresses Zoom and Placement) --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
-          {/* Race list container */}
-          <div className="h-full overflow-y-auto pr-1 custom-scrollbar">
-            {grouped.length > 0 ? (
-              <div className="space-y-4">
-                {grouped.map(([date, races]) => (
-                  <div key={date} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                    {/* Date header */}
-                    <div className="border-b border-slate-100 bg-slate-50 px-4 py-2">
-                      <span className="text-[11px] font-bold text-slate-500">{fmtShort(date)}</span>
-                    </div>
-                    <div className="divide-y divide-slate-100">
-                      {races.map((race) => (
-                        <RaceRow
-                          key={race.id}
-                          race={race}
-                          selected={selectedRace?.id === race.id}
-                          onClick={() => handleSelectRace(race)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-xl border border-dashed border-slate-200 bg-white py-12 text-center">
-                <p className="text-sm font-semibold text-slate-400">No matching races found.</p>
+          {/* LEFT SIDE CONTENT */}
+          <div className={`
+            ${isCalendarMode 
+              ? (panelOpen ? "lg:col-span-5 space-y-4" : "lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-6") 
+              : (panelOpen ? "lg:col-span-5" : "lg:col-span-12")
+            }
+          `}>
+            
+            {/* Calendar Block (All Races mode only) */}
+            {isCalendarMode && (
+              <div className={`${!panelOpen ? "lg:col-span-4" : "w-full"}`}>
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm max-w-sm mx-auto lg:mx-0 w-full">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    defaultMonth={new Date(2026, 5)}
+                    modifiers={{ hasRace: raceDays }}
+                    modifiersClassNames={{
+                      hasRace: "font-black text-emerald-700 bg-emerald-50/50 border border-emerald-600/10 rounded-md"
+                    }}
+                    className="w-full flex justify-center"
+                  />
+                </div>
               </div>
             )}
+
+            {/* List Block */}
+            <div className={`
+              ${isCalendarMode && !panelOpen ? "lg:col-span-8" : "w-full"}
+              space-y-4
+            `}>
+              {isCalendarMode ? (
+                /* --- 1. Calendar Days list --- */
+                selectedDate && (
+                  <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    <div className="border-b border-slate-100 bg-slate-50 px-4 py-2 flex items-center gap-2">
+                      <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
+                      <span className="text-[11px] font-bold text-slate-500">
+                        Races on {selectedDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </span>
+                    </div>
+                    <div className="divide-y divide-slate-100">
+                      {calendarFilteredRaces.length > 0 ? (
+                        calendarFilteredRaces.map((race) => (
+                          <RaceRow
+                            key={race.id}
+                            race={race}
+                            selected={selectedRace?.id === race.id}
+                            onClick={() => handleSelectRace(race)}
+                          />
+                        ))
+                      ) : (
+                        <div className="p-8 text-center text-xs text-slate-400 font-medium">
+                          No races scheduled for this day.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              ) : (
+                /* --- 2. Tournament List View --- */
+                grouped.length > 0 ? (
+                  <div className="space-y-4">
+                    {grouped.map(([date, races]) => (
+                      <div key={date} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                        <div className="border-b border-slate-100 bg-slate-50 px-4 py-2">
+                          <span className="text-[11px] font-bold text-slate-500">{fmtShort(date)}</span>
+                        </div>
+                        <div className="divide-y divide-slate-100">
+                          {races.map((race) => (
+                            <RaceRow
+                              key={race.id}
+                              race={race}
+                              selected={selectedRace?.id === race.id}
+                              onClick={() => handleSelectRace(race)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-slate-200 bg-white py-12 text-center">
+                    <p className="text-sm font-semibold text-slate-400">No matching races found.</p>
+                  </div>
+                )
+              )}
+            </div>
+
           </div>
 
-          {/* Dynamic 2/3 Wide Detail Side Panel */}
+          {/* RIGHT SIDE DETAIL PANEL */}
           {panelOpen && selectedRace && (
-            <div className="h-full hidden lg:flex flex-col border border-slate-200 bg-white rounded-xl shadow-lg overflow-hidden animate-in fade-in slide-in-from-right-6 duration-200">
+            <div className="lg:col-span-7 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] overflow-y-auto border border-slate-200 bg-white rounded-xl shadow-lg flex flex-col">
               
               {/* Header */}
               <div className="flex items-start justify-between gap-3 px-6 py-4 border-b border-slate-100">
@@ -305,7 +385,7 @@ export default function RacesPage() {
               </div>
 
               {/* Scrollable details */}
-              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-6">
+              <div className="p-6 space-y-6">
                 
                 {/* Metrics Table */}
                 <div>
@@ -360,6 +440,7 @@ export default function RacesPage() {
                     ))}
                   </div>
                 </div>
+
               </div>
             </div>
           )}
