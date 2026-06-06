@@ -381,12 +381,8 @@ export default function RacesPage() {
   const panelOpen = selectedRace !== null;
   const isCalendarMode = !tournamentId;
 
-  // Overwrite base ShadCN/React-Day-Picker cell widths cleanly using high specificity Tailwind rules
-  const calendarScaleClasses = useMemo(() => {
-    return !panelOpen
-      ? "p-6 [&_.rdp-day]:!h-[46px] [&_.rdp-day]:!w-[46px] [&_.rdp-head_th]:!w-[46px] [&_.rdp-day]:!text-sm [&_.rdp-head_th]:!text-xs [&_.rdp-caption_label]:!text-base"
-      : "p-4 [&_.rdp-day]:!h-9 [&_.rdp-day]:!w-9 [&_.rdp-head_th]:!w-9 [&_.rdp-day]:!text-xs [&_.rdp-head_th]:!text-[10px] [&_.rdp-caption_label]:!text-sm";
-  }, [panelOpen]);
+  // Modified to preserve the spacious layout width
+  const calendarScaleClasses = "p-6 w-full [&_.rdp-day]:!h-[46px] [&_.rdp-day]:!w-[46px] [&_.rdp-head_th]:!w-[46px] [&_.rdp-day]:!text-sm [&_.rdp-head_th]:!text-xs [&_.rdp-caption_label]:!text-base";
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
@@ -460,7 +456,6 @@ export default function RacesPage() {
         </div>
 
         {/* --- DYNAMIC GRID LAYOUT --- */}
-        {/* --- DYNAMIC GRID LAYOUT --- */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start transition-all">
           {/* LEFT SIDE CONTENT */}
           <div
@@ -469,7 +464,7 @@ export default function RacesPage() {
               isCalendarMode
                 ? panelOpen
                   ? "lg:col-span-4"
-                  : "lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-start" // Increased gap here
+                  : "lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-start"
                 : panelOpen
                   ? "lg:col-span-3"
                   : "lg:col-span-12"
@@ -479,14 +474,12 @@ export default function RacesPage() {
             {/* Calendar Block */}
             {isCalendarMode && (
               <div
-                className={`${!panelOpen ? "lg:col-span-5 flex lg:justify-center mb-8 lg:mb-0" : "w-full mb-6"}`} // Added mb-8 for mobile spacing
+                className={`${!panelOpen ? "lg:col-span-5 flex lg:justify-center mb-8 lg:mb-0 w-full" : "w-full mb-6"}`}
               >
                 <div
-                  className={`rounded-2xl border border-border bg-card shadow-sm flex items-center justify-center transition-all mx-auto w-fit ${calendarScaleClasses}`}
+                  className={`rounded-2xl border border-border bg-card shadow-sm flex items-center justify-center transition-all w-full ${calendarScaleClasses}`}
                 >
-                  <div
-                    className={`transform-origin-center ${!panelOpen ? "scale-100 xl:scale-105" : "scale-100"}`}
-                  >
+                  <div className="w-full">
                     <Calendar
                       mode="single"
                       selected={selectedDate}

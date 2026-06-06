@@ -366,7 +366,7 @@ function DashboardOverview({
             <Icons.Trophy />
           </div>
           <div className="flex items-center justify-between mb-4">
-            <span className="text-slate-505 font-bold text-xs tracking-wider uppercase">
+            <span className="text-slate-555 font-bold text-xs tracking-wider uppercase">
               Jockey Win Rate
             </span>
             <span className="p-2 rounded-xl bg-[#064E3B]/10 text-[#064E3B]">
@@ -615,7 +615,7 @@ function DashboardOverview({
               </span>
               Your Confirmed Agenda
             </h3>
-            <span className="rounded bg-[#064E3B]/10 text-[#064E3B] font-bold px-2 py-0.5 text-[9px] uppercase border border-[#064E3B]/20 font-label">
+            <span className="rounded bg-[#064E3B]/10 text-[#064E3B] font-bold px-2.5 py-0.5 text-[9px] uppercase border border-[#064E3B]/20 font-label">
               {activeRaces.length} Confirmed
             </span>
           </div>
@@ -726,11 +726,8 @@ function RidingSchedule() {
 
   const panelOpen = selectedRide !== null;
 
-  const calendarScaleClasses = useMemo(() => {
-    return !panelOpen
-      ? "p-6 [&_.rdp-day]:!h-[46px] [&_.rdp-day]:!w-[46px] [&_.rdp-head_th]:!w-[46px] [&_.rdp-day]:!text-sm [&_.rdp-head_th]:!text-xs [&_.rdp-caption_label]:!text-base"
-      : "p-4 [&_.rdp-day]:!h-9 [&_.rdp-day]:!w-9 [&_.rdp-head_th]:!w-9 [&_.rdp-day]:!text-xs [&_.rdp-head_th]:!text-[10px] [&_.rdp-caption_label]:!text-sm";
-  }, [panelOpen]);
+  // Kept spacious scaling consistently to equal the race list box width exactly
+  const calendarScaleClasses = "p-6 w-full [&_.rdp-day]:!h-[46px] [&_.rdp-day]:!w-[46px] [&_.rdp-head_th]:!w-[46px] [&_.rdp-day]:!text-sm [&_.rdp-head_th]:!text-xs [&_.rdp-caption_label]:!text-base";
 
   const computedRideStatus = selectedRide ? getComputedRideStatus(selectedRide) : "pending";
 
@@ -802,9 +799,9 @@ function RidingSchedule() {
         {/* Left Area: Calendar + List */}
         <div className={`${panelOpen ? "lg:col-span-4 xl:col-span-4" : "lg:col-span-12"} grid grid-cols-1 ${panelOpen ? '' : 'lg:grid-cols-12'} gap-6 items-start`}>
           
-          {/* Calendar Box */}
-          <div className={`${panelOpen ? "" : "lg:col-span-5"} flex justify-center`}>
-            <div className={`rounded-2xl border border-[#064E3B]/10 bg-white shadow-sm flex items-center justify-center transition-all w-fit mx-auto ${calendarScaleClasses}`}>
+          {/* Calendar Box - Custom stretched to align width accurately */}
+          <div className={`${panelOpen ? "" : "lg:col-span-5"} flex justify-center w-full`}>
+            <div className={`rounded-2xl border border-[#064E3B]/10 bg-white shadow-sm flex items-center justify-center transition-all w-full ${calendarScaleClasses}`}>
               <CalendarUI
                 mode="single"
                 selected={selectedDate}
@@ -866,7 +863,7 @@ function RidingSchedule() {
                       {selectedRide.name}
                     </h2>
                     
-                    {/* Stark High Contrast Capsule Pills */}
+                    {/* Stark High Contrast Capsule Pills with absolute white text parameters */}
                     <div className="flex flex-wrap items-center gap-2 mt-4 font-semibold text-xs">
                       <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 !text-white px-3 py-1.5 font-bold">
                         <Icons.Calendar />
@@ -1450,7 +1447,7 @@ function InvitationDetail({
               <span>🔓</span>
               Private Health Metrics (Deep Access BR-SCHED-03)
             </h3>
-            <p className="text-[10px] text-slate-500 font-semibold mt-1 leading-normal font-body">
+            <p className="text-[10px] text-slate-505 text-slate-500 font-semibold mt-1 leading-normal font-body">
               Jockey Portal temporarily grants Deep Access to private
               veterinary, biological, and trainer track logs.
             </p>
@@ -1476,7 +1473,7 @@ function InvitationDetail({
         </div>
       ) : (
         <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 text-center space-y-3 shadow-sm">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 border border-slate-100 text-slate-450 mx-auto">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 border border-slate-100 text-slate-455 mx-auto">
             <Icons.Lock />
           </div>
           <div>
