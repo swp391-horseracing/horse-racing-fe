@@ -474,7 +474,7 @@ function DashboardOverview({
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-xs font-bold text-[#064E3B] font-label block">
-                      {horse.performance}
+                      ${horse.earnings.toFixed(2)}
                     </span>
                     <span className="text-[9px] text-slate-400 font-semibold block">
                       {horse.status}

@@ -9,12 +9,13 @@ const mockList: Horse[] = [
     breed: "Arabian",
     age: 5,
     gender: "Male",
-    speed: 92,
+    speed: 108,
     stamina: 88,
     owner: "John Smith",
     jockey: "Michael Lee",
     status: "Active",
-    performance: 1003,
+    earnings: 1003,
+    winRate: 0.25,
   },
 
   {
@@ -23,12 +24,13 @@ const mockList: Horse[] = [
     breed: "Thoroughbred",
     age: 4,
     gender: "Female",
-    speed: 89,
+    speed: 112,
     stamina: 91,
     owner: "Emma Watson",
     jockey: "David Kim",
     status: "Training",
-    performance: 1234,
+    earnings: 1234,
+    winRate: 0.3,
   },
 
   {
@@ -37,12 +39,13 @@ const mockList: Horse[] = [
     breed: "Mustang",
     age: 6,
     gender: "Male",
-    speed: 95,
+    speed: 116,
     stamina: 85,
     owner: "Robert Brown",
     jockey: "Chris Evans",
     status: "Injured",
-    performance: 2000,
+    earnings: 2000,
+    winRate: 0.4,
   },
 ];
 
@@ -51,10 +54,8 @@ export const HorseService = {
     return mockList;
   },
 
-  getHorsesByRanking: async (): Promise<Horse[]> => {
-    const rankings = [...mockList].sort(
-      (a, b) => b.performance - a.performance
-    );
+  getHorsesByEarnings: async (): Promise<Horse[]> => {
+    const rankings = [...mockList].sort((a, b) => b.earnings - a.earnings);
     return rankings;
   },
 

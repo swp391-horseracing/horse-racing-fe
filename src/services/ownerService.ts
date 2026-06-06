@@ -35,16 +35,6 @@ export interface TournamentRegistration {
   registrationTime: Date;
 }
 
-export interface Jockey {
-  id: number;
-  name: string;
-  licenseId: string;
-  winRate: string;
-  totalRuns: number;
-  podiums: number;
-  club: string;
-}
-
 export interface Invitation {
   id: number;
   horseId: number;
@@ -100,45 +90,6 @@ const mockRegistrations: TournamentRegistration[] = [
     tournamentId: 101,
     status: "Approved",
     registrationTime: new Date(Date.now() - 86400000),
-  },
-];
-
-const mockJockeys: Jockey[] = [
-  {
-    id: 201,
-    name: "Nguyễn Văn A",
-    licenseId: "JC-VN-9921",
-    winRate: "34.5%",
-    totalRuns: 110,
-    podiums: 48,
-    club: "Saigon Turf Club",
-  },
-  {
-    id: 202,
-    name: "Nguyễn Văn B",
-    licenseId: "JC-VN-1104",
-    winRate: "28.1%",
-    totalRuns: 95,
-    podiums: 39,
-    club: "Hanoi Racing Org",
-  },
-  {
-    id: 203,
-    name: "Nguyễn Văn C",
-    licenseId: "JC-VN-4822",
-    winRate: "21.9%",
-    totalRuns: 140,
-    podiums: 42,
-    club: "Da Nang Equine Federation",
-  },
-  {
-    id: 204,
-    name: "Nguyễn Văn D",
-    licenseId: "JC-VN-5039",
-    winRate: "19.5%",
-    totalRuns: 72,
-    podiums: 20,
-    club: "Saigon Turf Club",
   },
 ];
 
@@ -241,8 +192,6 @@ export const OwnerService = {
     mockRegistrations.push(newReg);
     return newReg;
   },
-
-  getJockeys: async (): Promise<Jockey[]> => [...mockJockeys],
 
   getInvitations: async (): Promise<Invitation[]> => [...mockInvitations],
 
