@@ -64,7 +64,7 @@ export const router = createBrowserRouter([
         path: ROUTES.LEADERBOARD,
         element: <LeaderBoardPage />,
       },
-      
+
       // ADDED RACES ROUTES HERE:
       {
         path: ROUTES.RACES,

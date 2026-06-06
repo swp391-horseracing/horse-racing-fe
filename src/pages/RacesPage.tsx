@@ -1,12 +1,12 @@
-import { useMemo, useState, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useMemo, useState, useCallback, useEffect } from "react";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   Search,
   X,
   CalendarDays,
 } from "lucide-react";
-import { ROUTES, buildRoute } from "../router/routes.tsx";
+import { ROUTES } from "../router/routes.tsx";
 import { useHorseList } from "../hooks/useHorseList";
 import { useEvent } from "../hooks/useEvent";
 import { Calendar } from "../components/ui/calendar";
@@ -26,6 +26,11 @@ interface Race {
   surface: string;
   className: string;
   status: RaceStatus;
+}
+
+interface LocationState {
+  raceId?: number;
+  date?: string;
 }
 
 // ─── Mock Data ─────────────────────────────────────────────────────────────────
@@ -80,19 +85,19 @@ function StatFilterCard({ label, value, active, onClick, liveDot }: StatFilterCa
   return (
     <button
       onClick={onClick}
-      className={`flex-1 text-left rounded-xl border py-1.5 px-3 transition-all ${
+      className={`flex-1 text-left rounded-2xl border py-2.5 px-4 transition-all ${
         active
-          ? "border-slate-800 bg-white shadow-sm ring-1 ring-slate-800"
-          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+          ? "border-primary bg-card shadow-sm ring-[1.5px] ring-primary"
+          : "border-border bg-card hover:border-slate-300 hover:bg-slate-50/50"
       }`}
     >
-      <p className={`text-[9px] font-bold uppercase tracking-wider mb-0.5 ${active ? "text-slate-800" : "text-slate-400"}`}>
+      <p className={`text-[9px] font-bold uppercase tracking-wider mb-0.5 ${active ? "text-primary font-black" : "text-muted-foreground"}`}>
         {label}
       </p>
-      <div className="flex items-center gap-1.5">
-        <p className="text-lg font-black leading-none text-slate-900">{value}</p>
+      <div className="flex items-center gap-1.5 mt-0.5">
+        <p className="text-xl font-black font-headline leading-none text-foreground">{value}</p>
         {liveDot && value > 0 && (
-          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+          <span className="h-1.5 w-1.5 rounded-full bg-secondary animate-pulse" />
         )}
       </div>
     </button>
@@ -106,32 +111,32 @@ function RaceRow({ race, selected, onClick }: { race: Race; selected: boolean; o
   return (
     <button
       onClick={onClick}
-      className={`group w-full flex items-center justify-between px-4 py-3 text-left transition-all border-l-4 ${
+      className={`group w-full flex items-center justify-between px-5 py-4 text-left transition-all border-l-4 ${
         selected
-          ? "bg-emerald-50/50 border-l-emerald-600"
+          ? "bg-primary/5 border-l-primary"
           : isLive
-          ? "bg-amber-50/30 border-l-amber-400 hover:bg-amber-50/50"
-          : "border-l-transparent hover:bg-slate-50"
+          ? "bg-secondary/5 border-l-secondary hover:bg-secondary/10"
+          : "border-l-transparent hover:bg-slate-50/50"
       }`}
     >
-      <div className="flex items-center gap-3.5 min-w-0">
-        <span className={`font-mono text-sm font-bold tracking-tight ${selected ? "text-emerald-900" : "text-slate-800"}`}>
+      <div className="flex items-center gap-4 min-w-0">
+        <span className={`font-mono text-base tracking-tight font-black ${selected ? "text-primary" : "text-muted-foreground"}`}>
           {race.time}
         </span>
         <div className="truncate">
-          <p className={`font-bold text-sm truncate ${selected ? "text-emerald-900" : "text-slate-900"}`}>
+          <p className={`font-bold font-headline text-base truncate ${selected ? "text-primary" : "text-foreground"}`}>
             {race.title}
           </p>
-          <p className="text-[11px] text-slate-400 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-1">
             {race.className} · {race.distance} · {race.surface}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 flex-shrink-0 pl-2">
-        {race.status === "Live" && <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />}
-        {race.status === "Completed" && <span className="h-2 w-2 rounded-full bg-slate-300" />}
-        {race.status === "Upcoming" && <span className="h-2 w-2 rounded-full bg-emerald-500" />}
+      <div className="flex items-center gap-2 flex-shrink-0 pl-4">
+        {race.status === "Live" && <span className="h-2 w-2 rounded-full bg-secondary animate-pulse" />}
+        {race.status === "Completed" && <span className="h-2 w-2 rounded-full bg-muted/80" />}
+        {race.status === "Upcoming" && <span className="h-2 w-2 rounded-full bg-primary" />}
       </div>
     </button>
   );
@@ -141,6 +146,7 @@ function RaceRow({ race, selected, onClick }: { race: Race; selected: boolean; o
 
 export default function RacesPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const tournamentIdParam = searchParams.get("tournamentId");
   const tournamentId = tournamentIdParam ? Number(tournamentIdParam) : null;
@@ -151,8 +157,22 @@ export default function RacesPage() {
   const [statusFilter, setStatusFilter]   = useState<StatusFilter>("All");
   const [search, setSearch]               = useState("");
   const [selectedRace, setSelectedRace]   = useState<Race | null>(null);
-  
   const [selectedDate, setSelectedDate]   = useState<Date | undefined>(parseLocalDate("2026-06-18"));
+
+  useEffect(() => {
+    const routeState = location.state as LocationState;
+    if (routeState) {
+      if (routeState.date) {
+        setSelectedDate(parseLocalDate(routeState.date));
+      }
+      if (routeState.raceId) {
+        const matchingRace = allRaces.find((r) => r.id === routeState.raceId);
+        if (matchingRace) {
+          setSelectedRace(matchingRace);
+        }
+      }
+    }
+  }, [location.state]);
 
   const tournamentName = useMemo(() => {
     if (!tournamentId) return null;
@@ -218,47 +238,54 @@ export default function RacesPage() {
   const panelOpen = selectedRace !== null;
   const isCalendarMode = !tournamentId;
 
+  // Overwrite base ShadCN/React-Day-Picker cell widths cleanly using high specificity Tailwind rules
+  const calendarScaleClasses = useMemo(() => {
+    return !panelOpen
+      ? "p-6 [&_.rdp-day]:!h-[46px] [&_.rdp-day]:!w-[46px] [&_.rdp-head_th]:!w-[46px] [&_.rdp-day]:!text-sm [&_.rdp-head_th]:!text-xs [&_.rdp-caption_label]:!text-base"
+      : "p-4 [&_.rdp-day]:!h-9 [&_.rdp-day]:!w-9 [&_.rdp-head_th]:!w-9 [&_.rdp-day]:!text-xs [&_.rdp-head_th]:!text-[10px] [&_.rdp-caption_label]:!text-sm";
+  }, [panelOpen]);
+
   return (
-    <div className="min-h-screen w-full bg-slate-50/40 flex flex-col">
-      <div className="mx-auto max-w-5xl w-full px-4 py-4 sm:py-6 flex-1 flex flex-col">
+    <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
+      <div className="mx-auto max-w-[1400px] w-full px-4 md:px-6 py-6 md:py-8">
 
         {/* --- TOP FIXED AREA --- */}
         <div className="flex-shrink-0">
           
           {/* Header Row */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <div className="flex items-center gap-3 min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3.5 min-w-0">
               <button
                 onClick={() => tournamentId ? navigate(ROUTES.TOURNAMENTS) : navigate(-1)}
-                className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition-colors shrink-0"
+                className="p-1.5 rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted/40 transition-colors shrink-0"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-5 w-5" />
               </button>
               <div className="min-w-0">
                 {tournamentName && (
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5 truncate">{tournamentName}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 truncate">{tournamentName}</p>
                 )}
-                <h1 className="text-xl font-black tracking-tight text-slate-900 leading-none truncate">
+                <h1 className="text-3xl font-black font-headline text-primary tracking-tight leading-none truncate">
                   {tournamentId ? "Race Roster" : "All Races"}
                 </h1>
               </div>
             </div>
 
             {/* SPACIOUS SEARCH BAR */}
-            <div className="relative w-full sm:w-72 md:w-80 shadow-sm rounded-xl border border-slate-200 bg-white">
-              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <div className="relative w-full sm:w-72 md:w-[22rem] shadow-sm rounded-xl border border-border bg-card">
+              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text" 
                 value={search} 
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search races..."
-                className="w-full h-11 rounded-xl bg-transparent pl-11 pr-4 text-xs font-medium outline-none transition focus:ring-1 focus:ring-slate-400 placeholder:text-slate-400"
+                className="w-full h-11 rounded-xl bg-transparent pl-11 pr-4 text-sm font-medium outline-none transition focus:ring-1 focus:ring-primary placeholder:text-muted-foreground"
               />
             </div>
           </div>
 
           {/* Interactive Stat Filter Cards */}
-          <div className="mb-5 grid grid-cols-4 gap-3">
+          <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
             <StatFilterCard label="Total" value={counts.All} active={statusFilter === "All"} onClick={() => setStatusFilter("All")} />
             <StatFilterCard label="Live" value={counts.Live} active={statusFilter === "Live"} onClick={() => setStatusFilter("Live")} liveDot />
             <StatFilterCard label="Upcoming" value={counts.Upcoming} active={statusFilter === "Upcoming"} onClick={() => setStatusFilter("Upcoming")} />
@@ -266,52 +293,56 @@ export default function RacesPage() {
           </div>
         </div>
 
-        {/* --- DYNAMIC GRID LAYOUT (Addresses Zoom and Placement) --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* --- DYNAMIC GRID LAYOUT --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start transition-all">
           
           {/* LEFT SIDE CONTENT */}
           <div className={`
             ${isCalendarMode 
-              ? (panelOpen ? "lg:col-span-5 space-y-4" : "lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-6") 
-              : (panelOpen ? "lg:col-span-5" : "lg:col-span-12")
+              ? (panelOpen 
+                  ? "lg:col-span-4" 
+                  : "lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-start") // items-start prevents container height scaling
+              : (panelOpen ? "lg:col-span-3" : "lg:col-span-12")
             }
           `}>
             
-            {/* Calendar Block (All Races mode only) */}
+            {/* Calendar Block */}
             {isCalendarMode && (
-              <div className={`${!panelOpen ? "lg:col-span-4" : "w-full"}`}>
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm max-w-sm mx-auto lg:mx-0 w-full">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    defaultMonth={new Date(2026, 5)}
-                    modifiers={{ hasRace: raceDays }}
-                    modifiersClassNames={{
-                      hasRace: "font-black text-emerald-700 bg-emerald-50/50 border border-emerald-600/10 rounded-md"
-                    }}
-                    className="w-full flex justify-center"
-                  />
+              <div className={`${!panelOpen ? "lg:col-span-5 lg:sticky lg:top-8 flex lg:justify-center" : "w-full lg:sticky lg:top-8"}`}>
+                <div className={`rounded-2xl border border-border bg-card shadow-sm flex items-center justify-center transition-all mx-auto ${!panelOpen ? "w-fit" : "w-full"} ${calendarScaleClasses}`}>
+                  <div className={`transform-origin-center ${!panelOpen ? "scale-100 xl:scale-105" : "scale-100"}`}>
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      defaultMonth={selectedDate || new Date(2026, 5)}
+                      modifiers={{ hasRace: raceDays }}
+                      modifiersClassNames={{
+                        hasRace: "font-black text-primary bg-primary/10 border border-primary/20 rounded-md"
+                      }}
+                      className="w-full flex justify-center text-sm font-medium mx-auto"
+                    />
+                  </div>
                 </div>
               </div>
             )}
 
             {/* List Block */}
             <div className={`
-              ${isCalendarMode && !panelOpen ? "lg:col-span-8" : "w-full"}
+              ${isCalendarMode && !panelOpen ? "lg:col-span-7" : "w-full"}
               space-y-4
             `}>
               {isCalendarMode ? (
-                /* --- 1. Calendar Days list --- */
+                /* Calendar Mode filtered rows display */
                 selectedDate && (
-                  <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                    <div className="border-b border-slate-100 bg-slate-50 px-4 py-2 flex items-center gap-2">
-                      <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
-                      <span className="text-[11px] font-bold text-slate-500">
-                        Races on {selectedDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
+                    <div className="border-b border-border bg-muted/20 px-6 py-4 flex items-center gap-2">
+                      <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
+                        Schedule for {selectedDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </span>
                     </div>
-                    <div className="divide-y divide-slate-100">
+                    <div className="divide-y divide-border flex-1">
                       {calendarFilteredRaces.length > 0 ? (
                         calendarFilteredRaces.map((race) => (
                           <RaceRow
@@ -322,23 +353,23 @@ export default function RacesPage() {
                           />
                         ))
                       ) : (
-                        <div className="p-8 text-center text-xs text-slate-400 font-medium">
-                          No races scheduled for this day.
+                        <div className="p-12 text-center text-sm text-muted-foreground font-medium">
+                          No official races slated for this calendar day.
                         </div>
                       )}
                     </div>
                   </div>
                 )
               ) : (
-                /* --- 2. Tournament List View --- */
+                /* Group Mode listing map */
                 grouped.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {grouped.map(([date, races]) => (
-                      <div key={date} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                        <div className="border-b border-slate-100 bg-slate-50 px-4 py-2">
-                          <span className="text-[11px] font-bold text-slate-500">{fmtShort(date)}</span>
+                      <div key={date} className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                        <div className="border-b border-border bg-muted/20 px-5 py-3">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">{fmtShort(date)}</span>
                         </div>
-                        <div className="divide-y divide-slate-100">
+                        <div className="divide-y divide-border">
                           {races.map((race) => (
                             <RaceRow
                               key={race.id}
@@ -352,8 +383,8 @@ export default function RacesPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-dashed border-slate-200 bg-white py-12 text-center">
-                    <p className="text-sm font-semibold text-slate-400">No matching races found.</p>
+                  <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
+                    <p className="text-sm font-semibold text-muted-foreground">No matches for query found.</p>
                   </div>
                 )
               )}
@@ -363,78 +394,79 @@ export default function RacesPage() {
 
           {/* RIGHT SIDE DETAIL PANEL */}
           {panelOpen && selectedRace && (
-            <div className="lg:col-span-7 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] overflow-y-auto border border-slate-200 bg-white rounded-xl shadow-lg flex flex-col">
+            <div className={`${isCalendarMode ? "lg:col-span-8" : "lg:col-span-9"} lg:sticky lg:top-8 overflow-hidden border border-border bg-card rounded-2xl shadow-lg flex flex-col min-h-[500px] xl:min-h-[640px] animate-in fade-in slide-in-from-right-8 duration-200`}>
               
-              {/* Header */}
-              <div className="flex items-start justify-between gap-3 px-6 py-4 border-b border-slate-100">
+              {/* Context Header */}
+              <div className="flex items-start justify-between gap-4 px-8 py-6 border-b border-border bg-background">
                 <div className="min-w-0 flex-1">
                   {tournamentName && (
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-0.5 truncate">{tournamentName}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 truncate">{tournamentName}</p>
                   )}
-                  <h2 className="text-lg font-bold text-slate-900 leading-tight">{selectedRace.title}</h2>
-                  <p className="text-xs text-slate-400 mt-1">
-                    {selectedRace.className} · {selectedRace.distance} · {selectedRace.surface}
-                  </p>
+                  <h2 className="text-3xl font-bold font-headline text-primary tracking-tight leading-tight">{selectedRace.title}</h2>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2 font-medium tracking-tight">
+                     <span className="px-2 py-0.5 rounded border border-border bg-card">{selectedRace.className}</span>
+                     <span>{selectedRace.distance} • {selectedRace.surface} Phase Run</span>
+                  </div>
                 </div>
                 <button
                   onClick={() => setSelectedRace(null)}
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-700 transition-colors"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-background hover:text-foreground transition-all shadow-sm active:scale-95"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="h-4 w-4" />
                 </button>
               </div>
 
-              {/* Scrollable details */}
-              <div className="p-6 space-y-6">
+              {/* Central Information Stack */}
+              <div className="flex-1 p-8 space-y-10 overflow-y-auto custom-scrollbar">
                 
-                {/* Metrics Table */}
+                {/* Embedded Horse Draw Registry Block */}
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Start List</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">Confirmed Runner Line-up</h3>
                   
                   {horseList && horseList.length > 0 ? (
-                    <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50/50">
+                    <div className="overflow-hidden rounded-xl border border-border bg-background shadow-sm">
                       <table className="w-full text-left">
-                        <thead className="bg-slate-100/50 border-b border-slate-200">
+                        <thead className="bg-muted/30 border-b border-border">
                           <tr>
-                            <th className="px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest text-slate-400 w-16 text-center">#</th>
-                            <th className="px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest text-slate-400">Horse</th>
-                            <th className="px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest text-slate-400">Jockey</th>
-                            <th className="px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest text-slate-400">Trainer</th>
+                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground w-20 text-center">Cloth #</th>
+                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nominee Registration</th>
+                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Active Jockey</th>
+                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden md:table-cell">Reg Trainer</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 text-xs bg-white">
-                          {horseList.slice(selectedRace.id % 2, (selectedRace.id % 2) + 5).map((horse, idx) => (
-                            <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                              <td className="px-4 py-3 text-center">
-                                <span className="flex h-5 w-5 items-center justify-center rounded bg-slate-100 text-[10px] font-bold text-slate-600 mx-auto">{idx + 1}</span>
+                        <tbody className="divide-y divide-border text-sm bg-card">
+                          {horseList.slice(selectedRace.id % 2, (selectedRace.id % 2) + 7).map((horse, idx) => (
+                            <tr key={idx} className="hover:bg-primary/5 transition-colors cursor-default">
+                              <td className="px-6 py-4.5 text-center">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-md border border-border bg-background shadow-sm text-xs font-black text-foreground mx-auto">{idx + 1}</span>
                               </td>
-                              <td className="px-4 py-3 font-bold text-emerald-900">{horse.name}</td>
-                              <td className="px-4 py-3 text-slate-600">{horse.jockey}</td>
-                              <td className="px-4 py-3 text-slate-500">{horse.owner}</td>
+                              <td className="px-6 py-4.5 font-bold font-headline text-primary text-base leading-snug">{horse.name}</td>
+                              <td className="px-6 py-4.5 font-medium text-foreground">{horse.jockey}</td>
+                              <td className="px-6 py-4.5 text-muted-foreground hidden md:table-cell">{horse.owner}</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
                   ) : (
-                    <div className="rounded-xl border border-dashed border-slate-200 py-8 text-center text-xs text-slate-400 font-medium">
-                      No draw data available
+                    <div className="rounded-2xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground font-medium bg-background">
+                      No verified roster loaded. Final draws unlisted.
                     </div>
                   )}
                 </div>
 
-                {/* Officials */}
-                <div>
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Officials</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Technical Board Roster Block */}
+                <div className="border-t border-border pt-10">
+                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">Racing Officials Board</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {officials.map((o) => (
-                      <div key={o.initials} className="flex items-center gap-3 rounded-lg border border-slate-100 p-3 bg-slate-50/50">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-slate-100 text-slate-600 text-[10px] font-black border border-slate-200">
+                      <div key={o.initials} className="flex items-center gap-4 rounded-xl border border-border p-4 bg-background">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg shadow-sm bg-card text-primary text-sm font-black border border-border">
                           {o.initials}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-bold text-slate-800 truncate leading-tight">{o.name}</p>
-                          <p className="text-[10px] text-slate-400 truncate leading-tight mt-0.5">{o.title}</p>
+                          <p className="text-sm font-black font-headline text-foreground truncate leading-tight">{o.name}</p>
+                          <p className="text-xs font-medium text-muted-foreground truncate leading-tight mt-1">{o.title}</p>
                         </div>
                       </div>
                     ))}

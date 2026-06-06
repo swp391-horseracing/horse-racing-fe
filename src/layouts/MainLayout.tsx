@@ -45,10 +45,8 @@ export default function MainLayout() {
 
   return (
     <div className="flex flex-col h-screen w-screen bg-gray-200 pb-2 px-2 pt-4 overflow-hidden">
-      
       {/* Navigation Header */}
       <div className="flex w-full items-center h-12 bg-white mb-4 gap-2 px-2 rounded-sm shadow-sm overflow-x-auto flex-shrink-0">
-        
         {/* Logo */}
         <div className="flex justify-center items-center h-8 shrink-0">
           <Button
