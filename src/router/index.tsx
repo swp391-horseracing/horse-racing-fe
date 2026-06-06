@@ -10,6 +10,7 @@ import DashboardPage from "../pages/DashboardPage.tsx";
 import CalendarPage from "../pages/CalendarPage.tsx";
 import HorsePage from "../pages/HorsePage.tsx";
 import TournamentsPage from "../pages/TournamentsPage.tsx";
+import RacesPage from "../pages/RacesPage.tsx"; // Corrected path to match other pages
 import JockeyPage from "../pages/JockeyPage.tsx";
 import OwnerPage from "../pages/OwnerPage.tsx";
 import AdminPage from "../pages/AdminPage.tsx";
@@ -63,6 +64,17 @@ export const router = createBrowserRouter([
         path: ROUTES.LEADERBOARD,
         element: <LeaderBoardPage />,
       },
+
+      // ADDED RACES ROUTES HERE:
+      {
+        path: ROUTES.RACES,
+        element: <RacesPage />,
+      },
+      {
+        path: ROUTES.RACE_DETAIL,
+        element: <RacesPage />,
+      },
+
       {
         path: ROUTES.JOCKEY_DASHBOARD,
         element: <JockeyPage />,
