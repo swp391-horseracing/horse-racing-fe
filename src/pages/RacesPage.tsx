@@ -290,14 +290,18 @@ export default function RacesPage() {
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
   const [search, setSearch] = useState("");
-  
+
   // Use lazy initialization to avoid calling setState in an effect
-  const [selectedRace, setSelectedRace] = useState<Race | null>(
-    () => (routeState?.raceId ? allRaces.find((r) => r.id === routeState.raceId) ?? null : null)
+  const [selectedRace, setSelectedRace] = useState<Race | null>(() =>
+    routeState?.raceId
+      ? (allRaces.find((r) => r.id === routeState.raceId) ?? null)
+      : null
   );
-  
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    () => (routeState?.date ? parseLocalDate(routeState.date) : parseLocalDate("2026-06-18"))
+
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() =>
+    routeState?.date
+      ? parseLocalDate(routeState.date)
+      : parseLocalDate("2026-06-18")
   );
 
   const tournamentName = useMemo(() => {
