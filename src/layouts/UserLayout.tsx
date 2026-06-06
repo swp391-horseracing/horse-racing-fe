@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   Calendar,
   Mail,
-  ChevronRight,
   TrendingUp,
   Activity,
   UserCheck,
@@ -22,6 +21,14 @@ import {
   SidebarProvider,
 } from "../components/ui/sidebar";
 import { TooltipProvider } from "../components/ui/tooltip";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "../components/ui/breadcrumb";
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
 import { useInvitations } from "../hooks/useInvitations.ts";
@@ -172,10 +179,6 @@ export default function UserLayout({
 
   return (
     <TooltipProvider>
-      {/* 
-        CRITICAL FIX: !min-h-0 !h-full overrides shadcn's default min-h-svh.
-        This prevents the sidebar wrapper from pushing 70px below the screen.
-      */}
       <SidebarProvider className="!min-h-0 !h-full w-full overflow-hidden flex">
         <style
           dangerouslySetInnerHTML={{
@@ -201,7 +204,6 @@ export default function UserLayout({
               <SidebarMenu className="space-y-1.5 px-2">
                 {currentNav.map((item) => {
                   const IconComponent = item.icon;
-                  // Exact match fixes the highlight bug
                   const isActive = activePath === item.key;
 
                   return (
@@ -234,25 +236,25 @@ export default function UserLayout({
 
         {/* Main content viewport */}
         <main className="flex-1 flex flex-col min-w-0 bg-[#F4F6F5] h-full overflow-hidden">
+          {/* Header Bar using Custom Breadcrumb components */}
           <div className="flex h-16 shrink-0 items-center justify-between border-b border-[#064E3B]/10 px-6 bg-white shadow-sm z-10">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-              <span className="font-headline text-[#064E3B] text-sm">
-                Elite Turf Registry
-              </span>
-              <span className="text-slate-400">
-                <ChevronRight className="w-3 h-3" />
-              </span>
-              <span className="font-body text-[#1E293B] font-bold">
-                {activeLabel}
-              </span>
-            </div>
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink className="font-headline text-[#064E3B] text-sm hover:text-[#043E2F] transition-colors cursor-pointer">
+                    {currentRole}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="font-body text-[#1E293B] font-bold">
+                    {activeLabel}
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
 
-          {/* 
-            CRITICAL FIX: Absolute inset trick.
-            This completely insulates the children (Pages) from the parent Flex container,
-            ensuring `flex-1 overflow-y-auto` behaves flawlessly on every page.
-          */}
           <div className="flex-1 relative min-h-0">
             <div className="absolute inset-0 flex flex-col overflow-hidden pb-4">
               {children || <Outlet />}
