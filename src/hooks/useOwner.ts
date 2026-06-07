@@ -175,10 +175,11 @@ export function useOwner() {
       throw err;
     }
   };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const registerTournament = async (
     horseId: string,
     tournamentId: number,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     status: any
   ) => {
     try {
