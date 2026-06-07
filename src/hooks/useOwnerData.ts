@@ -89,7 +89,6 @@ export function useOwnerData() {
   const confirmPairing = async (invId: number) => {
     const success = await OwnerService.confirmPairing(invId);
     if (success) {
-      // Reload invitations to cascade status updates (like Superseded) properly
       const i = await OwnerService.getInvitations();
       setInvitations(i);
     }
@@ -159,4 +158,5 @@ export function useOwnerData() {
     cancelInvite,
   };
 }
+
 export type { Horse, Tournament, TournamentRegistration, Jockey, Invitation };

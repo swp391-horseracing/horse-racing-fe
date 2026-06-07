@@ -339,7 +339,7 @@ export default function OwnerPage() {
             <div
               key={t.id}
               className={cn(
-                "p-3 rounded-lg border shadow-lg backdrop-blur-md flex items-center gap-2 pointer-events-auto transform animate-in slide-in-from-top duration-205 text-xs font-semibold",
+                "p-3 rounded-lg border shadow-lg backdrop-blur-md flex items-center gap-2 pointer-events-auto transform animate-in slide-in-from-top duration-200 text-xs font-semibold",
                 t.type === "success" &&
                   "bg-emerald-50 border-emerald-200 text-emerald-955",
                 t.type === "error" &&
@@ -553,7 +553,7 @@ export default function OwnerPage() {
                   <button
                     type="button"
                     onClick={() => setShowRegisterTournament(false)}
-                    className="rounded-md border px-3 py-1.5 text-xs text-slate-550 hover:bg-slate-50"
+                    className="rounded-md border px-3 py-1.5 text-xs text-slate-555 hover:bg-slate-50"
                   >
                     Cancel
                   </button>
@@ -1033,7 +1033,7 @@ function RaceRegister({
           <h2 className="text-xl font-black text-[#064E3B] tracking-tight">
             Race & Tournament Registration
           </h2>
-          <p className="text-xs text-slate-555 mt-1">
+          <p className="text-xs text-slate-505 mt-1">
             Register your active horses for upcoming events and monitor
             application statuses.
           </p>
@@ -1119,7 +1119,7 @@ function RaceRegister({
                   <h3 className="font-black text-[17px] tracking-tight text-[#064E3B] mb-2 leading-tight">
                     {t.name}
                   </h3>
-                  <div className="flex items-center gap-1.5 text-[13px] text-slate-500">
+                  <div className="flex items-center gap-1.5 text-[13px] text-slate-505">
                     <MapPin className="w-3.5 h-3.5 shrink-0" />
                     <span>Ho Chi Minh City, VN</span>
                     <span className="mx-1.5">·</span>
@@ -1131,7 +1131,7 @@ function RaceRegister({
                 {isOpen && (
                   <div className="mb-4">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-[12px] text-slate-500 font-medium">
+                      <span className="text-[12px] text-slate-505 font-medium">
                         {t.currentCount} / {t.maxCapacity} horses registered
                       </span>
                       <span className="text-[12px] font-bold text-emerald-600">
@@ -1171,7 +1171,7 @@ function RaceRegister({
                     },
                   ].map((stat) => (
                     <div key={stat.label}>
-                      <span className="block text-[11px] font-medium text-slate-500 mb-1">
+                      <span className="block text-[11px] font-medium text-slate-505 mb-1">
                         {stat.label}
                       </span>
                       <span className="block text-[15px] font-black text-slate-800">
@@ -1438,7 +1438,7 @@ function JockeyInviteSelector({
   );
 }
 
-// ─── Component 5: HorseScheduleView (Integrated Drop-In) ──────────────────────
+// ─── Component 5: HorseScheduleView ──────────────────────────────────────────
 
 type ScheduleEntry = {
   regId: number;
@@ -1451,9 +1451,8 @@ type ScheduleEntry = {
   dateKey: string;
 };
 
-type DetailTab = "info" | "runners" | "invite";
+type DetailTab = "info" | "runners";
 
-// Helpers
 const parseLocalDate = (dateStr: string) => {
   const [year, month, day] = dateStr.split("-").map(Number);
   return new Date(year, month - 1, day);
@@ -1626,11 +1625,11 @@ function ScheduleDetailPanel({
   const tabs: { key: DetailTab; label: string; icon: React.ReactNode }[] = [
     { key: "info", label: "Race Info", icon: <Flag className="w-3.5 h-3.5" /> },
     { key: "runners", label: "Runner List", icon: <Users className="w-3.5 h-3.5" /> },
-    { key: "invite", label: "Invite Jockey", icon: <UserCheck className="w-3.5 h-3.5" /> },
   ];
 
   return (
     <div className="lg:col-span-8 xl:col-span-8 lg:sticky lg:top-0 overflow-hidden border border-[#064E3B]/10 bg-white rounded-2xl shadow-sm flex flex-col min-h-[480px] animate-in fade-in slide-in-from-right-8 duration-200">
+
       {/* Dark header */}
       <div className="relative overflow-hidden bg-[#01251e] p-6 border-b border-[#064E3B]/10">
         <div className="relative flex items-start justify-between gap-4">
@@ -1680,7 +1679,7 @@ function ScheduleDetailPanel({
             </p>
             <button
               onClick={() => {
-                setActiveTab("invite");
+                onOpenInviteModal(horse.id, tournament.id);
               }}
               className="shrink-0 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-[#D97706] text-white hover:bg-amber-500 transition active:scale-95"
             >
@@ -1711,9 +1710,11 @@ function ScheduleDetailPanel({
 
       {/* Tab content */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {/* TAB: Race Info */}
+
+        {/* ── TAB: Race Info ── */}
         {activeTab === "info" && (
           <>
+            {/* Assignment block */}
             <div>
               <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3">
                 Your Entry
@@ -1751,6 +1752,7 @@ function ScheduleDetailPanel({
               </div>
             </div>
 
+            {/* Race conditions */}
             <div>
               <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3">
                 Event Details
@@ -1794,6 +1796,7 @@ function ScheduleDetailPanel({
               </div>
             </div>
 
+            {/* Sent invitations summary */}
             {invitations.length > 0 && (
               <div>
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3">
@@ -1831,7 +1834,7 @@ function ScheduleDetailPanel({
           </>
         )}
 
-        {/* TAB: Runner List */}
+        {/* ── TAB: Runner List ── */}
         {activeTab === "runners" && (
           <div>
             <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3">
@@ -1939,7 +1942,9 @@ function ScheduleDetailPanel({
                   entry.
                 </p>
                 <button
-                  onClick={() => setActiveTab("invite")}
+                  onClick={() => {
+                    onOpenInviteModal(horse.id, tournament.id);
+                  }}
                   className="shrink-0 text-[10px] font-black uppercase px-3 py-1.5 rounded-lg bg-[#064E3B] text-white hover:bg-[#043E2F] transition active:scale-95"
                 >
                   Invite Jockey
@@ -1948,99 +1953,12 @@ function ScheduleDetailPanel({
             )}
           </div>
         )}
-
-        {/* TAB: Invite Jockey */}
-        {activeTab === "invite" && (
-          <div className="space-y-4">
-            {confirmedJockey ? (
-              <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 border border-emerald-200">
-                  <CheckCircle className="w-7 h-7 text-emerald-600" />
-                </div>
-                <h3 className="font-bold font-headline text-[#064E3B] text-lg">
-                  Pairing Confirmed
-                </h3>
-                <p className="text-xs text-slate-555 max-w-xs leading-relaxed">
-                  <strong>{confirmedJockey.name}</strong> has accepted and is
-                  confirmed as your jockey for this race. No further action
-                  needed.
-                </p>
-              </div>
-            ) : (
-              <>
-                <div>
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-1">
-                    Invite a Jockey
-                  </h3>
-                  <p className="text-xs text-slate-500 mb-4">
-                    Select a jockey to send a riding invitation for{" "}
-                    <strong>{horse.name}</strong> at{" "}
-                    <strong>{tournament.name}</strong>.
-                  </p>
-                </div>
-
-                {hasPendingInvite && (
-                  <div className="flex items-center gap-2 rounded-xl bg-indigo-50 border border-indigo-200 px-4 py-2.5 text-xs font-semibold text-indigo-700">
-                    <Clock className="w-3.5 h-3.5 shrink-0" />
-                    An invitation is already pending. You can send additional
-                    invites; the first to accept will be offered confirmation.
-                  </div>
-                )}
-
-                <button
-                  onClick={() => onOpenInviteModal(horse.id, tournament.id)}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#064E3B] text-white py-3.5 text-sm font-bold hover:bg-[#043E2F] shadow-sm transition active:scale-[0.98] duration-200"
-                >
-                  <UserCheck className="w-4 h-4" />
-                  Open Jockey Selection
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-
-                <p className="text-[10px] text-center text-slate-400 font-medium">
-                  Invitations are sent immediately. Jockeys can accept or
-                  decline from their portal.
-                </p>
-
-                {invitations.length > 0 && (
-                  <div className="pt-2 border-t border-slate-100 space-y-2">
-                    <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider block">
-                      Previously Sent
-                    </span>
-                    {invitations.map((inv) => (
-                      <div
-                        key={inv.id}
-                        className="flex items-center justify-between px-4 py-2 bg-[#F4F6F5] rounded-xl border border-slate-100 text-xs"
-                      >
-                        <span className="font-semibold text-slate-700">
-                          Jockey #{inv.jockeyId}
-                        </span>
-                        <span
-                          className={cn(
-                            "text-[8px] font-black uppercase px-2 py-0.5 rounded border",
-                            inv.status === "Accepted" &&
-                              "bg-emerald-50 border-emerald-200 text-emerald-800",
-                            inv.status === "Pending" &&
-                              "bg-amber-50 border-amber-200 text-amber-800",
-                            inv.status === "Declined" &&
-                              "bg-rose-50 border-rose-200 text-rose-800",
-                            inv.status === "Superseded" &&
-                              "bg-slate-100 border-slate-200 text-slate-500"
-                          )}
-                        >
-                          {inv.status}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
 }
+
+// ─── Main HorseScheduleView ───────────────────────────────────────────────────
 
 export function HorseScheduleView({
   horses,
@@ -2064,6 +1982,7 @@ export function HorseScheduleView({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null);
 
+  // ── Build unified schedule entries ──────────────────────────────────────────
   const allEntries = useMemo<ScheduleEntry[]>(() => {
     return registrations
       .filter((r) => r.status !== "Rejected")
@@ -2104,6 +2023,7 @@ export function HorseScheduleView({
       .filter(Boolean) as ScheduleEntry[];
   }, [registrations, horses, tournaments, jockeys, invitations]);
 
+  // ── Stat counts ─────────────────────────────────────────────────────────────
   const counts = useMemo(() => ({
     All: allEntries.length,
     "no-jockey": allEntries.filter((e) => !e.confirmedJockey && !e.hasPendingInvite).length,
@@ -2111,6 +2031,7 @@ export function HorseScheduleView({
     confirmed: allEntries.filter((e) => !!e.confirmedJockey).length,
   }), [allEntries]);
 
+  // ── Filtered + searched entries ─────────────────────────────────────────────
   const filteredEntries = useMemo(() => {
     const lower = search.toLowerCase();
     return allEntries.filter((e) => {
@@ -2129,6 +2050,7 @@ export function HorseScheduleView({
     });
   }, [allEntries, search, statusFilter]);
 
+  // ── Calendar filtered ────────────────────────────────────────────────────────
   const formattedSelectedDate = useMemo(() => {
     if (!selectedDate) return "";
     const yyyy = selectedDate.getFullYear();
@@ -2142,11 +2064,13 @@ export function HorseScheduleView({
     return filteredEntries.filter((e) => e.dateKey === formattedSelectedDate);
   }, [filteredEntries, formattedSelectedDate, selectedDate]);
 
+  // ── Race days for calendar highlights ───────────────────────────────────────
   const raceDays = useMemo(
     () => allEntries.map((e) => parseLocalDate(e.dateKey)),
     [allEntries]
   );
 
+  // ── Selection ────────────────────────────────────────────────────────────────
   const selectedEntry = useMemo(
     () => allEntries.find((e) => e.regId === selectedEntryId) ?? null,
     [allEntries, selectedEntryId]
@@ -2163,6 +2087,7 @@ export function HorseScheduleView({
 
   return (
     <div className="flex-1 overflow-y-auto p-6 max-w-7xl w-full mx-auto font-body h-full custom-scrollbar bg-[#F4F6F5]">
+
       {/* Header */}
       <div className="flex-shrink-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -2232,6 +2157,7 @@ export function HorseScheduleView({
 
       {/* Main grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pb-6">
+
         {/* Left: Calendar + List */}
         <div
           className={cn(
@@ -2277,7 +2203,7 @@ export function HorseScheduleView({
                 {selectedDate && (
                   <button
                     onClick={() => setSelectedDate(undefined)}
-                    className="ml-auto text-[9px] text-slate-400 hover:text-slate-650 font-bold"
+                    className="ml-auto text-[9px] text-slate-400 hover:text-slate-600 font-bold"
                   >
                     Clear
                   </button>

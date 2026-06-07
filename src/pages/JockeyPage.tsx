@@ -25,6 +25,8 @@ import {
   Compass,
   CalendarDays,
   X,
+  Flag,
+  Users,
 } from "lucide-react";
 import { Calendar as CalendarUI } from "../components/ui/calendar";
 
@@ -235,6 +237,9 @@ export default function JockeyPage() {
   const [active, setActive] = useState<string>(ROUTES.JOCKEY_INVITATIONS);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
+  // Interactive local states for schedules
+  const [rides, setRides] = useState<MyRide[]>(myRidesMock);
+
   // Shared hooks data
   const { horseList } = useHorseList();
   const { invitations, updateInvitationStatus } = useInvitations();
@@ -250,7 +255,7 @@ export default function JockeyPage() {
     }, 4000);
   };
 
-  // Actions handlers
+  // Actions handlers for Inbox Offers
   const handleAcceptInvitation = (id: number) => {
     const target = invitations.find((inv) => inv.id === id);
     updateInvitationStatus(id, "Accepted");
@@ -269,6 +274,29 @@ export default function JockeyPage() {
     );
   };
 
+  // Actions handlers for Schedule tab
+  const handleAcceptRide = (id: string) => {
+    setRides((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, entryStatus: "accepted" as const } : r))
+    );
+    const target = rides.find((r) => r.id === id);
+    addToast(
+      `Response recorded! Tentatively registered to ride ${target?.ride}. Awaiting final Owner confirmation.`,
+      "success"
+    );
+  };
+
+  const handleDeclineRide = (id: string) => {
+    setRides((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, entryStatus: "declined" as const } : r))
+    );
+    const target = rides.find((r) => r.id === id);
+    addToast(
+      `You declined the invitation to ride ${target?.ride}.`,
+      "info"
+    );
+  };
+
   const renderContent = () => {
     switch (active) {
       case ROUTES.JOCKEY_DASHBOARD:
@@ -280,7 +308,13 @@ export default function JockeyPage() {
           />
         );
       case ROUTES.JOCKEY_SCHEDULE:
-        return <RidingSchedule />;
+        return (
+          <RidingSchedule
+            rides={rides}
+            onAcceptRide={handleAcceptRide}
+            onDeclineRide={handleDeclineRide}
+          />
+        );
       case ROUTES.JOCKEY_INVITATIONS:
         return (
           <InvitationsView
@@ -444,7 +478,7 @@ function DashboardOverview({
 
       {/* Performance Graphs / Charts Mock and Leaderboard */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Visual Chart - pure CSS & SVG representation of Win Rate per month */}
+        {/* Visual Chart - win percentage per month */}
         <div className="lg:col-span-2 bg-white border border-[#064E3B]/10 rounded-2xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -663,25 +697,35 @@ function DashboardOverview({
 
 // ─── Component 2: RidingSchedule ───────────────────────────────────────────────
 
-function RidingSchedule() {
+interface RidingScheduleProps {
+  rides: MyRide[];
+  onAcceptRide: (id: string) => void;
+  onDeclineRide: (id: string) => void;
+}
+
+function RidingSchedule({
+  rides,
+  onAcceptRide,
+  onDeclineRide,
+}: RidingScheduleProps) {
   const [statusFilter, setStatusFilter] = useState<"All" | ComputedRideStatus>("All");
   const [search, setSearch] = useState("");
   const [selectedRide, setSelectedRide] = useState<MyRide | null>(null);
 
-  // Set default selected date to undefined so it shows ALL races initially
+  // Default selected date is undefined so it shows ALL races initially
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
   const counts = useMemo(() => ({
-    All: myRidesMock.length,
-    pending: myRidesMock.filter((r) => getComputedRideStatus(r) === "pending").length,
-    accepted: myRidesMock.filter((r) => getComputedRideStatus(r) === "accepted").length,
-    declined: myRidesMock.filter((r) => getComputedRideStatus(r) === "declined").length,
-    finished: myRidesMock.filter((r) => getComputedRideStatus(r) === "finished").length,
-  }), []);
+    All: rides.length,
+    pending: rides.filter((r) => getComputedRideStatus(r) === "pending").length,
+    accepted: rides.filter((r) => getComputedRideStatus(r) === "accepted").length,
+    declined: rides.filter((r) => getComputedRideStatus(r) === "declined").length,
+    finished: rides.filter((r) => getComputedRideStatus(r) === "finished").length,
+  }), [rides]);
 
   const filteredRides = useMemo(() => {
     const lower = search.toLowerCase();
-    return myRidesMock.filter((r) => {
+    return rides.filter((r) => {
       const matchStatus = statusFilter === "All" || getComputedRideStatus(r) === statusFilter;
       const matchSearch =
         !lower ||
@@ -690,7 +734,7 @@ function RidingSchedule() {
         r.venue.toLowerCase().includes(lower);
       return matchStatus && matchSearch;
     }).sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
-  }, [statusFilter, search]);
+  }, [rides, statusFilter, search]);
 
   const formattedSelectedDate = useMemo(() => {
     if (!selectedDate) return "";
@@ -701,7 +745,6 @@ function RidingSchedule() {
   }, [selectedDate]);
 
   const calendarFilteredRides = useMemo(() => {
-    // If no date is selected, show ALL rides that match the status filter
     if (!selectedDate) return filteredRides;
 
     return filteredRides.filter((r) => {
@@ -714,22 +757,28 @@ function RidingSchedule() {
   }, [filteredRides, formattedSelectedDate, selectedDate]);
 
   const raceDays = useMemo(() => {
-    return myRidesMock.map((r) => {
+    return rides.map((r) => {
       const d = new Date(r.scheduledAt);
       return new Date(d.getFullYear(), d.getMonth(), d.getDate());
     });
-  }, []);
+  }, [rides]);
 
   const handleSelectRide = useCallback((ride: MyRide) => {
-    setSelectedRide((prev) => (prev?.id === ride.id ? null : ride));
+    setSelectedRide((prev) => {
+      if (prev?.id === ride.id) return null;
+      return ride;
+    });
   }, []);
 
-  const panelOpen = selectedRide !== null;
+  // Update selected ride parameters dynamically when rides array changes
+  const activeSelectedRide = useMemo(() => {
+    if (!selectedRide) return null;
+    return rides.find((r) => r.id === selectedRide.id) ?? null;
+  }, [rides, selectedRide]);
 
-  // Kept spacious scaling consistently to equal the race list box width exactly
+  const panelOpen = activeSelectedRide !== null;
+
   const calendarScaleClasses = "p-6 w-full [&_.rdp-day]:!h-[46px] [&_.rdp-day]:!w-[46px] [&_.rdp-head_th]:!w-[46px] [&_.rdp-day]:!text-sm [&_.rdp-head_th]:!text-xs [&_.rdp-caption_label]:!text-base";
-
-  const computedRideStatus = selectedRide ? getComputedRideStatus(selectedRide) : "pending";
 
   return (
     <div className="flex-1 overflow-y-auto p-6 max-w-7xl w-full mx-auto font-body h-full custom-scrollbar bg-[#F4F6F5]">
@@ -799,7 +848,7 @@ function RidingSchedule() {
         {/* Left Area: Calendar + List */}
         <div className={`${panelOpen ? "lg:col-span-4 xl:col-span-4" : "lg:col-span-12"} grid grid-cols-1 ${panelOpen ? '' : 'lg:grid-cols-12'} gap-6 items-start`}>
           
-          {/* Calendar Box - Custom stretched to align width accurately */}
+          {/* Calendar Box */}
           <div className={`${panelOpen ? "" : "lg:col-span-5"} flex justify-center w-full`}>
             <div className={`rounded-2xl border border-[#064E3B]/10 bg-white shadow-sm flex items-center justify-center transition-all w-full ${calendarScaleClasses}`}>
               <CalendarUI
@@ -833,7 +882,7 @@ function RidingSchedule() {
                     <RideRow
                       key={ride.id}
                       ride={ride}
-                      selected={selectedRide?.id === ride.id}
+                      selected={activeSelectedRide?.id === ride.id}
                       onClick={() => handleSelectRide(ride)}
                     />
                   ))
@@ -848,185 +897,355 @@ function RidingSchedule() {
         </div>
 
         {/* Right Detail Panel */}
-        {panelOpen && selectedRide && (
-          <div className="lg:col-span-8 xl:col-span-8 lg:sticky lg:top-0 overflow-hidden border border-[#064E3B]/10 bg-white rounded-2xl shadow-sm flex flex-col min-h-[420px] animate-in fade-in slide-in-from-right-8 duration-200">
-             
-             {/* Dynamic Header Frame - High contrast deep black-emerald */}
-             <div className="relative overflow-hidden bg-[#01251e] p-6 shadow-md border-b border-[#064E3B]/10">
-                <div className="absolute right-0 bottom-0 translate-y-4 translate-x-4 opacity-5 text-white">
-                  <Icons.Horse />
-                </div>
-                
-                <div className="relative flex items-start justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <h2 className="text-2xl font-black font-headline tracking-tight leading-tight !text-white">
-                      {selectedRide.name}
-                    </h2>
-                    
-                    {/* Stark High Contrast Capsule Pills with absolute white text parameters */}
-                    <div className="flex flex-wrap items-center gap-2 mt-4 font-semibold text-xs">
-                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 !text-white px-3 py-1.5 font-bold">
-                        <Icons.Calendar />
-                        {new Date(selectedRide.scheduledAt).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} · {new Date(selectedRide.scheduledAt).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-[#EAB308]/45 !text-[#EAB308] px-3 py-1.5 font-bold">
-                        <Icons.Clock />
-                        {selectedRide.status === "completed" ? "Finished" : "Starts in 40 min"}
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 !text-white px-3 py-1.5 font-bold">
-                        <Icons.Compass />
-                        {selectedRide.distanceMeters}m · {selectedRide.trackCondition}
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 !text-white px-3 py-1.5 font-bold">
-                        <Icons.Award />
-                        {selectedRide.roundName}
-                      </span>
-                    </div>
-                  </div>
+        {panelOpen && activeSelectedRide && (
+          <RidingScheduleDetailPanel
+            ride={activeSelectedRide}
+            onClose={() => setSelectedRide(null)}
+            onAccept={onAcceptRide}
+            onDecline={onDeclineRide}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
 
-                  <div className="flex items-center gap-3 shrink-0">
-                    <RideStatusBadge status={getComputedRideStatus(selectedRide)} onDark />
+// ─── Component 2.5: RidingScheduleDetailPanel (Tabbed View) ──────────────────
+
+type RideDetailTab = "info" | "runners";
+
+const buildMockRunnersForJockey = (selectedRide: MyRide) => {
+  const sampleRunners = [
+    { cloth: 1, horseName: "Northern Star", jockeyName: "D. Patel" },
+    { cloth: 2, horseName: "Silver Drift", jockeyName: "M. Larsson" },
+    { cloth: 3, horseName: "Iron Cascade", jockeyName: "C. Nguyen" },
+    { cloth: 4, horseName: "Desert Wind", jockeyName: "R. Santos" },
+    { cloth: 5, horseName: "Dark Current", jockeyName: "T. Evans" },
+    { cloth: 6, horseName: "Golden Shore", jockeyName: "A. Kim" },
+  ];
+
+  const ours = {
+    cloth: selectedRide.laneNumber,
+    horseName: selectedRide.ride,
+    jockeyName: "You (Pro Jockey)",
+  };
+
+  const filteredSample = sampleRunners.filter((r) => r.cloth !== selectedRide.laneNumber);
+  return [...filteredSample, ours].sort((a, b) => a.cloth - b.cloth);
+};
+
+function RidingScheduleDetailPanel({
+  ride,
+  onClose,
+  onAccept,
+  onDecline,
+}: {
+  ride: MyRide;
+  onClose: () => void;
+  onAccept: (id: string) => void;
+  onDecline: (id: string) => void;
+}) {
+  const [activeTab, setActiveTab] = useState<RideDetailTab>("info");
+  const computedRideStatus = getComputedRideStatus(ride);
+  const runners = buildMockRunnersForJockey(ride);
+
+  const tabs: { key: RideDetailTab; label: string; icon: React.ReactNode }[] = [
+    { key: "info", label: "Race Info", icon: <Flag className="w-3.5 h-3.5" /> },
+    { key: "runners", label: "Runner Line-up", icon: <Users className="w-3.5 h-3.5" /> },
+  ];
+
+  return (
+    <div className="lg:col-span-8 xl:col-span-8 lg:sticky lg:top-0 overflow-hidden border border-[#064E3B]/10 bg-white rounded-2xl shadow-sm flex flex-col min-h-[480px] animate-in fade-in slide-in-from-right-8 duration-200">
+      
+      {/* Header Frame */}
+      <div className="relative overflow-hidden bg-[#01251e] p-6 shadow-md border-b border-[#064E3B]/10">
+        <div className="absolute right-0 bottom-0 translate-y-4 translate-x-4 opacity-5 text-white">
+          <Icons.Horse />
+        </div>
+        
+        <div className="relative flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-2xl font-black font-headline tracking-tight leading-tight !text-white">
+              {ride.name}
+            </h2>
+            
+            <div className="flex flex-wrap items-center gap-2 mt-4 font-semibold text-xs">
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 !text-white px-3 py-1.5 font-bold">
+                <CalendarDays className="w-3.5 h-3.5" />
+                {new Date(ride.scheduledAt).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} · {new Date(ride.scheduledAt).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' })}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-[#EAB308]/45 !text-[#EAB308] px-3 py-1.5 font-bold">
+                <Clock className="w-3.5 h-3.5" />
+                {ride.status === "completed" ? "Finished" : "Starts in 40 min"}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 !text-white px-3 py-1.5 font-bold">
+                <Compass className="w-3.5 h-3.5" />
+                {ride.distanceMeters}m · {ride.trackCondition}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 !text-white px-3 py-1.5 font-bold">
+                <Award className="w-3.5 h-3.5" />
+                {ride.roundName}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <RideStatusBadge status={getComputedRideStatus(ride)} onDark />
+            <button
+              onClick={onClose}
+              className="flex h-7 w-7 items-center justify-center rounded-xl bg-white/20 hover:bg-white/30 !text-white transition-all shadow-sm active:scale-95 border border-white/30"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Tab bar */}
+      <div className="flex border-b border-slate-100 bg-[#F4F6F5]/40">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-bold transition-all border-b-2",
+              activeTab === tab.key
+                ? "border-[#064E3B] text-[#064E3B] bg-white"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-white/50"
+            )}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        
+        {/* ── TAB: Race Info ── */}
+        {activeTab === "info" && (
+          <>
+            {/* Finished Race Panel */}
+            {computedRideStatus === "finished" && ride.ranking && (
+              <div className="bg-gradient-to-r from-[#EAB308]/20 to-[#EAB308]/5 border border-[#EAB308]/40 rounded-xl p-5 flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#EAB308] text-[#064E3B] font-black border border-[#EAB308]/20 shadow-md">
+                    <Trophy className="w-6 h-6 text-[#064E3B]" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#D97706] block">Race Result</span>
+                    <span className="text-lg font-black font-headline text-[#064E3B] block">
+                      Official Finish: {formatOrdinal(ride.ranking)} Place
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold text-[#064E3B] bg-emerald-100/80 px-2.5 py-1 rounded-full border border-emerald-200 uppercase tracking-wide font-label">
+                  Verified
+                </span>
+              </div>
+            )}
+
+            {/* Assignment Details Block */}
+            <div>
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3 block">
+                Your Assignment
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Horse</span>
+                  <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
+                    {ride.ride}
+                  </span>
+                  <span className="text-xs text-slate-500 mt-0.5 block">Grey · 5yo · Male</span>
+                </div>
+
+                <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Lane Draw</span>
+                  <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
+                    Lane {ride.laneNumber}
+                  </span>
+                  <span className="text-xs text-slate-500 mt-0.5 block">of {ride.laneCount} runners</span>
+                </div>
+
+                <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Owner</span>
+                  <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
+                    {ride.horseOwner}
+                  </span>
+                  <span className="text-xs text-slate-500 mt-0.5 block">Juddmonte Farms</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Race Conditions Sheet */}
+            <div>
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3 block">
+                Race Conditions
+              </h3>
+              <div className="bg-white border border-[#064E3B]/10 rounded-xl overflow-hidden shadow-sm">
+                <div className="divide-y divide-slate-100 text-sm">
+                  <div className="flex items-center justify-between px-5 py-3">
+                    <span className="text-slate-555 flex items-center gap-2 font-medium">
+                      <Compass className="w-4 h-4 text-slate-400" />
+                      Distance
+                    </span>
+                    <span className="font-bold text-slate-800">
+                      {ride.distanceMeters}m ({(ride.distanceMeters / 1609).toFixed(1)} miles)
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between px-5 py-3">
+                    <span className="text-slate-555 flex items-center gap-2 font-medium">
+                      <Activity className="w-4 h-4 text-slate-400" />
+                      Going
+                    </span>
+                    <span className="font-bold text-slate-800 capitalize">
+                      {ride.trackCondition === "good" ? "Good to Firm" : ride.trackCondition}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between px-5 py-3">
+                    <span className="text-slate-555 flex items-center gap-2 font-medium">
+                      <Users className="w-4 h-4 text-slate-400" />
+                      Field Size
+                    </span>
+                    <span className="font-bold text-slate-800">
+                      {ride.laneCount} runners
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between px-5 py-3">
+                    <span className="text-slate-555 flex items-center gap-2 font-medium">
+                      <Trophy className="w-4 h-4 text-slate-400" />
+                      Prize Fund
+                    </span>
+                    <span className="font-bold text-slate-800">
+                      $175,000
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Frame */}
+            {computedRideStatus === "pending" && (
+              <div className="bg-white border-2 border-[#D97706]/20 rounded-xl p-5 shadow-md">
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-[#D97706] mb-3 block">
+                  Invitation Status
+                </h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <span className="text-sm font-bold text-slate-800 block">Invited by {ride.horseOwner}</span>
+                    <span className="text-xs text-slate-555 mt-0.5 block">Received recently · Pending response</span>
+                  </div>
+                  <div className="flex gap-2.5 shrink-0">
                     <button
-                      onClick={() => setSelectedRide(null)}
-                      className="flex h-7 w-7 items-center justify-center rounded-xl bg-white/20 hover:bg-white/30 !text-white transition-all shadow-sm active:scale-95 border border-white/30"
+                      onClick={() => onAccept(ride.id)}
+                      className="rounded-xl bg-[#064E3B] text-white hover:bg-[#043E2F] px-5 py-2.5 text-xs font-black shadow-sm transition active:scale-95 duration-200"
                     >
-                      <X className="h-4 w-4" />
+                      ✓ Accept Invitation
+                    </button>
+                    <button
+                      onClick={() => onDecline(ride.id)}
+                      className="rounded-xl border border-slate-200 bg-white text-slate-655 hover:bg-slate-50 px-5 py-2.5 text-xs font-black transition active:scale-95 duration-200"
+                    >
+                      Decline
                     </button>
                   </div>
                 </div>
               </div>
+            )}
+          </>
+        )}
 
-              {/* Central Details Stream */}
-              <div className="flex-1 p-6 space-y-8 overflow-y-auto custom-scrollbar">
-                
-                {/* Finished Race Official Position Panel */}
-                {computedRideStatus === "finished" && selectedRide.ranking && (
-                  <div className="bg-gradient-to-r from-[#EAB308]/20 to-[#EAB308]/5 border border-[#EAB308]/40 rounded-xl p-5 flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#EAB308] text-[#064E3B] font-black border border-[#EAB308]/20 shadow-md">
-                        <Trophy className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <span className="text-[10px] font-black uppercase tracking-wider text-[#D97706] block">Race Result</span>
-                        <span className="text-lg font-black font-headline text-[#064E3B] block">
-                          Official Finish: {formatOrdinal(selectedRide.ranking)} Place
-                        </span>
-                      </div>
-                    </div>
-                    <span className="text-[10px] font-bold text-[#064E3B] bg-emerald-100/80 px-2.5 py-1 rounded-full border border-emerald-200 uppercase tracking-wide font-label">
-                      Verified
-                    </span>
-                  </div>
-                )}
-
-                {/* Assignment Details Block */}
-                <div>
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3 block">
-                    Your Assignment
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    
-                    {/* Horse Parameter */}
-                    <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Horse</span>
-                      <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
-                        {selectedRide.ride}
-                      </span>
-                      <span className="text-xs text-slate-500 mt-0.5 block">Grey · 5yo · Male</span>
-                    </div>
-
-                    {/* Lane Draw */}
-                    <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Lane Draw</span>
-                      <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
-                        Lane {selectedRide.laneNumber}
-                      </span>
-                      <span className="text-xs text-slate-500 mt-0.5 block">of {selectedRide.laneCount} runners</span>
-                    </div>
-
-                    {/* Owner Block */}
-                    <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Owner</span>
-                      <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
-                        {selectedRide.horseOwner}
-                      </span>
-                      <span className="text-xs text-slate-500 mt-0.5 block">Juddmonte Farms</span>
-                    </div>
-
-                  </div>
-                </div>
-
-                {/* Race Conditions Sheet */}
-                <div>
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3 block">
-                    Race Conditions
-                  </h3>
-                  <div className="bg-white border border-[#064E3B]/10 rounded-xl overflow-hidden shadow-sm">
-                    <div className="divide-y divide-slate-100 text-sm">
-                      <div className="flex items-center justify-between px-5 py-3">
-                        <span className="text-slate-555 flex items-center gap-2 font-medium">
-                          <Icons.Compass />
-                          Distance
-                        </span>
-                        <span className="font-bold text-slate-800">
-                          {selectedRide.distanceMeters}m ({(selectedRide.distanceMeters / 1609).toFixed(1)} miles)
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between px-5 py-3">
-                        <span className="text-slate-555 flex items-center gap-2 font-medium">
-                          <Icons.Activity />
-                          Going
-                        </span>
-                        <span className="font-bold text-slate-800 capitalize">
-                          {selectedRide.trackCondition === "good" ? "Good to Firm" : selectedRide.trackCondition}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between px-5 py-3">
-                        <span className="text-slate-555 flex items-center gap-2 font-medium">
-                          <Icons.CheckCircle />
-                          Field Size
-                        </span>
-                        <span className="font-bold text-slate-800">
-                          {selectedRide.laneCount} runners
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between px-5 py-3">
-                        <span className="text-slate-555 flex items-center gap-2 font-medium">
-                          <Icons.Trophy />
-                          Prize Fund
-                        </span>
-                        <span className="font-bold text-slate-800">
-                          $175,000
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Frame for pending invitation decisions */}
-                {getComputedRideStatus(selectedRide) === "pending" && (
-                  <div className="bg-white border-2 border-[#D97706]/20 rounded-xl p-5 shadow-md">
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-[#D97706] mb-3 block">
-                      Invitation Status
-                    </h3>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div>
-                        <span className="text-sm font-bold text-slate-800 block">Invited by {selectedRide.horseOwner}</span>
-                        <span className="text-xs text-slate-555 mt-0.5 block">Received recently · Pending response</span>
-                      </div>
-                      <div className="flex gap-2.5 shrink-0">
-                        <button className="rounded-xl bg-[#064E3B] text-white hover:bg-[#043E2F] px-5 py-2.5 text-xs font-black shadow-sm transition active:scale-95 duration-200">
-                          ✓ Accept Invitation
-                        </button>
-                        <button className="rounded-xl border border-slate-200 bg-white text-slate-655 hover:bg-slate-50 px-5 py-2.5 text-xs font-black transition active:scale-95 duration-200">
-                          Decline
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-              </div>
+        {/* ── TAB: Runner Line-up ── */}
+        {activeTab === "runners" && (
+          <div>
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3">
+              Confirmed Runner Line-up
+            </h3>
+            <div className="overflow-hidden rounded-xl border border-[#064E3B]/10 bg-white shadow-sm">
+              <table className="w-full text-left">
+                <thead className="bg-[#F4F6F5] border-b border-slate-100">
+                  <tr>
+                    <th className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">
+                      Gate
+                    </th>
+                    <th className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-slate-400">
+                      Horse
+                    </th>
+                    <th className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-slate-400">
+                      Jockey
+                    </th>
+                    <th className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-slate-400 text-right">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-sm">
+                  {runners.map((runner, idx) => {
+                    const isOurs = runner.horseName === ride.ride;
+                    return (
+                      <tr
+                        key={idx}
+                        className={cn(
+                          "transition-colors",
+                          isOurs ? "bg-[#064E3B]/5 font-semibold" : "hover:bg-slate-50/50"
+                        )}
+                      >
+                        <td className="px-5 py-3.5 text-center">
+                          <span className={cn(
+                            "flex h-6 w-6 items-center justify-center rounded-md border text-xs font-black mx-auto shadow-sm",
+                            isOurs 
+                              ? "bg-[#064E3B] text-white border-[#064E3B]"
+                              : "bg-white text-slate-700 border-slate-200"
+                          )}>
+                            {runner.cloth}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className={cn(
+                            "font-bold font-headline text-base leading-snug",
+                            isOurs ? "text-[#064E3B]" : "text-slate-800"
+                          )}>
+                            {runner.horseName}
+                          </span>
+                          {isOurs && (
+                            <span className="ml-2 text-[9px] font-black uppercase bg-[#064E3B]/10 text-[#064E3B] px-1.5 py-0.5 rounded">
+                              Your Ride
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-5 py-3.5 text-slate-600 font-medium">
+                          {isOurs ? (
+                            <span className="text-[#064E3B] font-bold">
+                              {computedRideStatus === "declined" ? "— Refused —" : "You"}
+                            </span>
+                          ) : (
+                            runner.jockeyName
+                          )}
+                        </td>
+                        <td className="px-5 py-3.5 text-right">
+                          {isOurs ? (
+                            <span className={cn(
+                              "text-[9px] font-black uppercase px-2 py-0.5 rounded border",
+                              computedRideStatus === "accepted" && "bg-emerald-50 border-emerald-200 text-emerald-700",
+                              computedRideStatus === "pending" && "bg-amber-50 border-amber-200 text-amber-700",
+                              computedRideStatus === "declined" && "bg-rose-50 border-rose-200 text-rose-700",
+                              computedRideStatus === "finished" && "bg-slate-50 border-slate-200 text-slate-700"
+                            )}>
+                              {computedRideStatus}
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded border bg-emerald-50 border-emerald-200 text-emerald-700">
+                              Confirmed
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
@@ -1245,7 +1464,7 @@ function InvitationsView({
                   "rounded-xl px-3 py-2 text-xs font-bold whitespace-nowrap transition-colors",
                   filter === f
                     ? "bg-[#064E3B] text-white shadow-md"
-                    : "bg-[#F4F6F5] text-slate-550 hover:bg-slate-100 hover:text-slate-800"
+                    : "bg-[#F4F6F5] text-slate-555 hover:bg-slate-100 hover:text-slate-800"
                 )}
               >
                 {f}

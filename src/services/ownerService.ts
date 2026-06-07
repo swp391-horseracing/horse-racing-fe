@@ -25,6 +25,7 @@ export interface Tournament {
   maxAge: number;
   maxCapacity: number;
   currentCount: number;
+  startDate?: string; // Support visual schedule mapping (BR-SCHED-01)
 }
 
 export interface TournamentRegistration {
@@ -70,6 +71,7 @@ const mockTournaments: Tournament[] = [
     maxAge: 6,
     maxCapacity: 10,
     currentCount: 2,
+    startDate: "2026-06-12",
   },
   {
     id: 102,
@@ -80,6 +82,7 @@ const mockTournaments: Tournament[] = [
     maxAge: 8,
     maxCapacity: 12,
     currentCount: 5,
+    startDate: "2026-06-15",
   },
   {
     id: 103,
@@ -90,14 +93,40 @@ const mockTournaments: Tournament[] = [
     maxAge: 5,
     maxCapacity: 10,
     currentCount: 10,
+    startDate: "2026-06-20",
+  },
+  {
+    id: 104,
+    name: "Wild West Mustang Sprint",
+    status: "Registration Open",
+    allowedBreed: "Mustang",
+    minAge: 3,
+    maxAge: 8,
+    maxCapacity: 8,
+    currentCount: 3,
+    startDate: "2026-06-25",
   },
 ];
 
 const mockRegistrations: TournamentRegistration[] = [
   {
     id: 501,
-    horseId: 1,
-    tournamentId: 101,
+    horseId: 1, // Thunder Bolt
+    tournamentId: 101, // Spring Derby Classic
+    status: "Approved",
+    registrationTime: new Date(Date.now() - 86400000),
+  },
+  {
+    id: 502,
+    horseId: 2, // Silver Storm
+    tournamentId: 103, // Summer Cup Invitational
+    status: "Approved",
+    registrationTime: new Date(Date.now() - 86400000),
+  },
+  {
+    id: 503,
+    horseId: 3, // Dark Phantom
+    tournamentId: 104, // Wild West Mustang Sprint
     status: "Approved",
     registrationTime: new Date(Date.now() - 86400000),
   },
@@ -145,20 +174,27 @@ const mockJockeys: Jockey[] = [
 const mockInvitations: Invitation[] = [
   {
     id: 1001,
-    horseId: 1,
-    jockeyId: 201,
-    tournamentId: 101,
+    horseId: 1, // Thunder Bolt
+    jockeyId: 201, // Nguyễn Văn A
+    tournamentId: 101, // Spring Derby Classic
     status: "Accepted",
     sentTime: new Date(Date.now() - 3600000),
   },
+  {
+    id: 1002,
+    horseId: 2, // Silver Storm
+    jockeyId: 202, // Nguyễn Văn B
+    tournamentId: 103, // Summer Cup Invitational
+    status: "Pending",
+    sentTime: new Date(Date.now() - 7200000),
+  },
+  // Dark Phantom (Horse ID 3) has no entries in mockInvitations, rendering as "No Jockey"
 ];
 
 export const OwnerService = {
   getHorses: async (): Promise<Horse[]> => {
-    // Utilize the shared HorseService to fetch the master horse list
     const sharedHorses = await HorseService.getHorses();
     return sharedHorses.map((h) => {
-      // Map shared model to Owner-specific validation traits (UC-HO-03)
       const mappedGender = h.gender === "Female" ? "Mare" : "Stallion";
       const birthYear = new Date().getFullYear() - (h.age || 4);
       return {
@@ -167,7 +203,6 @@ export const OwnerService = {
         breed: h.breed,
         dob: `${birthYear}-01-01`,
         gender: mappedGender,
-        // Using explicit types instead of any to satisfy the typescript linter rules safely
         microchipId:
           (h as { microchipId?: string }).microchipId ||
           `985112003485${String(h.id).padStart(3, "0")}`,
@@ -180,7 +215,6 @@ export const OwnerService = {
   },
 
   createHorse: async (horse: Omit<Horse, "id" | "status">): Promise<Horse> => {
-    // Save to shared HorseService
     const sharedHorse = {
       id: String(Date.now()),
       name: horse.name,
@@ -197,7 +231,6 @@ export const OwnerService = {
       associationCode: horse.associationCode,
     };
 
-    // Cast parameter type using unknown to securely meet dependencies without utilizing any
     await HorseService.createHorse(
       sharedHorse as unknown as Parameters<typeof HorseService.createHorse>[0]
     );
@@ -210,7 +243,6 @@ export const OwnerService = {
   },
 
   retireHorse: async (id: number): Promise<boolean> => {
-    // Perform update in shared service
     const sharedHorses = await HorseService.getHorses();
     const target = sharedHorses.find((h) => Number(h.id) === id);
     if (!target) return false;
