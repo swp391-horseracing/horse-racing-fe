@@ -1,4 +1,5 @@
 import api from "../lib/api";
+import type { User } from "../types/user.ts";
 
 export type UpdateProfilePayload = {
   full_name?: string;
@@ -22,7 +23,7 @@ export type UpdateProfileResponse = {
 };
 
 export const UserService = {
-  getUser: async (id: string) => {
+  getUser: async (id: string): Promise<User> => {
     const response = await api.get(`/profiles/${id}`);
     return response.data;
   },

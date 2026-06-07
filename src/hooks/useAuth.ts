@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AuthService } from "../services/authService.ts";
+import { UserService } from "../services/UserService.ts";
 
 declare global {
   interface Window {
@@ -94,5 +95,11 @@ export default function useAuth() {
     }
   };
 
-  return { token, login, logout, register, getToken };
+  const getUserByID = async (id: string) => {
+    const user = await UserService.getUser(id);
+    console.log("full name is here:", user.full_name);
+    return user;
+  };
+
+  return { token, login, logout, register, getToken, getUserByID };
 }

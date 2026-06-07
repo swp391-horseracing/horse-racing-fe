@@ -1,96 +1,42 @@
-import type { Horse } from "../types/horse.ts";
+import api from "../lib/api.ts";
 
-// const MOCK = true;
-
-const mockList: Horse[] = [
-  {
-    id: "1",
-    name: "Thunder Bolt",
-    breed: "Arabian",
-    age: 5,
-    gender: "Male",
-    speed: 92,
-    stamina: 88,
-    owner: "John Smith",
-    jockey: "Michael Lee",
-    status: "Active",
-    performance: 1003,
-  },
-
-  {
-    id: "2",
-    name: "Silver Storm",
-    breed: "Thoroughbred",
-    age: 4,
-    gender: "Female",
-    speed: 89,
-    stamina: 91,
-    owner: "Emma Watson",
-    jockey: "David Kim",
-    status: "Training",
-    performance: 1234,
-  },
-
-  {
-    id: "3",
-    name: "Dark Phantom",
-    breed: "Mustang",
-    age: 6,
-    gender: "Male",
-    speed: 95,
-    stamina: 85,
-    owner: "Robert Brown",
-    jockey: "Chris Evans",
-    status: "Injured",
-    performance: 2000,
-  },
-];
+export interface Horse {
+  id: string;
+  ownerId: string;
+  name: string;
+  breed: string;
+  birthDate: string;
+  weightKg: string;
+  imageUrl: string;
+  healthStatus: string;
+  isRetired: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface HorseListResponse {
+  data: Horse[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
 
 export const HorseService = {
-  getHorses: async (): Promise<Horse[]> => {
-    return mockList;
+  getHorses: async (page = 1, limit = 10): Promise<HorseListResponse> => {
+    const response = await api.get("/horses", {
+      params: {
+        page,
+        limit,
+      },
+    });
+
+    return response.data;
   },
 
-  getHorsesByRanking: async (): Promise<Horse[]> => {
-    const rankings = [...mockList].sort(
-      (a, b) => b.performance - a.performance
-    );
-    return rankings;
-  },
-
-  getHorseById: async (id: string): Promise<Horse | undefined> => {
-    return mockList.find((horse) => horse.id === id);
-  },
-
-  createHorse: async (horse: Horse): Promise<Horse> => {
-    mockList.push(horse);
-    return horse;
-  },
-
-  updateHorse: async (
-    id: string,
-    updatedHorse: Horse
-  ): Promise<Horse | undefined> => {
-    const index = mockList.findIndex((horse) => horse.id === id);
-
-    if (index === -1) {
-      return undefined;
-    }
-
-    mockList[index] = updatedHorse;
-
-    return updatedHorse;
-  },
-
-  deleteHorse: async (id: string): Promise<boolean> => {
-    const index = mockList.findIndex((horse) => horse.id === id);
-
-    if (index === -1) {
-      return false;
-    }
-
-    mockList.splice(index, 1);
-
-    return true;
+  getHorseById: async (id: string): Promise<Horse> => {
+    const response = await api.get(`/horses/${id}`);
+    return response.data.horse;
   },
 };
