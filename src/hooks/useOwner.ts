@@ -82,18 +82,39 @@ export function useOwner() {
   const [jockeys, setJockeys] = useState<Jockey[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+  });
 
   const loadHorses = useCallback(async () => {
     const ownerId = sessionStorage.getItem("userId");
     if (!ownerId) return;
+
     try {
-      const res = await HorseService.getHorsesByOwnerId(ownerId);
+      setLoading(true);
+
+      const res = await HorseService.getHorsesByOwnerId(ownerId, {
+        page: page,
+        limit: 10,
+      });
+
       setHorses(extractArray(res.data).map(mapApiHorse));
-    } catch (err) {
-      console.error("Failed to load horses:", err);
-      setHorses([]);
+      setPagination(res.pagination);
+    } catch (err: unknown) {
+      console.error(err || "Failed to fetch horses");
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [page]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadHorses();
+  }, [loadHorses]);
 
   useEffect(() => {
     const loadAll = async () => {
@@ -229,6 +250,9 @@ export function useOwner() {
   };
 
   return {
+    pagination,
+    page,
+    setPage,
     horses,
     tournaments,
     registrations,

@@ -43,6 +43,9 @@ export default function OwnerPage() {
   const [active, setActive] = useState<string>(ROUTES.OWNER_DASHBOARD);
 
   const {
+    page,
+    pagination,
+    setPage,
     horses,
     tournaments,
     registrations,
@@ -254,6 +257,9 @@ export default function OwnerPage() {
             registrations={registrations}
             invitations={invitations}
             jockeys={jockeys}
+            page={page}
+            pagination={pagination}
+            setPage={setPage}
             setActiveTab={setActive}
           />
         );
@@ -380,6 +386,13 @@ interface DashboardOverviewProps {
   invitations: Invitation[];
   jockeys: Jockey[];
   setActiveTab: (tab: string) => void;
+  page: number;
+  pagination: {
+    page: number;
+    totalPages: number;
+  };
+
+  setPage: React.Dispatch<React.SetStateAction<number>>;
 }
 
 interface HorseManagementProps {
@@ -424,6 +437,9 @@ function DashboardOverview({
   invitations,
   jockeys,
   setActiveTab,
+  page,
+  pagination,
+  setPage,
 }: DashboardOverviewProps) {
   const activeHorsesCount = horses.filter(
     (h: Horse) => h.status === "Active"
@@ -543,6 +559,29 @@ function DashboardOverview({
             ))}
           </div>
         </div>
+        {pagination.totalPages > 1 && (
+          <div className="flex items-center gap-2 pt-3">
+            <button
+              disabled={page <= 1}
+              onClick={() => setPage(page - 1)}
+              className="border rounded-lg px-3 py-1"
+            >
+              Prev
+            </button>
+
+            <span>
+              {pagination.page} / {pagination.totalPages}
+            </span>
+
+            <button
+              disabled={page >= pagination.totalPages}
+              onClick={() => setPage(page + 1)}
+              className="border rounded-lg px-3 py-1"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
