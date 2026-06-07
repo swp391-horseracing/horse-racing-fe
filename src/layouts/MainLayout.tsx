@@ -6,6 +6,7 @@ import React from "react";
 import NotificationTab from "../components/NotificationTab.tsx";
 import useAuth from "../hooks/useAuth.ts";
 import Footer from "../components/Footer.tsx";
+import { useUserProfile } from "../hooks/useUserProfile.ts";
 
 export default function MainLayout() {
   interface LinkItem {
@@ -13,6 +14,8 @@ export default function MainLayout() {
     to: string;
     icon?: React.ReactNode;
   }
+
+  const { user } = useUserProfile();
 
   const generalLinks: LinkItem[] = [
     {
@@ -27,12 +30,34 @@ export default function MainLayout() {
     { label: "LeaderBoard", to: ROUTES.LEADERBOARD },
   ];
 
-  const roleLinks: LinkItem[] = [
-    { label: "Jockeys", to: ROUTES.JOCKEY_DASHBOARD },
-    { label: "Owners", to: ROUTES.OWNER_DASHBOARD },
-    { label: "Spectators", to: ROUTES.SPECTATOR_DASHBOARD },
-    { label: "Admin", to: ROUTES.ADMIN_DASHBOARD },
-  ];
+  interface LinkItem {
+    label: string;
+    to: string;
+    icon?: React.ReactNode;
+  }
+
+  const roleLinkMap: Record<string, LinkItem> = {
+    jockey: {
+      label: "Jockey",
+      to: ROUTES.JOCKEY_DASHBOARD,
+    },
+    horse_owner: {
+      label: "Horse Owner",
+      to: ROUTES.OWNER_DASHBOARD,
+    },
+    spectator: {
+      label: "Spectator",
+      to: ROUTES.SPECTATOR_DASHBOARD,
+    },
+    admin: {
+      label: "Admin",
+      to: ROUTES.ADMIN_DASHBOARD,
+    },
+  };
+
+  const roleLinks: LinkItem[] =
+    user?.role && roleLinkMap[user.role] ? [roleLinkMap[user.role]] : [];
+  console.log("role links:", roleLinks);
 
   const [show, setShow] = React.useState(false);
 
