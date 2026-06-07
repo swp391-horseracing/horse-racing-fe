@@ -103,7 +103,6 @@ export default function useTournament() {
           page,
           limit,
         });
-        console.log(res);
 
         if (!mounted) return;
 

@@ -6,7 +6,7 @@ interface ScheduleCalendarProps {
   onSelect: (date: Date | undefined) => void;
   raceDays: Date[];
   defaultMonth?: Date;
-  onMonthChange?: (month: Date) => void; // Thêm prop này
+  onMonthChange?: (month: Date) => void;
   highlightClass?: string;
 }
 

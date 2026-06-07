@@ -31,12 +31,10 @@ export default function useAuth() {
 
       const jwt = user.token;
       const userId = user.user.id;
-      console.log(userId);
 
       if (jwt) {
         localStorage.setItem("token", jwt);
         sessionStorage.setItem("userId", userId);
-        console.log("user here:", jwt);
         setToken(jwt);
       }
 
@@ -70,10 +68,8 @@ export default function useAuth() {
         role,
         captchaToken
       );
-      console.log(user);
     } catch (error) {
       resetCaptcha();
-      console.log(error);
     }
   };
 
@@ -97,7 +93,6 @@ export default function useAuth() {
 
   const getUserByID = async (id: string) => {
     const user = await UserService.getUser(id);
-    console.log("full name is here:", user.full_name);
     return user;
   };
 

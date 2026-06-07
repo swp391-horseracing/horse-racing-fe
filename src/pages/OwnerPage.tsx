@@ -132,8 +132,6 @@ export default function OwnerPage() {
     };
 
     try {
-      // Log the payload to the developer console to inspect what is sent
-      console.log("Submitting Horse Payload: ", payload);
 
       await addHorse(payload);
 
@@ -144,14 +142,6 @@ export default function OwnerPage() {
       const axiosError = err as {
         response?: { data?: { message?: string | string[] } };
       };
-
-      // Print the exact validation error array from NestJS/Express to the console
-      if (axiosError?.response?.data) {
-        console.error(
-          "Validation Details from Server:",
-          axiosError.response.data
-        );
-      }
 
       const serverMessage = axiosError?.response?.data?.message;
       const formattedError = Array.isArray(serverMessage)

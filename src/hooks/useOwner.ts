@@ -89,9 +89,7 @@ export function useOwner() {
     try {
       const res = await HorseService.getHorsesByOwnerId(ownerId);
       setHorses(extractArray(res.data).map(mapApiHorse));
-      console.log("horses data: ", res.data);
     } catch (err) {
-      console.error("Failed to load horses:", err);
       setHorses([]);
     }
   }, []);
@@ -108,7 +106,6 @@ export function useOwner() {
           const tournRes = await api.get("/tournaments");
           setTournaments(extractArray(tournRes.data));
         } catch (err) {
-          console.error("Failed to load tournaments:", err);
           setTournaments([]);
         }
 
@@ -117,7 +114,6 @@ export function useOwner() {
           const jockRes = await api.get("/jockeys");
           setJockeys(extractArray(jockRes.data));
         } catch (err) {
-          console.error("Failed to load jockeys:", err);
           setJockeys([]);
         }
 
@@ -126,7 +122,6 @@ export function useOwner() {
           const invRes = await api.get("/invitations");
           setInvitations(extractArray(invRes.data));
         } catch (err) {
-          console.error("Failed to load invitations:", err);
           setInvitations([]);
         }
 
@@ -135,11 +130,9 @@ export function useOwner() {
           const regRes = await api.get("/registrations");
           setRegistrations(extractArray(regRes.data));
         } catch (err) {
-          console.error("Failed to load registrations:", err);
           setRegistrations([]);
         }
       } catch (err) {
-        console.error("Failed to load owner data:", err);
       } finally {
         setLoading(false);
       }
@@ -171,7 +164,6 @@ export function useOwner() {
       await api.post("/horses", data);
       await loadHorses();
     } catch (err) {
-      console.error("Failed to add horse:", err);
       throw err;
     }
   };
@@ -187,7 +179,6 @@ export function useOwner() {
       const res = await api.get("/registrations");
       setRegistrations(extractArray(res.data));
     } catch (err) {
-      console.error("Failed to register:", err);
       throw err;
     }
   };
@@ -202,7 +193,6 @@ export function useOwner() {
       const res = await api.get("/invitations");
       setInvitations(extractArray(res.data));
     } catch (err) {
-      console.error("Failed to invite:", err);
       throw err;
     }
   };

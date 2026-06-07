@@ -11,7 +11,6 @@ export function useNotification() {
       const data = await NotificationService.getNotification();
       setList(data);
     } catch (error) {
-      console.error("Failed to fetch notifications:", error);
     }
   }, []);
 
@@ -26,7 +25,6 @@ export function useNotification() {
           setList(data);
         }
       } catch (error) {
-        console.error("Error fetching notifications on mount:", error);
       }
     };
 
