@@ -32,8 +32,6 @@ import {
   Compass,
   Flag,
   Users,
-  ChevronRight,
-  UserCheck,
   Syringe,
 } from "lucide-react";
 
@@ -789,7 +787,7 @@ function HorseManagement({
                 className="bg-white border rounded-xl p-4.5 shadow-xs flex flex-col justify-between hover:shadow-md transition"
               >
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-start justify-between gap-2">
                     <h3 className="font-bold text-sm text-[#064E3B] truncate">
                       {horse.name}
                     </h3>
@@ -1024,7 +1022,7 @@ function RaceRegister({
           <h2 className="text-xl font-black text-[#064E3B] tracking-tight">
             Race & Tournament Registration
           </h2>
-          <p className="text-xs text-slate-505 mt-1">
+          <p className="text-xs text-slate-555 mt-1">
             Register your active horses for upcoming events and monitor
             application statuses.
           </p>
@@ -1510,9 +1508,9 @@ const RegStatusBadge = ({
       cls: "bg-indigo-50 border-indigo-200 text-indigo-800",
       label: "Waitlisted",
     },
-    Rejected: {
+    Withdrawn: {
       cls: "bg-rose-50 border-rose-200 text-rose-800",
-      label: "Rejected",
+      label: "Withdrawn",
     },
   };
   const cfg = map[status] ?? map["Pending Approval"];
@@ -1599,12 +1597,10 @@ function ScheduleRow({
 
 function ScheduleDetailPanel({
   entry,
-  jockeys,
   onClose,
   onOpenInviteModal,
 }: {
   entry: ScheduleEntry;
-  jockeys: Jockey[];
   onClose: () => void;
   onOpenInviteModal: (horseId: number, tournamentId: number) => void;
 }) {
@@ -1998,7 +1994,7 @@ export function HorseScheduleView({
   // ── Build unified schedule entries ──────────────────────────────────────────
   const allEntries = useMemo<ScheduleEntry[]>(() => {
     return registrations
-      .filter((r) => r.status !== "Rejected")
+      .filter((r) => r.status !== "Withdrawn")
       .map((reg) => {
         const horse = horses.find((h) => h.id === reg.horseId);
         const tournament = tournaments.find((t) => t.id === reg.tournamentId);
@@ -2098,6 +2094,18 @@ export function HorseScheduleView({
   const calendarScaleClasses =
     "p-6 w-full [&_.rdp-day]:!h-[46px] [&_.rdp-day]:!w-[46px] [&_.rdp-head_th]:!w-[46px] [&_.rdp-day]:!text-sm [&_.rdp-head_th]:!text-xs [&_.rdp-caption_label]:!text-base";
 
+  // Explicit typing for status configuration checks
+  const filterItems: {
+    key: "All" | "no-jockey" | "pending-invite" | "confirmed";
+    label: string;
+    liveDot?: boolean;
+  }[] = [
+    { key: "All", label: "All Races" },
+    { key: "no-jockey", label: "No Jockey", liveDot: true },
+    { key: "pending-invite", label: "Invite Sent" },
+    { key: "confirmed", label: "Confirmed" },
+  ];
+
   return (
     <div className="flex-1 overflow-y-auto p-6 max-w-7xl w-full mx-auto font-body h-full custom-scrollbar bg-[#F4F6F5]">
 
@@ -2127,14 +2135,7 @@ export function HorseScheduleView({
 
         {/* Stat filter cards */}
         <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-          {(
-            [
-              { key: "All", label: "All Races" },
-              { key: "no-jockey", label: "No Jockey", liveDot: true },
-              { key: "pending-invite", label: "Invite Sent" },
-              { key: "confirmed", label: "Confirmed" },
-            ] as const
-          ).map((item) => (
+          {filterItems.map((item) => (
             <button
               key={item.key}
               onClick={() => setStatusFilter(item.key)}
@@ -2216,7 +2217,7 @@ export function HorseScheduleView({
                 {selectedDate && (
                   <button
                     onClick={() => setSelectedDate(undefined)}
-                    className="ml-auto text-[9px] text-slate-400 hover:text-slate-650 font-bold"
+                    className="ml-auto text-[9px] text-slate-400 hover:text-slate-655 font-bold"
                   >
                     Clear
                   </button>
@@ -2267,7 +2268,6 @@ export function HorseScheduleView({
         {panelOpen && selectedEntry && (
           <ScheduleDetailPanel
             entry={selectedEntry}
-            jockeys={jockeys}
             onClose={() => setSelectedEntryId(null)}
             onOpenInviteModal={onOpenInviteModal}
           />
