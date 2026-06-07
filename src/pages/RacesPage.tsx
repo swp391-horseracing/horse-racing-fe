@@ -16,10 +16,8 @@ import { useRaces, useRaceDetail } from "../hooks/useRaces";
 import type { RaceListItem, RaceApiStatus } from "../services/raceService";
 
 // Import Shared Abstracted Components
-//import { ScheduleLayout } from "../components/schedule/ScheduleLayout";
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
 import { ScheduleStatCard } from "../components/schedule/ScheduleStatCard";
-//import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -83,7 +81,6 @@ const STATUS_ORDER: Record<RaceStatus, number> = {
   Completed: 2,
 };
 
-// Fixes the "Invalid Date" bug
 const formatDateTime = (dateString: string | undefined) => {
   if (!dateString) return "TBC";
   const date = new Date(dateString);
@@ -151,8 +148,6 @@ function RaceRow({
   );
 }
 
-// ─── Page ────────────────────────────────────────────────────────────────────
-
 export default function RacesPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -160,7 +155,6 @@ export default function RacesPage() {
   const tournamentIdParam = searchParams.get("tournamentId");
   const tournamentId = tournamentIdParam ?? null;
 
-  // Handle navigation state from TournamentsPage
   const routeState = location.state as {
     raceId?: string;
     date?: string;
@@ -183,7 +177,6 @@ export default function RacesPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
   const [search, setSearch] = useState("");
 
-  // Initialize state from route if navigated from Tournament page
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     routeState?.date ? parseLocalDate(routeState.date) : new Date()
   );
@@ -191,13 +184,16 @@ export default function RacesPage() {
     routeState?.raceId ?? null
   );
 
-  // Fetch races when selectedDate changes
+  const [viewMonth, setViewMonth] = useState<Date>(selectedDate || new Date());
+
+  // Extracted computed primitive variables to solve ESLint dependency checks
+  const viewYear = viewMonth.getFullYear();
+  const viewMonthIndex = viewMonth.getMonth();
+
+  // Fetch races when viewed month changes
   useEffect(() => {
-    if (!selectedDate) return;
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth() + 1;
-    loadRacesByMonth(year, month);
-  }, [selectedDate, loadRacesByMonth]);
+    loadRacesByMonth(viewYear, viewMonthIndex + 1);
+  }, [viewYear, viewMonthIndex, loadRacesByMonth]);
 
   // Fetch race detail when selectedRaceId changes
   useEffect(() => {
@@ -345,7 +341,6 @@ export default function RacesPage() {
           </div>
         </div>
 
-        {/* --- DYNAMIC GRID LAYOUT --- */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start transition-all">
           <div
             className={`
@@ -366,7 +361,14 @@ export default function RacesPage() {
               >
                 <ScheduleCalendar
                   selectedDate={selectedDate}
-                  onSelect={setSelectedDate}
+                  onSelect={(date) => {
+                    setSelectedDate(date);
+                    if (date) {
+                      setViewMonth(date);
+                    }
+                  }}
+                  defaultMonth={viewMonth}
+                  onMonthChange={setViewMonth}
                   raceDays={raceDays}
                   highlightClass="font-black text-primary bg-primary/10 border border-primary/20 rounded-md"
                 />
@@ -444,7 +446,6 @@ export default function RacesPage() {
             </div>
           </div>
 
-          {/* RIGHT SIDE DETAIL PANEL */}
           {panelOpen && (
             <div
               className={`${isCalendarMode ? "lg:col-span-8" : "lg:col-span-9"} lg:sticky lg:top-8 overflow-hidden border border-border bg-card rounded-2xl shadow-lg flex flex-col min-h-[500px] xl:min-h-[640px] animate-in fade-in slide-in-from-right-8 duration-200`}

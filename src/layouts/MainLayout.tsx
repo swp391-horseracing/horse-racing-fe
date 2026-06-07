@@ -57,7 +57,6 @@ export default function MainLayout() {
 
   const roleLinks: LinkItem[] =
     user?.role && roleLinkMap[user.role] ? [roleLinkMap[user.role]] : [];
-  console.log("role links:", roleLinks);
 
   const [show, setShow] = React.useState(false);
 

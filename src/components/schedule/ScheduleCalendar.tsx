@@ -6,6 +6,7 @@ interface ScheduleCalendarProps {
   onSelect: (date: Date | undefined) => void;
   raceDays: Date[];
   defaultMonth?: Date;
+  onMonthChange?: (month: Date) => void;
   highlightClass?: string;
 }
 
@@ -17,6 +18,7 @@ export function ScheduleCalendar({
   onSelect,
   raceDays,
   defaultMonth = new Date(2026, 5),
+  onMonthChange,
   highlightClass = "font-black text-[#064E3B] bg-[#064E3B]/10 border border-[#064E3B]/20 rounded-md",
 }: ScheduleCalendarProps) {
   return (
@@ -31,6 +33,8 @@ export function ScheduleCalendar({
         selected={selectedDate}
         onSelect={onSelect}
         defaultMonth={defaultMonth}
+        onMonthChange={onMonthChange}
+        showOutsideDays={false}
         modifiers={{ hasRace: raceDays }}
         modifiersClassNames={{
           hasRace: highlightClass,

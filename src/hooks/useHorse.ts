@@ -24,7 +24,6 @@ export default function useHorse() {
       setLoading(true);
 
       const res = await HorseService.getHorses(page, 10);
-      console.log(res.data);
 
       setHorses(res.data);
       setPagination(res.pagination);
@@ -45,7 +44,6 @@ export default function useHorse() {
       setDetailLoading(true);
 
       const horse = await HorseService.getHorseById(id);
-      console.log(horse);
 
       setSelectedHorse(horse);
     } catch (err) {

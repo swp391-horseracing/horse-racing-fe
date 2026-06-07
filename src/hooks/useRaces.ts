@@ -50,7 +50,6 @@ export function useRaceDetail() {
       setError(null);
       const data = await RaceService.getRaceById(raceId);
       data.entries = await RaceService.getRaceHorses(raceId);
-      console.log(data.entries);
       setDetail(data);
     } catch (err: unknown) {
       const error = err as {
