@@ -12,9 +12,14 @@ import {
 import { ROUTES } from "../router/routes.tsx";
 
 import { useEvent } from "../hooks/useEvent";
-import { Calendar } from "../components/ui/calendar";
 import { useRaces, useRaceDetail } from "../hooks/useRaces";
 import type { RaceListItem, RaceApiStatus } from "../services/raceService";
+
+// Import Shared Abstracted Components
+//import { ScheduleLayout } from "../components/schedule/ScheduleLayout";
+import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
+import { ScheduleStatCard } from "../components/schedule/ScheduleStatCard";
+//import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -92,49 +97,6 @@ const formatDateTime = (dateString: string | undefined) => {
     minute: "2-digit",
   });
 };
-
-// ─── Components ───────────────────────────────────────────────────────────────
-
-interface StatFilterCardProps {
-  label: string;
-  value: number;
-  active: boolean;
-  onClick: () => void;
-  liveDot?: boolean;
-}
-
-function StatFilterCard({
-  label,
-  value,
-  active,
-  onClick,
-  liveDot,
-}: StatFilterCardProps) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex-1 text-left rounded-2xl border py-2.5 px-4 transition-all ${
-        active
-          ? "border-primary bg-card shadow-sm ring-[1.5px] ring-primary"
-          : "border-border bg-card hover:border-slate-300 hover:bg-slate-50/50"
-      }`}
-    >
-      <p
-        className={`text-[9px] font-bold uppercase tracking-wider mb-0.5 ${active ? "text-primary font-black" : "text-muted-foreground"}`}
-      >
-        {label}
-      </p>
-      <div className="flex items-center gap-1.5 mt-0.5">
-        <p className="text-xl font-black font-headline leading-none text-foreground">
-          {value}
-        </p>
-        {liveDot && value > 0 && (
-          <span className="h-1.5 w-1.5 rounded-full bg-secondary animate-pulse" />
-        )}
-      </div>
-    </button>
-  );
-}
 
 function RaceRow({
   race,
@@ -321,12 +283,6 @@ export default function RacesPage() {
   const panelOpen = selectedRaceId !== null;
   const isCalendarMode = !tournamentId;
 
-  const calendarScaleClasses = useMemo(() => {
-    return !panelOpen
-      ? "p-6 [&_.rdp-day]:!h-[46px] [&_.rdp-day]:!w-[46px] [&_.rdp-head_th]:!w-[46px] [&_.rdp-day]:!text-sm [&_.rdp-head_th]:!text-xs [&_.rdp-caption_label]:!text-base"
-      : "p-4 [&_.rdp-day]:!h-9 [&_.rdp-day]:!w-9 [&_.rdp-head_th]:!w-9 [&_.rdp-day]:!text-xs [&_.rdp-head_th]:!text-[10px] [&_.rdp-caption_label]:!text-sm";
-  }, [panelOpen]);
-
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
       <div className="mx-auto max-w-[1400px] w-full px-4 md:px-6 py-6 md:py-8">
@@ -408,26 +364,12 @@ export default function RacesPage() {
               <div
                 className={`${!panelOpen ? "lg:col-span-5 flex lg:justify-center mb-8 lg:mb-0" : "w-full mb-6"}`}
               >
-                <div
-                  className={`rounded-2xl border border-border bg-card shadow-sm flex items-center justify-center transition-all mx-auto w-fit ${calendarScaleClasses}`}
-                >
-                  <div
-                    className={`transform-origin-center ${!panelOpen ? "scale-100 xl:scale-105" : "scale-100"}`}
-                  >
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      defaultMonth={selectedDate || new Date()}
-                      modifiers={{ hasRace: raceDays }}
-                      modifiersClassNames={{
-                        hasRace:
-                          "font-black text-primary bg-primary/10 border border-primary/20 rounded-md",
-                      }}
-                      className="w-full flex justify-center text-sm font-medium mx-auto"
-                    />
-                  </div>
-                </div>
+                <ScheduleCalendar
+                  selectedDate={selectedDate}
+                  onSelect={setSelectedDate}
+                  raceDays={raceDays}
+                  highlightClass="font-black text-primary bg-primary/10 border border-primary/20 rounded-md"
+                />
               </div>
             )}
 
@@ -446,7 +388,7 @@ export default function RacesPage() {
                     <div className="border-b border-border bg-muted/20 px-6 py-4 flex items-center gap-2">
                       <CalendarDays className="h-4 w-4 text-muted-foreground" />
                       <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
-                        {fmtShort(date)}
+                        {fmtShort(formattedSelectedDate)}
                       </span>
                     </div>
                     <div className="divide-y divide-border flex-1">
