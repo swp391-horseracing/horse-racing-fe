@@ -482,7 +482,7 @@ export default function OwnerPage() {
                 </h3>
                 <button
                   onClick={() => setShowRegisterTournament(false)}
-                  className="text-slate-400 hover:text-slate-650 text-sm"
+                  className="text-slate-400 hover:text-slate-655 text-sm"
                 >
                   ✕
                 </button>

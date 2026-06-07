@@ -237,6 +237,7 @@ export default function JockeyPage() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [rides, setRides] = useState<MyRide[]>(myRidesMock);
 
+  // Shared hooks data
   const { horseList } = useHorseList();
   const { invitations, updateInvitationStatus } = useInvitations();
 
@@ -609,10 +610,10 @@ function DashboardOverview({
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-xs font-bold text-[#064E3B] font-label block">
-                      {horse.performance}
+                      {horse.performance || horse.ownerId}
                     </span>
                     <span className="text-[9px] text-slate-400 font-semibold block">
-                      {horse.status}
+                      {horse.status || "Active"}
                     </span>
                   </div>
                 </div>

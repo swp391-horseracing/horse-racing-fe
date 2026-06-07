@@ -5,6 +5,7 @@ import { Bell, Newspaper } from "lucide-react";
 import React from "react";
 import NotificationTab from "../components/NotificationTab.tsx";
 import useAuth from "../hooks/useAuth.ts";
+import Footer from "../components/Footer.tsx";
 
 export default function MainLayout() {
   interface LinkItem {
@@ -142,9 +143,10 @@ export default function MainLayout() {
         </div>
       </div>
 
-      {/* Main View Container */}
-      <div className="w-full flex-1 bg-white rounded-sm min-h-0 overflow-y-auto overflow-x-hidden shadow-sm border border-gray-200">
+      {/* Application Viewport */}
+      <div className="w-full flex-1 bg-white rounded-sm min-h-0 overflow-y-auto  shadow-sm border border-gray-200">
         <Outlet />
+        <Footer />
       </div>
     </div>
   );
