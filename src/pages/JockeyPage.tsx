@@ -65,12 +65,6 @@ const formatOrdinal = (num: number) => {
   return num + (suffixes[(val - 20) % 10] || suffixes[val] || suffixes[0]);
 };
 
-const officialsMock = [
-  { initials: "AJ", name: "Arthur Jones", title: "Chief Steward" },
-  { initials: "SB", name: "Sarah Baxter", title: "Starter" },
-  { initials: "MT", name: "Mark Thompson", title: "Judge" },
-];
-
 const Icons = {
   Calendar: () => <CalendarIcon className="w-4 h-4 text-current" />,
   Mail: () => <Mail className="w-4 h-4 text-current" />,
@@ -955,32 +949,6 @@ function RidingScheduleDetailPanel({
                   </span>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div className="border-t border-slate-100 pt-6">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3.5 block">
-              Racing Officials Board
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {officialsMock.map((o) => (
-                <div
-                  key={o.initials}
-                  className="flex items-center gap-3.5 rounded-xl border border-[#064E3B]/10 p-3.5 bg-[#F4F6F5]/30"
-                >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg shadow-sm bg-white text-[#064E3B] text-xs font-black border border-[#064E3B]/10">
-                    {o.initials}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-black font-headline text-slate-800 truncate leading-tight">
-                      {o.name}
-                    </p>
-                    <p className="text-[10px] font-semibold text-slate-400 truncate leading-tight mt-1">
-                      {o.title}
-                    </p>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
 
