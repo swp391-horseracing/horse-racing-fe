@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AuthService } from "../services/authService.ts";
+import { UserService } from "../services/UserService.ts";
 
 declare global {
   interface Window {
@@ -29,9 +30,13 @@ export default function useAuth() {
       const user = await AuthService.login(email, password, captchaToken);
 
       const jwt = user.token;
+      const userId = user.user.id;
+      console.log(userId);
 
       if (jwt) {
         localStorage.setItem("token", jwt);
+        sessionStorage.setItem("userId", userId);
+        console.log("user here:", jwt);
         setToken(jwt);
       }
 
@@ -75,11 +80,26 @@ export default function useAuth() {
   const logout = async () => {
     try {
       await AuthService.logout();
+    } catch (error) {
+      console.error(
+        "Backend logout failed, proceeding with client-side cleanup:",
+        error
+      );
     } finally {
       localStorage.removeItem("token");
+      sessionStorage.clear();
       setToken(null);
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
     }
   };
 
-  return { token, login, logout, register, getToken };
+  const getUserByID = async (id: string) => {
+    const user = await UserService.getUser(id);
+    console.log("full name is here:", user.full_name);
+    return user;
+  };
+
+  return { token, login, logout, register, getToken, getUserByID };
 }

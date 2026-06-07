@@ -1,50 +1,42 @@
+import api from "../lib/api";
 import type { User } from "../types/user.ts";
 
-const mockUser: User = {
-  id: "u_001",
-  email: "j.thorne@eliteturf.com",
-  password: "hashed_password",
-  fullName: "Julian Thorne",
-  phone: "+44 7700 900 123",
-  address: "12 Newmarket Road, Suffolk",
-  avatar_url: "https://example.com/avatar.jpg",
-  token: "1",
-  role: "Spectator",
-  status: "ACTIVE",
-  created_at: "2025-01-15T10:00:00Z",
-  updated_at: "2026-06-01T12:00:00Z",
+export type UpdateProfilePayload = {
+  full_name?: string;
+  email?: string;
+  password?: string;
+  phone?: string;
+  address?: string;
+  avatar?: string; // Changed to 'avatar' to match your screenshot body
+};
+
+export type UpdateProfileResponse = {
+  message: string;
+  user: {
+    id: string;
+    full_name: string;
+    email: string;
+    role: string;
+    status: string;
+  };
+  token?: string;
 };
 
 export const UserService = {
-  getUser: (): Promise<User> => Promise.resolve({ ...mockUser }),
+  getUser: async (id: string): Promise<User> => {
+    const response = await api.get(`/profiles/${id}`);
+    return response.data;
+  },
 
-  updateUser: (patch: Partial<User>): Promise<User> =>
-    Promise.resolve({
-      ...mockUser,
-      ...patch,
-      updated_at: new Date().toISOString(),
-    }),
+  updateUser: async (
+    id: string,
+    payload: UpdateProfilePayload
+  ): Promise<UpdateProfileResponse> => {
+    const response = await api.patch(`/profiles/${id}`, payload);
+    return response.data;
+  },
 
-  updateStatus: (status: string): Promise<User> =>
-    Promise.resolve({
-      ...mockUser,
-      status,
-      updated_at: new Date().toISOString(),
-    }),
-
-  updateRoles: (roles: string[]): Promise<User> =>
-    Promise.resolve({
-      ...mockUser,
-      roles,
-      updated_at: new Date().toISOString(),
-    }),
-
-  updateAvatar: (avatar_url: string): Promise<User> =>
-    Promise.resolve({
-      ...mockUser,
-      avatar_url,
-      updated_at: new Date().toISOString(),
-    }),
-
-  logout: (): Promise<void> => Promise.resolve(),
+  logout: (): void => {
+    localStorage.removeItem("token");
+  },
 };

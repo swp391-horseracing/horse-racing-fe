@@ -79,7 +79,8 @@ export default function UserLayout({
 
   // Detect role context based on routing path prefix
   const path = location.pathname.toLowerCase();
-  let currentRole: "Jockey" | "Owner" | "Spectator" | "Admin" = "Jockey";
+  let currentRole: "Jockey" | "Owner" | "Spectator" | "UserProfile" | "Admin" =
+    "Jockey";
   let sidebarGroupLabel = "Jockey Operations";
 
   if (path.includes("/owner")) {
@@ -91,11 +92,14 @@ export default function UserLayout({
   } else if (path.includes("/admin")) {
     currentRole = "Admin";
     sidebarGroupLabel = "Admin Controls";
+  } else if (path.includes("/user")) {
+    currentRole = "UserProfile";
+    sidebarGroupLabel = "My Account";
   }
 
   // Role-based Nav configurations
   const navConfigurations: Record<
-    "Jockey" | "Owner" | "Spectator" | "Admin",
+    "Jockey" | "Owner" | "Spectator" | "Admin" | "UserProfile",
     NavItem[]
   > = {
     Jockey: [
@@ -158,6 +162,7 @@ export default function UserLayout({
       },
       { label: "Virtual Economy", icon: TrendingUp, key: "/admin/economy" },
     ],
+    UserProfile: [{ label: "Account", icon: UserCheck, key: "account" }],
   };
 
   const currentNav = navConfigurations[currentRole];

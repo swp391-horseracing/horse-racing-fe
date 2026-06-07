@@ -12,11 +12,9 @@ import HorsePage from "../pages/HorsePage.tsx";
 import TournamentsPage from "../pages/TournamentsPage.tsx";
 import RacesPage from "../pages/RacesPage.tsx"; // Corrected path to match other pages
 import JockeyPage from "../pages/JockeyPage.tsx";
-import OwnerPage from "../pages/OwnerPage.tsx";
+// import OwnerPage from "../pages/OwnerPage.tsx";
 import AdminPage from "../pages/AdminPage.tsx";
 import UserPage from "../pages/UserPage.tsx";
-import SpectatorPage from "../pages/SpectatorPage.tsx";
-import LeaderBoardPage from "../pages/LeaderBoardPage.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -60,10 +58,6 @@ export const router = createBrowserRouter([
         path: ROUTES.TOURNAMENTS,
         element: <TournamentsPage />,
       },
-      {
-        path: ROUTES.LEADERBOARD,
-        element: <LeaderBoardPage />,
-      },
 
       // ADDED RACES ROUTES HERE:
       {
@@ -78,14 +72,6 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.JOCKEY_DASHBOARD,
         element: <JockeyPage />,
-      },
-      {
-        path: ROUTES.OWNER_DASHBOARD,
-        element: <OwnerPage />,
-      },
-      {
-        path: ROUTES.SPECTATOR_DASHBOARD,
-        element: <SpectatorPage />,
       },
       {
         path: ROUTES.ADMIN_DASHBOARD,

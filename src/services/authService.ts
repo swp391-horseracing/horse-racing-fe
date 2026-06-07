@@ -1,12 +1,20 @@
 import api from "../lib/api.ts";
 import type { User } from "../types/user.ts";
 
+interface LoginResponse {
+  email: string;
+  password: string;
+  captchaToken: string;
+  token: string;
+  user: User;
+}
+
 export const AuthService = {
   login: async (
     email: string,
     password: string,
     captchaToken: string
-  ): Promise<User> => {
+  ): Promise<LoginResponse> => {
     const response = await api.post("/auth/login", {
       email,
       password,

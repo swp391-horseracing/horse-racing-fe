@@ -3,10 +3,9 @@ import { useState, useMemo } from "react";
 import UserLayout from "../layouts/UserLayout"; // Adjust import path as needed
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
-import { useHorseList } from "../hooks/useHorseList.ts";
+
 import { useEvent } from "../hooks/useEvent.ts";
 import { useInvitations } from "../hooks/useInvitations.ts";
-import type { Horse } from "../types/horse.ts";
 import type { CalendarEvent } from "../types/event.ts";
 import type { Invitation, InvStatus } from "../services/invitationService.ts";
 import {
@@ -25,6 +24,8 @@ import {
   Lock,
   Compass,
 } from "lucide-react";
+import useHorse from "../hooks/useHorse.ts";
+import type { Horse } from "../services/horseService.ts";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -116,7 +117,7 @@ export default function JockeyPage() {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   // Shared hooks data
-  const { horseList } = useHorseList();
+  const { horses } = useHorse();
   const { eventList } = useEvent();
   const { invitations, updateInvitationStatus } = useInvitations();
 
@@ -157,7 +158,7 @@ export default function JockeyPage() {
           <DashboardOverview
             data={invitations}
             setActiveTab={(tab) => setActive(tab)}
-            horseList={horseList}
+            horseList={horses}
           />
         );
       case ROUTES.JOCKEY_SCHEDULE:
@@ -468,16 +469,16 @@ function DashboardOverview({
                         {horse.name}
                       </span>
                       <span className="text-[10px] text-slate-450 truncate">
-                        {horse.breed} • {horse.gender}
+                        {horse.breed}
                       </span>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-xs font-bold text-[#064E3B] font-label block">
-                      ${horse.earnings.toFixed(2)}
+                      {horse.ownerId}
                     </span>
                     <span className="text-[9px] text-slate-400 font-semibold block">
-                      {horse.status}
+                      {horse.ownerId}
                     </span>
                   </div>
                 </div>
