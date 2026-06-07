@@ -117,11 +117,13 @@ export default function TournamentsPage() {
     setPage,
   } = useTournament();
 
-  const handleGoToRaceDetail = (race: { id: string }) => {
+  // Updated to pass both raceId and date
+  const handleGoToRaceDetail = (race: { id: string; date: string }) => {
+    console.log("race date is here: ", race.date);
     navigate(ROUTES.RACES, {
       state: {
         raceId: race.id,
-        date: selectedTournament?.startDate,
+        date: race.date,
       },
     });
   };
@@ -409,7 +411,8 @@ export default function TournamentsPage() {
                                       {race.title}
                                     </p>
                                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                                      {race.distance} · {race.surface}
+                                      {race.distance} · {race.surface} ·{" "}
+                                      {race.date}
                                     </p>
                                   </div>
                                 </div>

@@ -15,6 +15,7 @@ type RacePreview = {
   id: string;
   title: string;
   time: string;
+  date: string; // Added full date
   distance: string;
   surface: string;
   status: "Live" | "Upcoming" | "Completed";
@@ -23,15 +24,24 @@ type RacePreview = {
 const DEFAULT_LIMIT = 10;
 
 const mapRaceToPreview = (race: RaceItem): RacePreview => {
-  const time = new Date(race.scheduledAt).toLocaleTimeString("en-GB", {
+  const scheduled = new Date(race.scheduledAt);
+
+  const time = scheduled.toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
   });
+
+  // Format date as "YYYY-MM-DD" for consistency
+  const yyyy = scheduled.getFullYear();
+  const mm = String(scheduled.getMonth() + 1).padStart(2, "0");
+  const dd = String(scheduled.getDate()).padStart(2, "0");
+  const date = `${yyyy}-${mm}-${dd}`;
 
   return {
     id: race.id,
     title: race.name,
     time,
+    date, // Added
     distance: `${race.distanceMeters}m`,
     surface: race.trackCondition,
     status:

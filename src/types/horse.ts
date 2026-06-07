@@ -10,6 +10,7 @@ export interface Horse {
   owner: string;
   jockey: string;
   status: "Active" | "Training" | "Injured" | "Retired";
-  performance: number;
+  earnings: number;
+  winRate: number; // Optional, can be calculated from performance data
   image?: string;
 }

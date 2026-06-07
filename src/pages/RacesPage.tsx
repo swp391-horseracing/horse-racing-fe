@@ -1,23 +1,27 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import { ArrowLeft, Search, CalendarDays } from "lucide-react";
+import {
+  ArrowLeft,
+  Search,
+  X,
+  CalendarDays,
+  Clock,
+  MapPin,
+  Trophy,
+} from "lucide-react";
 import { ROUTES } from "../router/routes.tsx";
 
 import { useEvent } from "../hooks/useEvent";
-import useHorse from "../hooks/useHorse.ts";
+import { Calendar } from "../components/ui/calendar";
+import { useRaces, useRaceDetail } from "../hooks/useRaces";
+import type { RaceListItem, RaceApiStatus } from "../services/raceService";
 
-// Import Shared Abstracted Components
-import { ScheduleLayout } from "../components/schedule/ScheduleLayout";
-import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
-import { ScheduleStatCard } from "../components/schedule/ScheduleStatCard";
-import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
+// ── Types ───────────────────────────────────────────────────────────────────
 
 type RaceStatus = "Live" | "Upcoming" | "Completed";
 type StatusFilter = "All" | RaceStatus;
 
-interface Race {
-  id: number;
-  tournamentId: number;
+interface RaceUI extends Omit<RaceListItem, "status"> {
   title: string;
   date: string;
   time: string;
@@ -27,134 +31,34 @@ interface Race {
   status: RaceStatus;
 }
 
-interface LocationState {
-  raceId?: number;
-  date?: string;
-}
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const allRaces: Race[] = [
-  {
-    id: 101,
-    tournamentId: 1,
-    title: "The Queen Anne Stakes",
-    date: "2026-06-18",
-    time: "14:30",
-    distance: "1600m",
-    surface: "Turf",
-    className: "Group 1",
-    status: "Completed",
-  },
-  {
-    id: 102,
-    tournamentId: 1,
-    title: "Coventry Stakes",
-    date: "2026-06-18",
-    time: "15:05",
-    distance: "1200m",
-    surface: "Turf",
-    className: "Group 2",
-    status: "Completed",
-  },
-  {
-    id: 103,
-    tournamentId: 1,
-    title: "King's Stand Stakes",
-    date: "2026-06-18",
-    time: "15:40",
-    distance: "1000m",
-    surface: "Turf",
-    className: "Group 1",
-    status: "Completed",
-  },
-  {
-    id: 104,
-    tournamentId: 1,
-    title: "St James's Palace Stakes",
-    date: "2026-06-18",
-    time: "16:20",
-    distance: "1600m",
-    surface: "Turf",
-    className: "Group 1",
-    status: "Live",
-  },
-  {
-    id: 105,
-    tournamentId: 1,
-    title: "Ascot Stakes",
-    date: "2026-06-18",
-    time: "17:00",
-    distance: "4000m",
-    surface: "Turf",
-    className: "Handicap",
-    status: "Upcoming",
-  },
-  {
-    id: 106,
-    tournamentId: 1,
-    title: "Wolferton Stakes",
-    date: "2026-06-18",
-    time: "17:35",
-    distance: "2000m",
-    surface: "Turf",
-    className: "Listed",
-    status: "Upcoming",
-  },
-  {
-    id: 107,
-    tournamentId: 1,
-    title: "Copper Horse Stakes",
-    date: "2026-06-18",
-    time: "18:10",
-    distance: "2800m",
-    surface: "Turf",
-    className: "Handicap",
-    status: "Upcoming",
-  },
-  {
-    id: 108,
-    tournamentId: 1,
-    title: "Prince of Wales's Stakes",
-    date: "2026-06-19",
-    time: "15:40",
-    distance: "2000m",
-    surface: "Turf",
-    className: "Group 1",
-    status: "Upcoming",
-  },
-  {
-    id: 109,
-    tournamentId: 2,
-    title: "Classic Turf Invitational",
-    date: "2026-11-01",
-    time: "16:00",
-    distance: "2000m",
-    surface: "Turf",
-    className: "Group 1",
-    status: "Upcoming",
-  },
-  {
-    id: 110,
-    tournamentId: 2,
-    title: "Night Derby",
-    date: "2026-11-02",
-    time: "18:30",
-    distance: "2400m",
-    surface: "Dirt",
-    className: "Group 3",
-    status: "Upcoming",
-  },
-];
-
-const tournamentNames: Record<number, string> = {
-  1: "Royal Ascot Summer Series",
-  2: "The Breeders' Cup World Championships",
+const mapApiStatusToUi = (status: RaceApiStatus): RaceStatus => {
+  if (status === "ongoing") return "Live";
+  if (status === "completed" || status === "result_confirmed")
+    return "Completed";
+  return "Upcoming";
 };
 
-const officials = [
-  { initials: "AJ", name: "Arthur Jones", title: "Chief Steward" },
-  { initials: "SB", name: "Sarah Baxter", title: "Starter" },
-  { initials: "MT", name: "Mark Thompson", title: "Judge" },
-];
+const mapRaceToUi = (race: RaceListItem): RaceUI => {
+  const scheduled = new Date(race.scheduledAt);
+  const yyyy = scheduled.getFullYear();
+  const mm = String(scheduled.getMonth() + 1).padStart(2, "0");
+  const dd = String(scheduled.getDate()).padStart(2, "0");
+  const hh = String(scheduled.getHours()).padStart(2, "0");
+  const min = String(scheduled.getMinutes()).padStart(2, "0");
+
+  return {
+    ...race,
+    title: race.name,
+    date: `${yyyy}-${mm}-${dd}`,
+    time: `${hh}:${min}`,
+    distance: "TBC",
+    surface: race.venue,
+    className: "Standard",
+    status: mapApiStatusToUi(race.status),
+  };
+};
 
 const fmtShort = (d: string) =>
   new Date(d).toLocaleDateString("en-US", {
@@ -174,15 +78,62 @@ const STATUS_ORDER: Record<RaceStatus, number> = {
   Completed: 2,
 };
 
-// Safe type-guard function to check for "jockey" property on horse data at runtime
-function getJockeyName(horse: unknown): string {
-  if (horse && typeof horse === "object" && "jockey" in horse) {
-    const maybeJockey = (horse as Record<string, unknown>).jockey;
-    if (typeof maybeJockey === "string") {
-      return maybeJockey;
-    }
-  }
-  return "—";
+// Fixes the "Invalid Date" bug
+const formatDateTime = (dateString: string | undefined) => {
+  if (!dateString) return "TBC";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "Invalid Date";
+
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+// ─── Components ───────────────────────────────────────────────────────────────
+
+interface StatFilterCardProps {
+  label: string;
+  value: number;
+  active: boolean;
+  onClick: () => void;
+  liveDot?: boolean;
+}
+
+function StatFilterCard({
+  label,
+  value,
+  active,
+  onClick,
+  liveDot,
+}: StatFilterCardProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 text-left rounded-2xl border py-2.5 px-4 transition-all ${
+        active
+          ? "border-primary bg-card shadow-sm ring-[1.5px] ring-primary"
+          : "border-border bg-card hover:border-slate-300 hover:bg-slate-50/50"
+      }`}
+    >
+      <p
+        className={`text-[9px] font-bold uppercase tracking-wider mb-0.5 ${active ? "text-primary font-black" : "text-muted-foreground"}`}
+      >
+        {label}
+      </p>
+      <div className="flex items-center gap-1.5 mt-0.5">
+        <p className="text-xl font-black font-headline leading-none text-foreground">
+          {value}
+        </p>
+        {liveDot && value > 0 && (
+          <span className="h-1.5 w-1.5 rounded-full bg-secondary animate-pulse" />
+        )}
+      </div>
+    </button>
+  );
 }
 
 function RaceRow({
@@ -190,7 +141,7 @@ function RaceRow({
   selected,
   onClick,
 }: {
-  race: Race;
+  race: RaceUI;
   selected: boolean;
   onClick: () => void;
 }) {
@@ -219,7 +170,7 @@ function RaceRow({
             {race.title}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            {race.className} · {race.distance} · {race.surface}
+            {race.className} · {race.distance} · {race.surface} · {race.date}
           </p>
         </div>
       </div>
@@ -238,63 +189,87 @@ function RaceRow({
   );
 }
 
+// ─── Page ────────────────────────────────────────────────────────────────────
+
 export default function RacesPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const tournamentIdParam = searchParams.get("tournamentId");
-  const tournamentId = tournamentIdParam ? Number(tournamentIdParam) : null;
+  const tournamentId = tournamentIdParam ?? null;
+
+  // Handle navigation state from TournamentsPage
+  const routeState = location.state as {
+    raceId?: string;
+    date?: string;
+  } | null;
 
   const { eventList } = useEvent();
-  const { horses } = useHorse();
-
-  const routeState = location.state as LocationState;
+  const {
+    races: apiRaces,
+    loading: racesLoading,
+    loadRacesByMonth,
+  } = useRaces();
+  const {
+    detail: raceDetail,
+    loading: detailLoading,
+    error: detailError,
+    loadDetail,
+    clearDetail,
+  } = useRaceDetail();
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
   const [search, setSearch] = useState("");
 
-  const [selectedRace, setSelectedRace] = useState<Race | null>(() =>
-    routeState?.raceId
-      ? (allRaces.find((r) => r.id === routeState.raceId) ?? null)
-      : null
+  // Initialize state from route if navigated from Tournament page
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    routeState?.date ? parseLocalDate(routeState.date) : new Date()
+  );
+  const [selectedRaceId, setSelectedRaceId] = useState<string | null>(
+    routeState?.raceId ?? null
   );
 
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() =>
-    routeState?.date
-      ? parseLocalDate(routeState.date)
-      : parseLocalDate("2026-06-18")
-  );
+  // Fetch races when selectedDate changes
+  useEffect(() => {
+    if (!selectedDate) return;
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth() + 1;
+    loadRacesByMonth(year, month);
+  }, [selectedDate, loadRacesByMonth]);
+
+  // Fetch race detail when selectedRaceId changes
+  useEffect(() => {
+    if (selectedRaceId) {
+      loadDetail(selectedRaceId);
+    } else {
+      clearDetail();
+    }
+  }, [selectedRaceId, loadDetail, clearDetail]);
+
+  const allRaces = useMemo(() => apiRaces.map(mapRaceToUi), [apiRaces]);
 
   const tournamentName = useMemo(() => {
     if (!tournamentId) return null;
     if (eventList && eventList.length > 0) {
-      const found = eventList.find((e) => Number(e.id) === tournamentId);
+      const found = eventList.find((e) => String(e.id) === tournamentId);
       if (found) return found.title;
     }
-    return tournamentNames[tournamentId] ?? "Tournament";
+    return "Tournament";
   }, [tournamentId, eventList]);
-
-  const baseRaces = useMemo(
-    () =>
-      tournamentId
-        ? allRaces.filter((r) => r.tournamentId === tournamentId)
-        : allRaces,
-    [tournamentId]
-  );
 
   const counts = useMemo(
     () => ({
-      All: baseRaces.length,
-      Live: baseRaces.filter((r) => r.status === "Live").length,
-      Upcoming: baseRaces.filter((r) => r.status === "Upcoming").length,
-      Completed: baseRaces.filter((r) => r.status === "Completed").length,
+      All: allRaces.length,
+      Live: allRaces.filter((r) => r.status === "Live").length,
+      Upcoming: allRaces.filter((r) => r.status === "Upcoming").length,
+      Completed: allRaces.filter((r) => r.status === "Completed").length,
     }),
-    [baseRaces]
+    [allRaces]
   );
 
   const filteredRaces = useMemo(() => {
     const lower = search.toLowerCase();
-    return baseRaces
+    return allRaces
       .filter((r) => {
         const matchStatus = statusFilter === "All" || r.status === statusFilter;
         const matchSearch =
@@ -308,10 +283,10 @@ export default function RacesPage() {
           STATUS_ORDER[a.status] - STATUS_ORDER[b.status] ||
           a.time.localeCompare(b.time)
       );
-  }, [baseRaces, statusFilter, search]);
+  }, [allRaces, statusFilter, search]);
 
   const grouped = useMemo(() => {
-    const map = new Map<string, Race[]>();
+    const map = new Map<string, RaceUI[]>();
     filteredRaces.forEach((r) => {
       const existing = map.get(r.date) ?? [];
       map.set(r.date, [...existing, r]);
@@ -331,17 +306,26 @@ export default function RacesPage() {
     return filteredRaces.filter((r) => r.date === formattedSelectedDate);
   }, [filteredRaces, formattedSelectedDate]);
 
-  const raceDays = useMemo(
-    () => baseRaces.map((r) => parseLocalDate(r.date)),
-    [baseRaces]
-  );
+  const raceDays = useMemo(() => {
+    return allRaces.map((r) => parseLocalDate(r.date));
+  }, [allRaces]);
 
-  const handleSelectRace = useCallback((race: Race) => {
-    setSelectedRace((prev) => (prev?.id === race.id ? null : race));
+  const handleSelectRace = useCallback((raceId: string) => {
+    setSelectedRaceId(raceId);
   }, []);
 
-  const panelOpen = selectedRace !== null;
+  const handleCloseDetail = useCallback(() => {
+    setSelectedRaceId(null);
+  }, []);
+
+  const panelOpen = selectedRaceId !== null;
   const isCalendarMode = !tournamentId;
+
+  const calendarScaleClasses = useMemo(() => {
+    return !panelOpen
+      ? "p-6 [&_.rdp-day]:!h-[46px] [&_.rdp-day]:!w-[46px] [&_.rdp-head_th]:!w-[46px] [&_.rdp-day]:!text-sm [&_.rdp-head_th]:!text-xs [&_.rdp-caption_label]:!text-base"
+      : "p-4 [&_.rdp-day]:!h-9 [&_.rdp-day]:!w-9 [&_.rdp-head_th]:!w-9 [&_.rdp-day]:!text-xs [&_.rdp-head_th]:!text-[10px] [&_.rdp-caption_label]:!text-sm";
+  }, [panelOpen]);
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
@@ -405,207 +389,249 @@ export default function RacesPage() {
           </div>
         </div>
 
-        <ScheduleLayout
-          panelOpen={panelOpen}
-          leftColClass={
-            isCalendarMode
-              ? panelOpen
-                ? "lg:col-span-4"
-                : "lg:col-span-12"
-              : panelOpen
-                ? "lg:col-span-3"
-                : "lg:col-span-12"
-          }
-          rightColClass={isCalendarMode ? "lg:col-span-8" : "lg:col-span-9"}
-          calendarSlot={
-            isCalendarMode ? (
-              <ScheduleCalendar
-                selectedDate={selectedDate}
-                onSelect={setSelectedDate}
-                raceDays={raceDays}
-                highlightClass="font-black text-primary bg-primary/10 border border-primary/20 rounded-md"
-              />
-            ) : undefined
-          }
-          listSlot={
-            isCalendarMode ? (
-              selectedDate && (
-                <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
-                  <div className="border-b border-border bg-muted/20 px-6 py-4 flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
-                      Schedule for{" "}
-                      {selectedDate.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </div>
-                  <div className="divide-y divide-border flex-1">
-                    {calendarFilteredRaces.length > 0 ? (
-                      calendarFilteredRaces.map((race) => (
-                        <RaceRow
-                          key={race.id}
-                          race={race}
-                          selected={selectedRace?.id === race.id}
-                          onClick={() => handleSelectRace(race)}
-                        />
-                      ))
-                    ) : (
-                      <div className="p-12 text-center text-sm text-muted-foreground font-medium">
-                        No official races slated for this calendar day.
-                      </div>
-                    )}
+        {/* --- DYNAMIC GRID LAYOUT --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start transition-all">
+          <div
+            className={`
+            ${
+              isCalendarMode
+                ? panelOpen
+                  ? "lg:col-span-4"
+                  : "lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-start"
+                : panelOpen
+                  ? "lg:col-span-3"
+                  : "lg:col-span-12"
+            }
+          `}
+          >
+            {isCalendarMode && (
+              <div
+                className={`${!panelOpen ? "lg:col-span-5 flex lg:justify-center mb-8 lg:mb-0" : "w-full mb-6"}`}
+              >
+                <div
+                  className={`rounded-2xl border border-border bg-card shadow-sm flex items-center justify-center transition-all mx-auto w-fit ${calendarScaleClasses}`}
+                >
+                  <div
+                    className={`transform-origin-center ${!panelOpen ? "scale-100 xl:scale-105" : "scale-100"}`}
+                  >
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      defaultMonth={selectedDate || new Date()}
+                      modifiers={{ hasRace: raceDays }}
+                      modifiersClassNames={{
+                        hasRace:
+                          "font-black text-primary bg-primary/10 border border-primary/20 rounded-md",
+                      }}
+                      className="w-full flex justify-center text-sm font-medium mx-auto"
+                    />
                   </div>
                 </div>
-              )
-            ) : grouped.length > 0 ? (
-              <div className="space-y-6">
-                {grouped.map(([date, races]) => (
-                  <div
-                    key={date}
-                    className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
-                  >
-                    <div className="border-b border-border bg-muted/20 px-5 py-3">
+              </div>
+            )}
+
+            <div
+              className={`${isCalendarMode && !panelOpen ? "lg:col-span-7" : "w-full"} space-y-4`}
+            >
+              {racesLoading ? (
+                <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
+                  <p className="text-sm font-semibold text-muted-foreground">
+                    Loading races...
+                  </p>
+                </div>
+              ) : isCalendarMode ? (
+                selectedDate && (
+                  <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
+                    <div className="border-b border-border bg-muted/20 px-6 py-4 flex items-center gap-2">
+                      <CalendarDays className="h-4 w-4 text-muted-foreground" />
                       <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
                         {fmtShort(date)}
                       </span>
                     </div>
-                    <div className="divide-y divide-border">
-                      {races.map((race) => (
-                        <RaceRow
-                          key={race.id}
-                          race={race}
-                          selected={selectedRace?.id === race.id}
-                          onClick={() => handleSelectRace(race)}
-                        />
-                      ))}
+                    <div className="divide-y divide-border flex-1">
+                      {calendarFilteredRaces.length > 0 ? (
+                        calendarFilteredRaces.map((race) => (
+                          <RaceRow
+                            key={race.id}
+                            race={race}
+                            selected={selectedRaceId === race.id}
+                            onClick={() => handleSelectRace(race.id)}
+                          />
+                        ))
+                      ) : (
+                        <div className="p-12 text-center text-sm text-muted-foreground font-medium">
+                          No official races slated for this calendar day.
+                        </div>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
-                <p className="text-sm font-semibold text-muted-foreground">
-                  No matches for query found.
-                </p>
-              </div>
-            )
-          }
-          detailSlot={
-            selectedRace && (
-              <ScheduleDetailFrame
-                title={
-                  <h2 className="text-3xl font-bold font-headline text-primary tracking-tight leading-tight">
-                    {selectedRace.title}
-                  </h2>
-                }
-                subtitle={
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2 font-medium tracking-tight">
-                    <span className="px-2.5 py-0.5 rounded border border-border bg-card">
-                      {selectedRace.className}
-                    </span>
-                    <span>
-                      {selectedRace.distance} • {selectedRace.surface} Phase Run
-                    </span>
-                  </div>
-                }
-                headerClass="bg-background border-b border-border text-foreground px-8 py-6"
-                closeButtonClass="border border-border bg-card text-muted-foreground hover:bg-background hover:text-foreground"
-                containerClass="border-border bg-card shadow-lg"
-                onClose={() => setSelectedRace(null)}
-              >
-                <div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">
-                    Confirmed Runner Line-up
-                  </h3>
-
-                  {horses && horses.length > 0 ? (
-                    <div className="overflow-hidden rounded-xl border border-border bg-background shadow-sm">
-                      <table className="w-full text-left">
-                        <thead className="bg-muted/30 border-b border-border">
-                          <tr>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground w-20 text-center">
-                              Cloth #
-                            </th>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                              Nominee Registration
-                            </th>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                              Active Jockey
-                            </th>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden md:table-cell">
-                              Reg Trainer
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border text-sm bg-card">
-                          {horses
-                            .slice(
-                              selectedRace.id % 2,
-                              (selectedRace.id % 2) + 7
-                            )
-                            .map((horse, idx) => (
-                              <tr
-                                key={idx}
-                                className="hover:bg-primary/5 transition-colors cursor-default"
-                              >
-                                <td className="px-6 py-4.5 text-center">
-                                  <span className="flex h-6 w-6 items-center justify-center rounded-md border border-border bg-background shadow-sm text-xs font-black text-foreground mx-auto">
-                                    {idx + 1}
-                                  </span>
-                                </td>
-                                <td className="px-6 py-4.5 font-bold font-headline text-primary text-base leading-snug">
-                                  {horse.name}
-                                </td>
-                                <td className="px-6 py-4.5 font-medium text-foreground">
-                                  {getJockeyName(horse)}
-                                </td>
-                                <td className="px-6 py-4.5 text-muted-foreground hidden md:table-cell">
-                                  {horse.ownerId}
-                                </td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="rounded-2xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground font-medium bg-background">
-                      No verified roster loaded. Final draws unlisted.
-                    </div>
-                  )}
-                </div>
-
-                <div className="border-t border-border pt-10">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">
-                    Racing Officials Board
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {officials.map((o) => (
-                      <div
-                        key={o.initials}
-                        className="flex items-center gap-4 rounded-xl border border-border p-4 bg-background"
-                      >
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg shadow-sm bg-card text-primary text-sm font-black border border-border">
-                          {o.initials}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-black font-headline text-foreground truncate leading-tight">
-                            {o.name}
-                          </p>
-                          <p className="text-xs font-medium text-muted-foreground truncate leading-tight mt-1">
-                            {o.title}
-                          </p>
-                        </div>
+                )
+              ) : grouped.length > 0 ? (
+                <div className="space-y-6">
+                  {grouped.map(([date, races]) => (
+                    <div
+                      key={date}
+                      className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+                    >
+                      <div className="border-b border-border bg-muted/20 px-5 py-3">
+                        <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
+                          {fmtShort(date)}
+                        </span>
                       </div>
-                    ))}
-                  </div>
+                      <div className="divide-y divide-border">
+                        {races.map((race) => (
+                          <RaceRow
+                            key={race.id}
+                            race={race}
+                            selected={selectedRaceId === race.id}
+                            onClick={() => handleSelectRace(race.id)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </ScheduleDetailFrame>
-            )
-          }
-        />
+              ) : (
+                <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
+                  <p className="text-sm font-semibold text-muted-foreground">
+                    No matches for query found.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT SIDE DETAIL PANEL */}
+          {panelOpen && (
+            <div
+              className={`${isCalendarMode ? "lg:col-span-8" : "lg:col-span-9"} lg:sticky lg:top-8 overflow-hidden border border-border bg-card rounded-2xl shadow-lg flex flex-col min-h-[500px] xl:min-h-[640px] animate-in fade-in slide-in-from-right-8 duration-200`}
+            >
+              {detailLoading ? (
+                <div className="flex-1 flex items-center justify-center p-8">
+                  <p className="text-sm font-semibold text-muted-foreground">
+                    Loading race details...
+                  </p>
+                </div>
+              ) : detailError ? (
+                <div className="flex-1 flex items-center justify-center p-8">
+                  <p className="text-sm font-semibold text-destructive">
+                    {detailError}
+                  </p>
+                </div>
+              ) : raceDetail ? (
+                <>
+                  <div className="flex items-start justify-between gap-4 px-8 py-6 border-b border-border bg-background">
+                    <div className="min-w-0 flex-1">
+                      {tournamentName && (
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 truncate">
+                          {tournamentName}
+                        </p>
+                      )}
+                      <h2 className="text-3xl font-bold font-headline text-primary tracking-tight leading-tight">
+                        {raceDetail.name}
+                      </h2>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2 font-medium tracking-tight flex-wrap">
+                        <span className="px-2 py-0.5 rounded border border-border bg-card">
+                          {raceDetail.roundName || "Standard"}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {formatDateTime(raceDetail.scheduledAt)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {raceDetail.venue}
+                        </span>
+                        {raceDetail.distanceMeters && (
+                          <span className="flex items-center gap-1">
+                            <Trophy className="h-3 w-3" />
+                            {raceDetail.distanceMeters}m
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleCloseDetail}
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-background hover:text-foreground transition-all shadow-sm active:scale-95"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="flex-1 p-8 space-y-10 overflow-y-auto custom-scrollbar">
+                    <div>
+                      <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">
+                        Race Entries - Horses & Jockeys
+                      </h3>
+                      {raceDetail.entries && raceDetail.entries.length > 0 ? (
+                        <div className="overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+                          <table className="w-full text-left">
+                            <thead className="bg-muted/30 border-b border-border">
+                              <tr>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground w-20 text-center">
+                                  #
+                                </th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                  Horse Name
+                                </th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">
+                                  Lane
+                                </th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                  Jockey Name
+                                </th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                  weight
+                                </th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden md:table-cell">
+                                  Status
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border text-sm bg-card">
+                              {raceDetail.entries.map((entry, idx) => (
+                                <tr
+                                  key={entry.id || idx}
+                                  className="hover:bg-primary/5 transition-colors cursor-default"
+                                >
+                                  <td className="px-6 py-4.5 text-center">
+                                    <span className="flex h-6 w-6 items-center justify-center rounded-md border border-border bg-background shadow-sm text-xs font-black text-foreground mx-auto">
+                                      {entry.clothNumber || idx + 1}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4.5 font-bold font-headline text-primary text-base leading-snug">
+                                    {entry.name}
+                                  </td>
+                                  <td className="px-6 py-4.5 text-xs text-muted-foreground font-mono break-all">
+                                    {entry.laneNumber}
+                                  </td>
+                                  <td className="px-6 py-4.5 font-medium text-foreground">
+                                    {entry.jockeyName}
+                                  </td>
+                                  <td className="px-6 py-4.5 text-muted-foreground hidden md:table-cell">
+                                    {entry.weightKg}
+                                  </td>
+                                  <td className="px-6 py-4.5 font-medium text-foreground">
+                                    {entry.entryStatus}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="rounded-2xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground font-medium bg-background">
+                          No horse entries available yet.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
