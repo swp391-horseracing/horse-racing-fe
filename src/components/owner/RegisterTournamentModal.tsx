@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import type { Horse, Tournament } from "../../hooks/useOwner";
 
 interface RegisterTournamentModalProps {
@@ -20,16 +20,11 @@ export function RegisterTournamentModal({
   initialTournamentId,
   onSubmit,
 }: RegisterTournamentModalProps) {
-  const [horseId, setHorseId] = useState<string>("");
-  const [tournId, setTournId] = useState<number | "">("");
-
-  // Sync initial props to local state when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      setHorseId(initialHorseId ?? "");
-      setTournId(initialTournamentId ?? "");
-    }
-  }, [isOpen, initialHorseId, initialTournamentId]);
+  // Initialize state directly from props since the component remounts on key change
+  const [horseId, setHorseId] = useState<string>(initialHorseId ?? "");
+  const [tournId, setTournId] = useState<number | "">(
+    initialTournamentId ?? ""
+  );
 
   if (!isOpen) return null;
 

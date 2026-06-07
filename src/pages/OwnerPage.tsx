@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { useOwner } from "../hooks/useOwner.ts";
@@ -102,7 +102,6 @@ export default function OwnerPage() {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     const name = data.get("name") as string;
-
     if (
       horses.some(
         (h) =>
@@ -115,20 +114,18 @@ export default function OwnerPage() {
       );
       return;
     }
-
     try {
       await addHorse({
         name,
-        breed: data.get("breed") as string,
-        birthDate: data.get("birth_date") as string,
-        weightKg: parseFloat(data.get("weight_kg") as string),
-        imageUrl: (data.get("image_url") as string) || null,
-        healthStatus: data.get("health_status") as string,
-        status: (data.get("status") as string) || "active",
+        breed: data.get("breed"),
+        dob: data.get("dob"),
+        gender: data.get("gender"),
+        microchipId: "123",
+        associationCode: data.get("associationCode"),
       });
       setShowAddHorse(false);
       addToast(`Horse "${name}" registered successfully!`, "success");
-    } catch (error) {
+    } catch {
       addToast("Failed to save horse details.", "error");
     }
   };
@@ -144,7 +141,8 @@ export default function OwnerPage() {
     try {
       await retireHorse(id);
       addToast("Horse status set to Retired.", "info");
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as Error;
       addToast(error.message || "Cannot retire horse", "error");
     }
   };
@@ -254,8 +252,8 @@ export default function OwnerPage() {
             tournaments={tournaments}
             registrations={registrations}
             onOpenRegisterModal={(h: string | null, t: number | null) => {
-              setSelectedHorseId(h ?? null);
-              setSelectedTournamentId(t ?? null);
+              setSelectedHorseId(h);
+              setSelectedTournamentId(t);
               setShowRegisterTournament(true);
             }}
           />
@@ -331,6 +329,7 @@ export default function OwnerPage() {
         />
 
         <RegisterTournamentModal
+          key={`register-modal-${showRegisterTournament}-${selectedHorseId}-${selectedTournamentId}`}
           isOpen={showRegisterTournament}
           onClose={() => setShowRegisterTournament(false)}
           horses={horses}
@@ -351,7 +350,51 @@ export default function OwnerPage() {
   );
 }
 
-// ─── Components (Unchanged) ────────────────────────────────────────────────────
+// ─── Sub-Component Interfaces ──────────────────────────────────────────────────
+
+interface DashboardOverviewProps {
+  horses: Horse[];
+  tournaments: Tournament[];
+  registrations: TournamentRegistration[];
+  invitations: Invitation[];
+  jockeys: Jockey[];
+  setActiveTab: (tab: string) => void;
+}
+
+interface HorseManagementProps {
+  horses: Horse[];
+  isHorseLocked: (id: string) => boolean;
+  onRetire: (id: string) => void;
+  onOpenAddModal: () => void;
+}
+
+interface RaceRegisterProps {
+  horses: Horse[];
+  tournaments: Tournament[];
+  registrations: TournamentRegistration[];
+  onOpenRegisterModal: (
+    horseId: string | null,
+    tournamentId: number | null
+  ) => void;
+}
+
+interface JockeyRosterManagementProps {
+  horses: Horse[];
+  registrations: TournamentRegistration[];
+  tournaments: Tournament[];
+  jockeys: Jockey[];
+  invitations: Invitation[];
+  onOpenInviteModal: (horseId: string, tournamentId: number) => void;
+  onConfirmPairing: (invId: number) => void;
+  onCancelInvite: (invId: number) => void;
+}
+
+interface OwnerScheduleViewProps {
+  rides: MyRide[];
+  loading: boolean;
+}
+
+// ─── Sub-Components ────────────────────────────────────────────────────────────
 
 function DashboardOverview({
   horses,
@@ -360,7 +403,7 @@ function DashboardOverview({
   invitations,
   jockeys,
   setActiveTab,
-}: any) {
+}: DashboardOverviewProps) {
   const activeHorsesCount = horses.filter(
     (h: Horse) => h.status === "Active"
   ).length;
@@ -489,7 +532,7 @@ function HorseManagement({
   isHorseLocked,
   onRetire,
   onOpenAddModal,
-}: any) {
+}: HorseManagementProps) {
   return (
     <div className="p-5 space-y-5 max-w-6xl mx-auto">
       <div className="flex items-center justify-between border-b pb-4">
@@ -567,17 +610,24 @@ function HorseManagement({
   );
 }
 
-function RaceRegister({ tournaments, onOpenRegisterModal }: any) {
+const activeFilterOptions = [
+  "All",
+  "Live now",
+  "Registration open",
+  "Upcoming",
+  "Completed",
+] as const;
+type ActiveFilterType = (typeof activeFilterOptions)[number];
+
+function RaceRegister({ tournaments, onOpenRegisterModal }: RaceRegisterProps) {
   const [search, setSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState<
-    "All" | "Live now" | "Registration open" | "Upcoming" | "Completed"
-  >("All");
+  const [activeFilter, setActiveFilter] = useState<ActiveFilterType>("All");
 
   const filtered = tournaments.filter((t: Tournament) => {
     const matchSearch =
       t.name.toLowerCase().includes(search.toLowerCase()) ||
       t.allowedBreed.toLowerCase().includes(search.toLowerCase());
-    const statusMap: Record<string, string[]> = {
+    const statusMap: Record<ActiveFilterType, string[]> = {
       All: [
         "Registration Open",
         "Registration Closed",
@@ -613,22 +663,20 @@ function RaceRegister({ tournaments, onOpenRegisterModal }: any) {
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
-        {["All", "Live now", "Registration open", "Upcoming", "Completed"].map(
-          (tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveFilter(tab as any)}
-              className={cn(
-                "px-4 py-1.5 rounded-full text-[13px] font-bold border",
-                activeFilter === tab
-                  ? "bg-slate-800 text-white"
-                  : "bg-white text-slate-600 border-slate-200"
-              )}
-            >
-              {tab}
-            </button>
-          )
-        )}
+        {activeFilterOptions.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveFilter(tab)}
+            className={cn(
+              "px-4 py-1.5 rounded-full text-[13px] font-bold border",
+              activeFilter === tab
+                ? "bg-slate-800 text-white"
+                : "bg-white text-slate-600 border-slate-200"
+            )}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -667,7 +715,7 @@ function JockeyRosterManagement({
   onOpenInviteModal,
   onConfirmPairing,
   onCancelInvite,
-}: any) {
+}: JockeyRosterManagementProps) {
   const approved = registrations.filter(
     (r: TournamentRegistration) => r.status === "Approved"
   );
@@ -779,11 +827,12 @@ function JockeyRosterManagement({
   );
 }
 
-function OwnerScheduleView({ rides, loading }: any) {
+type OwnerStatusFilterType = "All" | "scheduled" | "live" | "completed";
+
+function OwnerScheduleView({ rides, loading }: OwnerScheduleViewProps) {
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<
-    "All" | "scheduled" | "live" | "completed"
-  >("All");
+  const [statusFilter, setStatusFilter] =
+    useState<OwnerStatusFilterType>("All");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedRideId, setSelectedRideId] = useState<string | null>(null);
 
@@ -847,7 +896,7 @@ function OwnerScheduleView({ rides, loading }: any) {
           ].map((item) => (
             <button
               key={item.key}
-              onClick={() => setStatusFilter(item.key as any)}
+              onClick={() => setStatusFilter(item.key as OwnerStatusFilterType)}
               className={cn(
                 "px-4 py-2.5 rounded-xl border text-xs font-bold transition shadow-xs",
                 statusFilter === item.key

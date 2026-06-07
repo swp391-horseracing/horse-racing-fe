@@ -148,8 +148,6 @@ function RaceRow({
   );
 }
 
-// ─── Page ────────────────────────────────────────────────────────────────────
-
 export default function RacesPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -185,38 +183,19 @@ export default function RacesPage() {
   const [selectedRaceId, setSelectedRaceId] = useState<string | null>(
     routeState?.raceId ?? null
   );
+
   const [viewMonth, setViewMonth] = useState<Date>(selectedDate || new Date());
 
+  // Extracted computed primitive variables to solve ESLint dependency checks
+  const viewYear = viewMonth.getFullYear();
+  const viewMonthIndex = viewMonth.getMonth();
+
+  // Fetch races when viewed month changes
   useEffect(() => {
-    const year = viewMonth.getFullYear();
-    const month = viewMonth.getMonth() + 1;
-    console.log("Update API");
-    loadRacesByMonth(year, month);
-  }, [viewMonth.getFullYear(), viewMonth.getMonth(), loadRacesByMonth]);
+    loadRacesByMonth(viewYear, viewMonthIndex + 1);
+  }, [viewYear, viewMonthIndex, loadRacesByMonth]);
 
-  // [Calendar Sync Effect]
-  useEffect(() => {
-    if (selectedDate) {
-      setViewMonth((prev) => {
-        const prevYear = prev.getFullYear();
-        const prevMonth = prev.getMonth();
-        const nextYear = selectedDate.getFullYear();
-        const nextMonth = selectedDate.getMonth();
-
-        if (prevYear !== nextYear || prevMonth !== nextMonth) {
-          return selectedDate;
-        } else {
-          console.log("Update Date");
-          return prev;
-        }
-      });
-    }
-  }, [selectedDate]);
-
-  const handleMonthChange = useCallback((newMonth: Date) => {
-    setViewMonth(newMonth);
-  }, []);
-
+  // Fetch race detail when selectedRaceId changes
   useEffect(() => {
     if (selectedRaceId) {
       loadDetail(selectedRaceId);
@@ -362,7 +341,6 @@ export default function RacesPage() {
           </div>
         </div>
 
-        {/* --- DYNAMIC GRID LAYOUT --- */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start transition-all">
           <div
             className={`
@@ -383,9 +361,14 @@ export default function RacesPage() {
               >
                 <ScheduleCalendar
                   selectedDate={selectedDate}
-                  onSelect={setSelectedDate}
+                  onSelect={(date) => {
+                    setSelectedDate(date);
+                    if (date) {
+                      setViewMonth(date);
+                    }
+                  }}
                   defaultMonth={viewMonth}
-                  onMonthChange={handleMonthChange}
+                  onMonthChange={setViewMonth}
                   raceDays={raceDays}
                   highlightClass="font-black text-primary bg-primary/10 border border-primary/20 rounded-md"
                 />
@@ -463,7 +446,6 @@ export default function RacesPage() {
             </div>
           </div>
 
-          {/* RIGHT SIDE DETAIL PANEL */}
           {panelOpen && (
             <div
               className={`${isCalendarMode ? "lg:col-span-8" : "lg:col-span-9"} lg:sticky lg:top-8 overflow-hidden border border-border bg-card rounded-2xl shadow-lg flex flex-col min-h-[500px] xl:min-h-[640px] animate-in fade-in slide-in-from-right-8 duration-200`}
