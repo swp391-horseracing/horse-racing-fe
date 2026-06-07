@@ -1,4 +1,4 @@
-import api from "../lib/api.ts";
+import api from "../lib/api";
 
 export interface Horse {
   id: string;
@@ -13,6 +13,7 @@ export interface Horse {
   createdAt: string;
   updatedAt: string;
 }
+
 export interface HorseListResponse {
   data: Horse[];
   pagination: {
@@ -23,20 +24,39 @@ export interface HorseListResponse {
   };
 }
 
-export const HorseService = {
-  getHorses: async (page = 1, limit = 10): Promise<HorseListResponse> => {
-    const response = await api.get("/horses", {
-      params: {
-        page,
-        limit,
-      },
-    });
+export interface RetireHorseResponse {
+  message: string;
+  horse: Horse;
+}
 
+export const HorseService = {
+  async getHorses(page: number = 1, limit: number = 10) {
+    const response = await api.get("/horses", { params: { page, limit } });
     return response.data;
   },
 
-  getHorseById: async (id: string): Promise<Horse> => {
+  async getHorseById(id: string) {
     const response = await api.get(`/horses/${id}`);
-    return response.data.horse;
+    return response.data;
+  },
+
+  async getHorsesByOwnerId(
+    ownerId: string,
+    params?: {
+      search?: string;
+      breed?: string;
+      isRetired?: string;
+      page?: number;
+      limit?: number;
+    }
+  ): Promise<HorseListResponse> {
+    const response = await api.get(`/horses/owner/${ownerId}`, { params });
+    return response.data;
+  },
+
+  // NEW: Retire a horse
+  async retireHorse(id: string): Promise<RetireHorseResponse> {
+    const response = await api.post(`/horses/${id}/retire`);
+    return response.data;
   },
 };
