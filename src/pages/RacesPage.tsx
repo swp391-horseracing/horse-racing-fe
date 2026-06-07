@@ -549,7 +549,7 @@ export default function RacesPage() {
                                   {horse.name}
                                 </td>
                                 <td className="px-6 py-4.5 font-medium text-foreground">
-                                  {horse.jockey || "—"}
+                                  {(horse as any).jockey || "—"}
                                 </td>
                                 <td className="px-6 py-4.5 text-muted-foreground hidden md:table-cell">
                                   {horse.ownerId}

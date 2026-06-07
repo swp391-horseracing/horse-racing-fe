@@ -2,9 +2,8 @@ import { useState, useMemo, useCallback } from "react";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
-import { useHorseList } from "../hooks/useHorseList.ts";
+import useHorse from "../hooks/useHorse.ts"; 
 import { useInvitations } from "../hooks/useInvitations.ts";
-import type { Horse } from "../types/horse.ts";
 import type { Invitation, InvStatus } from "../services/invitationService.ts";
 
 import {
@@ -238,7 +237,7 @@ export default function JockeyPage() {
   const [rides, setRides] = useState<MyRide[]>(myRidesMock);
 
   // Shared hooks data
-  const { horseList } = useHorseList();
+  const { horses } = useHorse(); 
   const { invitations, updateInvitationStatus } = useInvitations();
 
   const [selectedInvId, setSelectedInvId] = useState<number | null>(1);
@@ -263,10 +262,7 @@ export default function JockeyPage() {
   const handleDeclineInvitation = (id: number) => {
     const target = invitations.find((inv) => inv.id === id);
     updateInvitationStatus(id, "Declined");
-    addToast(
-      `You declined the invitation to ride ${target?.horse}. Deep access revoked.`,
-      "info"
-    );
+    addToast(`You declined the invitation to ride ${target?.horse}. Deep access revoked.`, "info");
   };
 
   const handleAcceptRide = (id: string) => {
@@ -299,7 +295,7 @@ export default function JockeyPage() {
           <DashboardOverview
             data={invitations}
             setActiveTab={(tab) => setActive(tab)}
-            horseList={horseList}
+            horseList={horses} 
           />
         );
       case ROUTES.JOCKEY_SCHEDULE:
@@ -379,7 +375,7 @@ function DashboardOverview({
 }: {
   data: Invitation[];
   setActiveTab: (k: string) => void;
-  horseList: Horse[];
+  horseList: any[];
 }) {
   const pendingInvites = data.filter((inv) => inv.status === "Pending");
   const activeRaces = data.filter((inv) => inv.status === "Accepted");
@@ -590,7 +586,7 @@ function DashboardOverview({
             </div>
 
             <div className="space-y-2.5">
-              {horseList.map((horse, idx) => (
+              {horseList.map((horse: any, idx: number) => (
                 <div
                   key={horse.id}
                   className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-slate-50/50 hover:border-slate-200 transition"
@@ -610,7 +606,7 @@ function DashboardOverview({
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-xs font-bold text-[#064E3B] font-label block">
-                      {horse.performance || horse.ownerId}
+                      {horse.owner}
                     </span>
                     <span className="text-[9px] text-slate-400 font-semibold block">
                       {horse.status || "Active"}
