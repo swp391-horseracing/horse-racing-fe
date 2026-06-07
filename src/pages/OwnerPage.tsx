@@ -270,6 +270,9 @@ export default function OwnerPage() {
             isHorseLocked={isHorseLocked}
             onRetire={handleRetireHorse}
             onOpenAddModal={() => setShowAddHorse(true)}
+            page={page}
+            pagination={pagination}
+            setPage={setPage}
           />
         );
       case "/owner/raceRegister":
@@ -400,6 +403,13 @@ interface HorseManagementProps {
   isHorseLocked: (id: string) => boolean;
   onRetire: (id: string) => void;
   onOpenAddModal: () => void;
+  page: number;
+  pagination: {
+    page: number;
+    totalPages: number;
+  };
+
+  setPage: React.Dispatch<React.SetStateAction<number>>;
 }
 
 interface RaceRegisterProps {
@@ -592,6 +602,9 @@ function HorseManagement({
   isHorseLocked,
   onRetire,
   onOpenAddModal,
+  page,
+  pagination,
+  setPage,
 }: HorseManagementProps) {
   return (
     <div className="p-5 space-y-5 max-w-6xl mx-auto">
@@ -666,6 +679,29 @@ function HorseManagement({
             );
           })}
       </div>
+      {pagination.totalPages > 1 && (
+        <div className="flex items-center gap-2 pt-3">
+          <button
+            disabled={page <= 1}
+            onClick={() => setPage(page - 1)}
+            className="border rounded-lg px-3 py-1"
+          >
+            Prev
+          </button>
+
+          <span>
+            {pagination.page} / {pagination.totalPages}
+          </span>
+
+          <button
+            disabled={page >= pagination.totalPages}
+            onClick={() => setPage(page + 1)}
+            className="border rounded-lg px-3 py-1"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }
