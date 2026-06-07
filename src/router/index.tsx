@@ -10,11 +10,11 @@ import DashboardPage from "../pages/DashboardPage.tsx";
 import CalendarPage from "../pages/CalendarPage.tsx";
 import HorsePage from "../pages/HorsePage.tsx";
 import TournamentsPage from "../pages/TournamentsPage.tsx";
-import RacesPage from "../pages/RacesPage.tsx"; // Corrected path to match other pages
+import RacesPage from "../pages/RacesPage.tsx";
 import JockeyPage from "../pages/JockeyPage.tsx";
-// import OwnerPage from "../pages/OwnerPage.tsx";
 import AdminPage from "../pages/AdminPage.tsx";
 import UserPage from "../pages/UserPage.tsx";
+import OwnerPage from "../pages/OwnerPage.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -26,19 +26,16 @@ export const router = createBrowserRouter([
     path: ROUTES.GUIDE,
     element: <GuidesPage />,
   },
-
   {
     path: ROUTES.LOGIN,
     element: <LoginLayout />,
     children: [{ index: true, element: <LoginPage /> }],
   },
-
   {
     path: ROUTES.REGISTER,
     element: <LoginLayout />,
     children: [{ index: true, element: <LoginPage /> }],
   },
-
   {
     element: <MainLayout />,
     children: [
@@ -58,8 +55,6 @@ export const router = createBrowserRouter([
         path: ROUTES.TOURNAMENTS,
         element: <TournamentsPage />,
       },
-
-      // ADDED RACES ROUTES HERE:
       {
         path: ROUTES.RACES,
         element: <RacesPage />,
@@ -68,11 +63,17 @@ export const router = createBrowserRouter([
         path: ROUTES.RACE_DETAIL,
         element: <RacesPage />,
       },
-
       {
         path: ROUTES.JOCKEY_DASHBOARD,
         element: <JockeyPage />,
       },
+
+      // 2. Add the Owner Dashboard route here
+      {
+        path: ROUTES.OWNER_DASHBOARD,
+        element: <OwnerPage />,
+      },
+
       {
         path: ROUTES.ADMIN_DASHBOARD,
         element: <AdminPage />,
