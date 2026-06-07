@@ -50,7 +50,7 @@ export interface Invitation {
   jockeyId: number;
   horseId: number;
   tournamentId: number;
-  status: "Pending" | "Accepted" | "Declined" | "Superseded";
+  status: "Pending" | "Accepted" | "Declined" | "Superseded" | "Confirmed"; // <-- Added "Confirmed"
 }
 
 // ─── Initial Mock Data ───────────────────────────────────────────────────────
@@ -172,7 +172,6 @@ export function useOwnerData() {
     useState<Invitation[]>(initialInvitations);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Simulating asynchronous initialization
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
@@ -243,7 +242,7 @@ export function useOwnerData() {
     setInvitations((prev) =>
       prev.map((inv) => {
         if (inv.id === invId) {
-          return { ...inv, status: "Accepted" };
+          return { ...inv, status: "Confirmed" }; // <-- Transition to "Confirmed" when pairing is finalized
         }
         if (
           inv.horseId === target.horseId &&

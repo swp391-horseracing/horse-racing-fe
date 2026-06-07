@@ -189,7 +189,7 @@ const Icons = {
 };
 
 const statusConfig: Record<
-  InvStatus,
+  InvStatus | "Confirmed",
   {
     color: string;
     bg: string;
@@ -212,6 +212,13 @@ const statusConfig: Record<
     Icon: Icons.CheckCircle,
     label: "Accepted",
   },
+  Confirmed: {
+    color: "text-[#064E3B]",
+    bg: "bg-[#064E3B]/10",
+    border: "border-[#064E3B]/20",
+    Icon: Icons.CheckCircle,
+    label: "Confirmed",
+  },
   Declined: {
     color: "text-rose-700",
     bg: "bg-rose-500/10",
@@ -227,7 +234,7 @@ const statusConfig: Record<
     label: "Expired",
   },
   Cancelled: {
-    color: "text-slate-505",
+    color: "text-slate-500",
     bg: "bg-slate-500/10",
     border: "border-slate-500/20",
     Icon: Icons.XCircle,
@@ -788,7 +795,7 @@ function RidingSchedule({
             <h2 className="text-xl font-bold font-headline text-[#064E3B]">
               My Rides
             </h2>
-            <p className="text-xs text-slate-555 font-semibold mt-1">
+            <p className="text-xs text-slate-500 font-semibold mt-1">
               Your confirmed race assignments and schedule overview
             </p>
           </div>
@@ -1021,7 +1028,7 @@ function RidingScheduleDetailPanel({
             <div className="bg-white border border-[#064E3B]/10 rounded-xl overflow-hidden shadow-sm">
               <div className="divide-y divide-slate-100 text-sm">
                 <div className="flex items-center justify-between px-5 py-3">
-                  <span className="text-slate-555 flex items-center gap-2 font-medium">
+                  <span className="text-slate-500 flex items-center gap-2 font-medium">
                     <Compass className="w-4 h-4 text-slate-400" /> Distance
                   </span>
                   <span className="font-bold text-slate-800">
@@ -1407,7 +1414,7 @@ function InvitationsView({
                   "rounded-xl px-3 py-2 text-xs font-bold whitespace-nowrap",
                   filter === f
                     ? "bg-[#064E3B] text-white"
-                    : "bg-[#F4F6F5] text-slate-555"
+                    : "bg-[#F4F6F5] text-slate-500"
                 )}
               >
                 {f}
@@ -1518,7 +1525,7 @@ function InvitationDetail({
           <h2 className="text-2xl font-black font-headline text-[#064E3B] tracking-tight">
             {inv.horse}
           </h2>
-          <p className="text-xs font-semibold text-slate-555">
+          <p className="text-xs font-semibold text-slate-500">
             {inv.tournament}
           </p>
         </div>

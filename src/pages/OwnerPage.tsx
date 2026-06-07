@@ -341,13 +341,13 @@ export default function OwnerPage() {
               className={cn(
                 "p-3 rounded-lg border shadow-lg backdrop-blur-md flex items-center gap-2 pointer-events-auto transform animate-in slide-in-from-top duration-200 text-xs font-semibold",
                 t.type === "success" &&
-                  "bg-emerald-50 border-emerald-200 text-emerald-955",
+                  "bg-emerald-50 border-emerald-200 text-emerald-950",
                 t.type === "error" &&
-                  "bg-rose-50 border-rose-200 text-rose-955",
+                  "bg-rose-50 border-rose-200 text-rose-950",
                 t.type === "warning" &&
                   "bg-amber-50 border-amber-200 text-amber-955",
                 t.type === "info" &&
-                  "bg-indigo-50 border-indigo-200 text-indigo-955"
+                  "bg-indigo-50 border-indigo-200 text-indigo-950"
               )}
             >
               {t.type === "success" && (
@@ -380,7 +380,7 @@ export default function OwnerPage() {
                 </h3>
                 <button
                   onClick={() => setShowAddHorse(false)}
-                  className="text-slate-400 hover:text-slate-655 text-sm"
+                  className="text-slate-400 hover:text-slate-600 text-sm"
                 >
                   ✕
                 </button>
@@ -456,7 +456,7 @@ export default function OwnerPage() {
                   <button
                     type="button"
                     onClick={() => setShowAddHorse(false)}
-                    className="rounded-md border px-3 py-1.5 text-xs text-slate-555 hover:bg-slate-50"
+                    className="rounded-md border px-3 py-1.5 text-xs text-slate-500 hover:bg-slate-50"
                   >
                     Cancel
                   </button>
@@ -482,7 +482,7 @@ export default function OwnerPage() {
                 </h3>
                 <button
                   onClick={() => setShowRegisterTournament(false)}
-                  className="text-slate-400 hover:text-slate-655 text-sm"
+                  className="text-slate-400 hover:text-slate-600 text-sm"
                 >
                   ✕
                 </button>
@@ -540,7 +540,7 @@ export default function OwnerPage() {
                   <button
                     type="button"
                     onClick={() => setShowRegisterTournament(false)}
-                    className="rounded-md border px-3 py-1.5 text-xs text-slate-555 hover:bg-slate-50"
+                    className="rounded-md border px-3 py-1.5 text-xs text-slate-500 hover:bg-slate-50"
                   >
                     Cancel
                   </button>
@@ -566,7 +566,7 @@ export default function OwnerPage() {
                 </h3>
                 <button
                   onClick={() => setShowInviteJockey(false)}
-                  className="text-slate-400 hover:text-slate-655 text-sm"
+                  className="text-slate-400 hover:text-slate-600 text-sm"
                 >
                   ✕
                 </button>
@@ -620,7 +620,7 @@ function DashboardOverview({
         <h2 className="text-xl font-black text-[#064E3B] tracking-tight">
           Owner Dashboard
         </h2>
-        <p className="text-xs text-slate-550 mt-1">
+        <p className="text-xs text-slate-500 mt-1">
           Manage stable profiles, registrations, and jockey invitations.
         </p>
       </div>
@@ -685,12 +685,12 @@ function DashboardOverview({
                   className="py-2.5 flex items-center justify-between"
                 >
                   <div>
-                    <p className="font-bold text-slate-850">{horse.name}</p>
+                    <p className="font-bold text-slate-800">{horse.name}</p>
                     <p className="text-slate-400 text-[10px]">
                       {horse.breed} • {horse.gender}
                     </p>
                   </div>
-                  <span className="bg-emerald-50 text-emerald-850 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded border border-emerald-150">
+                  <span className="bg-emerald-50 text-emerald-800 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded border border-emerald-200">
                     {horse.status}
                   </span>
                 </div>
@@ -711,7 +711,7 @@ function DashboardOverview({
                 className="p-2.5 bg-slate-50/50 rounded-lg flex items-center justify-between text-xs border border-slate-100"
               >
                 <div>
-                  <p className="font-bold text-slate-850">{j.name}</p>
+                  <p className="font-bold text-slate-800">{j.name}</p>
                   <p className="text-[10px] text-slate-400">{j.club}</p>
                 </div>
                 <div className="text-right">
@@ -751,7 +751,7 @@ function HorseManagement({
           <h2 className="text-xl font-black text-[#064E3B] tracking-tight">
             Horse Registry
           </h2>
-          <p className="text-xs text-slate-555 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Manage your stable profiles, view horse details, and retire active
             horses.
           </p>
@@ -816,7 +816,7 @@ function HorseManagement({
                   <button
                     onClick={() => onRetire(horse.id)}
                     disabled={locked}
-                    className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 hover:border-rose-250 text-slate-500 hover:text-rose-655 py-2 transition disabled:opacity-40 disabled:hover:border-slate-200 disabled:hover:text-slate-500"
+                    className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 hover:border-rose-300 text-slate-500 hover:text-rose-600 py-2 transition disabled:opacity-40 disabled:hover:border-slate-200 disabled:hover:text-slate-500"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Retire Horse</span>
@@ -922,7 +922,7 @@ function RaceRegister({
   const getTopRightLabel = (t: Tournament) => {
     if (t.status === "Live")
       return (
-        <span className="text-[12px] text-slate-505 font-medium">
+        <span className="text-[12px] text-slate-500 font-medium">
           Round 1 of 3
         </span>
       );
@@ -935,13 +935,13 @@ function RaceRegister({
     }
     if (t.status === "Scheduled" || t.status === "Registration Closed") {
       return (
-        <span className="text-[12px] text-slate-505 font-medium">
+        <span className="text-[12px] text-slate-500 font-medium">
           Reg. opens in 14d
         </span>
       );
     }
     return (
-      <span className="text-[12px] text-slate-555 font-medium">Dec 2025</span>
+      <span className="text-[12px] text-slate-500 font-medium">Dec 2025</span>
     );
   };
 
@@ -958,7 +958,7 @@ function RaceRegister({
               at 14:30 today
             </span>
           ) : (
-            <span className="text-[12px] text-slate-505 font-medium">
+            <span className="text-[12px] text-slate-500 font-medium">
               No active stable entries
             </span>
           )}
@@ -993,7 +993,7 @@ function RaceRegister({
               ? `${horse.name} — 1st place · $12,000 earned`
               : "Tournament concluded"}
           </span>
-          <button className="flex items-center gap-1 text-[13px] font-bold text-slate-850 hover:text-black transition">
+          <button className="flex items-center gap-1 text-[13px] font-bold text-slate-800 hover:text-black transition">
             Results <ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -1009,7 +1009,7 @@ function RaceRegister({
           <h2 className="text-xl font-black text-[#064E3B] tracking-tight">
             Race & Tournament Registration
           </h2>
-          <p className="text-xs text-slate-555 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Register your active horses for upcoming events and monitor
             application statuses.
           </p>
@@ -1089,7 +1089,7 @@ function RaceRegister({
                   <h3 className="font-black text-[17px] tracking-tight text-[#064E3B] mb-2 leading-tight">
                     {t.name}
                   </h3>
-                  <div className="flex items-center gap-1.5 text-[13px] text-slate-505">
+                  <div className="flex items-center gap-1.5 text-[13px] text-slate-500">
                     <MapPin className="w-3.5 h-3.5 shrink-0" />
                     <span>Ho Chi Minh City, VN</span>
                     <span className="mx-1.5">·</span>
@@ -1100,7 +1100,7 @@ function RaceRegister({
                 {isOpen && (
                   <div className="mb-4">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-[12px] text-slate-505 font-medium">
+                      <span className="text-[12px] text-slate-500 font-medium">
                         {t.currentCount} / {t.maxCapacity} horses registered
                       </span>
                       <span className="text-[12px] font-bold text-emerald-600">
@@ -1135,7 +1135,7 @@ function RaceRegister({
                     },
                   ].map((stat) => (
                     <div key={stat.label}>
-                      <span className="block text-[11px] font-medium text-slate-505 mb-1">
+                      <span className="block text-[11px] font-medium text-slate-500 mb-1">
                         {stat.label}
                       </span>
                       <span className="block text-[15px] font-black text-slate-800">
@@ -1186,7 +1186,7 @@ function JockeyRosterManagement({
         <h2 className="text-xl font-black text-[#064E3B] tracking-tight">
           Jockey Roster
         </h2>
-        <p className="text-xs text-slate-555 mt-1">
+        <p className="text-xs text-slate-500 mt-1">
           Hire jockeys for approved tournament runs and finalize pairings.
         </p>
       </div>
@@ -1195,7 +1195,7 @@ function JockeyRosterManagement({
         <h3 className="font-bold text-sm text-[#064E3B]">Approved Entries</h3>
         {approvedRegistrations.length === 0 ? (
           <div className="bg-white border rounded-xl p-8 text-center text-slate-400">
-            <Clock className="w-7 h-7 mx-auto mb-2 text-slate-355" />
+            <Clock className="w-7 h-7 mx-auto mb-2 text-slate-300" />
             <p className="text-xs font-semibold">No approved horse entries.</p>
           </div>
         ) : (
@@ -1210,8 +1210,9 @@ function JockeyRosterManagement({
                   i.horseId === reg.horseId &&
                   i.tournamentId === reg.tournamentId
               );
+              // Now scans for the final "Confirmed" owner lock status
               const lockedJockey = matchingInvites.find(
-                (i) => i.status === "Accepted"
+                (i) => i.status === "Confirmed"
               );
 
               if (!horse || !tournament) return null;
@@ -1227,7 +1228,7 @@ function JockeyRosterManagement({
                         <h4 className="font-bold text-sm text-[#064E3B]">
                           {horse.name}
                         </h4>
-                        <p className="text-[10px] text-slate-455 leading-tight mt-0.5">
+                        <p className="text-[10px] text-slate-400 leading-tight mt-0.5">
                           {tournament.name}
                         </p>
                       </div>
@@ -1278,14 +1279,16 @@ function JockeyRosterManagement({
                                   <span
                                     className={cn(
                                       "text-[8px] font-black uppercase px-1.5 py-0.5 rounded border",
+                                      inv.status === "Confirmed" &&
+                                        "bg-emerald-50 border-emerald-200 text-emerald-800",
                                       inv.status === "Accepted" &&
-                                        "bg-emerald-50 border-emerald-200 text-emerald-855",
+                                        "bg-emerald-50/50 border-emerald-100 text-emerald-700",
                                       inv.status === "Pending" &&
-                                        "bg-amber-50 border-amber-200 text-amber-855",
+                                        "bg-amber-50 border-amber-200 text-amber-800",
                                       inv.status === "Declined" &&
-                                        "bg-rose-50 border-rose-200 text-rose-855",
+                                        "bg-rose-50 border-rose-200 text-rose-800",
                                       inv.status === "Superseded" &&
-                                        "bg-slate-100 border-slate-200 text-slate-455"
+                                        "bg-slate-100 border-slate-200 text-slate-400"
                                     )}
                                   >
                                     {inv.status}
@@ -1304,7 +1307,7 @@ function JockeyRosterManagement({
                                   {inv.status === "Pending" && (
                                     <button
                                       onClick={() => onCancelInvite(inv.id)}
-                                      className="text-rose-600 hover:text-rose-855 text-[10px] font-bold"
+                                      className="text-rose-600 hover:text-rose-800 text-[10px] font-bold"
                                     >
                                       Cancel
                                     </button>
@@ -1368,7 +1371,7 @@ function JockeyInviteSelector({
                   className="rounded text-[#064E3B] focus:ring-[#064E3B]"
                 />
                 <div>
-                  <p className="font-bold text-slate-850">{j.name}</p>
+                  <p className="font-bold text-slate-800">{j.name}</p>
                   <p className="text-[10px] text-slate-400">{j.club}</p>
                 </div>
               </div>
@@ -1376,7 +1379,7 @@ function JockeyInviteSelector({
                 <span className="font-bold text-[#064E3B] block">
                   {j.winRate} WR
                 </span>
-                <span className="text-[9px] text-slate-455 block">
+                <span className="text-[9px] text-slate-400 block">
                   {j.totalRuns} Matches
                 </span>
               </div>
@@ -1386,7 +1389,7 @@ function JockeyInviteSelector({
       </div>
 
       <div className="border-t pt-3 flex items-center justify-between">
-        <span className="text-[10px] text-slate-555 font-semibold">
+        <span className="text-[10px] text-slate-500 font-semibold">
           {selectedIds.length} Selected
         </span>
         <button
@@ -1620,7 +1623,7 @@ function ScheduleDetailPanel({
             </p>
             <button
               onClick={() => onOpenInviteModal(horse.id, tournament.id)}
-              className="shrink-0 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-[#D97706] text-white hover:bg-amber-500 transition active:scale-95"
+              className="shrink-0 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-[#D97706] text-white hover:bg-[#D97706] transition active:scale-95"
             >
               Invite Now →
             </button>
@@ -1643,7 +1646,7 @@ function ScheduleDetailPanel({
                 <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
                   {horse.name}
                 </span>
-                <span className="text-xs text-slate-555 mt-0.5 block">
+                <span className="text-xs text-slate-500 mt-0.5 block">
                   {horse.breed} · {horse.gender}
                 </span>
               </div>
@@ -1715,7 +1718,7 @@ function ScheduleDetailPanel({
                     key={row.label}
                     className="flex items-center justify-between px-5 py-3"
                   >
-                    <span className="text-slate-555 flex items-center gap-2 font-medium">
+                    <span className="text-slate-500 flex items-center gap-2 font-medium">
                       {row.icon}
                       {row.label}
                     </span>
@@ -2034,7 +2037,7 @@ export function HorseScheduleView({
             <h2 className="text-xl font-bold font-headline text-[#064E3B]">
               Run Schedule
             </h2>
-            <p className="text-xs text-slate-555 font-semibold mt-1">
+            <p className="text-xs text-slate-500 font-semibold mt-1">
               Your horses' upcoming races, jockey assignments, and registration
               statuses
             </p>
@@ -2097,7 +2100,7 @@ export function HorseScheduleView({
               {selectedDate && (
                 <button
                   onClick={() => setSelectedDate(undefined)}
-                  className="ml-auto text-[9px] text-slate-400 hover:text-slate-655 font-bold"
+                  className="ml-auto text-[9px] text-slate-400 hover:text-slate-600 font-bold"
                 >
                   Clear
                 </button>

@@ -10,7 +10,7 @@ interface ScheduleCalendarProps {
 }
 
 export const calendarScaleClasses =
-  "p-6 w-full [&_.rdp-day]:!h-[46px] [&_.rdp-day]:!w-[46px] [&_.rdp-head_th]:!w-[46px] [&_.rdp-day]:!text-sm [&_.rdp-head_th]:!text-xs [&_.rdp-caption_label]:!text-base";
+  "p-6 w-full [&_.rdp-day]:h-[46px]! [&_.rdp-day]:w-[46px]! [&_.rdp-head_th]:w-[46px]! [&_.rdp-day]:text-sm! [&_.rdp-head_th]:text-xs! [&_.rdp-caption_label]:text-base!";
 
 export function ScheduleCalendar({
   selectedDate,

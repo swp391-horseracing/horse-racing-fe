@@ -32,13 +32,6 @@ interface LocationState {
   date?: string;
 }
 
-interface RaceHorse {
-  id: string | number;
-  name: string;
-  jockey?: string;
-  ownerId?: string;
-}
-
 const allRaces: Race[] = [
   {
     id: 101,
@@ -180,6 +173,17 @@ const STATUS_ORDER: Record<RaceStatus, number> = {
   Upcoming: 1,
   Completed: 2,
 };
+
+// Safe type-guard function to check for "jockey" property on horse data at runtime
+function getJockeyName(horse: unknown): string {
+  if (horse && typeof horse === "object" && "jockey" in horse) {
+    const maybeJockey = (horse as Record<string, unknown>).jockey;
+    if (typeof maybeJockey === "string") {
+      return maybeJockey;
+    }
+  }
+  return "—";
+}
 
 function RaceRow({
   race,
@@ -556,7 +560,7 @@ export default function RacesPage() {
                                   {horse.name}
                                 </td>
                                 <td className="px-6 py-4.5 font-medium text-foreground">
-                                  {(horse as RaceHorse).jockey || "—"}
+                                  {getJockeyName(horse)}
                                 </td>
                                 <td className="px-6 py-4.5 text-muted-foreground hidden md:table-cell">
                                   {horse.ownerId}
