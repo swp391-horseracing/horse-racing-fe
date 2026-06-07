@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from "react";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
-import useHorse from "../hooks/useHorse.ts"; 
+import useHorse from "../hooks/useHorse.ts";
 import { useInvitations } from "../hooks/useInvitations.ts";
 import type { Invitation, InvStatus } from "../services/invitationService.ts";
 
@@ -62,6 +62,17 @@ type MyRide = {
 
 type ComputedRideStatus = "pending" | "accepted" | "declined" | "finished";
 type RideDetailTab = "info" | "runners";
+
+interface JockeyHorse {
+  id: string | number;
+  name: string;
+  breed?: string;
+  gender?: string;
+  owner?: string;
+  ownerId?: string;
+  status?: string;
+  performance?: string;
+}
 
 const getComputedRideStatus = (ride: MyRide): ComputedRideStatus => {
   if (ride.status === "completed") return "finished";
@@ -237,7 +248,7 @@ export default function JockeyPage() {
   const [rides, setRides] = useState<MyRide[]>(myRidesMock);
 
   // Shared hooks data
-  const { horses } = useHorse(); 
+  const { horses } = useHorse();
   const { invitations, updateInvitationStatus } = useInvitations();
 
   const [selectedInvId, setSelectedInvId] = useState<number | null>(1);
@@ -262,7 +273,10 @@ export default function JockeyPage() {
   const handleDeclineInvitation = (id: number) => {
     const target = invitations.find((inv) => inv.id === id);
     updateInvitationStatus(id, "Declined");
-    addToast(`You declined the invitation to ride ${target?.horse}. Deep access revoked.`, "info");
+    addToast(
+      `You declined the invitation to ride ${target?.horse}. Deep access revoked.`,
+      "info"
+    );
   };
 
   const handleAcceptRide = (id: string) => {
@@ -295,7 +309,7 @@ export default function JockeyPage() {
           <DashboardOverview
             data={invitations}
             setActiveTab={(tab) => setActive(tab)}
-            horseList={horses} 
+            horseList={horses}
           />
         );
       case ROUTES.JOCKEY_SCHEDULE:
@@ -375,7 +389,7 @@ function DashboardOverview({
 }: {
   data: Invitation[];
   setActiveTab: (k: string) => void;
-  horseList: any[];
+  horseList: JockeyHorse[];
 }) {
   const pendingInvites = data.filter((inv) => inv.status === "Pending");
   const activeRaces = data.filter((inv) => inv.status === "Accepted");
@@ -586,7 +600,7 @@ function DashboardOverview({
             </div>
 
             <div className="space-y-2.5">
-              {horseList.map((horse: any, idx: number) => (
+              {horseList.map((horse: JockeyHorse, idx: number) => (
                 <div
                   key={horse.id}
                   className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-slate-50/50 hover:border-slate-200 transition"
@@ -600,13 +614,14 @@ function DashboardOverview({
                         {horse.name}
                       </span>
                       <span className="text-[10px] text-slate-455 truncate">
-                        {horse.breed} • {horse.gender}
+                        {horse.breed || "Thoroughbred"} •{" "}
+                        {horse.gender || "Gelding"}
                       </span>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-xs font-bold text-[#064E3B] font-label block">
-                      {horse.owner}
+                      {horse.owner || horse.ownerId}
                     </span>
                     <span className="text-[9px] text-slate-400 font-semibold block">
                       {horse.status || "Active"}
@@ -1280,7 +1295,7 @@ function RideRow({
             >
               {ride.name}
             </p>
-            <p className="text-[10px] text-slate-500 mt-0.5 truncate font-medium">
+            <p className="text-[10px] text-slate-505 mt-0.5 truncate font-medium">
               Ride:{" "}
               <span className="text-slate-700 font-bold">{ride.ride}</span> •
               Gate {ride.laneNumber}

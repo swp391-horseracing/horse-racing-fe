@@ -32,6 +32,13 @@ interface LocationState {
   date?: string;
 }
 
+interface RaceHorse {
+  id: string | number;
+  name: string;
+  jockey?: string;
+  ownerId?: string;
+}
+
 const allRaces: Race[] = [
   {
     id: 101,
@@ -492,7 +499,7 @@ export default function RacesPage() {
                 }
                 subtitle={
                   <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2 font-medium tracking-tight">
-                    <span className="px-2 py-0.5 rounded border border-border bg-card">
+                    <span className="px-2.5 py-0.5 rounded border border-border bg-card">
                       {selectedRace.className}
                     </span>
                     <span>
@@ -549,7 +556,7 @@ export default function RacesPage() {
                                   {horse.name}
                                 </td>
                                 <td className="px-6 py-4.5 font-medium text-foreground">
-                                  {(horse as any).jockey || "—"}
+                                  {(horse as RaceHorse).jockey || "—"}
                                 </td>
                                 <td className="px-6 py-4.5 text-muted-foreground hidden md:table-cell">
                                   {horse.ownerId}

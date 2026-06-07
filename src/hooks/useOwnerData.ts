@@ -21,7 +21,12 @@ export interface Tournament {
   maxAge: number;
   currentCount: number;
   maxCapacity: number;
-  status: "Registration Open" | "Registration Closed" | "Scheduled" | "Live" | "Concluded";
+  status:
+    | "Registration Open"
+    | "Registration Closed"
+    | "Scheduled"
+    | "Live"
+    | "Concluded";
   startDate?: string;
 }
 
@@ -126,9 +131,27 @@ const initialRegistrations: TournamentRegistration[] = [
 ];
 
 const initialJockeys: Jockey[] = [
-  { id: 1, name: "Arthur Jones", club: "Saigon Turf Club", winRate: "33.3%", totalRuns: 120 },
-  { id: 2, name: "Sarah Baxter", club: "Delta Jockey Association", winRate: "28.5%", totalRuns: 95 },
-  { id: 3, name: "Mark Thompson", club: "Royal Racing Club", winRate: "31.2%", totalRuns: 110 },
+  {
+    id: 1,
+    name: "Arthur Jones",
+    club: "Saigon Turf Club",
+    winRate: "33.3%",
+    totalRuns: 120,
+  },
+  {
+    id: 2,
+    name: "Sarah Baxter",
+    club: "Delta Jockey Association",
+    winRate: "28.5%",
+    totalRuns: 95,
+  },
+  {
+    id: 3,
+    name: "Mark Thompson",
+    club: "Royal Racing Club",
+    winRate: "31.2%",
+    totalRuns: 110,
+  },
 ];
 
 const initialInvitations: Invitation[] = [
@@ -140,10 +163,13 @@ const initialInvitations: Invitation[] = [
 
 export function useOwnerData() {
   const [horses, setHorses] = useState<Horse[]>(initialHorses);
-  const [tournaments, setTournaments] = useState<Tournament[]>(initialTournaments);
-  const [registrations, setRegistrations] = useState<TournamentRegistration[]>(initialRegistrations);
+  const [tournaments, setTournaments] =
+    useState<Tournament[]>(initialTournaments);
+  const [registrations, setRegistrations] =
+    useState<TournamentRegistration[]>(initialRegistrations);
   const [jockeys] = useState<Jockey[]>(initialJockeys);
-  const [invitations, setInvitations] = useState<Invitation[]>(initialInvitations);
+  const [invitations, setInvitations] =
+    useState<Invitation[]>(initialInvitations);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Simulating asynchronous initialization
@@ -189,9 +215,7 @@ export function useOwnerData() {
 
     setTournaments((prev) =>
       prev.map((t) =>
-        t.id === tournamentId
-          ? { ...t, currentCount: t.currentCount + 1 }
-          : t
+        t.id === tournamentId ? { ...t, currentCount: t.currentCount + 1 } : t
       )
     );
   };
@@ -236,7 +260,9 @@ export function useOwnerData() {
 
   const cancelInvite = async (invId: number): Promise<boolean> => {
     setInvitations((prev) =>
-      prev.map((inv) => (inv.id === invId ? { ...inv, status: "Declined" } : inv))
+      prev.map((inv) =>
+        inv.id === invId ? { ...inv, status: "Declined" } : inv
+      )
     );
     return true;
   };
