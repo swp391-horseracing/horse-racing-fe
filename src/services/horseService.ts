@@ -37,7 +37,7 @@ export const HorseService = {
 
   async getHorseById(id: string) {
     const response = await api.get(`/horses/${id}`);
-    return response.data;
+    return response.data.horse; 
   },
 
   async getHorsesByOwnerId(

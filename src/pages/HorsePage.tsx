@@ -1,6 +1,5 @@
-import { ChevronRight, X, Calendar, User } from "lucide-react";
+import { ChevronRight, X, Calendar, User, ChessKnight} from "lucide-react";
 import useHorse from "../hooks/useHorse.ts";
-import { Horse } from "@phosphor-icons/react";
 import useAuth from "../hooks/useAuth.ts";
 import { useEffect, useState } from "react";
 
@@ -71,7 +70,7 @@ export default function HorsePage() {
                 >
                   <div className="flex items-start gap-4">
                     <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Horse className="h-6 w-6 text-primary" />
+                      <ChessKnight className="h-6 w-6 text-primary" />
                     </div>
 
                     <div className="flex-1">
@@ -140,7 +139,7 @@ export default function HorsePage() {
                               className="h-full w-full object-cover"
                             />
                           ) : (
-                            <Horse className="h-8 w-8 text-primary" />
+                            <ChessKnight className="h-8 w-8 text-primary" />
                           )}
                         </div>
 
@@ -168,7 +167,7 @@ export default function HorsePage() {
                         />
 
                         <InfoCard
-                          icon={<Horse size={18} />}
+                          icon={<ChessKnight size={18} />}
                           label="Health Status"
                           value={selectedHorse.healthStatus}
                         />
