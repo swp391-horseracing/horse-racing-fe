@@ -14,6 +14,7 @@ export function useJockeyList() {
       const data = await JockeyService.getJockeysByRanking();
       setJockeyList(data);
     } catch (err) {
+      console.error("Error fetching jockey ranking list:", err);
       setError("Failed to load jockeys. Please try again.");
     } finally {
       setLoading(false);

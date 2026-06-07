@@ -132,7 +132,6 @@ export default function OwnerPage() {
     };
 
     try {
-
       await addHorse(payload);
 
       setShowAddHorse(false);
