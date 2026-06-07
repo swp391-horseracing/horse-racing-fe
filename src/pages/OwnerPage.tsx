@@ -102,6 +102,7 @@ export default function OwnerPage() {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     const name = data.get("name") as string;
+
     if (
       horses.some(
         (h) =>
@@ -114,18 +115,20 @@ export default function OwnerPage() {
       );
       return;
     }
+
     try {
       await addHorse({
         name,
-        breed: data.get("breed"),
-        dob: data.get("dob"),
-        gender: data.get("gender"),
-        microchipId: "123",
-        associationCode: data.get("associationCode"),
+        breed: data.get("breed") as string,
+        birthDate: data.get("birth_date") as string,
+        weightKg: parseFloat(data.get("weight_kg") as string),
+        imageUrl: (data.get("image_url") as string) || null,
+        healthStatus: data.get("health_status") as string,
+        status: (data.get("status") as string) || "active",
       });
       setShowAddHorse(false);
       addToast(`Horse "${name}" registered successfully!`, "success");
-    } catch {
+    } catch (error) {
       addToast("Failed to save horse details.", "error");
     }
   };
