@@ -2,9 +2,10 @@ import { useMemo, useState, useCallback } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { ArrowLeft, Search, X, CalendarDays } from "lucide-react";
 import { ROUTES } from "../router/routes.tsx";
-import { useHorseList } from "../hooks/useHorseList";
+
 import { useEvent } from "../hooks/useEvent";
 import { Calendar } from "../components/ui/calendar";
+import useHorse from "../hooks/useHorse.ts";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -283,7 +284,7 @@ export default function RacesPage() {
   const tournamentId = tournamentIdParam ? Number(tournamentIdParam) : null;
 
   const { eventList } = useEvent();
-  const { horseList } = useHorseList();
+  const { horses } = useHorse();
 
   // Get the route state at the top level for lazy initialization
   const routeState = location.state as LocationState;
@@ -621,7 +622,7 @@ export default function RacesPage() {
                     Confirmed Runner Line-up
                   </h3>
 
-                  {horseList && horseList.length > 0 ? (
+                  {horses && horses.length > 0 ? (
                     <div className="overflow-hidden rounded-xl border border-border bg-background shadow-sm">
                       <table className="w-full text-left">
                         <thead className="bg-muted/30 border-b border-border">
@@ -641,7 +642,7 @@ export default function RacesPage() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-border text-sm bg-card">
-                          {horseList
+                          {horses
                             .slice(
                               selectedRace.id % 2,
                               (selectedRace.id % 2) + 7
@@ -659,11 +660,8 @@ export default function RacesPage() {
                                 <td className="px-6 py-4.5 font-bold font-headline text-primary text-base leading-snug">
                                   {horse.name}
                                 </td>
-                                <td className="px-6 py-4.5 font-medium text-foreground">
-                                  {horse.jockey}
-                                </td>
                                 <td className="px-6 py-4.5 text-muted-foreground hidden md:table-cell">
-                                  {horse.owner}
+                                  {horse.ownerId}
                                 </td>
                               </tr>
                             ))}

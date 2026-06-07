@@ -1,4 +1,3 @@
-import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
@@ -11,272 +10,13 @@ import {
   Clock,
   CheckCircle2,
   Play,
-  CalendarRange,
   Landmark,
   ShieldAlert,
   Users,
   ArrowRight,
 } from "lucide-react";
-import { useEvent } from "../hooks/useEvent";
-import { ROUTES } from "../router/routes.tsx";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type TournamentStatus = "Live" | "Scheduled" | "Completed";
-type FilterTab = "All" | TournamentStatus;
-type DetailTab = "schedule" | "entry";
-
-interface Tournament {
-  id: number | string;
-  name: string;
-  startDate: string;
-  endDate: string;
-  location: string;
-  races: number;
-  status: TournamentStatus;
-  prizePool?: string;
-}
-
-interface RacePreview {
-  id: number;
-  title: string;
-  time: string;
-  distance: string;
-  surface: string;
-  status: "Live" | "Upcoming" | "Completed";
-}
-
-interface RoundDetail {
-  name: string;
-  date: string;
-  racesRange: string;
-}
-
-interface TournamentExtraDetail {
-  rounds: RoundDetail[];
-  entryFee: string;
-  deadline: string;
-  eligibility: string;
-  maxField: string;
-}
-
-// ─── Mock Data ─────────────────────────────────────────────────────────────────
-
-const defaultTournaments: Tournament[] = [
-  {
-    id: 1,
-    name: "Royal Ascot Summer Series",
-    startDate: "2026-06-18",
-    endDate: "2026-06-22",
-    location: "Ascot, UK",
-    races: 7,
-    status: "Live",
-    prizePool: "£7.5M",
-  },
-  {
-    id: 2,
-    name: "The Breeders' Cup World Championships",
-    startDate: "2026-11-01",
-    endDate: "2026-11-02",
-    location: "Del Mar, CA",
-    races: 2,
-    status: "Scheduled",
-    prizePool: "$31M",
-  },
-  {
-    id: 3,
-    name: "Dubai World Cup",
-    startDate: "2027-03-29",
-    endDate: "2027-03-29",
-    location: "Meydan, UAE",
-    races: 2,
-    status: "Scheduled",
-    prizePool: "$30.5M",
-  },
-];
-
-const mockRacesByTournament: Record<string | number, RacePreview[]> = {
-  1: [
-    {
-      id: 101,
-      title: "The Queen Anne Stakes",
-      time: "14:30",
-      distance: "1600m",
-      surface: "Turf",
-      status: "Completed",
-    },
-    {
-      id: 102,
-      title: "Coventry Stakes",
-      time: "15:05",
-      distance: "1200m",
-      surface: "Turf",
-      status: "Completed",
-    },
-    {
-      id: 103,
-      title: "King's Stand Stakes",
-      time: "15:40",
-      distance: "1000m",
-      surface: "Turf",
-      status: "Completed",
-    },
-    {
-      id: 104,
-      title: "St James's Palace Stakes",
-      time: "16:20",
-      distance: "1600m",
-      surface: "Turf",
-      status: "Live",
-    },
-    {
-      id: 105,
-      title: "Ascot Stakes",
-      time: "17:00",
-      distance: "4000m",
-      surface: "Turf",
-      status: "Upcoming",
-    },
-    {
-      id: 106,
-      title: "Wolferton Stakes",
-      time: "17:35",
-      distance: "2000m",
-      surface: "Turf",
-      status: "Upcoming",
-    },
-    {
-      id: 107,
-      title: "Copper Horse Stakes",
-      time: "18:10",
-      distance: "2800m",
-      surface: "Turf",
-      status: "Upcoming",
-    },
-  ],
-  2: [
-    {
-      id: 109,
-      title: "Classic Turf Invitational",
-      time: "16:00",
-      distance: "2000m",
-      surface: "Turf",
-      status: "Upcoming",
-    },
-    {
-      id: 110,
-      title: "Night Derby",
-      time: "18:30",
-      distance: "2400m",
-      surface: "Dirt",
-      status: "Upcoming",
-    },
-  ],
-  3: [
-    {
-      id: 201,
-      title: "Dubai Golden Shaheen",
-      time: "15:30",
-      distance: "1200m",
-      surface: "Dirt",
-      status: "Upcoming",
-    },
-    {
-      id: 202,
-      title: "Al Maktoum Classic",
-      time: "17:15",
-      distance: "1900m",
-      surface: "Dirt",
-      status: "Upcoming",
-    },
-  ],
-};
-
-const tournamentExtraDetails: Record<string | number, TournamentExtraDetail> = {
-  1: {
-    rounds: [
-      {
-        name: "Preliminary Heats",
-        date: "June 18-19",
-        racesRange: "Races 101 - 103",
-      },
-      {
-        name: "Semifinal Showdowns",
-        date: "June 20",
-        racesRange: "Races 104 - 105",
-      },
-      {
-        name: "The Grand Finale",
-        date: "June 22",
-        racesRange: "Races 106 - 107",
-      },
-    ],
-    entryFee: "£2,500 per nomination",
-    deadline: "June 12, 2026",
-    eligibility: "Class 1 Thoroughbreds, age 3+",
-    maxField: "16 Runners per Heat",
-  },
-  2: {
-    rounds: [
-      { name: "Championship Heats", date: "Nov 01", racesRange: "Race 109" },
-      { name: "World Cup Finals", date: "Nov 02", racesRange: "Race 110" },
-    ],
-    entryFee: "$10,000 per nomination",
-    deadline: "Oct 25, 2026",
-    eligibility: "International Invited Graded Stakes horses",
-    maxField: "14 Runners",
-  },
-  3: {
-    rounds: [
-      {
-        name: "Qualifying Stakes",
-        date: "Mar 29 (Morning)",
-        racesRange: "Race 201",
-      },
-      {
-        name: "Dubai World Cup Final",
-        date: "Mar 29 (Evening)",
-        racesRange: "Race 202",
-      },
-    ],
-    entryFee: "$7,500 per nomination",
-    deadline: "Mar 20, 2027",
-    eligibility: "Horses with an official international rating of 110+",
-    maxField: "12 Runners",
-  },
-};
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const fmt = (d: string, opts: Intl.DateTimeFormatOptions) => {
-  try {
-    return new Date(d).toLocaleDateString("en-US", opts);
-  } catch {
-    return d;
-  }
-};
-
-const formatRange = (start: string, end: string) => {
-  try {
-    const same =
-      new Date(start).toDateString() === new Date(end).toDateString();
-    return same
-      ? fmt(start, { month: "short", day: "numeric", year: "numeric" })
-      : `${fmt(start, { month: "short", day: "numeric" })} – ${fmt(end, { month: "short", day: "numeric", year: "numeric" })}`;
-  } catch {
-    return `${start} - ${end}`;
-  }
-};
-
-// ─── Compact Stat Filter Card ──────────────────────────────────────────────────
-
-interface StatFilterCardProps {
-  label: string;
-  value: number;
-  active: boolean;
-  onClick: () => void;
-  liveDot?: boolean;
-}
+import useTournament from "../hooks/useTournament";
+import { ROUTES } from "../router/routes";
 
 function StatFilterCard({
   label,
@@ -284,7 +24,13 @@ function StatFilterCard({
   active,
   onClick,
   liveDot,
-}: StatFilterCardProps) {
+}: {
+  label: string;
+  value: number;
+  active: boolean;
+  onClick: () => void;
+  liveDot?: boolean;
+}) {
   return (
     <button
       onClick={onClick}
@@ -295,7 +41,9 @@ function StatFilterCard({
       }`}
     >
       <p
-        className={`text-[9px] font-bold uppercase tracking-wider mb-0.5 ${active ? "text-primary font-black" : "text-muted-foreground"}`}
+        className={`text-[9px] font-bold uppercase tracking-wider mb-0.5 ${
+          active ? "text-primary font-black" : "text-muted-foreground"
+        }`}
       >
         {label}
       </p>
@@ -311,130 +59,69 @@ function StatFilterCard({
   );
 }
 
-function StatusBadge({ status }: { status: TournamentStatus }) {
-  const styles: Record<TournamentStatus, string> = {
-    Live: "bg-secondary/10 text-secondary border-secondary/30",
-    Scheduled: "bg-muted text-muted-foreground border-border",
-    Completed: "bg-primary/10 text-primary border-primary/20",
+function StatusBadge({ status }: { status: string }) {
+  const styles: Record<string, string> = {
+    upcoming: "bg-muted text-muted-foreground border-border",
+    registration_open: "bg-secondary/10 text-secondary border-secondary/30",
+    registration_closed: "bg-muted text-muted-foreground border-border",
+    ongoing: "bg-secondary/10 text-secondary border-secondary/30",
+    completed: "bg-primary/10 text-primary border-primary/20",
+    cancelled: "bg-destructive/10 text-destructive border-destructive/20",
   };
+
+  const labelMap: Record<string, string> = {
+    upcoming: "Upcoming",
+    registration_open: "Registration Open",
+    registration_closed: "Registration Closed",
+    ongoing: "Live",
+    completed: "Completed",
+    cancelled: "Cancelled",
+  };
+
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${styles[status]}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${
+        styles[status] ?? "bg-muted text-muted-foreground border-border"
+      }`}
     >
-      {status === "Live" && (
+      {status === "ongoing" && (
         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-secondary" />
       )}
-      {status}
+      {labelMap[status] ?? status}
     </span>
   );
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 export default function TournamentsPage() {
-  const { eventList } = useEvent();
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState<FilterTab>("All");
-  const [selectedTournament, setSelectedTournament] =
-    useState<Tournament | null>(null);
-  const [detailTab, setDetailTab] = useState<DetailTab>("schedule");
 
-  const tournaments: Tournament[] = useMemo(() => {
-    if (!eventList || eventList.length === 0) return defaultTournaments;
-    return eventList.map((event, index) => {
-      let status: TournamentStatus = "Scheduled";
-      if (
-        event.className?.includes("yellow") ||
-        event.title.includes("Thunder")
-      )
-        status = "Live";
-      if (
-        event.className?.includes("green") ||
-        event.title.includes("Qualifier")
-      )
-        status = "Completed";
+  const {
+    search,
+    setSearch,
+    activeFilter,
+    setActiveFilter,
+    tournaments,
+    counts,
+    pagination,
+    loadingList,
+    listError,
+    selectedTournament,
+    openTournament,
+    closeTournament,
+    detailTab,
+    setDetailTab,
+    races,
+    racesLoading,
+    racesError,
+    page,
+    setPage,
+  } = useTournament();
 
-      const startDateObj =
-        event.start || event.date
-          ? new Date(event.start || event.date!)
-          : new Date();
-      const endDateObj = event.end ? new Date(event.end) : startDateObj;
-      const tId = event.id || index + 1;
-      const matchedRacesCount =
-        mockRacesByTournament[tId]?.length ?? (event.overlap ? 14 : 35);
-
-      return {
-        id: tId,
-        name: event.title,
-        startDate: startDateObj.toISOString(),
-        endDate: endDateObj.toISOString(),
-        location:
-          ["Ascot, UK", "Churchill Downs, KY", "Meydan, UAE"][index % 3] ||
-          "TBD",
-        races: matchedRacesCount,
-        status,
-      };
-    });
-  }, [eventList]);
-
-  const filtered = useMemo(() => {
-    const lower = search.toLowerCase();
-    return tournaments.filter((t) => {
-      const matchSearch =
-        t.name.toLowerCase().includes(lower) ||
-        t.location.toLowerCase().includes(lower);
-      const matchFilter = activeFilter === "All" || t.status === activeFilter;
-      return matchSearch && matchFilter;
-    });
-  }, [tournaments, search, activeFilter]);
-
-  const counts = useMemo(
-    () => ({
-      All: tournaments.length,
-      Live: tournaments.filter((t) => t.status === "Live").length,
-      Scheduled: tournaments.filter((t) => t.status === "Scheduled").length,
-      Completed: tournaments.filter((t) => t.status === "Completed").length,
-    }),
-    [tournaments]
-  );
-
-  const activeRaces = useMemo(() => {
-    if (!selectedTournament) return [];
-    return mockRacesByTournament[selectedTournament.id] ?? [];
-  }, [selectedTournament]);
-
-  const activeExtraDetail = useMemo(() => {
-    if (!selectedTournament) return null;
-    return (
-      tournamentExtraDetails[selectedTournament.id] ?? {
-        rounds: [
-          { name: "First Stage", date: "Day 1", racesRange: "Qualifying list" },
-          { name: "Final Stage", date: "Day 2", racesRange: "Final Run" },
-        ],
-        entryFee: "$2,000 nomination",
-        deadline: "1 week prior to start",
-        eligibility: "Open to Class 1-2 standard ratings",
-        maxField: "14 Runners",
-      }
-    );
-  }, [selectedTournament]);
-
-  const handleSelectTournament = (t: Tournament) => {
-    setSelectedTournament((prev) => (prev?.id === t.id ? null : t));
-    setDetailTab("schedule");
-  };
-
-  const handleGoToRaceDetail = (race: RacePreview) => {
-    let targetDate = "2026-06-18";
-    if (race.id === 109) targetDate = "2026-11-01";
-    if (race.id === 110) targetDate = "2026-11-02";
-    if (race.id >= 201) targetDate = "2027-03-29";
-
+  const handleGoToRaceDetail = (race: { id: string }) => {
     navigate(ROUTES.RACES, {
       state: {
         raceId: race.id,
-        date: targetDate,
+        date: selectedTournament?.startDate,
       },
     });
   };
@@ -444,7 +131,6 @@ export default function TournamentsPage() {
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
       <div className="mx-auto max-w-[1400px] px-4 py-6">
-        {/* Header Row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div className="min-w-0">
             <h1 className="text-3xl font-black font-headline text-primary tracking-tight leading-none">
@@ -467,7 +153,6 @@ export default function TournamentsPage() {
           </div>
         </div>
 
-        {/* Interactive Stats Filters */}
         <div className="mb-6 grid grid-cols-4 gap-3">
           <StatFilterCard
             label="Total"
@@ -475,100 +160,122 @@ export default function TournamentsPage() {
             active={activeFilter === "All"}
             onClick={() => {
               setActiveFilter("All");
-              setSelectedTournament(null);
+              setPage(1);
+              closeTournament();
             }}
           />
           <StatFilterCard
             label="Live"
             value={counts.Live}
-            active={activeFilter === "Live"}
+            active={activeFilter === "ongoing"}
             onClick={() => {
-              setActiveFilter("Live");
-              setSelectedTournament(null);
+              setActiveFilter("ongoing");
+              setPage(1);
+              closeTournament();
             }}
             liveDot
           />
           <StatFilterCard
             label="Scheduled"
             value={counts.Scheduled}
-            active={activeFilter === "Scheduled"}
+            active={
+              activeFilter === "upcoming" ||
+              activeFilter === "registration_open" ||
+              activeFilter === "registration_closed"
+            }
             onClick={() => {
-              setActiveFilter("Scheduled");
-              setSelectedTournament(null);
+              setActiveFilter("upcoming");
+              setPage(1);
+              closeTournament();
             }}
           />
           <StatFilterCard
             label="Completed"
             value={counts.Completed}
-            active={activeFilter === "Completed"}
+            active={activeFilter === "completed"}
             onClick={() => {
-              setActiveFilter("Completed");
-              setSelectedTournament(null);
+              setActiveFilter("completed");
+              setPage(1);
+              closeTournament();
             }}
           />
         </div>
 
-        {/* Main Columns Container (3/4 - 1/4 layout ratio) */}
+        {listError && (
+          <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            {listError}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Column: Tournaments List (Takes 1/4 column space when details open) */}
           <div
-            className={`space-y-3 transition-all duration-300 ${isPanelOpen ? "lg:col-span-3" : "lg:col-span-12"}`}
+            className={`space-y-3 transition-all duration-300 ${
+              isPanelOpen ? "lg:col-span-3" : "lg:col-span-12"
+            }`}
           >
-            {filtered.map((t) => {
-              const isSelected = selectedTournament?.id === t.id;
-              const isLive = t.status === "Live";
+            {loadingList ? (
+              <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
+                Loading tournaments...
+              </div>
+            ) : (
+              tournaments.map((t) => {
+                const isSelected = selectedTournament?.id === t.id;
+                const isLive = t.status === "ongoing";
 
-              return (
-                <div
-                  key={t.id}
-                  onClick={() => handleSelectTournament(t)}
-                  className={`group cursor-pointer overflow-hidden rounded-2xl border bg-card transition-all duration-150 ${
-                    isSelected
-                      ? "border-primary ring-1 ring-primary bg-primary/5"
-                      : isLive
-                        ? "border-secondary/50 hover:border-secondary hover:shadow-md"
-                        : "border-border hover:border-slate-300 hover:shadow-sm"
-                  }`}
-                >
-                  <div className="p-4 flex gap-3.5 items-start">
-                    <div
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${
-                        isLive
-                          ? "bg-secondary/10 text-secondary border-secondary/25"
-                          : "bg-primary/10 text-primary border-primary/20"
-                      }`}
-                    >
-                      {isLive ? (
-                        <Flame className="h-4.5 w-4.5" />
-                      ) : (
-                        <Trophy className="h-4.5 w-4.5" />
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                        <h3 className="text-sm font-black font-headline text-primary tracking-tight leading-tight truncate">
-                          {t.name}
-                        </h3>
-                        <StatusBadge status={t.status} />
+                return (
+                  <div
+                    key={t.id}
+                    onClick={() =>
+                      isSelected ? closeTournament() : openTournament(t.id)
+                    }
+                    className={`group cursor-pointer overflow-hidden rounded-2xl border bg-card transition-all duration-150 ${
+                      isSelected
+                        ? "border-primary ring-1 ring-primary bg-primary/5"
+                        : isLive
+                          ? "border-secondary/50 hover:border-secondary hover:shadow-md"
+                          : "border-border hover:border-slate-300 hover:shadow-sm"
+                    }`}
+                  >
+                    <div className="p-4 flex gap-3.5 items-start">
+                      <div
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${
+                          isLive
+                            ? "bg-secondary/10 text-secondary border-secondary/25"
+                            : "bg-primary/10 text-primary border-primary/20"
+                        }`}
+                      >
+                        {isLive ? (
+                          <Flame className="h-4.5 w-4.5" />
+                        ) : (
+                          <Trophy className="h-4.5 w-4.5" />
+                        )}
                       </div>
-                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3 text-muted-foreground/80" />
-                          {t.location}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Flag className="h-3 w-3 text-muted-foreground/80" />
-                          {t.races} races
-                        </span>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                          <h3 className="text-sm font-black font-headline text-primary tracking-tight leading-tight truncate">
+                            {t.name}
+                          </h3>
+                          <StatusBadge status={t.status} />
+                        </div>
+                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3 text-muted-foreground/80" />
+                            {t.location}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Flag className="h-3 w-3 text-muted-foreground/80" />
+                            {t.startDate}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
 
-            {filtered.length === 0 && (
+            {!loadingList && tournaments.length === 0 && (
               <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
                 <Trophy className="mx-auto mb-3 h-8 w-8 text-muted-foreground/60" />
                 <p className="text-sm font-semibold text-muted-foreground">
@@ -576,20 +283,38 @@ export default function TournamentsPage() {
                 </p>
               </div>
             )}
+
+            {pagination.totalPages > 1 && (
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs disabled:opacity-50"
+                >
+                  Prev
+                </button>
+                <span className="text-xs text-muted-foreground">
+                  Page {pagination.page} / {pagination.totalPages}
+                </span>
+                <button
+                  disabled={page >= pagination.totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Right Column: Inline Tournament Detail Panel (Takes up 3/4 column space) */}
           {isPanelOpen && selectedTournament && (
             <div className="lg:col-span-9 lg:sticky lg:top-4 bg-card border border-border rounded-2xl shadow-md overflow-hidden flex flex-col">
-              {/* Panel Header */}
               <div className="border-b border-border bg-background px-6 py-5 flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
                     <CalendarDays className="h-3 w-3" />
-                    {formatRange(
-                      selectedTournament.startDate,
-                      selectedTournament.endDate
-                    )}
+                    {selectedTournament.startDate} -{" "}
+                    {selectedTournament.endDate}
                   </span>
                   <h2 className="text-2xl font-black font-headline text-primary tracking-tight leading-snug truncate mt-1">
                     {selectedTournament.name}
@@ -600,14 +325,13 @@ export default function TournamentsPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => setSelectedTournament(null)}
+                  onClick={closeTournament}
                   className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-background hover:text-foreground transition-colors"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>
 
-              {/* Sub-tab Navigation */}
               <div className="flex border-b border-border px-6 bg-background">
                 <button
                   onClick={() => setDetailTab("schedule")}
@@ -631,46 +355,9 @@ export default function TournamentsPage() {
                 </button>
               </div>
 
-              {/* Tab Panel Contents */}
               <div className="p-6 max-h-[550px] overflow-y-auto custom-scrollbar">
-                {/* ─── TAB: SCHEDULE & ROUND BREAKDOWNS ─── */}
                 {detailTab === "schedule" && (
                   <div className="space-y-6">
-                    {/* Round Breakdown */}
-                    {activeExtraDetail &&
-                      activeExtraDetail.rounds.length > 0 && (
-                        <div className="space-y-2.5">
-                          <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                            <CalendarRange className="h-3.5 w-3.5 text-muted-foreground/80" />
-                            Round Breakdown
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-                            {activeExtraDetail.rounds.map((round, idx) => (
-                              <div
-                                key={idx}
-                                className="p-4 rounded-xl border border-border bg-background flex flex-col justify-between min-h-[110px]"
-                              >
-                                <div>
-                                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-tight">
-                                    Phase {idx + 1}
-                                  </p>
-                                  <p className="text-sm font-black font-headline text-primary mt-0.5 leading-tight">
-                                    {round.name}
-                                  </p>
-                                </div>
-                                <div className="mt-4 pt-2 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground font-medium">
-                                  <span>{round.date}</span>
-                                  <span className="font-mono text-[9px] bg-card border px-1.5 py-0.5 rounded text-primary">
-                                    {round.racesRange}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                    {/* Schedule List */}
                     <div className="space-y-3.5">
                       <div className="flex items-center justify-between border-b border-border pb-2">
                         <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
@@ -678,13 +365,21 @@ export default function TournamentsPage() {
                           Races List
                         </h4>
                         <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
-                          {activeRaces.length} Contests
+                          {races.length} Contests
                         </span>
                       </div>
 
-                      {activeRaces.length > 0 ? (
+                      {racesLoading ? (
+                        <div className="text-sm text-muted-foreground">
+                          Loading races...
+                        </div>
+                      ) : racesError ? (
+                        <div className="text-sm text-destructive">
+                          {racesError}
+                        </div>
+                      ) : races.length > 0 ? (
                         <div className="space-y-2">
-                          {activeRaces.map((race) => {
+                          {races.map((race) => {
                             const isRaceLive = race.status === "Live";
                             const isCompleted = race.status === "Completed";
 
@@ -758,16 +453,13 @@ export default function TournamentsPage() {
                   </div>
                 )}
 
-                {/* ─── TAB: ENTRY INFO & RULES ─── */}
-                {detailTab === "entry" && activeExtraDetail && (
+                {detailTab === "entry" && (
                   <div className="space-y-6">
                     <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground">
                       Entry Requirements & Conditions
                     </h4>
 
-                    {/* Quick Metrics Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Entry Fee card */}
                       <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
                         <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
                           <Landmark className="h-4.5 w-4.5" />
@@ -777,15 +469,14 @@ export default function TournamentsPage() {
                             Nomination Fee
                           </p>
                           <p className="text-base font-black text-primary mt-1">
-                            {activeExtraDetail.entryFee}
+                            Not provided by API
                           </p>
                           <p className="text-[10px] text-muted-foreground mt-0.5">
-                            Non-refundable registration dues.
+                            This section needs extra fields from backend.
                           </p>
                         </div>
                       </div>
 
-                      {/* Entry Deadline */}
                       <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
                         <div className="p-2.5 bg-secondary/15 text-secondary rounded-lg">
                           <CalendarDays className="h-4.5 w-4.5" />
@@ -795,15 +486,14 @@ export default function TournamentsPage() {
                             Nominations Close
                           </p>
                           <p className="text-base font-black text-foreground mt-1">
-                            {activeExtraDetail.deadline}
+                            Not provided by API
                           </p>
                           <p className="text-[10px] text-muted-foreground mt-0.5">
-                            Late entries will not be registered.
+                            This section needs extra fields from backend.
                           </p>
                         </div>
                       </div>
 
-                      {/* Horse Eligibility */}
                       <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
                         <div className="p-2.5 bg-muted text-muted-foreground rounded-lg">
                           <ShieldAlert className="h-4.5 w-4.5" />
@@ -813,12 +503,11 @@ export default function TournamentsPage() {
                             Eligibility Criteria
                           </p>
                           <p className="text-sm font-bold text-foreground mt-1 leading-snug">
-                            {activeExtraDetail.eligibility}
+                            Not provided by API
                           </p>
                         </div>
                       </div>
 
-                      {/* Field Size Restrictions */}
                       <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
                         <div className="p-2.5 bg-muted text-muted-foreground rounded-lg">
                           <Users className="h-4.5 w-4.5" />
@@ -828,24 +517,22 @@ export default function TournamentsPage() {
                             Max Field Size
                           </p>
                           <p className="text-base font-black text-foreground mt-1">
-                            {activeExtraDetail.maxField}
+                            Not provided by API
                           </p>
                           <p className="text-[10px] text-muted-foreground mt-0.5">
-                            Cap on maximum active runners.
+                            This section needs extra fields from backend.
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    {/* Standard Terms Notice */}
                     <div className="p-4.5 rounded-xl border border-secondary/20 bg-secondary/5 text-xs text-foreground/90 leading-relaxed">
                       <p className="font-bold text-primary mb-1 flex items-center gap-1.5">
                         Tournament Notice & Regulations
                       </p>
-                      All participating horses must pass pre-race veterinary
-                      evaluations on the morning of the competition. Jockeys
-                      must be licensed and weigh-in at least 45 minutes prior to
-                      post-time.
+                      Tournament entry policy is not included in the current API
+                      response. Add those fields to GET /tournaments/:id if you
+                      need this section fully populated.
                     </div>
                   </div>
                 )}
