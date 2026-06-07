@@ -29,9 +29,12 @@ import {
 // Import Abstracted Components
 import { ScheduleLayout } from "../components/schedule/ScheduleLayout";
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
-
-// Import the Jockey Races Hook for the Schedule
 import { useJockeyRaces, type MyRide } from "../hooks/useJockeyRaces.ts";
+
+// Import Owner Modals
+import { AddHorseModal } from "../components/owner/AddHorseModal";
+import { RegisterTournamentModal } from "../components/owner/RegisterTournamentModal";
+import { InviteJockeyModal } from "../components/owner/InviteJockeyModal";
 
 type ToastType = "success" | "error" | "warning" | "info";
 type Toast = { id: number; message: string; type: ToastType };
@@ -39,7 +42,6 @@ type Toast = { id: number; message: string; type: ToastType };
 export default function OwnerPage() {
   const [active, setActive] = useState<string>(ROUTES.OWNER_DASHBOARD);
 
-  // Use the real Owner Hook (No Mock Data)
   const {
     horses,
     tournaments,
@@ -55,7 +57,6 @@ export default function OwnerPage() {
     cancelInvite,
   } = useOwner();
 
-  // Use the Jockey Races Hook for the Schedule (Works for Owners too via /me/races)
   const { rides: ownerRides, loading: ridesLoading } = useJockeyRaces();
 
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -140,20 +141,17 @@ export default function OwnerPage() {
     try {
       await retireHorse(id);
       addToast("Horse status set to Retired.", "info");
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       addToast(error.message || "Cannot retire horse", "error");
     }
   };
 
   const handleRegisterTournament = async (
-    e: React.FormEvent<HTMLFormElement>
+    horseId: string,
+    tournamentId: number
   ) => {
-    e.preventDefault();
-    if (!selectedHorseId || !selectedTournamentId) return;
-    const horse = horses.find((h) => h.id === selectedHorseId);
-    const tournament = tournaments.find((t) => t.id === selectedTournamentId);
+    const horse = horses.find((h) => h.id === horseId);
+    const tournament = tournaments.find((t) => t.id === tournamentId);
     if (!horse || !tournament) return;
 
     if (horse.breed !== tournament.allowedBreed) {
@@ -175,8 +173,8 @@ export default function OwnerPage() {
     const isFull = tournament.currentCount >= tournament.maxCapacity;
     try {
       await registerTournament(
-        selectedHorseId,
-        selectedTournamentId,
+        horseId,
+        tournamentId,
         isFull ? "Waitlisted" : "Pending Approval"
       );
       setShowRegisterTournament(false);
@@ -191,14 +189,11 @@ export default function OwnerPage() {
     }
   };
 
-  const handleInviteJockeys = async (
-    jockeyIds: number[],
-    tournamentId: number,
-    horseId: string
-  ) => {
-    if (jockeyIds.length === 0) return;
+  const handleInviteJockeys = async (jockeyIds: number[]) => {
+    if (jockeyIds.length === 0 || !selectedTournamentId || !selectedHorseId)
+      return;
     try {
-      await inviteJockeys(jockeyIds, tournamentId, horseId);
+      await inviteJockeys(jockeyIds, selectedTournamentId, selectedHorseId);
       setShowInviteJockey(false);
       addToast(
         `Dispatched invitations to ${jockeyIds.length} Jockey(s).`,
@@ -255,7 +250,7 @@ export default function OwnerPage() {
             horses={horses}
             tournaments={tournaments}
             registrations={registrations}
-            onOpenRegisterModal={(h, t) => {
+            onOpenRegisterModal={(h: string | null, t: number | null) => {
               setSelectedHorseId(h ?? null);
               setSelectedTournamentId(t ?? null);
               setShowRegisterTournament(true);
@@ -270,7 +265,7 @@ export default function OwnerPage() {
             tournaments={tournaments}
             jockeys={jockeys}
             invitations={invitations}
-            onOpenInviteModal={(h, t) => {
+            onOpenInviteModal={(h: string, t: number) => {
               setSelectedHorseId(h);
               setSelectedTournamentId(t);
               setShowInviteJockey(true);
@@ -280,7 +275,6 @@ export default function OwnerPage() {
           />
         );
       case "/owner/schedule":
-        // Use the Jockey Schedule View but pass the Owner's rides
         return <OwnerScheduleView rides={ownerRides} loading={ridesLoading} />;
       default:
         return null;
@@ -326,186 +320,35 @@ export default function OwnerPage() {
 
         <div className="flex-1 overflow-y-auto min-h-0">{renderContent()}</div>
 
-        {/* Modals */}
-        {showAddHorse && (
-          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl border p-5 max-w-md w-full shadow-xl">
-              <div className="flex items-center justify-between border-b pb-2.5 mb-4">
-                <h3 className="font-bold text-base text-[#064E3B]">
-                  Add Horse to Roster
-                </h3>
-                <button
-                  onClick={() => setShowAddHorse(false)}
-                  className="text-slate-400 hover:text-slate-600"
-                >
-                  ✕
-                </button>
-              </div>
-              <form onSubmit={handleAddHorse} className="space-y-3.5">
-                <div className="grid grid-cols-2 gap-3.5">
-                  <input
-                    required
-                    name="name"
-                    type="text"
-                    className="col-span-2 bg-slate-50 border rounded-md p-2 text-xs"
-                    placeholder="Horse Name"
-                  />
-                  <select
-                    required
-                    name="breed"
-                    className="bg-slate-50 border rounded-md p-2 text-xs"
-                  >
-                    <option value="Thoroughbred">Thoroughbred</option>
-                    <option value="Arabian">Arabian</option>
-                    <option value="Quarter Horse">Quarter Horse</option>
-                  </select>
-                  <select
-                    required
-                    name="gender"
-                    className="bg-slate-50 border rounded-md p-2 text-xs"
-                  >
-                    <option value="Stallion">Stallion</option>
-                    <option value="Mare">Mare</option>
-                    <option value="Gelding">Gelding</option>
-                  </select>
-                  <input
-                    required
-                    name="dob"
-                    type="date"
-                    className="bg-slate-50 border rounded-md p-2 text-xs"
-                  />
-                  <input
-                    required
-                    name="associationCode"
-                    type="text"
-                    className="col-span-2 bg-slate-50 border rounded-md p-2 text-xs"
-                    placeholder="Association Code"
-                  />
-                </div>
-                <div className="flex gap-2 justify-end pt-2 border-t">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddHorse(false)}
-                    className="rounded-md border px-3 py-1.5 text-xs"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="rounded-md bg-[#064E3B] text-white px-3.5 py-1.5 text-xs font-bold"
-                  >
-                    Save
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        {/* Separated Modals */}
+        <AddHorseModal
+          isOpen={showAddHorse}
+          onClose={() => setShowAddHorse(false)}
+          onSubmit={handleAddHorse}
+        />
 
-        {showRegisterTournament && (
-          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl border p-5 max-w-sm w-full shadow-xl">
-              <div className="flex items-center justify-between border-b pb-2.5 mb-4">
-                <h3 className="font-bold text-base text-[#064E3B]">
-                  Tournament Registration
-                </h3>
-                <button
-                  onClick={() => setShowRegisterTournament(false)}
-                  className="text-slate-400"
-                >
-                  ✕
-                </button>
-              </div>
-              <form onSubmit={handleRegisterTournament} className="space-y-4">
-                <select
-                  value={selectedHorseId ?? ""}
-                  onChange={(e) => setSelectedHorseId(e.target.value)}
-                  required
-                  className="w-full bg-slate-50 border rounded-md p-2.5 text-xs"
-                >
-                  <option value="" disabled>
-                    -- Choose Horse --
-                  </option>
-                  {horses
-                    .filter((h) => h.status === "Active")
-                    .map((h) => (
-                      <option key={h.id} value={h.id}>
-                        {h.name} ({h.breed})
-                      </option>
-                    ))}
-                </select>
-                <select
-                  value={selectedTournamentId ?? ""}
-                  onChange={(e) =>
-                    setSelectedTournamentId(Number(e.target.value))
-                  }
-                  required
-                  className="w-full bg-slate-50 border rounded-md p-2.5 text-xs"
-                >
-                  <option value="" disabled>
-                    -- Choose Tournament --
-                  </option>
-                  {tournaments
-                    .filter((t) => t.status === "Registration Open")
-                    .map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.name}
-                      </option>
-                    ))}
-                </select>
-                <div className="flex gap-2 justify-end pt-2 border-t">
-                  <button
-                    type="button"
-                    onClick={() => setShowRegisterTournament(false)}
-                    className="rounded-md border px-3 py-1.5 text-xs"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="rounded-md bg-[#064E3B] text-white px-3.5 py-1.5 text-xs font-bold"
-                  >
-                    Submit
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        <RegisterTournamentModal
+          isOpen={showRegisterTournament}
+          onClose={() => setShowRegisterTournament(false)}
+          horses={horses}
+          tournaments={tournaments}
+          initialHorseId={selectedHorseId}
+          initialTournamentId={selectedTournamentId}
+          onSubmit={handleRegisterTournament}
+        />
 
-        {showInviteJockey && selectedHorseId && selectedTournamentId && (
-          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl border p-5 max-w-md w-full shadow-xl">
-              <div className="flex items-center justify-between border-b pb-2.5 mb-3">
-                <h3 className="font-bold text-base text-[#064E3B]">
-                  Select Jockeys
-                </h3>
-                <button
-                  onClick={() => setShowInviteJockey(false)}
-                  className="text-slate-400"
-                >
-                  ✕
-                </button>
-              </div>
-              <JockeyInviteSelector
-                jockeys={jockeys}
-                onDispatch={(ids) =>
-                  handleInviteJockeys(
-                    ids,
-                    selectedTournamentId,
-                    selectedHorseId
-                  )
-                }
-              />
-            </div>
-          </div>
-        )}
+        <InviteJockeyModal
+          isOpen={showInviteJockey}
+          onClose={() => setShowInviteJockey(false)}
+          jockeys={jockeys}
+          onDispatch={handleInviteJockeys}
+        />
       </div>
     </UserLayout>
   );
 }
 
-// ─── Components (Shortened & Cleaned) ──────────────────────────────────────────
+// ─── Components (Unchanged) ────────────────────────────────────────────────────
 
 function DashboardOverview({
   horses,
@@ -514,20 +357,15 @@ function DashboardOverview({
   invitations,
   jockeys,
   setActiveTab,
-}: {
-  horses: Horse[];
-  tournaments: Tournament[];
-  registrations: TournamentRegistration[];
-  invitations: Invitation[];
-  jockeys: Jockey[];
-  setActiveTab: (tab: string) => void;
-}) {
-  const activeHorsesCount = horses.filter((h) => h.status === "Active").length;
+}: any) {
+  const activeHorsesCount = horses.filter(
+    (h: Horse) => h.status === "Active"
+  ).length;
   const pendingRegCount = registrations.filter(
-    (r) => r.status === "Pending Approval"
+    (r: TournamentRegistration) => r.status === "Pending Approval"
   ).length;
   const pendingInvCount = invitations.filter(
-    (i) => i.status === "Pending"
+    (i: Invitation) => i.status === "Pending"
   ).length;
 
   return (
@@ -548,7 +386,7 @@ function DashboardOverview({
           },
           {
             label: "Open Events",
-            val: `${tournaments.filter((t) => t.status === "Registration Open").length} Active`,
+            val: `${tournaments.filter((t: Tournament) => t.status === "Registration Open").length} Active`,
             action: () => setActiveTab("/owner/raceRegister"),
           },
           {
@@ -592,8 +430,8 @@ function DashboardOverview({
           </div>
           <div className="divide-y text-xs">
             {horses
-              .filter((h) => h.status !== "Retired")
-              .map((horse) => (
+              .filter((h: Horse) => h.status !== "Retired")
+              .map((horse: Horse) => (
                 <div
                   key={horse.id}
                   className="py-2.5 flex items-center justify-between"
@@ -617,7 +455,7 @@ function DashboardOverview({
             <Trophy className="w-4 h-4 text-amber-500" /> Elite Jockeys
           </h3>
           <div className="space-y-2 mt-3">
-            {jockeys.slice(0, 3).map((j) => (
+            {jockeys.slice(0, 3).map((j: Jockey) => (
               <div
                 key={j.id}
                 className="p-2.5 bg-slate-50/50 rounded-lg flex items-center justify-between text-xs border"
@@ -648,12 +486,7 @@ function HorseManagement({
   isHorseLocked,
   onRetire,
   onOpenAddModal,
-}: {
-  horses: Horse[];
-  isHorseLocked: (id: string) => boolean;
-  onRetire: (id: string) => void;
-  onOpenAddModal: () => void;
-}) {
+}: any) {
   return (
     <div className="p-5 space-y-5 max-w-6xl mx-auto">
       <div className="flex items-center justify-between border-b pb-4">
@@ -673,8 +506,8 @@ function HorseManagement({
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {horses
-          .filter((h) => h.status !== "Retired")
-          .map((horse) => {
+          .filter((h: Horse) => h.status !== "Retired")
+          .map((horse: Horse) => {
             const locked = isHorseLocked(horse.id);
             return (
               <div
@@ -731,24 +564,13 @@ function HorseManagement({
   );
 }
 
-function RaceRegister({
-  tournaments,
-  onOpenRegisterModal,
-}: {
-  horses: Horse[];
-  tournaments: Tournament[];
-  registrations: TournamentRegistration[];
-  onOpenRegisterModal: (
-    horseId?: string | null,
-    tournamentId?: number | null
-  ) => void;
-}) {
+function RaceRegister({ tournaments, onOpenRegisterModal }: any) {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<
     "All" | "Live now" | "Registration open" | "Upcoming" | "Completed"
   >("All");
 
-  const filtered = tournaments.filter((t) => {
+  const filtered = tournaments.filter((t: Tournament) => {
     const matchSearch =
       t.name.toLowerCase().includes(search.toLowerCase()) ||
       t.allowedBreed.toLowerCase().includes(search.toLowerCase());
@@ -792,7 +614,6 @@ function RaceRegister({
           (tab) => (
             <button
               key={tab}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onClick={() => setActiveFilter(tab as any)}
               className={cn(
                 "px-4 py-1.5 rounded-full text-[13px] font-bold border",
@@ -808,7 +629,7 @@ function RaceRegister({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filtered.map((t) => (
+        {filtered.map((t: Tournament) => (
           <div
             key={t.id}
             className="bg-white rounded-2xl border p-5 flex flex-col hover:shadow-md transition"
@@ -843,33 +664,30 @@ function JockeyRosterManagement({
   onOpenInviteModal,
   onConfirmPairing,
   onCancelInvite,
-}: {
-  horses: Horse[];
-  registrations: TournamentRegistration[];
-  tournaments: Tournament[];
-  jockeys: Jockey[];
-  invitations: Invitation[];
-  onOpenInviteModal: (horseId: string, tournamentId: number) => void;
-  onConfirmPairing: (invId: number) => void;
-  onCancelInvite: (invId: number) => void;
-}) {
-  const approved = registrations.filter((r) => r.status === "Approved");
+}: any) {
+  const approved = registrations.filter(
+    (r: TournamentRegistration) => r.status === "Approved"
+  );
 
   return (
     <div className="p-5 space-y-5 max-w-6xl mx-auto">
       <h2 className="text-xl font-black text-[#064E3B]">Jockey Roster</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {approved.map((reg) => {
-          const horse = horses.find((h) => h.id === reg.horseId);
-          const tournament = tournaments.find((t) => t.id === reg.tournamentId);
+        {approved.map((reg: TournamentRegistration) => {
+          const horse = horses.find((h: Horse) => h.id === reg.horseId);
+          const tournament = tournaments.find(
+            (t: Tournament) => t.id === reg.tournamentId
+          );
           if (!horse || !tournament) return null;
 
           const invites = invitations.filter(
-            (i) =>
+            (i: Invitation) =>
               i.horseId === reg.horseId && i.tournamentId === reg.tournamentId
           );
-          const locked = invites.find((i) => i.status === "Confirmed");
+          const locked = invites.find(
+            (i: Invitation) => i.status === "Confirmed"
+          );
 
           return (
             <div
@@ -900,8 +718,10 @@ function JockeyRosterManagement({
               </div>
 
               <div className="space-y-1.5 pt-2 mt-3 border-t">
-                {invites.map((inv) => {
-                  const jockey = jockeys.find((j) => j.id === inv.jockeyId);
+                {invites.map((inv: Invitation) => {
+                  const jockey = jockeys.find(
+                    (j: Jockey) => j.id === inv.jockeyId
+                  );
                   return (
                     <div
                       key={inv.id}
@@ -956,73 +776,7 @@ function JockeyRosterManagement({
   );
 }
 
-function JockeyInviteSelector({
-  jockeys,
-  onDispatch,
-}: {
-  jockeys: Jockey[];
-  onDispatch: (ids: number[]) => void;
-}) {
-  const [selected, setSelected] = useState<number[]>([]);
-  const toggle = (id: number) =>
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-
-  return (
-    <div className="space-y-3">
-      <div className="max-h-56 overflow-y-auto divide-y">
-        {jockeys.map((j) => (
-          <div
-            key={j.id}
-            onClick={() => toggle(j.id)}
-            className={cn(
-              "p-2 flex items-center justify-between cursor-pointer rounded-lg my-1 border",
-              selected.includes(j.id)
-                ? "bg-emerald-50/50 border-[#064E3B]"
-                : "bg-white"
-            )}
-          >
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={selected.includes(j.id)}
-                onChange={() => {}}
-              />
-              <div>
-                <p className="font-bold text-slate-800">{j.name}</p>
-                <p className="text-[10px] text-slate-400">{j.club}</p>
-              </div>
-            </div>
-            <span className="font-bold text-[#064E3B]">{j.winRate}</span>
-          </div>
-        ))}
-      </div>
-      <div className="border-t pt-3 flex items-center justify-between">
-        <span className="text-[10px] text-slate-500">
-          {selected.length} Selected
-        </span>
-        <button
-          onClick={() => onDispatch(selected)}
-          disabled={selected.length === 0}
-          className="rounded-md bg-[#064E3B] text-white px-3.5 py-1.5 text-xs font-bold disabled:opacity-40"
-        >
-          Send
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ── OwnerScheduleView (Uses Jockey Rides Hook Data) ──────────────────────────
-
-function OwnerScheduleView({
-  rides,
-  loading,
-}: {
-  rides: MyRide[];
-  loading: boolean;
-}) {
+function OwnerScheduleView({ rides, loading }: any) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "All" | "scheduled" | "live" | "completed"
@@ -1032,25 +786,25 @@ function OwnerScheduleView({
 
   const filteredRides = useMemo(() => {
     const lower = search.toLowerCase();
-    return rides.filter((r) => {
+    return rides.filter((r: MyRide) => {
       const matchSearch =
         !lower ||
         r.name.toLowerCase().includes(lower) ||
-        r.ride.toLowerCase().includes(lower) ||
-        r.name.toLowerCase().includes(lower);
+        r.ride.toLowerCase().includes(lower);
       const matchStatus = statusFilter === "All" || r.status === statusFilter;
       return matchSearch && matchStatus;
     });
   }, [rides, search, statusFilter]);
 
   const raceDays = useMemo(() => {
-    return filteredRides.map((r) => {
+    return filteredRides.map((r: MyRide) => {
       const d = new Date(r.scheduledAt);
       return new Date(d.getFullYear(), d.getMonth(), d.getDate());
     });
   }, [filteredRides]);
 
-  const selectedRide = rides.find((r) => r.id === selectedRideId) || null;
+  const selectedRide =
+    rides.find((r: MyRide) => r.id === selectedRideId) || null;
 
   if (loading)
     return (
@@ -1090,7 +844,6 @@ function OwnerScheduleView({
           ].map((item) => (
             <button
               key={item.key}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onClick={() => setStatusFilter(item.key as any)}
               className={cn(
                 "px-4 py-2.5 rounded-xl border text-xs font-bold transition shadow-xs",
@@ -1126,7 +879,7 @@ function OwnerScheduleView({
             </div>
             <div className="divide-y divide-slate-100 flex-1">
               {filteredRides.length > 0 ? (
-                filteredRides.map((ride) => (
+                filteredRides.map((ride: MyRide) => (
                   <button
                     key={ride.id}
                     onClick={() =>
@@ -1187,7 +940,6 @@ function OwnerScheduleView({
                   className="text-slate-400 hover:text-slate-600"
                 ></button>
               </div>
-
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="p-4 bg-slate-50 rounded-lg">
                   <span className="text-[10px] text-slate-400 uppercase font-bold block">
@@ -1209,7 +961,6 @@ function OwnerScheduleView({
                   </span>
                 </div>
               </div>
-
               <div className="space-y-4">
                 <div className="flex items-center gap-3 text-sm text-slate-600">
                   <MapPin className="w-4 h-4" /> {selectedRide.venue}
