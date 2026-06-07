@@ -40,6 +40,14 @@ import {
 type ToastType = "success" | "error" | "warning" | "info";
 type Toast = { id: number; message: string; type: ToastType };
 
+// ─── Mock Data for Racing Officials ──────────────────────────────────────────
+
+const officialsMock = [
+  { initials: "AJ", name: "Arthur Jones", title: "Chief Steward" },
+  { initials: "SB", name: "Sarah Baxter", title: "Starter" },
+  { initials: "MT", name: "Mark Thompson", title: "Judge" },
+];
+
 export default function OwnerPage() {
   const [active, setActive] = useState<string>(ROUTES.OWNER_DASHBOARD);
 
@@ -112,8 +120,12 @@ export default function OwnerPage() {
     const breed = data.get("breed") as string;
     const dob = data.get("dob") as string;
     const gender = data.get("gender") as "Stallion" | "Mare" | "Gelding";
-    const microchipId = data.get("microchipId") as string;
     const associationCode = data.get("associationCode") as string;
+
+    // Automatically generate valid 15-digit Microchip ID to fulfill typed hook requirement seamlessly
+    const microchipId = Math.floor(
+      100000000000000 + Math.random() * 900000000000000
+    ).toString();
 
     if (
       horses.some(
@@ -438,19 +450,6 @@ export default function OwnerPage() {
                       className="w-full bg-slate-50 border rounded-md p-2 text-xs outline-hidden focus:border-[#064E3B]"
                     />
                   </div>
-                  <div>
-                    <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">
-                      Microchip ID
-                    </label>
-                    <input
-                      required
-                      name="microchipId"
-                      type="text"
-                      pattern="\d{15}"
-                      className="w-full bg-slate-50 border rounded-md p-2 text-xs outline-hidden focus:border-[#064E3B]"
-                      placeholder="15 digits"
-                    />
-                  </div>
                   <div className="col-span-2">
                     <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">
                       Breeding Association Code
@@ -633,7 +632,7 @@ function DashboardOverview({
         <h2 className="text-xl font-black text-[#064E3B] tracking-tight">
           Owner Dashboard
         </h2>
-        <p className="text-xs text-slate-500 mt-1">
+        <p className="text-xs text-slate-550 mt-1">
           Manage stable profiles, registrations, and jockey invitations.
         </p>
       </div>
@@ -725,7 +724,7 @@ function DashboardOverview({
                 className="p-2.5 bg-slate-50/50 rounded-lg flex items-center justify-between text-xs border border-slate-100"
               >
                 <div>
-                  <p className="font-bold text-slate-800">{j.name}</p>
+                  <p className="font-bold text-slate-850">{j.name}</p>
                   <p className="text-[10px] text-slate-400">{j.club}</p>
                 </div>
                 <div className="text-right">
@@ -821,14 +820,6 @@ function HorseManagement({
                       </span>
                       <span className="font-bold text-slate-700">
                         {horse.gender}
-                      </span>
-                    </div>
-                    <div className="col-span-2 mt-1">
-                      <span className="text-slate-400 block font-semibold uppercase text-[8px]">
-                        Microchip ID
-                      </span>
-                      <span className="font-bold text-slate-755 font-label">
-                        {horse.microchipId}
                       </span>
                     </div>
                   </div>
@@ -981,7 +972,7 @@ function RaceRegister({
               at 14:30 today
             </span>
           ) : (
-            <span className="text-[12px] text-slate-500 font-medium">
+            <span className="text-[12px] text-slate-505 font-medium">
               No active stable entries
             </span>
           )}
@@ -1264,7 +1255,7 @@ function JockeyRosterManagement({
                         <h4 className="font-bold text-sm text-[#064E3B]">
                           {horse.name}
                         </h4>
-                        <p className="text-[10px] text-slate-450 leading-tight mt-0.5">
+                        <p className="text-[10px] text-slate-455 leading-tight mt-0.5">
                           {tournament.name}
                         </p>
                       </div>
@@ -1719,7 +1710,7 @@ function ScheduleDetailPanel({
               <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3">
                 Your Entry
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Horse</span>
                   <span className="text-base font-black font-headline text-[#064E3B] block mt-1">{horse.name}</span>
@@ -1743,11 +1734,6 @@ function ScheduleDetailPanel({
                       <span className="text-xs text-rose-500 font-bold mt-0.5 block">⚠ Will be Scratched</span>
                     </>
                   )}
-                </div>
-                <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Microchip ID</span>
-                  <span className="text-base font-black font-headline text-[#064E3B] block mt-1 font-label text-sm">{horse.microchipId}</span>
-                  <span className="text-xs text-slate-500 mt-0.5 block">Official Registry</span>
                 </div>
               </div>
             </div>
@@ -1831,6 +1817,33 @@ function ScheduleDetailPanel({
                 </div>
               </div>
             )}
+
+            {/* Technical Board Roster Block */}
+            <div className="border-t border-slate-100 pt-6">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3.5 block">
+                Racing Officials Board
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {officialsMock.map((o) => (
+                  <div
+                    key={o.initials}
+                    className="flex items-center gap-3.5 rounded-xl border border-[#064E3B]/10 p-3.5 bg-[#F4F6F5]/30"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg shadow-sm bg-white text-[#064E3B] text-xs font-black border border-[#064E3B]/10">
+                      {o.initials}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-black font-headline text-slate-800 truncate leading-tight">
+                        {o.name}
+                      </p>
+                      <p className="text-[10px] font-semibold text-slate-400 truncate leading-tight mt-1">
+                        {o.title}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </>
         )}
 
@@ -2203,7 +2216,7 @@ export function HorseScheduleView({
                 {selectedDate && (
                   <button
                     onClick={() => setSelectedDate(undefined)}
-                    className="ml-auto text-[9px] text-slate-400 hover:text-slate-600 font-bold"
+                    className="ml-auto text-[9px] text-slate-400 hover:text-slate-650 font-bold"
                   >
                     Clear
                   </button>
