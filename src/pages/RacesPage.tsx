@@ -16,10 +16,8 @@ import { useRaces, useRaceDetail } from "../hooks/useRaces";
 import type { RaceListItem, RaceApiStatus } from "../services/raceService";
 
 // Import Shared Abstracted Components
-//import { ScheduleLayout } from "../components/schedule/ScheduleLayout";
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
 import { ScheduleStatCard } from "../components/schedule/ScheduleStatCard";
-//import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -83,7 +81,6 @@ const STATUS_ORDER: Record<RaceStatus, number> = {
   Completed: 2,
 };
 
-// Fixes the "Invalid Date" bug
 const formatDateTime = (dateString: string | undefined) => {
   if (!dateString) return "TBC";
   const date = new Date(dateString);
@@ -160,7 +157,6 @@ export default function RacesPage() {
   const tournamentIdParam = searchParams.get("tournamentId");
   const tournamentId = tournamentIdParam ?? null;
 
-  // Handle navigation state from TournamentsPage
   const routeState = location.state as {
     raceId?: string;
     date?: string;
@@ -183,23 +179,44 @@ export default function RacesPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
   const [search, setSearch] = useState("");
 
-  // Initialize state from route if navigated from Tournament page
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     routeState?.date ? parseLocalDate(routeState.date) : new Date()
   );
   const [selectedRaceId, setSelectedRaceId] = useState<string | null>(
     routeState?.raceId ?? null
   );
+  const [viewMonth, setViewMonth] = useState<Date>(selectedDate || new Date());
 
-  // Fetch races when selectedDate changes
   useEffect(() => {
-    if (!selectedDate) return;
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth() + 1;
+    const year = viewMonth.getFullYear();
+    const month = viewMonth.getMonth() + 1;
+    console.log("Update API");
     loadRacesByMonth(year, month);
-  }, [selectedDate, loadRacesByMonth]);
+  }, [viewMonth.getFullYear(), viewMonth.getMonth(), loadRacesByMonth]);
 
-  // Fetch race detail when selectedRaceId changes
+  // [Calendar Sync Effect]
+  useEffect(() => {
+    if (selectedDate) {
+      setViewMonth((prev) => {
+        const prevYear = prev.getFullYear();
+        const prevMonth = prev.getMonth();
+        const nextYear = selectedDate.getFullYear();
+        const nextMonth = selectedDate.getMonth();
+
+        if (prevYear !== nextYear || prevMonth !== nextMonth) {
+          return selectedDate;
+        } else {
+          console.log("Update Date");
+          return prev;
+        }
+      });
+    }
+  }, [selectedDate]);
+
+  const handleMonthChange = useCallback((newMonth: Date) => {
+    setViewMonth(newMonth);
+  }, []);
+
   useEffect(() => {
     if (selectedRaceId) {
       loadDetail(selectedRaceId);
@@ -367,6 +384,8 @@ export default function RacesPage() {
                 <ScheduleCalendar
                   selectedDate={selectedDate}
                   onSelect={setSelectedDate}
+                  defaultMonth={viewMonth}
+                  onMonthChange={handleMonthChange}
                   raceDays={raceDays}
                   highlightClass="font-black text-primary bg-primary/10 border border-primary/20 rounded-md"
                 />

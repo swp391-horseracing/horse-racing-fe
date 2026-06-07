@@ -1,4 +1,4 @@
-import { ChevronRight, X, Calendar, User, ChessKnight} from "lucide-react";
+import { ChevronRight, X, Calendar, User, ChessKnight } from "lucide-react";
 import useHorse from "../hooks/useHorse.ts";
 import useAuth from "../hooks/useAuth.ts";
 import { useEffect, useState } from "react";
