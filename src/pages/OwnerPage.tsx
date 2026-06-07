@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { useOwnerData } from "../hooks/useOwnerData.ts";
@@ -10,6 +10,7 @@ import type {
   Invitation,
 } from "../hooks/useOwnerData.ts";
 import { cn } from "../lib/utils";
+import { Calendar as CalendarUI } from "../components/ui/calendar";
 import {
   Plus,
   Trash2,
@@ -26,6 +27,14 @@ import {
   Zap,
   ArrowUpRight,
   ArrowRight,
+  CalendarDays,
+  X,
+  Compass,
+  Flag,
+  Users,
+  ChevronRight,
+  UserCheck,
+  Syringe,
 } from "lucide-react";
 
 type ToastType = "success" | "error" | "warning" | "info";
@@ -307,6 +316,13 @@ export default function OwnerPage() {
             horses={horses}
             registrations={registrations}
             tournaments={tournaments}
+            jockeys={jockeys}
+            invitations={invitations}
+            onOpenInviteModal={(horseId, tournamentId) => {
+              setSelectedHorseId(horseId);
+              setSelectedTournamentId(tournamentId);
+              setShowInviteJockey(true);
+            }}
           />
         );
       default:
@@ -323,7 +339,7 @@ export default function OwnerPage() {
             <div
               key={t.id}
               className={cn(
-                "p-3 rounded-lg border shadow-lg backdrop-blur-md flex items-center gap-2 pointer-events-auto transform animate-in slide-in-from-top duration-200 text-xs font-semibold",
+                "p-3 rounded-lg border shadow-lg backdrop-blur-md flex items-center gap-2 pointer-events-auto transform animate-in slide-in-from-top duration-205 text-xs font-semibold",
                 t.type === "success" &&
                   "bg-emerald-50 border-emerald-200 text-emerald-955",
                 t.type === "error" &&
@@ -1017,7 +1033,7 @@ function RaceRegister({
           <h2 className="text-xl font-black text-[#064E3B] tracking-tight">
             Race & Tournament Registration
           </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-555 mt-1">
             Register your active horses for upcoming events and monitor
             application statuses.
           </p>
@@ -1134,7 +1150,7 @@ function RaceRegister({
                 {/* Separator Line */}
                 <div className="border-t border-slate-100 mt-4 mb-4" />
 
-                {/* Stats row (Updated to 2-column format without Prize Pool) */}
+                {/* Stats row */}
                 <div className="grid grid-cols-2 gap-4 mb-5">
                   {[
                     {
@@ -1207,7 +1223,7 @@ function JockeyRosterManagement({
         <h2 className="text-xl font-black text-[#064E3B] tracking-tight">
           Jockey Roster
         </h2>
-        <p className="text-xs text-slate-500 mt-1">
+        <p className="text-xs text-slate-550 mt-1">
           Hire jockeys for approved tournament runs and finalize pairings.
         </p>
       </div>
@@ -1302,7 +1318,7 @@ function JockeyRosterManagement({
                                       inv.status === "Accepted" &&
                                         "bg-emerald-50 border-emerald-200 text-emerald-850",
                                       inv.status === "Pending" &&
-                                        "bg-amber-50 border-amber-200 text-amber-850",
+                                        "bg-amber-50 border-amber-200 text-amber-855",
                                       inv.status === "Declined" &&
                                         "bg-rose-50 border-rose-200 text-rose-855",
                                       inv.status === "Superseded" &&
@@ -1422,104 +1438,901 @@ function JockeyInviteSelector({
   );
 }
 
-// ─── Component 5: HorseScheduleView ──────────────────────────────────────────
+// ─── Component 5: HorseScheduleView (Integrated Drop-In) ──────────────────────
 
-function HorseScheduleView({
+type ScheduleEntry = {
+  regId: number;
+  horse: Horse;
+  tournament: Tournament;
+  registration: TournamentRegistration;
+  invitations: Invitation[];
+  confirmedJockey: Jockey | null;
+  hasPendingInvite: boolean;
+  dateKey: string;
+};
+
+type DetailTab = "info" | "runners" | "invite";
+
+// Helpers
+const parseLocalDate = (dateStr: string) => {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
+
+const fmtDate = (d: string) =>
+  parseLocalDate(d).toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+const mockRaceTime = (tournamentId: number) => {
+  const times = ["14:00", "15:30", "16:00", "17:00", "18:30"];
+  return times[tournamentId % times.length];
+};
+
+const buildMockRunners = (
+  horse: Horse,
+  confirmedJockey: Jockey | null,
+  hasPendingInvite: boolean
+) => {
+  const sampleRunners = [
+    { cloth: 1, horseName: "Northern Star", jockeyName: "D. Patel" },
+    { cloth: 2, horseName: "Silver Drift", jockeyName: "M. Larsson" },
+    { cloth: 3, horseName: "Iron Cascade", jockeyName: "C. Nguyen" },
+    { cloth: 4, horseName: "Desert Wind", jockeyName: "R. Santos" },
+    { cloth: 5, horseName: "Dark Current", jockeyName: "T. Evans" },
+    { cloth: 6, horseName: "Golden Shore", jockeyName: "A. Kim" },
+  ];
+
+  const ours = {
+    cloth: 7,
+    horseName: horse.name,
+    jockeyName: confirmedJockey
+      ? confirmedJockey.name
+      : hasPendingInvite
+        ? "— Invite Pending —"
+        : null,
+  };
+
+  return [...sampleRunners, ours];
+};
+
+const RegStatusBadge = ({
+  status,
+}: {
+  status: TournamentRegistration["status"];
+}) => {
+  const map: Record<
+    TournamentRegistration["status"],
+    { cls: string; label: string }
+  > = {
+    Approved: {
+      cls: "bg-emerald-50 border-emerald-200 text-emerald-800",
+      label: "Approved",
+    },
+    "Pending Approval": {
+      cls: "bg-amber-50 border-amber-200 text-amber-800",
+      label: "Pending",
+    },
+    Waitlisted: {
+      cls: "bg-indigo-50 border-indigo-200 text-indigo-800",
+      label: "Waitlisted",
+    },
+    Rejected: {
+      cls: "bg-rose-50 border-rose-200 text-rose-800",
+      label: "Rejected",
+    },
+  };
+  const cfg = map[status] ?? map["Pending Approval"];
+  return (
+    <span
+      className={cn(
+        "text-[8px] font-black uppercase px-2 py-0.5 rounded border shrink-0",
+        cfg.cls
+      )}
+    >
+      {cfg.label}
+    </span>
+  );
+};
+
+function ScheduleRow({
+  entry,
+  selected,
+  onClick,
+}: {
+  entry: ScheduleEntry;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  const noJockey = !entry.confirmedJockey && !entry.hasPendingInvite;
+  const pendingOnly = !entry.confirmedJockey && entry.hasPendingInvite;
+
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "group w-full flex flex-col px-4 py-3.5 text-left transition-all border-l-4",
+        selected
+          ? "bg-[#064E3B]/5 border-l-[#064E3B]"
+          : noJockey
+            ? "bg-amber-50/60 border-l-[#D97706] hover:bg-amber-50"
+            : "border-l-transparent hover:bg-slate-50"
+      )}
+    >
+      <div className="flex items-center justify-between w-full gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <span
+            className={cn(
+              "font-mono text-sm tracking-tight font-black shrink-0",
+              selected ? "text-[#064E3B]" : "text-slate-400"
+            )}
+          >
+            {mockRaceTime(entry.tournament.id)}
+          </span>
+          <div className="truncate">
+            <p
+              className={cn(
+                "font-bold font-headline text-sm truncate",
+                selected ? "text-[#064E3B]" : "text-slate-800"
+              )}
+            >
+              {entry.horse.name}
+            </p>
+            <p className="text-[10px] text-slate-500 mt-0.5 truncate font-medium">
+              {entry.tournament.name}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {noJockey && (
+            <span className="flex items-center gap-1 text-[8px] font-black uppercase px-2 py-0.5 rounded border bg-amber-50 border-amber-300 text-amber-700">
+              <AlertTriangle className="w-2.5 h-2.5" />
+              No Jockey
+            </span>
+          )}
+          {pendingOnly && (
+            <span className="flex items-center gap-1 text-[8px] font-black uppercase px-2 py-0.5 rounded border bg-indigo-50 border-indigo-200 text-indigo-700">
+              <Clock className="w-2.5 h-2.5" />
+              Invite Sent
+            </span>
+          )}
+          <RegStatusBadge status={entry.registration.status} />
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function ScheduleDetailPanel({
+  entry,
+  jockeys,
+  onClose,
+  onOpenInviteModal,
+}: {
+  entry: ScheduleEntry;
+  jockeys: Jockey[];
+  onClose: () => void;
+  onOpenInviteModal: (horseId: number, tournamentId: number) => void;
+}) {
+  const [activeTab, setActiveTab] = useState<DetailTab>("info");
+  const { horse, tournament, registration, confirmedJockey, hasPendingInvite, invitations } = entry;
+  const noJockey = !confirmedJockey && !hasPendingInvite;
+  const runners = buildMockRunners(horse, confirmedJockey, hasPendingInvite);
+
+  const tabs: { key: DetailTab; label: string; icon: React.ReactNode }[] = [
+    { key: "info", label: "Race Info", icon: <Flag className="w-3.5 h-3.5" /> },
+    { key: "runners", label: "Runner List", icon: <Users className="w-3.5 h-3.5" /> },
+    { key: "invite", label: "Invite Jockey", icon: <UserCheck className="w-3.5 h-3.5" /> },
+  ];
+
+  return (
+    <div className="lg:col-span-8 xl:col-span-8 lg:sticky lg:top-0 overflow-hidden border border-[#064E3B]/10 bg-white rounded-2xl shadow-sm flex flex-col min-h-[480px] animate-in fade-in slide-in-from-right-8 duration-200">
+      {/* Dark header */}
+      <div className="relative overflow-hidden bg-[#01251e] p-6 border-b border-[#064E3B]/10">
+        <div className="relative flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-2xl font-black font-headline tracking-tight leading-tight !text-white">
+              {horse.name}
+            </h2>
+            <p className="text-white/60 text-xs font-semibold mt-0.5">
+              {tournament.name}
+            </p>
+
+            <div className="flex flex-wrap items-center gap-2 mt-4 text-xs font-semibold">
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 !text-white px-3 py-1.5 font-bold">
+                <CalendarDays className="w-3.5 h-3.5" />
+                {fmtDate(tournament.startDate ?? "2026-06-15")} · {mockRaceTime(tournament.id)}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 !text-white px-3 py-1.5 font-bold">
+                <Compass className="w-3.5 h-3.5" />
+                {horse.breed} · {horse.gender}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 !text-white px-3 py-1.5 font-bold">
+                <MapPin className="w-3.5 h-3.5" />
+                Ho Chi Minh City, VN
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <RegStatusBadge status={registration.status} />
+            <button
+              onClick={onClose}
+              className="flex h-7 w-7 items-center justify-center rounded-xl bg-white/20 hover:bg-white/30 !text-white transition-all shadow-sm active:scale-95 border border-white/30"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* No-jockey warning banner */}
+        {noJockey && (
+          <div className="mt-4 flex items-center gap-3 rounded-xl bg-[#D97706]/20 border border-[#D97706]/40 px-4 py-2.5">
+            <AlertTriangle className="w-4 h-4 text-[#EAB308] shrink-0" />
+            <p className="text-xs font-bold text-[#EAB308] flex-1">
+              No jockey assigned — your horse will be listed as{" "}
+              <span className="uppercase">Scratched</span> unless you invite a
+              jockey before the deadline.
+            </p>
+            <button
+              onClick={() => {
+                setActiveTab("invite");
+              }}
+              className="shrink-0 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-[#D97706] text-white hover:bg-amber-500 transition active:scale-95"
+            >
+              Invite Now →
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Tab bar */}
+      <div className="flex border-b border-slate-100 bg-[#F4F6F5]/40">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-bold transition-all border-b-2",
+              activeTab === tab.key
+                ? "border-[#064E3B] text-[#064E3B] bg-white"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-white/50"
+            )}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        {/* TAB: Race Info */}
+        {activeTab === "info" && (
+          <>
+            <div>
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3">
+                Your Entry
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Horse</span>
+                  <span className="text-base font-black font-headline text-[#064E3B] block mt-1">{horse.name}</span>
+                  <span className="text-xs text-slate-500 mt-0.5 block">{horse.breed} · {horse.gender}</span>
+                </div>
+                <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Jockey</span>
+                  {confirmedJockey ? (
+                    <>
+                      <span className="text-base font-black font-headline text-[#064E3B] block mt-1">{confirmedJockey.name}</span>
+                      <span className="text-xs text-emerald-600 font-bold mt-0.5 block">✓ Confirmed</span>
+                    </>
+                  ) : hasPendingInvite ? (
+                    <>
+                      <span className="text-base font-black font-headline text-indigo-700 block mt-1">Invite Pending</span>
+                      <span className="text-xs text-slate-500 mt-0.5 block">Awaiting response</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-base font-black font-headline text-rose-600 block mt-1">Unassigned</span>
+                      <span className="text-xs text-rose-500 font-bold mt-0.5 block">⚠ Will be Scratched</span>
+                    </>
+                  )}
+                </div>
+                <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Microchip ID</span>
+                  <span className="text-base font-black font-headline text-[#064E3B] block mt-1 font-label text-sm">{horse.microchipId}</span>
+                  <span className="text-xs text-slate-500 mt-0.5 block">Official Registry</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3">
+                Event Details
+              </h3>
+              <div className="bg-white border border-[#064E3B]/10 rounded-xl overflow-hidden shadow-sm">
+                <div className="divide-y divide-slate-100 text-sm">
+                  {[
+                    {
+                      icon: <Flag className="w-4 h-4" />,
+                      label: "Allowed Breed",
+                      value: tournament.allowedBreed,
+                    },
+                    {
+                      icon: <Activity className="w-4 h-4" />,
+                      label: "Age Range",
+                      value: `${tournament.minAge} – ${tournament.maxAge} years`,
+                    },
+                    {
+                      icon: <Users className="w-4 h-4" />,
+                      label: "Capacity",
+                      value: `${tournament.currentCount} / ${tournament.maxCapacity} horses`,
+                    },
+                    {
+                      icon: <Trophy className="w-4 h-4" />,
+                      label: "Prize Fund",
+                      value: "$175,000",
+                    },
+                  ].map((row) => (
+                    <div
+                      key={row.label}
+                      className="flex items-center justify-between px-5 py-3"
+                    >
+                      <span className="text-slate-555 flex items-center gap-2 font-medium">
+                        {row.icon}
+                        {row.label}
+                      </span>
+                      <span className="font-bold text-slate-800">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {invitations.length > 0 && (
+              <div>
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3">
+                  Invitation Status
+                </h3>
+                <div className="space-y-2">
+                  {invitations.map((inv) => (
+                    <div
+                      key={inv.id}
+                      className="flex items-center justify-between px-4 py-2.5 bg-[#F4F6F5] rounded-xl border border-slate-100 text-xs"
+                    >
+                      <span className="font-semibold text-slate-700">
+                        Jockey #{inv.jockeyId}
+                      </span>
+                      <span
+                        className={cn(
+                          "text-[8px] font-black uppercase px-2 py-0.5 rounded border",
+                          inv.status === "Accepted" &&
+                            "bg-emerald-50 border-emerald-200 text-emerald-800",
+                          inv.status === "Pending" &&
+                            "bg-amber-50 border-amber-200 text-amber-800",
+                          inv.status === "Declined" &&
+                            "bg-rose-50 border-rose-200 text-rose-800",
+                          inv.status === "Superseded" &&
+                            "bg-slate-100 border-slate-200 text-slate-500"
+                        )}
+                      >
+                        {inv.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* TAB: Runner List */}
+        {activeTab === "runners" && (
+          <div>
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3">
+              Confirmed Runner Line-up
+            </h3>
+            <div className="overflow-hidden rounded-xl border border-[#064E3B]/10 bg-white shadow-sm">
+              <table className="w-full text-left">
+                <thead className="bg-[#F4F6F5] border-b border-slate-100">
+                  <tr>
+                    <th className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">
+                      Cloth
+                    </th>
+                    <th className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-slate-400">
+                      Horse
+                    </th>
+                    <th className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-slate-400">
+                      Jockey
+                    </th>
+                    <th className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-slate-400 text-right">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-sm">
+                  {runners.map((runner, idx) => {
+                    const isOurs = runner.horseName === horse.name;
+                    const isScratched = isOurs && runner.jockeyName === null;
+                    const isPending =
+                      isOurs && runner.jockeyName === "— Invite Pending —";
+
+                    return (
+                      <tr
+                        key={idx}
+                        className={cn(
+                          "transition-colors",
+                          isOurs
+                            ? isScratched
+                              ? "bg-rose-50/60"
+                              : "bg-[#064E3B]/5"
+                            : "hover:bg-slate-50/50"
+                        )}
+                      >
+                        <td className="px-5 py-3.5 text-center">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white shadow-sm text-xs font-black text-slate-700 mx-auto">
+                            {runner.cloth}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span
+                            className={cn(
+                              "font-bold font-headline text-base leading-snug",
+                              isOurs ? "text-[#064E3B]" : "text-slate-800",
+                              isScratched && "line-through text-rose-400"
+                            )}
+                          >
+                            {runner.horseName}
+                          </span>
+                          {isOurs && (
+                            <span className="ml-2 text-[9px] font-black uppercase bg-[#064E3B]/10 text-[#064E3B] px-1.5 py-0.5 rounded">
+                              Your Entry
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-5 py-3.5 font-medium text-slate-600">
+                          {isScratched ? (
+                            <span className="text-rose-400 italic text-xs">
+                              Not assigned
+                            </span>
+                          ) : isPending ? (
+                            <span className="text-indigo-500 font-semibold text-xs italic">
+                              — Invite Pending —
+                            </span>
+                          ) : (
+                            runner.jockeyName
+                          )}
+                        </td>
+                        <td className="px-5 py-3.5 text-right">
+                          {isScratched ? (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-2.5 py-1 rounded-full border bg-rose-50 border-rose-300 text-rose-600">
+                              <Syringe className="w-2.5 h-2.5" />
+                              Scratched
+                            </span>
+                          ) : isPending ? (
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded border bg-indigo-50 border-indigo-200 text-indigo-700">
+                              Pending
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded border bg-emerald-50 border-emerald-200 text-emerald-700">
+                              Confirmed
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {noJockey && (
+              <div className="mt-4 flex items-center gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                <p className="text-xs font-semibold text-amber-800 flex-1">
+                  Your horse is currently listed as{" "}
+                  <strong>Scratched</strong>. Assign a jockey to activate your
+                  entry.
+                </p>
+                <button
+                  onClick={() => setActiveTab("invite")}
+                  className="shrink-0 text-[10px] font-black uppercase px-3 py-1.5 rounded-lg bg-[#064E3B] text-white hover:bg-[#043E2F] transition active:scale-95"
+                >
+                  Invite Jockey
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB: Invite Jockey */}
+        {activeTab === "invite" && (
+          <div className="space-y-4">
+            {confirmedJockey ? (
+              <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 border border-emerald-200">
+                  <CheckCircle className="w-7 h-7 text-emerald-600" />
+                </div>
+                <h3 className="font-bold font-headline text-[#064E3B] text-lg">
+                  Pairing Confirmed
+                </h3>
+                <p className="text-xs text-slate-555 max-w-xs leading-relaxed">
+                  <strong>{confirmedJockey.name}</strong> has accepted and is
+                  confirmed as your jockey for this race. No further action
+                  needed.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-1">
+                    Invite a Jockey
+                  </h3>
+                  <p className="text-xs text-slate-500 mb-4">
+                    Select a jockey to send a riding invitation for{" "}
+                    <strong>{horse.name}</strong> at{" "}
+                    <strong>{tournament.name}</strong>.
+                  </p>
+                </div>
+
+                {hasPendingInvite && (
+                  <div className="flex items-center gap-2 rounded-xl bg-indigo-50 border border-indigo-200 px-4 py-2.5 text-xs font-semibold text-indigo-700">
+                    <Clock className="w-3.5 h-3.5 shrink-0" />
+                    An invitation is already pending. You can send additional
+                    invites; the first to accept will be offered confirmation.
+                  </div>
+                )}
+
+                <button
+                  onClick={() => onOpenInviteModal(horse.id, tournament.id)}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#064E3B] text-white py-3.5 text-sm font-bold hover:bg-[#043E2F] shadow-sm transition active:scale-[0.98] duration-200"
+                >
+                  <UserCheck className="w-4 h-4" />
+                  Open Jockey Selection
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+
+                <p className="text-[10px] text-center text-slate-400 font-medium">
+                  Invitations are sent immediately. Jockeys can accept or
+                  decline from their portal.
+                </p>
+
+                {invitations.length > 0 && (
+                  <div className="pt-2 border-t border-slate-100 space-y-2">
+                    <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider block">
+                      Previously Sent
+                    </span>
+                    {invitations.map((inv) => (
+                      <div
+                        key={inv.id}
+                        className="flex items-center justify-between px-4 py-2 bg-[#F4F6F5] rounded-xl border border-slate-100 text-xs"
+                      >
+                        <span className="font-semibold text-slate-700">
+                          Jockey #{inv.jockeyId}
+                        </span>
+                        <span
+                          className={cn(
+                            "text-[8px] font-black uppercase px-2 py-0.5 rounded border",
+                            inv.status === "Accepted" &&
+                              "bg-emerald-50 border-emerald-200 text-emerald-800",
+                            inv.status === "Pending" &&
+                              "bg-amber-50 border-amber-200 text-amber-800",
+                            inv.status === "Declined" &&
+                              "bg-rose-50 border-rose-200 text-rose-800",
+                            inv.status === "Superseded" &&
+                              "bg-slate-100 border-slate-200 text-slate-500"
+                          )}
+                        >
+                          {inv.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function HorseScheduleView({
   horses,
   registrations,
   tournaments,
+  jockeys,
+  invitations,
+  onOpenInviteModal,
 }: {
   horses: Horse[];
   registrations: TournamentRegistration[];
   tournaments: Tournament[];
+  jockeys: Jockey[];
+  invitations: Invitation[];
+  onOpenInviteModal: (horseId: number, tournamentId: number) => void;
 }) {
-  const confirmedRegs = registrations.filter((r) => r.status === "Approved");
-  const pendingRegs = registrations.filter((r) =>
-    ["Pending Approval", "Waitlisted"].includes(r.status)
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    "All" | "no-jockey" | "pending-invite" | "confirmed"
+  >("All");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null);
+
+  const allEntries = useMemo<ScheduleEntry[]>(() => {
+    return registrations
+      .filter((r) => r.status !== "Rejected")
+      .map((reg) => {
+        const horse = horses.find((h) => h.id === reg.horseId);
+        const tournament = tournaments.find((t) => t.id === reg.tournamentId);
+        if (!horse || !tournament) return null;
+
+        const regInvitations = invitations.filter(
+          (i) => i.horseId === reg.horseId && i.tournamentId === reg.tournamentId
+        );
+        const confirmedInv = regInvitations.find((i) => i.status === "Accepted");
+        const confirmedJockey = confirmedInv
+          ? (jockeys.find((j) => j.id === confirmedInv.jockeyId) ?? null)
+          : null;
+        const hasPendingInvite = regInvitations.some(
+          (i) => i.status === "Pending"
+        );
+
+        const rawDate: string =
+          (tournament as Tournament & { startDate?: string }).startDate ??
+          "2026-06-15";
+
+        const d = parseLocalDate(rawDate);
+        const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+        return {
+          regId: reg.id,
+          horse,
+          tournament,
+          registration: reg,
+          invitations: regInvitations,
+          confirmedJockey,
+          hasPendingInvite,
+          dateKey,
+        } satisfies ScheduleEntry;
+      })
+      .filter(Boolean) as ScheduleEntry[];
+  }, [registrations, horses, tournaments, jockeys, invitations]);
+
+  const counts = useMemo(() => ({
+    All: allEntries.length,
+    "no-jockey": allEntries.filter((e) => !e.confirmedJockey && !e.hasPendingInvite).length,
+    "pending-invite": allEntries.filter((e) => !e.confirmedJockey && e.hasPendingInvite).length,
+    confirmed: allEntries.filter((e) => !!e.confirmedJockey).length,
+  }), [allEntries]);
+
+  const filteredEntries = useMemo(() => {
+    const lower = search.toLowerCase();
+    return allEntries.filter((e) => {
+      const matchSearch =
+        !lower ||
+        e.horse.name.toLowerCase().includes(lower) ||
+        e.tournament.name.toLowerCase().includes(lower);
+
+      const matchStatus =
+        statusFilter === "All" ||
+        (statusFilter === "no-jockey" && !e.confirmedJockey && !e.hasPendingInvite) ||
+        (statusFilter === "pending-invite" && !e.confirmedJockey && e.hasPendingInvite) ||
+        (statusFilter === "confirmed" && !!e.confirmedJockey);
+
+      return matchSearch && matchStatus;
+    });
+  }, [allEntries, search, statusFilter]);
+
+  const formattedSelectedDate = useMemo(() => {
+    if (!selectedDate) return "";
+    const yyyy = selectedDate.getFullYear();
+    const mm = String(selectedDate.getMonth() + 1).padStart(2, "0");
+    const dd = String(selectedDate.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }, [selectedDate]);
+
+  const calendarFilteredEntries = useMemo(() => {
+    if (!selectedDate) return filteredEntries;
+    return filteredEntries.filter((e) => e.dateKey === formattedSelectedDate);
+  }, [filteredEntries, formattedSelectedDate, selectedDate]);
+
+  const raceDays = useMemo(
+    () => allEntries.map((e) => parseLocalDate(e.dateKey)),
+    [allEntries]
   );
 
+  const selectedEntry = useMemo(
+    () => allEntries.find((e) => e.regId === selectedEntryId) ?? null,
+    [allEntries, selectedEntryId]
+  );
+
+  const handleSelectEntry = useCallback((entry: ScheduleEntry) => {
+    setSelectedEntryId((prev) => (prev === entry.regId ? null : entry.regId));
+  }, []);
+
+  const panelOpen = selectedEntry !== null;
+
+  const calendarScaleClasses =
+    "p-6 w-full [&_.rdp-day]:!h-[46px] [&_.rdp-day]:!w-[46px] [&_.rdp-head_th]:!w-[46px] [&_.rdp-day]:!text-sm [&_.rdp-head_th]:!text-xs [&_.rdp-caption_label]:!text-base";
+
   return (
-    <div className="p-5 space-y-5 max-w-6xl mx-auto font-body">
-      <div className="border-b pb-4">
-        <h2 className="text-xl font-black text-[#064E3B] tracking-tight">
-          Run Schedule
-        </h2>
-        <p className="text-xs text-slate-500 mt-1">
-          Review approved and pending race registrations.
-        </p>
+    <div className="flex-1 overflow-y-auto p-6 max-w-7xl w-full mx-auto font-body h-full custom-scrollbar bg-[#F4F6F5]">
+      {/* Header */}
+      <div className="flex-shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-xl font-bold font-headline text-[#064E3B]">
+              Run Schedule
+            </h2>
+            <p className="text-xs text-slate-555 font-semibold mt-1">
+              Your horses' upcoming races, jockey assignments, and registration statuses
+            </p>
+          </div>
+
+          <div className="relative w-full sm:w-72 shadow-sm rounded-xl border border-slate-200 bg-white">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search horses, tournaments..."
+              className="w-full h-10 rounded-xl bg-transparent pl-10 pr-4 text-xs font-medium outline-none transition focus:border-[#064E3B] placeholder:text-slate-400"
+            />
+          </div>
+        </div>
+
+        {/* Stat filter cards */}
+        <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+          {(
+            [
+              { key: "All", label: "All Races" },
+              { key: "no-jockey", label: "No Jockey", liveDot: true },
+              { key: "pending-invite", label: "Invite Sent" },
+              { key: "confirmed", label: "Confirmed" },
+            ] as const
+          ).map((item) => (
+            <button
+              key={item.key}
+              onClick={() => setStatusFilter(item.key)}
+              className={cn(
+                "flex-1 text-left rounded-2xl border py-3 px-4 transition-all duration-200",
+                statusFilter === item.key
+                  ? "border-[#064E3B] bg-[#064E3B]/5 shadow-sm ring-1 ring-[#064E3B]"
+                  : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+              )}
+            >
+              <p
+                className={cn(
+                  "text-[9px] font-bold uppercase tracking-wider mb-1",
+                  statusFilter === item.key
+                    ? "text-[#064E3B] font-black"
+                    : "text-slate-400"
+                )}
+              >
+                {item.label}
+              </p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-xl font-black font-headline leading-none text-slate-800">
+                  {counts[item.key]}
+                </p>
+                {item.liveDot && counts[item.key] > 0 && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#D97706] animate-pulse" />
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="space-y-5">
-        <div className="space-y-2.5">
-          <h3 className="font-bold text-sm text-[#064E3B] flex items-center gap-1.5">
-            <CheckCircle className="w-4 h-4 text-emerald-600" />
-            Scheduled Matches
-          </h3>
-          {confirmedRegs.length === 0 ? (
-            <p className="text-xs text-slate-400 italic">No scheduled runs.</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {confirmedRegs.map((reg) => {
-                const horse = horses.find((h) => h.id === reg.horseId);
-                const tour = tournaments.find((t) => t.id === reg.tournamentId);
-                return (
-                  <div
-                    key={reg.id}
-                    className="p-3 bg-white border border-emerald-200 rounded-lg flex items-center justify-between text-xs"
-                  >
-                    <div>
-                      <p className="font-bold text-[#064E3B]">{horse?.name}</p>
-                      <p className="text-[10px] text-slate-450">{tour?.name}</p>
-                    </div>
-                    <span className="bg-emerald-50 text-emerald-800 text-[8px] font-black uppercase px-2 py-0.5 rounded border border-emerald-150">
-                      Confirmed
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+      {/* Main grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pb-6">
+        {/* Left: Calendar + List */}
+        <div
+          className={cn(
+            panelOpen ? "lg:col-span-4" : "lg:col-span-12",
+            "grid grid-cols-1",
+            !panelOpen && "lg:grid-cols-12",
+            "gap-6 items-start"
           )}
+        >
+          {/* Calendar */}
+          <div className={cn(!panelOpen && "lg:col-span-5", "flex justify-center w-full")}>
+            <div
+              className={cn(
+                "rounded-2xl border border-[#064E3B]/10 bg-white shadow-sm flex items-center justify-center transition-all w-full",
+                calendarScaleClasses
+              )}
+            >
+              <CalendarUI
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                defaultMonth={new Date(2026, 5)}
+                modifiers={{ hasRace: raceDays }}
+                modifiersClassNames={{
+                  hasRace:
+                    "font-black text-[#064E3B] bg-[#064E3B]/10 border border-[#064E3B]/20 rounded-md",
+                }}
+                className="w-full flex justify-center text-sm font-medium mx-auto"
+              />
+            </div>
+          </div>
+
+          {/* Race list */}
+          <div className={cn(!panelOpen && "lg:col-span-7", "space-y-4")}>
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
+              <div className="border-b border-slate-100 bg-[#F4F6F5] px-5 py-3 flex items-center gap-2">
+                <CalendarDays className="h-4 w-4 text-slate-400" />
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  {selectedDate
+                    ? `Schedule for ${selectedDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+                    : "All Registered Races"}
+                </span>
+                {selectedDate && (
+                  <button
+                    onClick={() => setSelectedDate(undefined)}
+                    className="ml-auto text-[9px] text-slate-400 hover:text-slate-650 font-bold"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              <div className="divide-y divide-slate-100 flex-1">
+                {calendarFilteredEntries.length > 0 ? (
+                  calendarFilteredEntries.map((entry) => (
+                    <ScheduleRow
+                      key={entry.regId}
+                      entry={entry}
+                      selected={selectedEntryId === entry.regId}
+                      onClick={() => handleSelectEntry(entry)}
+                    />
+                  ))
+                ) : (
+                  <div className="p-8 text-center text-xs text-slate-400 font-medium">
+                    {selectedDate
+                      ? "No races scheduled on this date."
+                      : "No registered races found."}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Global no-jockey warning */}
+            {counts["no-jockey"] > 0 && (
+              <div className="flex items-start gap-3 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3.5">
+                <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                <div className="text-xs">
+                  <p className="font-bold text-amber-800">
+                    {counts["no-jockey"]} race
+                    {counts["no-jockey"] !== 1 ? "s" : ""} without a jockey
+                  </p>
+                  <p className="text-amber-700 mt-0.5">
+                    Horses without an assigned jockey will be listed as{" "}
+                    <strong>Scratched</strong>. Select a race and invite a
+                    jockey to secure your entries.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="space-y-2.5 pt-3 border-t">
-          <h3 className="font-bold text-sm text-slate-700 flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-amber-500" />
-            Pending Applications
-          </h3>
-          {pendingRegs.length === 0 ? (
-            <p className="text-xs text-slate-400 italic">
-              No pending applications.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {pendingRegs.map((reg) => {
-                const horse = horses.find((h) => h.id === reg.horseId);
-                const tour = tournaments.find((t) => t.id === reg.tournamentId);
-                return (
-                  <div
-                    key={reg.id}
-                    className="p-3 bg-[#F4F6F5]/40 border rounded-lg flex items-center justify-between text-xs"
-                  >
-                    <div>
-                      <p className="font-bold text-slate-700">{horse?.name}</p>
-                      <p className="text-[10px] text-slate-450">{tour?.name}</p>
-                    </div>
-                    <span
-                      className={cn(
-                        "text-[8px] font-black uppercase px-2 py-0.5 rounded border",
-                        reg.status === "Waitlisted"
-                          ? "bg-indigo-50 border-indigo-200 text-indigo-855"
-                          : "bg-amber-50 border-amber-200 text-amber-855"
-                      )}
-                    >
-                      {reg.status}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        {/* Right: Detail panel */}
+        {panelOpen && selectedEntry && (
+          <ScheduleDetailPanel
+            entry={selectedEntry}
+            jockeys={jockeys}
+            onClose={() => setSelectedEntryId(null)}
+            onOpenInviteModal={onOpenInviteModal}
+          />
+        )}
       </div>
     </div>
   );
