@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  Calendar,
-  FileText,
-  Dumbbell,
-  Heart,
-  Image as ImageIcon,
-  Sparkles,
-} from "lucide-react";
+import { Calendar, FileText, Dumbbell, Heart, Sparkles } from "lucide-react";
 
 interface AddHorseModalProps {
   isOpen: boolean;
@@ -123,20 +116,6 @@ export function AddHorseModal({
                 <option value="Injured">Injured (Under recovery)</option>
                 <option value="Sick">Sick (Under Treatment)</option>
               </select>
-            </div>
-
-            {/* Image URL */}
-            <div className="col-span-2 space-y-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                <ImageIcon className="w-3.5 h-3.5 text-[#064E3B]" /> Image URL
-              </label>
-              <input
-                name="image_url"
-                type="url"
-                maxLength={500}
-                placeholder="https://example.com/horse-image.jpg"
-                className="w-full bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-[#064E3B] rounded-xl px-3 py-2.5 text-xs font-medium outline-none transition"
-              />
             </div>
 
             {/* Status (Default Hidden / Managed internally on registration) */}

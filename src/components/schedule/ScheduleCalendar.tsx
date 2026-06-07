@@ -33,8 +33,8 @@ export function ScheduleCalendar({
         selected={selectedDate}
         onSelect={onSelect}
         defaultMonth={defaultMonth}
-        onMonthChange={onMonthChange} // Bắt sự kiện người dùng đổi tháng
-        showOutsideDays={false} // Ẩn ngày của tháng trước/sau để chặn click bậy
+        onMonthChange={onMonthChange}
+        showOutsideDays={false}
         modifiers={{ hasRace: raceDays }}
         modifiersClassNames={{
           hasRace: highlightClass,

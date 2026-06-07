@@ -102,6 +102,7 @@ export default function OwnerPage() {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     const name = data.get("name") as string;
+
     if (
       horses.some(
         (h) =>
@@ -114,19 +115,50 @@ export default function OwnerPage() {
       );
       return;
     }
+    const rawBirthDate = data.get("birth_date") as string;
+    const rawWeight = data.get("weight_kg") as string;
+    const healthStatusVal = (data.get("health_status") as string) || "Healthy";
+
+    // Build a highly defensive payload matching both camelCase and snake_case properties
+    const payload = {
+      name,
+      breed: data.get("breed") as string,
+
+      birthDate: rawBirthDate,
+
+      weightKg: rawWeight,
+
+      healthStatus: healthStatusVal,
+    };
+
     try {
-      await addHorse({
-        name,
-        breed: data.get("breed"),
-        dob: data.get("dob"),
-        gender: data.get("gender"),
-        microchipId: "123",
-        associationCode: data.get("associationCode"),
-      });
+      // Log the payload to the developer console to inspect what is sent
+      console.log("Submitting Horse Payload: ", payload);
+
+      await addHorse(payload);
+
       setShowAddHorse(false);
       addToast(`Horse "${name}" registered successfully!`, "success");
-    } catch {
-      addToast("Failed to save horse details.", "error");
+    } catch (err: unknown) {
+      // Safe type assertion instead of 'any' to satisfy ESLint
+      const axiosError = err as {
+        response?: { data?: { message?: string | string[] } };
+      };
+
+      // Print the exact validation error array from NestJS/Express to the console
+      if (axiosError?.response?.data) {
+        console.error(
+          "Validation Details from Server:",
+          axiosError.response.data
+        );
+      }
+
+      const serverMessage = axiosError?.response?.data?.message;
+      const formattedError = Array.isArray(serverMessage)
+        ? serverMessage.join(", ")
+        : serverMessage;
+
+      addToast(formattedError || "Failed to save horse details.", "error");
     }
   };
 
