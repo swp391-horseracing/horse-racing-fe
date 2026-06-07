@@ -790,10 +790,9 @@ function RaceRegister({
       <div className="flex items-center gap-2 flex-wrap">
         {["All", "Live now", "Registration open", "Upcoming", "Completed"].map(
           (tab) => (
-
             <button
               key={tab}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onClick={() => setActiveFilter(tab as any)}
               className={cn(
                 "px-4 py-1.5 rounded-full text-[13px] font-bold border",
