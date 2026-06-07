@@ -21,8 +21,7 @@ export function ScheduleLayout({
   // Resolved responsive columns based on detail panel visibility
   const resolvedLeftColClass =
     leftColClass || (panelOpen ? "lg:col-span-4" : "lg:col-span-12");
-  const resolvedRightColClass =
-    rightColClass || "lg:col-span-8 xl:col-span-8";
+  const resolvedRightColClass = rightColClass || "lg:col-span-8 xl:col-span-8";
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pb-6">
@@ -35,20 +34,28 @@ export function ScheduleLayout({
         )}
       >
         {calendarSlot && (
-          <div className={cn(!panelOpen && "lg:col-span-5", "flex justify-center w-full")}>
+          <div
+            className={cn(
+              !panelOpen && "lg:col-span-5",
+              "flex justify-center w-full"
+            )}
+          >
             {calendarSlot}
           </div>
         )}
-        <div className={cn(calendarSlot && !panelOpen && "lg:col-span-7", "space-y-4")}>
+        <div
+          className={cn(
+            calendarSlot && !panelOpen && "lg:col-span-7",
+            "space-y-4"
+          )}
+        >
           {listSlot}
         </div>
       </div>
 
       {/* Detail Side Panel */}
       {panelOpen && detailSlot && (
-        <div className={resolvedRightColClass}>
-          {detailSlot}
-        </div>
+        <div className={resolvedRightColClass}>{detailSlot}</div>
       )}
     </div>
   );
