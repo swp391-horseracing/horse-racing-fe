@@ -31,7 +31,6 @@ export default function OwnerPage() {
   const [active, setActive] = useState<string>(ROUTES.OWNER_DASHBOARD);
 
   const {
-    page,
     pagination,
     setPage,
     horses,
@@ -238,7 +237,6 @@ export default function OwnerPage() {
             registrations={registrations}
             invitations={invitations}
             jockeys={jockeys}
-            page={page}
             pagination={pagination}
             setPage={setPage}
             setActiveTab={setActive}

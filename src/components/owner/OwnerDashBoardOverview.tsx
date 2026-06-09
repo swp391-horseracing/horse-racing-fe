@@ -15,7 +15,6 @@ export interface OwnerDashBoardOverviewProps {
   invitations: Invitation[];
   jockeys: Jockey[];
   setActiveTab: (tab: string) => void;
-  page: number;
   pagination: {
     page: number;
     totalPages: number;
@@ -30,7 +29,6 @@ export function OwnerDashBoardOverview({
   invitations,
   jockeys,
   setActiveTab,
-  page,
   pagination,
   setPage,
 }: OwnerDashBoardOverviewProps) {
@@ -156,30 +154,32 @@ export function OwnerDashBoardOverview({
             ))}
           </div>
         </div>
-        {pagination.totalPages > 1 && (
-          <div className="flex items-center gap-2 pt-3">
-            <button
-              disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
-              className="border rounded-lg px-3 py-1"
-            >
-              Prev
-            </button>
-
-            <span>
-              {pagination.page} / {pagination.totalPages}
-            </span>
-
-            <button
-              disabled={page >= pagination.totalPages}
-              onClick={() => setPage(page + 1)}
-              className="border rounded-lg px-3 py-1"
-            >
-              Next
-            </button>
-          </div>
-        )}
       </div>
+
+      {/* Pagination moved cleanly outside of the grid layout */}
+      {pagination.totalPages > 1 && (
+        <div className="flex items-center gap-2 pt-3">
+          <button
+            disabled={pagination.page <= 1}
+            onClick={() => setPage(pagination.page - 1)}
+            className="border rounded-lg px-3 py-1 text-xs font-semibold"
+          >
+            Prev
+          </button>
+
+          <span className="text-xs text-slate-600 font-medium">
+            {pagination.page} / {pagination.totalPages}
+          </span>
+
+          <button
+            disabled={pagination.page >= pagination.totalPages}
+            onClick={() => setPage(pagination.page + 1)}
+            className="border rounded-lg px-3 py-1 text-xs font-semibold"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }

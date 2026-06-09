@@ -103,9 +103,11 @@ export function JockeyRosterManagement({
                           className={cn(
                             "text-[8px] font-black uppercase px-1.5 py-0.5 rounded border",
                             inv.status === "Confirmed" &&
-                              "bg-emerald-50 text-emerald-800",
+                              "bg-emerald-50 border-emerald-200 text-emerald-800",
+                            inv.status === "Accepted" &&
+                              "bg-blue-50 border-blue-200 text-blue-800",
                             inv.status === "Pending" &&
-                              "bg-amber-50 text-amber-800"
+                              "bg-amber-50 border-amber-200 text-amber-800"
                           )}
                         >
                           {inv.status}
