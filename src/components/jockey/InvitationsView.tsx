@@ -318,8 +318,7 @@ function InvitationDetail({
           </h3>
           <p className="text-xs text-slate-555 italic mt-3">
             "
-            {(inv as Invitation & { medicalLogs?: { trainerNotes?: string } })
-              .medicalLogs?.trainerNotes ||
+            {inv.medicalLogs?.trainerNotes ||
               "Horse is looking strong in the final furlong. Responds well."}
             "
           </p>
