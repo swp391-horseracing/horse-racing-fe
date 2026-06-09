@@ -251,7 +251,6 @@ export default function OwnerPage() {
             isHorseLocked={isHorseLocked}
             onRetire={handleRetireHorse}
             onOpenAddModal={() => setShowAddHorse(true)}
-            page={page}
             pagination={pagination}
             setPage={setPage}
           />

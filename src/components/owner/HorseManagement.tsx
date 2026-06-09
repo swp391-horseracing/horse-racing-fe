@@ -8,7 +8,6 @@ export interface HorseManagementProps {
   isHorseLocked: (id: string) => boolean;
   onRetire: (id: string) => void;
   onOpenAddModal: () => void;
-  page: number;
   pagination: {
     page: number;
     totalPages: number;
@@ -21,7 +20,6 @@ export function HorseManagement({
   isHorseLocked,
   onRetire,
   onOpenAddModal,
-  page,
   pagination,
   setPage,
 }: HorseManagementProps) {
@@ -101,8 +99,8 @@ export function HorseManagement({
       {pagination.totalPages > 1 && (
         <div className="flex items-center gap-2 pt-3">
           <button
-            disabled={page <= 1}
-            onClick={() => setPage(page - 1)}
+            disabled={pagination.page <= 1}
+            onClick={() => setPage(pagination.page - 1)}
             className="border rounded-lg px-3 py-1"
           >
             Prev
@@ -113,8 +111,8 @@ export function HorseManagement({
           </span>
 
           <button
-            disabled={page >= pagination.totalPages}
-            onClick={() => setPage(page + 1)}
+            disabled={pagination.page >= pagination.totalPages}
+            onClick={() => setPage(pagination.page + 1)}
             className="border rounded-lg px-3 py-1"
           >
             Next
