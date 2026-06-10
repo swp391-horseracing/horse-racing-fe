@@ -27,14 +27,14 @@ export function ScheduleDetailFrame<T extends string>({
   title,
   subtitle,
   headerRight,
-  headerClass = "bg-[#01251e] text-white border-b border-[#064E3B]/10",
+  headerClass = "bg-primary text-primary-foreground border-b border-primary/10",
   onClose,
   tabs,
   activeTab,
   onTabChange,
   children,
   bannerSlot,
-  closeButtonClass = "bg-white/20 hover:bg-white/30 text-white border-white/30",
+  closeButtonClass = "bg-white/20 hover:bg-white/30 text-primary-foreground border-white/30",
   containerClass = "border-slate-200 bg-white shadow-sm",
 }: ScheduleDetailFrameProps<T>) {
   return (
@@ -47,7 +47,7 @@ export function ScheduleDetailFrame<T extends string>({
       {/* Dynamic Header Block */}
       <div className={cn("relative p-6", headerClass)}>
         <div className="relative flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 !text-primary-foreground selection:bg-transparent selection:!text-primary-foreground [&_*]:!text-primary-foreground [&_*]:selection:bg-transparent [&_*]:selection:!text-primary-foreground">
             {title}
             {subtitle}
           </div>
@@ -70,7 +70,7 @@ export function ScheduleDetailFrame<T extends string>({
 
       {/* Tab Switcher */}
       {tabs && tabs.length > 0 && activeTab && onTabChange && (
-        <div className="flex border-b border-slate-100 bg-[#F4F6F5]/40">
+        <div className="flex border-b border-border bg-background/60">
           {tabs.map((tab) => (
             <button
               key={tab.key}
@@ -78,7 +78,7 @@ export function ScheduleDetailFrame<T extends string>({
               className={cn(
                 "flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-bold transition-all border-b-2",
                 activeTab === tab.key
-                  ? "border-[#064E3B] text-[#064E3B] bg-white"
+                  ? "border-primary text-primary bg-card"
                   : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-white/50"
               )}
             >

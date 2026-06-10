@@ -11,19 +11,18 @@ interface ScheduleCalendarProps {
 }
 
 // Fixed styling to align headers and handle browser zooming gracefully
-export const calendarScaleClasses = cn(
+const calendarScaleClasses = cn(
   "p-4 sm:p-6 w-full max-w-full overflow-hidden",
-  
+
   "[&_.rdp-table]:!border-separate",
-  "[&_.rdp-table]:!border-spacing-x-100", 
-  "[&_.rdp-table]:!border-spacing-y-100", 
-  
+  "[&_.rdp-table]:!border-spacing-x-100",
+  "[&_.rdp-table]:!border-spacing-y-100",
 
   "[&_.rdp-cell]:!w-10 [&_.rdp-cell]:!h-10 [&_.rdp-cell]:p-0",
   "[&_.rdp-head_th]:!w-10 [&_.rdp-head_th]:!h-10 [&_.rdp-head_th]:p-0 [&_.rdp-head_th]:font-semibold",
-  
+
   "[&_.rdp-day]:!w-10 [&_.rdp-day]:!h-10 [&_.rdp-day]:m-auto [&_.rdp-day]:rounded-lg",
-  
+
   "[&_.rdp-day]:!text-sm [&_.rdp-head_th]:!text-xs [&_.rdp-caption_label]:!text-base"
 );
 export function ScheduleCalendar({
