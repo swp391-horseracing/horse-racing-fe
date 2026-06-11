@@ -28,19 +28,17 @@ export function HorseLeaderboardView({
   setPage,
   pageSize,
   setPageSize,
+  totalPages,
 }: {
   sortedRows: TransformedHorseRow[];
   page: number;
   setPage: (p: number) => void;
   pageSize: number;
   setPageSize: (s: number) => void;
+  totalPages: number;
 }) {
   const top3 = sortedRows.slice(0, 3);
-  const totalPages = Math.max(1, Math.ceil(sortedRows.length / pageSize));
-  const paginatedRows = sortedRows.slice(
-    (page - 1) * pageSize,
-    page * pageSize
-  );
+  const paginatedRows = sortedRows;
 
   return (
     <div className="space-y-6">
