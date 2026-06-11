@@ -15,6 +15,8 @@ import JockeyPage from "../pages/JockeyPage.tsx";
 import AdminPage from "../pages/AdminPage.tsx";
 import UserPage from "../pages/UserPage.tsx";
 import OwnerPage from "../pages/OwnerPage.tsx";
+import SpectatorPage from "../pages/SpectatorPage.tsx";
+import LeaderBoardPage from "../pages/LeaderBoardPage.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -26,16 +28,19 @@ export const router = createBrowserRouter([
     path: ROUTES.GUIDE,
     element: <GuidesPage />,
   },
+
   {
     path: ROUTES.LOGIN,
     element: <LoginLayout />,
     children: [{ index: true, element: <LoginPage /> }],
   },
+
   {
     path: ROUTES.REGISTER,
     element: <LoginLayout />,
     children: [{ index: true, element: <LoginPage /> }],
   },
+
   {
     element: <MainLayout />,
     children: [
@@ -56,6 +61,12 @@ export const router = createBrowserRouter([
         element: <TournamentsPage />,
       },
       {
+        path: ROUTES.LEADERBOARD,
+        element: <LeaderBoardPage />,
+      },
+
+      // ADDED RACES ROUTES HERE:
+      {
         path: ROUTES.RACES,
         element: <RacesPage />,
       },
@@ -63,17 +74,19 @@ export const router = createBrowserRouter([
         path: ROUTES.RACE_DETAIL,
         element: <RacesPage />,
       },
+
       {
         path: ROUTES.JOCKEY_DASHBOARD,
         element: <JockeyPage />,
       },
-
-      // 2. Add the Owner Dashboard route here
       {
         path: ROUTES.OWNER_DASHBOARD,
         element: <OwnerPage />,
       },
-
+      {
+        path: ROUTES.SPECTATOR_DASHBOARD,
+        element: <SpectatorPage />,
+      },
       {
         path: ROUTES.ADMIN_DASHBOARD,
         element: <AdminPage />,

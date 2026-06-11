@@ -1,5 +1,4 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { LeaderboardData } from "../types/leaderboard.ts";
 
 function formatWinRate(winRate: number) {
   return `${(winRate * 100).toFixed(1)}%`;
@@ -10,6 +9,19 @@ function formatEarnings(earnings: number) {
   return `$${val.toLocaleString()}`;
 }
 
+export interface TransformedHorseRow {
+  rank: number;
+  horse: {
+    id: string;
+    name: string;
+    ownerId: string;
+    imageUrl: string | null;
+    earnings: number;
+    winRate: number;
+    speed: number;
+  };
+}
+
 export function HorseLeaderboardView({
   sortedRows,
   page,
@@ -17,7 +29,7 @@ export function HorseLeaderboardView({
   pageSize,
   setPageSize,
 }: {
-  sortedRows: LeaderboardData["rows"];
+  sortedRows: TransformedHorseRow[];
   page: number;
   setPage: (p: number) => void;
   pageSize: number;
@@ -46,9 +58,9 @@ export function HorseLeaderboardView({
               </div>
               <div className="flex flex-col items-start gap-4 pt-5">
                 <div className="h-40 w-full overflow-hidden rounded-lg border border-slate-100 bg-slate-50">
-                  {horse.image ? (
+                  {horse.imageUrl ? (
                     <img
-                      src={horse.image}
+                      src={horse.imageUrl}
                       alt={horse.name}
                       className="h-full w-full object-cover"
                     />
@@ -64,7 +76,7 @@ export function HorseLeaderboardView({
                       {horse.name}
                     </div>
                     <div className="text-xs mt-1 text-slate-500 font-medium">
-                      {horse.owner}
+                      {horse.ownerId}
                     </div>
                   </div>
                   <div className="text-right">
