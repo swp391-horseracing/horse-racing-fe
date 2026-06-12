@@ -14,9 +14,8 @@ interface ScheduleCalendarProps {
 const calendarScaleClasses = cn(
   "p-4 sm:p-6 w-full max-w-full overflow-hidden",
 
-  "[&_.rdp-table]:!border-separate",
-  "[&_.rdp-table]:!border-spacing-x-100",
-  "[&_.rdp-table]:!border-spacing-y-100",
+  "[&_.rdp-table]:border-spacing-x-0!",
+  "[&_.rdp-table]:border-spacing-y-0!",
 
   "[&_.rdp-cell]:!w-10 [&_.rdp-cell]:!h-10 [&_.rdp-cell]:p-0",
   "[&_.rdp-head_th]:!w-10 [&_.rdp-head_th]:!h-10 [&_.rdp-head_th]:p-0 [&_.rdp-head_th]:font-semibold",
