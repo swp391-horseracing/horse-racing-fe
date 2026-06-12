@@ -47,7 +47,7 @@ export function ScheduleDetailFrame<T extends string>({
       {/* Dynamic Header Block */}
       <div className={cn("relative p-6", headerClass)}>
         <div className="relative flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1 !text-primary-foreground selection:bg-transparent selection:!text-primary-foreground [&_*]:!text-primary-foreground [&_*]:selection:bg-transparent [&_*]:selection:!text-primary-foreground">
+          <div className="min-w-0 flex-1 text-primary-foreground! selection:bg-transparent selection:text-primary-foreground! [&_*]:text-primary-foreground! [&_*]:selection:bg-transparent [&_*]:selection:text-primary-foreground!">
             {title}
             {subtitle}
           </div>
