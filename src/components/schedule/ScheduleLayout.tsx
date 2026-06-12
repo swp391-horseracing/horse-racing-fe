@@ -18,10 +18,14 @@ export function ScheduleLayout({
   leftColClass,
   rightColClass,
 }: ScheduleLayoutProps) {
-  // Resolved responsive columns based on detail panel visibility
+  // Allocated slightly larger column space (5/12 instead of 4/12) on intermediate viewports,
+  // falling back to standard 4/12 on extra wide screens.
   const resolvedLeftColClass =
-    leftColClass || (panelOpen ? "lg:col-span-4" : "lg:col-span-12");
-  const resolvedRightColClass = rightColClass || "lg:col-span-8 xl:col-span-8";
+    leftColClass ||
+    (panelOpen ? "lg:col-span-5 xl:col-span-4" : "lg:col-span-12");
+  const resolvedRightColClass =
+    rightColClass ||
+    (panelOpen ? "lg:col-span-7 xl:col-span-8" : "lg:col-span-8");
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pb-6">
