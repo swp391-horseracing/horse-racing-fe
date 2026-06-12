@@ -13,8 +13,11 @@ export default function useHorse() {
   const [page, setPage] = useState(1);
 
   const [pagination, setPagination] = useState({
+    search: "",
+    breed: "",
+    isRetired: false,
     page: 1,
-    limit: 10,
+    limit: 6,
     total: 0,
     totalPages: 0,
   });
@@ -22,24 +25,40 @@ export default function useHorse() {
   const loadHorses = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
 
-      const res = await HorseService.getHorses(page, 10);
+      const res = await HorseService.getHorses(
+        pagination.search,
+        pagination.breed,
+        pagination.isRetired,
+        pagination.page,
+        pagination.limit
+      );
 
       setHorses(res.data);
-      setPagination(res.pagination);
+      setPagination((prev) => ({
+        ...prev,
+        ...res.pagination,
+      }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Load failed");
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, [
+    pagination.search,
+    pagination.breed,
+    pagination.isRetired,
+    pagination.page,
+    pagination.limit,
+  ]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadHorses();
+    void loadHorses();
   }, [loadHorses]);
 
-  const openHorse = async (id: string) => {
+  const openHorse = useCallback(async (id: string) => {
     try {
       setDetailLoading(true);
 
@@ -51,7 +70,7 @@ export default function useHorse() {
     } finally {
       setDetailLoading(false);
     }
-  };
+  }, []);
 
   const closeHorse = () => {
     setSelectedHorse(null);
@@ -66,6 +85,7 @@ export default function useHorse() {
     setPage,
 
     pagination,
+    setPagination,
 
     selectedHorse,
     detailLoading,

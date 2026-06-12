@@ -30,8 +30,16 @@ export interface RetireHorseResponse {
 }
 
 export const HorseService = {
-  async getHorses(page: number = 1, limit: number = 10) {
-    const response = await api.get("/horses", { params: { page, limit } });
+  async getHorses(
+    search?: string,
+    breed?: string,
+    isRetired?: boolean,
+    page: number = 1,
+    limit: number = 10
+  ) {
+    const response = await api.get("/horses", {
+      params: { search, breed, isRetired, page, limit },
+    });
     return response.data;
   },
 

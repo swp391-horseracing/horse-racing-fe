@@ -52,6 +52,9 @@ export const ROUTES = {
   HORSE_DETAIL: "/horses/:id",
   JOCKEY_DETAIL: "/jockeys/:id",
   RACE_DETAIL: "/races/:id",
+
+  //ERROR
+  NOTHING_DETAIL: "/*",
 };
 
 export const buildRoute = (path: string, id: string | number) => {
