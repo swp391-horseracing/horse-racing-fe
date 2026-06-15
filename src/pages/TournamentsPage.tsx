@@ -310,24 +310,24 @@ export default function TournamentsPage() {
 
           {isPanelOpen && selectedTournament && (
             <div className="lg:col-span-9 lg:sticky lg:top-4 bg-card border border-border rounded-2xl shadow-md overflow-hidden flex flex-col">
-              <div className="border-b border-border bg-background px-6 py-5 flex items-start justify-between gap-3">
+              <div className="border-b border-primary/20 bg-primary px-6 py-5 flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-primary-foreground/70">
                     <CalendarDays className="h-3 w-3" />
                     {selectedTournament.startDate} -{" "}
                     {selectedTournament.endDate}
                   </span>
-                  <h2 className="text-2xl font-black font-headline text-primary tracking-tight leading-snug truncate mt-1">
+                  <div className="text-2xl font-black font-headline text-white tracking-tight leading-snug truncate mt-1">
                     {selectedTournament.name}
-                  </h2>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  </div>
+                  <p className="text-xs text-primary-foreground/70 mt-1">
                     Races, structure and guidelines for{" "}
                     {selectedTournament.location}
                   </p>
                 </div>
                 <button
                   onClick={closeTournament}
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-background hover:text-foreground transition-colors"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
