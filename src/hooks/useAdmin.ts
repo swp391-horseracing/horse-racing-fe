@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-  type User,
-  AdminService,
-  type Tournament,
-} from "../services/adminService.ts";
+import { type User, AdminService } from "../services/adminService.ts";
 
 export default function useAdmin() {
   const [users, setUsers] = useState<User[]>([]);
@@ -117,23 +113,6 @@ export default function useAdmin() {
     }
   };
 
-  const createTournament = useCallback(async (tournament: Tournament) => {
-    try {
-      setActionLoading(true);
-      setError(null);
-
-      const res = await AdminService.createTournament(tournament);
-
-      return res.Tournament;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Create tournament failed");
-
-      return null;
-    } finally {
-      setActionLoading(false);
-    }
-  }, []);
-
   return {
     users,
     loading,
@@ -154,7 +133,6 @@ export default function useAdmin() {
 
     updateUserRole,
     updateUserStatus,
-    createTournament,
 
     reloadUsers: loadUsers,
   };
