@@ -25,13 +25,13 @@ export default function AccountPanel({
   return (
     <div className="flex gap-5 flex-wrap p-5">
       {/* Profile card */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col items-center gap-3 w-56 shrink-0">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-3 w-56 shrink-0">
         <div className="w-16 h-16 rounded-full bg-[#064E3B]/10 flex items-center justify-center text-2xl font-bold text-[#064E3B]">
           {user.full_name?.charAt(0).toUpperCase()}
         </div>
         <div className="text-center">
-          <p className="font-bold text-sm text-gray-900">{user.full_name}</p>
-          <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
+          <p className="font-bold text-sm text-slate-900">{user.full_name}</p>
+          <p className="text-xs text-slate-500 mt-0.5">{user.email}</p>
         </div>
         <span className="px-3 py-1 rounded-full bg-[#D1FAE5] text-[#064E3B] text-xs font-bold border border-[#064E3B]/20">
           {user.role}
@@ -47,10 +47,10 @@ export default function AccountPanel({
       {/* Editable fields */}
       <div className="flex-1 min-w-64 flex flex-col gap-4">
         {/* Contact info */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col gap-4">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <span className="font-semibold text-gray-800 text-sm">
-              📋 Contact Information
+            <span className="font-semibold text-slate-800 text-sm">
+              Contact Information
             </span>
             <div className="flex gap-2">
               {editing ? (
@@ -63,7 +63,7 @@ export default function AccountPanel({
                   </button>
                   <button
                     onClick={cancelEdit}
-                    className="px-4 py-1.5 rounded-lg border border-gray-300 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                    className="px-4 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                   >
                     Cancel
                   </button>
@@ -71,7 +71,7 @@ export default function AccountPanel({
               ) : (
                 <button
                   onClick={startEdit}
-                  className="px-4 py-1.5 rounded-lg border border-gray-300 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                  className="px-4 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                 >
                   Edit
                 </button>
