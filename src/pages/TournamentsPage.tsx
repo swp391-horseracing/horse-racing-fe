@@ -10,7 +10,6 @@ import {
   Clock,
   CheckCircle2,
   Play,
-  Landmark,
   ShieldAlert,
   Users,
   ArrowRight,
@@ -465,17 +464,16 @@ export default function TournamentsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
                         <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
-                          <Landmark className="h-4.5 w-4.5" />
+                          <Trophy className="h-4.5 w-4.5" />
                         </div>
                         <div>
                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            Nomination Fee
+                            Prize Pool
                           </p>
                           <p className="text-base font-black text-primary mt-1">
-                            Not provided by API
-                          </p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                            This section needs extra fields from backend.
+                            {selectedTournament.prizePool != null
+                              ? `$${selectedTournament.prizePool.toLocaleString()}`
+                              : "Not announced"}
                           </p>
                         </div>
                       </div>
@@ -489,11 +487,28 @@ export default function TournamentsPage() {
                             Nominations Close
                           </p>
                           <p className="text-base font-black text-foreground mt-1">
-                            Not provided by API
+                            {selectedTournament.registrationCloseDate
+                              ? new Date(
+                                  selectedTournament.registrationCloseDate
+                                ).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                })
+                              : "Not specified"}
                           </p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                            This section needs extra fields from backend.
-                          </p>
+                          {selectedTournament.registrationOpenDate && (
+                            <p className="text-[10px] text-muted-foreground mt-0.5">
+                              Opens{" "}
+                              {new Date(
+                                selectedTournament.registrationOpenDate
+                              ).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              })}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -503,10 +518,11 @@ export default function TournamentsPage() {
                         </div>
                         <div>
                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            Eligibility Criteria
+                            Description
                           </p>
                           <p className="text-sm font-bold text-foreground mt-1 leading-snug">
-                            Not provided by API
+                            {selectedTournament.description ||
+                              "No description provided"}
                           </p>
                         </div>
                       </div>
@@ -517,26 +533,32 @@ export default function TournamentsPage() {
                         </div>
                         <div>
                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            Max Field Size
+                            Max Participants
                           </p>
                           <p className="text-base font-black text-foreground mt-1">
-                            Not provided by API
+                            {selectedTournament.maximumParticipants != null
+                              ? selectedTournament.maximumParticipants
+                              : "Not specified"}
                           </p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                            This section needs extra fields from backend.
-                          </p>
+                          {selectedTournament.minimumParticipants != null && (
+                            <p className="text-[10px] text-muted-foreground mt-0.5">
+                              Min {selectedTournament.minimumParticipants}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="p-4.5 rounded-xl border border-secondary/20 bg-secondary/5 text-xs text-foreground/90 leading-relaxed">
-                      <p className="font-bold text-primary mb-1 flex items-center gap-1.5">
-                        Tournament Notice & Regulations
-                      </p>
-                      Tournament entry policy is not included in the current API
-                      response. Add those fields to GET /tournaments/:id if you
-                      need this section fully populated.
-                    </div>
+                    {selectedTournament.rules && (
+                      <div className="p-4.5 rounded-xl border border-secondary/20 bg-secondary/5 text-xs text-foreground/90 leading-relaxed">
+                        <p className="font-bold text-primary mb-1 flex items-center gap-1.5">
+                          Rules & Regulations
+                        </p>
+                        <p className="whitespace-pre-wrap">
+                          {selectedTournament.rules}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
