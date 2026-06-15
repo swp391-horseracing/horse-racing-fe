@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { type User, AdminService } from "../services/adminService.ts";
 
+type UserFilters = {
+  search?: string;
+  status?: string;
+  role?: string;
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
 export default function useAdmin() {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -12,7 +22,7 @@ export default function useAdmin() {
 
   const [page, setPage] = useState(1);
 
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<UserFilters>({
     search: undefined,
     status: undefined,
     role: undefined,

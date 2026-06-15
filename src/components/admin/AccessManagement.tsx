@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Search, ChevronDown, Loader2 } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { ToastType } from "../../pages/AdminPage";
 import useAdmin from "../../hooks/useAdmin.ts";
+import UserSearch from "./user/UserSearch.tsx";
 
 type OpenMenuState =
   | { id: string; type: "role" }
@@ -60,35 +61,52 @@ export default function AccessManagement({
       </div>
 
       <div className="bg-white border rounded-2xl p-5 shadow-sm space-y-4">
-        <div className="flex gap-4">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search by username or email..."
+        <div className="flex items-center justify-center gap-4">
+          <div className="w-full">
+            <UserSearch
               value={pagination.search ?? ""}
-              className="w-full bg-slate-50 border rounded-xl pl-9 pr-4 py-2 text-xs focus:border-[#064E3B] outline-none"
+              onChange={(value) =>
+                setPagination((prev) => ({
+                  ...prev,
+                  search: value,
+                  page: 1,
+                }))
+              }
             />
           </div>
 
           <select
             value={pagination.role ?? ""}
+            onChange={(e) =>
+              setPagination((prev) => ({
+                ...prev,
+                role: e.target.value || undefined,
+                page: 1,
+              }))
+            }
             className="bg-slate-50 border rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 outline-none"
           >
             <option value="">All Roles</option>
-            <option value="Spectator">Spectators</option>
-            <option value="Owner">Owners</option>
-            <option value="Jockey">Jockeys</option>
-            <option value="Referee">Referees</option>
+            <option value="spectator">Spectators</option>
+            <option value="horse_owner">Owners</option>
+            <option value="jockey">Jockeys</option>
+            <option value="referee">Referees</option>
           </select>
 
           <select
             value={pagination.status ?? ""}
+            onChange={(e) =>
+              setPagination((prev) => ({
+                ...prev,
+                status: e.target.value || undefined,
+                page: 1,
+              }))
+            }
             className="bg-slate-50 border rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 outline-none"
           >
             <option value="">All Status</option>
-            <option value="Active">Active</option>
-            <option value="Suspended">Suspended</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
           </select>
         </div>
 
