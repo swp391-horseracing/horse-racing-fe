@@ -581,11 +581,8 @@ export default function RacesPage() {
                                 <td className="px-6 py-4.5 font-bold font-headline text-[#064E3B] text-base leading-snug">
                                   <button
                                     onClick={() => {
-                                      const horseId =
-                                        entry.horseId ??
-                                        (entry as any).horse_id;
-                                      if (!horseId) return;
-                                      navigate(`/horses/${horseId}`);
+                                      if (!entry.id) return;
+                                      navigate(`/horses/${entry.id}`);
                                     }}
                                     className="text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B]/40 rounded"
                                   >
