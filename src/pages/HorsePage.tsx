@@ -1,7 +1,15 @@
 import { Star } from "lucide-react";
+import { useState, useMemo } from "react";
 import useHorse from "../hooks/useHorse.ts";
 import NoInfoPage from "./NoInfoPage.tsx";
 import HorseSearch from "../components/horse/HorseSearch.tsx";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
 import { useNavigate } from "react-router-dom";
 import type { Horse } from "../services/horseService";
 
@@ -101,6 +109,18 @@ function HorseRow({
 export default function HorsePage() {
   const { horses, loading, error, pagination, setPagination } = useHorse();
 
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  const filteredHorses = useMemo(() => {
+    if (statusFilter === "all") return horses;
+    if (statusFilter === "retired") return horses.filter((h) => h.isRetired);
+    return horses.filter(
+      (h) =>
+        !h.isRetired &&
+        h.healthStatus?.toLowerCase() === statusFilter
+    );
+  }, [horses, statusFilter]);
+
   return (
     <div className="h-full overflow-y-auto bg-background">
       <div className="max-w-[1600px] mx-auto m-6">
@@ -130,17 +150,41 @@ export default function HorsePage() {
           </div>
         </div>
 
-        <div className="w-full mb-4">
-          <HorseSearch
-            value={pagination.search}
-            onChange={(value) =>
-              setPagination((prev) => ({
-                ...prev,
-                search: value,
-                page: 1,
-              }))
-            }
-          />
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 p-4">
+          <div className="w-full sm:max-w-md">
+            <HorseSearch
+              value={pagination.search}
+              onChange={(value) =>
+                setPagination((prev) => ({
+                  ...prev,
+                  search: value,
+                  page: 1,
+                }))
+              }
+            />
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => {
+                setStatusFilter(value);
+                setPagination((prev) => ({ ...prev, page: 1 }));
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-44 h-10 rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="healthy">Healthy</SelectItem>
+                <SelectItem value="recovering">Recovering</SelectItem>
+                <SelectItem value="minor injury">Minor Injury</SelectItem>
+                <SelectItem value="injured">Injured</SelectItem>
+                <SelectItem value="under observation">Under Observation</SelectItem>
+                <SelectItem value="retired">Retired</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div>
@@ -150,9 +194,9 @@ export default function HorsePage() {
                 Loading horses...
               </p>
             </div>
-          ) : horses.length > 0 ? (
+          ) : filteredHorses.length > 0 ? (
             <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden divide-y divide-border">
-              {horses.map((horse) => (
+              {filteredHorses.map((horse) => (
                 <HorseRow
                   key={horse.id}
                   horse={horse}
@@ -163,7 +207,9 @@ export default function HorsePage() {
           ) : (
             <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
               <p className="text-sm font-semibold text-muted-foreground">
-                No horses found.
+                {statusFilter !== "all"
+                  ? "No horses match the selected status."
+                  : "No horses found."}
               </p>
             </div>
           )}
