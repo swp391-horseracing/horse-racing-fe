@@ -582,13 +582,12 @@ export default function RacesPage() {
                                   <button
                                     onClick={() => {
                                       const horseId =
-                                        entry.horseId ||
-                                        (entry as any).horse_id ||
-                                        entry.id;
-                                      if (horseId)
-                                        navigate(`/horses/${horseId}`);
+                                        entry.horseId ??
+                                        (entry as any).horse_id;
+                                      if (!horseId) return;
+                                      navigate(`/horses/${horseId}`);
                                     }}
-                                    className="hover:underline focus:outline-none text-left"
+                                    className="text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B]/40 rounded"
                                   >
                                     {entry.name}
                                   </button>
