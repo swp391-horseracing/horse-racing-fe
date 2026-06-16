@@ -91,6 +91,18 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+function formatDateOrFallback(value?: string) {
+  if (!value) return "Not specified";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime())
+    ? "Not specified"
+    : d.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+}
+
 export default function TournamentsPage() {
   const navigate = useNavigate();
 
@@ -487,26 +499,16 @@ export default function TournamentsPage() {
                             Nominations Close
                           </p>
                           <p className="text-base font-black text-foreground mt-1">
-                            {selectedTournament.registrationCloseDate
-                              ? new Date(
-                                  selectedTournament.registrationCloseDate
-                                ).toLocaleDateString("en-US", {
-                                  year: "numeric",
-                                  month: "long",
-                                  day: "numeric",
-                                })
-                              : "Not specified"}
+                            {formatDateOrFallback(
+                              selectedTournament.registrationCloseDate
+                            )}
                           </p>
                           {selectedTournament.registrationOpenDate && (
                             <p className="text-[10px] text-muted-foreground mt-0.5">
                               Opens{" "}
-                              {new Date(
+                              {formatDateOrFallback(
                                 selectedTournament.registrationOpenDate
-                              ).toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                              })}
+                              )}
                             </p>
                           )}
                         </div>
