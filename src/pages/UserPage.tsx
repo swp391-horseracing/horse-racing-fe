@@ -29,10 +29,10 @@ export default function UserPage() {
     <UserLayout activeKey={activeTab}>
       <div className="flex-1 min-w-0 h-full overflow-y-auto p-6">
         <div className="w-full mb-6">
-          <div className="text-2xl font-bold text-gray-900">
+          <div className="text-2xl font-bold text-[#064E3B]">
             Account &amp; Settings
           </div>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Manage your profile and security preferences.
           </p>
         </div>

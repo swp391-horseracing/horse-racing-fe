@@ -45,7 +45,8 @@ export default function AdminPage() {
 
   return (
     <UserLayout activeKey={active} onActiveKeyChange={setActive}>
-      <div className="h-full w-full relative flex flex-col overflow-hidden bg-[#F4F6F5] font-body">
+      <div className="h-full w-full relative flex flex-col overflow-hidden">
+        {/* Floating Toasts */}
         <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
           {toasts.map((t) => (
             <div
@@ -53,13 +54,13 @@ export default function AdminPage() {
               className={cn(
                 "p-3.5 rounded-xl border shadow-xl backdrop-blur-md flex items-start gap-2.5 pointer-events-auto transform animate-in slide-in-from-top duration-200 text-xs font-semibold",
                 t.type === "success" &&
-                  "bg-emerald-50 border-emerald-300 text-emerald-955",
+                  "bg-emerald-50 border-emerald-300 text-emerald-900",
                 t.type === "error" &&
-                  "bg-rose-50 border-rose-300 text-rose-955",
+                  "bg-rose-50 border-rose-300 text-rose-900",
                 t.type === "warning" &&
-                  "bg-amber-50 border-amber-300 text-amber-955",
+                  "bg-amber-50 border-amber-300 text-amber-900",
                 t.type === "info" &&
-                  "bg-indigo-50 border-indigo-300 text-indigo-955"
+                  "bg-indigo-50 border-indigo-300 text-indigo-900"
               )}
             >
               <span className="shrink-0 mt-0.5">

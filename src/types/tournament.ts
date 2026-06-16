@@ -29,7 +29,14 @@ export interface TournamentListItem {
 }
 
 export interface TournamentDetail extends TournamentListItem {
-  [key: string]: unknown;
+  description?: string;
+  rules?: string;
+  maximumParticipants?: number;
+  minimumParticipants?: number;
+  prizePool?: number;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface RaceItem {
