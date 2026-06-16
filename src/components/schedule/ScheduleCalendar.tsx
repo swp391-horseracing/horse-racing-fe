@@ -12,18 +12,21 @@ interface ScheduleCalendarProps {
 
 // Fixed styling to align headers and handle browser zooming gracefully
 const calendarScaleClasses = cn(
-  "p-4 sm:p-6 w-full max-w-full overflow-hidden",
+  "p-3 sm:p-4 xl:p-6 w-full max-w-full overflow-hidden transition-all",
 
   "[&_.rdp-table]:border-spacing-x-0!",
   "[&_.rdp-table]:border-spacing-y-0!",
 
-  "[&_.rdp-cell]:!w-10 [&_.rdp-cell]:!h-10 [&_.rdp-cell]:p-0",
-  "[&_.rdp-head_th]:!w-10 [&_.rdp-head_th]:!h-10 [&_.rdp-head_th]:p-0 [&_.rdp-head_th]:font-semibold",
+  // Dynamic cell sizing: w-8 (32px) on mobile, w-9 (36px) on tablet/desktop, w-10 (40px) on wide displays
+  "[&_.rdp-cell]:!w-8 sm:[&_.rdp-cell]:!w-9 xl:[&_.rdp-cell]:!w-10 [&_.rdp-cell]:!h-8 sm:[&_.rdp-cell]:!h-9 xl:[&_.rdp-cell]:!h-10 [&_.rdp-cell]:p-0",
+  "[&_.rdp-head_th]:!w-8 sm:[&_.rdp-head_th]:!w-9 xl:[&_.rdp-head_th]:!w-10 [&_.rdp-head_th]:!h-8 sm:[&_.rdp-head_th]:!h-9 xl:[&_.rdp-head_th]:!h-10 [&_.rdp-head_th]:p-0 [&_.rdp-head_th]:font-semibold",
 
-  "[&_.rdp-day]:!w-10 [&_.rdp-day]:!h-10 [&_.rdp-day]:m-auto [&_.rdp-day]:rounded-lg",
+  "[&_.rdp-day]:!w-8 sm:[&_.rdp-day]:!w-9 xl:[&_.rdp-day]:!w-10 [&_.rdp-day]:!h-8 sm:[&_.rdp-day]:!h-9 xl:[&_.rdp-day]:!h-10 [&_.rdp-day]:m-auto [&_.rdp-day]:rounded-lg",
 
-  "[&_.rdp-day]:!text-sm [&_.rdp-head_th]:!text-xs [&_.rdp-caption_label]:!text-base"
+  // Relative typography to complement scaled elements
+  "[&_.rdp-day]:!text-xs sm:[&_.rdp-day]:!text-sm [&_.rdp-head_th]:!text-[10px] sm:[&_.rdp-head_th]:!text-xs [&_.rdp-caption_label]:!text-sm sm:[&_.rdp-caption_label]:!text-base"
 );
+
 export function ScheduleCalendar({
   selectedDate,
   onSelect,
