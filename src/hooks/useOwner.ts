@@ -66,7 +66,6 @@ const mapApiHorse = (h: ApiHorse): Horse => ({
 });
 
 // Helper to safely extract array from API response
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const extractArray = (response: any): any[] => {
   if (Array.isArray(response)) return response;
   if (response?.data && Array.isArray(response.data)) return response.data;
@@ -185,7 +184,7 @@ export function useOwner() {
       );
     }
   };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const addHorse = async (data: any) => {
     try {
       await api.post("/horses", data);
@@ -199,7 +198,6 @@ export function useOwner() {
   const registerTournament = async (
     horseId: string,
     tournamentId: number,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     status: any
   ) => {
     try {

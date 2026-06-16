@@ -1,49 +1,29 @@
-import { ChevronRight, X, Calendar, User, ChessKnight } from "lucide-react";
+import { Star } from "lucide-react";
 import useHorse from "../hooks/useHorse.ts";
-import useAuth from "../hooks/useAuth.ts";
-import { useEffect, useState } from "react";
+import NoInfoPage from "./NoInfoPage.tsx";
+import HorseSearch from "../components/horse/HorseSearch.tsx";
+import { useNavigate } from "react-router-dom";
 
 export default function HorsePage() {
-  const [ownerName, setOwnerName] = useState("loading... ");
-  const {
-    horses,
-    loading,
-    error,
+  const { horses, loading, error, pagination, setPagination, selectedHorse } =
+    useHorse();
 
-    page,
-    setPage,
-
-    pagination,
-
-    selectedHorse,
-    detailLoading,
-
-    openHorse,
-    closeHorse,
-  } = useHorse();
-  const { getUserByID } = useAuth();
-
-  useEffect(() => {
-    if (!selectedHorse?.ownerId) return;
-
-    getUserByID(selectedHorse.ownerId)
-      .then((user) => {
-        setOwnerName(user.full_name);
-      })
-      .catch(() => {
-        setOwnerName("Unknown");
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedHorse?.ownerId]);
+  // const horseList = horses;
+  const navigate = useNavigate();
 
   const isPanelOpen = selectedHorse !== null;
 
   return (
     <div className="h-full overflow-y-auto bg-background">
-      <div className="max-w-[1400px] mx-auto p-6">
-        <h1 className="text-3xl font-black text-primary mb-6">
-          Horse Management
-        </h1>
+      <div className="max-w-[1600px] mx-auto m-6">
+        <div className="bg-primary px-4 py-8 pt-5 my-6 rounded-sm">
+          <h1 className="text-3xl font-black !text-[#F4F6F5]">Horse List</h1>
+          <div className="flex max-w-4xl text-lg md:text-2xl leading-relaxed text-[#F4F6F5]">
+            The Horse List page allows users to browse all available horses and
+            view detailed information about each horse, including ownership,
+            health status, weight, and important dates.
+          </div>
+        </div>
 
         {error && (
           <div className="mb-4 rounded-xl border border-destructive p-4 text-destructive">
@@ -51,6 +31,28 @@ export default function HorsePage() {
           </div>
         )}
 
+        <h1 className="flex items-center justify-left text-xl font-black text-primary gap-2">
+          <Star />
+          <span className="text-2xl">Spotlight Horse</span>
+        </h1>
+
+        <div className="bg-background border-1 border-gray-400 px-4 py-10 my-6 rounded-sm">
+          <div className="flex w-full justify-center items-center">
+            <NoInfoPage />
+          </div>
+        </div>
+        <div className="w-full mb-4">
+          <HorseSearch
+            value={pagination.search}
+            onChange={(value) =>
+              setPagination((prev) => ({
+                ...prev,
+                search: value,
+                page: 1,
+              }))
+            }
+          />
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div
             className={`space-y-3 ${
@@ -62,36 +64,69 @@ export default function HorsePage() {
                 Loading horses...
               </div>
             ) : (
-              horses.map((horse) => (
-                <div
-                  key={horse.id}
-                  onClick={() => openHorse(horse.id)}
-                  className="cursor-pointer rounded-2xl border bg-card p-4 hover:shadow-md transition"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <ChessKnight className="h-6 w-6 text-primary" />
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {horses.map((horse) => (
+                  <div
+                    key={horse.id}
+                    onClick={() => navigate(`/horses/${horse.id}`)}
+                    className="group cursor-pointer overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  >
+                    {/* Image */}
+                    <div className="relative h-80 overflow-hidden">
+                      <img
+                        src={horse.imageUrl}
+                        alt={horse.name}
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      />
                     </div>
 
-                    <div className="flex-1">
-                      <h3 className="font-black text-primary">{horse.name}</h3>
+                    {/* Content */}
+                    <div className="p-5">
+                      <div className="flex items-start justify-between">
+                        <h3 className="text-lg font-bold text-[#173a35]">
+                          {horse.name}
+                        </h3>
+                      </div>
 
-                      <p className="text-sm text-muted-foreground">
-                        {horse.breed}
+                      <p className="mt-1 text-xs uppercase tracking-wider text-slate-500">
+                        {horse.breed} • {horse.birthDate} yrs
                       </p>
-                    </div>
 
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                      <div className="mt-5 border-t pt-4">
+                        <button className="flex w-full items-center justify-center gap-2 font-semibold text-[#173a35]">
+                          View Profile
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12H9m0 0l3-3m-3 3l3 3"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
 
             {pagination.totalPages > 1 && (
               <div className="flex items-center gap-2 pt-3">
                 <button
-                  disabled={page <= 1}
-                  onClick={() => setPage(page - 1)}
+                  disabled={pagination.page <= 1}
+                  onClick={() =>
+                    setPagination((prev) => ({
+                      ...prev,
+                      page: prev.page - 1,
+                    }))
+                  }
                   className="border rounded-lg px-3 py-1"
                 >
                   Prev
@@ -102,8 +137,13 @@ export default function HorsePage() {
                 </span>
 
                 <button
-                  disabled={page >= pagination.totalPages}
-                  onClick={() => setPage(page + 1)}
+                  disabled={pagination.page >= pagination.totalPages}
+                  onClick={() =>
+                    setPagination((prev) => ({
+                      ...prev,
+                      page: prev.page + 1,
+                    }))
+                  }
                   className="border rounded-lg px-3 py-1"
                 >
                   Next
@@ -111,124 +151,8 @@ export default function HorsePage() {
               </div>
             )}
           </div>
-
-          {isPanelOpen && (
-            <div className="lg:col-span-8">
-              <div className="rounded-2xl border bg-card overflow-hidden">
-                <div className="flex justify-between items-center border-b p-5">
-                  <h2 className="text-2xl font-black text-primary">
-                    Horse Detail
-                  </h2>
-
-                  <button onClick={closeHorse}>
-                    <X />
-                  </button>
-                </div>
-
-                {detailLoading ? (
-                  <div className="p-6">Loading...</div>
-                ) : (
-                  selectedHorse && (
-                    <div className="p-6 space-y-4">
-                      <div className="flex items-start gap-4">
-                        <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center overflow-hidden shrink-0">
-                          {selectedHorse.imageUrl ? (
-                            <img
-                              src={selectedHorse.imageUrl}
-                              alt={selectedHorse.name}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <ChessKnight className="h-8 w-8 text-primary" />
-                          )}
-                        </div>
-
-                        <div className="min-w-0">
-                          <h3 className="text-3xl font-black truncate">
-                            {selectedHorse.name}
-                          </h3>
-                          <p className="text-muted-foreground">
-                            {selectedHorse.breed}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <InfoCard
-                          icon={<Calendar size={18} />}
-                          label="Birth Date"
-                          value={selectedHorse.birthDate}
-                        />
-
-                        <InfoCard
-                          icon={<User size={18} />}
-                          label="Weight"
-                          value={`${selectedHorse.weightKg} kg`}
-                        />
-
-                        <InfoCard
-                          icon={<ChessKnight size={18} />}
-                          label="Health Status"
-                          value={selectedHorse.healthStatus}
-                        />
-
-                        <InfoCard
-                          icon={<User size={18} />}
-                          label="Owner"
-                          value={ownerName}
-                        />
-
-                        <InfoCard
-                          icon={<User size={18} />}
-                          label="Retired"
-                          value={selectedHorse.isRetired ? "Yes" : "No"}
-                        />
-
-                        <InfoCard
-                          icon={<Calendar size={18} />}
-                          label="Created At"
-                          value={new Date(
-                            selectedHorse.createdAt
-                          ).toLocaleDateString()}
-                        />
-
-                        <InfoCard
-                          icon={<Calendar size={18} />}
-                          label="Updated At"
-                          value={new Date(
-                            selectedHorse.updatedAt
-                          ).toLocaleDateString()}
-                        />
-                      </div>
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
-          )}
         </div>
       </div>
-    </div>
-  );
-}
-
-function InfoCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="border rounded-xl p-4 bg-card">
-      <div className="flex items-center gap-2 text-primary mb-2">
-        {icon}
-        <span className="text-xs uppercase font-bold">{label}</span>
-      </div>
-
-      <div className="font-semibold break-all">{value}</div>
     </div>
   );
 }

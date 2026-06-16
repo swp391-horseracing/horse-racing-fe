@@ -17,6 +17,8 @@ import UserPage from "../pages/UserPage.tsx";
 import OwnerPage from "../pages/OwnerPage.tsx";
 import SpectatorPage from "../pages/SpectatorPage.tsx";
 import LeaderBoardPage from "../pages/LeaderBoardPage.tsx";
+import NotFoundPage from "../pages/NotFoundPage.tsx";
+import HorseDetailPage from "../pages/HorseDetailPage.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -94,6 +96,14 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.USER_PROFILE,
         element: <UserPage />,
+      },
+      {
+        path: ROUTES.NOTHING_DETAIL,
+        element: <NotFoundPage />,
+      },
+      {
+        path: ROUTES.HORSE_DETAIL,
+        element: <HorseDetailPage />,
       },
     ],
   },

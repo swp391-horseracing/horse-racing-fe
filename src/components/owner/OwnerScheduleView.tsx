@@ -1,8 +1,18 @@
 import { useState, useMemo } from "react";
-import { Search, CalendarDays, MapPin, Flag, Activity } from "lucide-react";
+import {
+  Search,
+  CalendarDays,
+  MapPin,
+  Flag,
+  Activity,
+  Clock,
+  Compass,
+  Users,
+} from "lucide-react";
 import { cn } from "../../lib/utils";
 import { ScheduleLayout } from "../schedule/ScheduleLayout";
 import { ScheduleCalendar } from "../schedule/ScheduleCalendar";
+import { ScheduleDetailFrame } from "../schedule/ScheduleDetailFrame";
 import type { MyRide } from "../../hooks/useJockeyRaces";
 
 export interface OwnerScheduleViewProps {
@@ -160,56 +170,128 @@ export function OwnerScheduleView({ rides, loading }: OwnerScheduleViewProps) {
         }
         detailSlot={
           selectedRide && (
-            <div className="bg-white border rounded-xl p-6 shadow-lg h-full overflow-y-auto">
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h3 className="text-2xl font-black text-[#064E3B]">
-                    {selectedRide.name}
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {selectedRide.horseOwner}
-                  </p>
+            <ScheduleDetailFrame
+              title={
+                <h2 className="text-2xl font-black font-headline tracking-tight leading-tight text-white">
+                  {selectedRide.name}
+                </h2>
+              }
+              subtitle={
+                <div className="flex flex-wrap items-center gap-2 mt-4 font-semibold text-xs text-white/95">
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold text-white">
+                    <CalendarDays className="w-3.5 h-3.5" />
+                    {new Date(selectedRide.scheduledAt).toLocaleDateString(
+                      navigator.language,
+                      { weekday: "short", month: "short", day: "numeric" }
+                    )}{" "}
+                    ·{" "}
+                    {new Date(selectedRide.scheduledAt).toLocaleTimeString(
+                      navigator.language,
+                      { hour: "2-digit", minute: "2-digit" }
+                    )}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold text-white">
+                    <Clock className="w-3.5 h-3.5" />
+                    Owner view
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold text-white">
+                    <Compass className="w-3.5 h-3.5" />
+                    {selectedRide.distanceMeters}m ·{" "}
+                    {selectedRide.trackCondition}
+                  </span>
                 </div>
-                <button
-                  onClick={() => setSelectedRideId(null)}
-                  className="text-slate-400 hover:text-slate-600 font-bold"
-                >
-                  ✕
-                </button>
+              }
+              headerRight={
+                <span className="px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm bg-secondary !text-secondary-foreground border-transparent">
+                  {selectedRide.status}
+                </span>
+              }
+              onClose={() => setSelectedRideId(null)}
+            >
+              <div>
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3 block">
+                  Your Horse Entry
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Horse
+                    </span>
+                    <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
+                      {selectedRide.ride}
+                    </span>
+                    <span className="text-xs text-slate-500 mt-0.5 block">
+                      Your registered runner
+                    </span>
+                  </div>
+                  <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Jockey
+                    </span>
+                    <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
+                      {selectedRide.horseOwner}
+                    </span>
+                    <span className="text-xs text-slate-500 mt-0.5 block">
+                      Assigned rider
+                    </span>
+                  </div>
+                  <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Lane Draw
+                    </span>
+                    <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
+                      Lane {selectedRide.laneNumber}
+                    </span>
+                    <span className="text-xs text-slate-500 mt-0.5 block">
+                      of {selectedRide.laneCount} runners
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="p-4 bg-slate-50 rounded-lg">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">
-                    Horse
-                  </span>
-                  <span className="text-lg font-bold text-slate-800">
-                    {selectedRide.ride}
-                  </span>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-lg">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">
-                    Time
-                  </span>
-                  <span className="text-lg font-bold text-slate-800">
-                    {new Date(selectedRide.scheduledAt).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
+              <div>
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3 block">
+                  Race Conditions
+                </h3>
+                <div className="bg-white border border-[#064E3B]/10 rounded-xl overflow-hidden shadow-sm divide-y divide-slate-100 text-sm">
+                  <div className="flex items-center justify-between px-5 py-3">
+                    <span className="text-slate-555 flex items-center gap-2 font-medium">
+                      <MapPin className="w-4 h-4 text-slate-400" />
+                      Venue
+                    </span>
+                    <span className="font-bold text-slate-800">
+                      {selectedRide.venue}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between px-5 py-3">
+                    <span className="text-slate-555 flex items-center gap-2 font-medium">
+                      <Flag className="w-4 h-4 text-slate-400" />
+                      Distance
+                    </span>
+                    <span className="font-bold text-slate-800">
+                      {selectedRide.distanceMeters}m
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between px-5 py-3">
+                    <span className="text-slate-555 flex items-center gap-2 font-medium">
+                      <Activity className="w-4 h-4 text-slate-400" />
+                      Going
+                    </span>
+                    <span className="font-bold text-slate-800 capitalize">
+                      {selectedRide.trackCondition}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between px-5 py-3">
+                    <span className="text-slate-555 flex items-center gap-2 font-medium">
+                      <Users className="w-4 h-4 text-slate-400" />
+                      Field Size
+                    </span>
+                    <span className="font-bold text-slate-800">
+                      {selectedRide.laneCount} runners
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 text-sm text-slate-600">
-                  <MapPin className="w-4 h-4" /> {selectedRide.venue}
-                </div>
-                <div className="flex items-center gap-3 text-sm text-slate-600">
-                  <Flag className="w-4 h-4" /> {selectedRide.distanceMeters}m
-                </div>
-                <div className="flex items-center gap-3 text-sm text-slate-600">
-                  <Activity className="w-4 h-4" /> {selectedRide.trackCondition}
-                </div>
-              </div>
-            </div>
+            </ScheduleDetailFrame>
           )
         }
       />
