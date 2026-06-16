@@ -52,13 +52,7 @@ function getStatusColor(horse: Horse): string {
   }
 }
 
-function HorseRow({
-  horse,
-  selected,
-}: {
-  horse: Horse;
-  selected: boolean;
-}) {
+function HorseRow({ horse, selected }: { horse: Horse; selected: boolean }) {
   const navigate = useNavigate();
 
   return (
@@ -115,9 +109,7 @@ export default function HorsePage() {
     if (statusFilter === "all") return horses;
     if (statusFilter === "retired") return horses.filter((h) => h.isRetired);
     return horses.filter(
-      (h) =>
-        !h.isRetired &&
-        h.healthStatus?.toLowerCase() === statusFilter
+      (h) => !h.isRetired && h.healthStatus?.toLowerCase() === statusFilter
     );
   }, [horses, statusFilter]);
 
@@ -180,7 +172,9 @@ export default function HorsePage() {
                 <SelectItem value="recovering">Recovering</SelectItem>
                 <SelectItem value="minor injury">Minor Injury</SelectItem>
                 <SelectItem value="injured">Injured</SelectItem>
-                <SelectItem value="under observation">Under Observation</SelectItem>
+                <SelectItem value="under observation">
+                  Under Observation
+                </SelectItem>
                 <SelectItem value="retired">Retired</SelectItem>
               </SelectContent>
             </Select>
@@ -197,11 +191,7 @@ export default function HorsePage() {
           ) : filteredHorses.length > 0 ? (
             <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden divide-y divide-border">
               {filteredHorses.map((horse) => (
-                <HorseRow
-                  key={horse.id}
-                  horse={horse}
-                  selected={false}
-                />
+                <HorseRow key={horse.id} horse={horse} selected={false} />
               ))}
             </div>
           ) : (
