@@ -5,7 +5,7 @@ export default function NotificationsPanel() {
 
   return (
     <div className="flex flex-col w-full h-full bg-white rounded-2xl p-6">
-      <div className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-4 ">
+      <div className="font-bold text-lg text-slate-900 dark:text-gray-100 mb-4 ">
         Notifications
       </div>
       <div className="w-full h-full overflow-y-auto bg-red-600 flex flex-col">
@@ -27,7 +27,7 @@ export default function NotificationsPanel() {
                   <div className="flex items-center justify-center h-1.5 w-1.5 ml-1 mr-2 mt-0.5 rounded-full bg-green-300" />
                 )}
                 <div>{notification.title}</div>
-                <div className="ml-auto font-normal text-gray-500 text-[12px]">
+                <div className="ml-auto font-normal text-slate-500 text-[12px]">
                   {notification.date}
                 </div>
               </div>
