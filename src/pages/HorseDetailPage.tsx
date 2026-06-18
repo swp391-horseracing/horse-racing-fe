@@ -103,27 +103,10 @@ export default function HorseDetailPage() {
     [selectedHorse?.birthDate]
   );
 
-  // const careerWins = useMemo(() => {
-  //     if (!selectedHorse) return "0/0";
-  //     const wins = (selectedHorse as any).wins ?? (selectedHorse as any).winCount ?? 14;
-  //     const races = (selectedHorse as any).races ?? (selectedHorse as any).raceCount ?? 22;
-  //     return `${wins}/${races}`;
-  // }, [selectedHorse]);
-  //
-  // const winRate = useMemo(() => {
-  //     if (!selectedHorse) return "0%";
-  //     const wins = (selectedHorse as any).wins ?? (selectedHorse as any).winCount ?? 14;
-  //     const races = (selectedHorse as any).races ?? (selectedHorse as any).raceCount ?? 22;
-  //     if (!races) return "0%";
-  //     return `${Math.round((wins / races) * 100)}%`;
-  // }, [selectedHorse]);
-
   if (detailLoading || (!selectedHorse && id)) {
     return (
       <div className="min-h-screen bg-[#f2f4f1] px-3 py-3">
-        <div className="mx-auto max-w-[1440px] rounded-[18px] border-4 border-[#6d61e8] bg-white p-8 shadow-sm">
-          Loading horse detail...
-        </div>
+        <div className="">Loading horse detail...</div>
       </div>
     );
   }
@@ -225,7 +208,7 @@ export default function HorseDetailPage() {
         </div>
 
         {/* Body */}
-        <div className="grid gap-6 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_290px] lg:px-6">
+        <div className="grid gap-6 py-6 lg:grid-cols-[minmax(0,1fr)_290px]">
           <div className="space-y-6">
             <section>
               <SectionTitle
