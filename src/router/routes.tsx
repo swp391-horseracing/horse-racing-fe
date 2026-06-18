@@ -56,7 +56,3 @@ export const ROUTES = {
   //ERROR
   NOTHING_DETAIL: "/*",
 };
-
-export const buildRoute = (path: string, id: string | number) => {
-  return path.replace(":id", String(id));
-};
