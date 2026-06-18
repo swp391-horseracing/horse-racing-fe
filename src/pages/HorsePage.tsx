@@ -12,6 +12,7 @@ import {
 } from "../components/ui/select";
 import { useNavigate } from "react-router-dom";
 import type { Horse } from "../services/horseService";
+import banner from "../assets/images/horse-banner.png";
 
 function getAge(birthDate?: string) {
   if (!birthDate) return "N/A";
@@ -114,14 +115,30 @@ export default function HorsePage() {
   }, [horses, statusFilter]);
 
   return (
-    <div className="h-full overflow-y-auto bg-background">
-      <div className="max-w-[1600px] mx-auto m-6">
-        <div className="bg-primary px-4 py-8 pt-5 my-6 rounded-sm">
-          <h1 className="text-3xl font-black !text-[#F4F6F5]">Horse List</h1>
-          <div className="flex max-w-4xl text-lg md:text-2xl leading-relaxed text-[#F4F6F5]">
-            The Horse List page allows users to browse all available horses and
-            view detailed information about each horse, including ownership,
-            health status, weight, and important dates.
+    <div className="h-full w-full px-40 overflow-y-auto bg-background">
+      <div className="mx-auto m-6">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-green-900 px-8 py-10 text-white shadow-sm sm:px-10">
+          <div className="flex flex-row items-center justify-between h-30">
+          <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-2xl">
+              <h1 className="font-serif text-4xl font-bold tracking-tight !text-white sm:text-5xl">
+                Horse List
+              </h1>
+              <p className="mt-4 max-w-xl text-base leading-7 text-emerald-50/90 sm:text-lg">
+                Browse all available horses and view detailed information about
+                each horse, including ownership, health status, weight, and
+                important dates.
+              </p>
+            </div>
+          </div>
+            <div className="relative inset-y-0 right-0 hidden w-1/2 opacity-20 lg:block">
+              <div className="relative pt-60 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.16),transparent_55%)]" />
+              <img
+                  src={banner}
+                  alt=""
+                  className="h-full w-full object-cover object-top grayscale"
+              />
+            </div>
           </div>
         </div>
 
@@ -137,7 +154,7 @@ export default function HorsePage() {
         </h1>
 
         <div className="bg-background border-1 border-gray-400 px-4 py-10 my-6 rounded-sm">
-          <div className="flex w-full justify-center items-center">
+          <div className="flex h-60 w-full justify-center items-center">
             <NoInfoPage />
           </div>
         </div>
