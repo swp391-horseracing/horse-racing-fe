@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import useHorse from "../hooks/useHorse.ts";
 import useAuth from "../hooks/useAuth.ts";
-import { ROUTES } from "../router/routes.tsx";
 
 function getAge(birthDate?: string) {
   if (!birthDate) return "N/A";
@@ -31,48 +30,6 @@ function getAge(birthDate?: string) {
   }
 
   return `${Math.max(age, 0)} yrs`;
-}
-
-function StatCard({
-  label,
-  value,
-  subValue,
-  highlighted = false,
-}: {
-  label: string;
-  value: string;
-  subValue?: string;
-  highlighted?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-2xl border p-4 shadow-sm ${
-        highlighted
-          ? "border-amber-300 bg-[#f9f3dd]"
-          : "border-slate-200 bg-white"
-      }`}
-    >
-      <div className="text-center text-[11px] uppercase tracking-[0.24em] text-slate-500">
-        {label}
-      </div>
-      <div className="mt-3 text-center text-3xl font-semibold text-[#173a35]">
-        {value}
-      </div>
-      {subValue ? (
-        <div className="mt-2 text-center text-[11px] text-slate-500">
-          {subValue}
-        </div>
-      ) : null}
-      <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
-        <div
-          className={`h-full rounded-full ${
-            highlighted ? "bg-amber-600" : "bg-[#173a35]"
-          }`}
-          style={{ width: highlighted ? "74%" : "66%" }}
-        />
-      </div>
-    </div>
-  );
 }
 
 function InfoRow({
@@ -201,29 +158,29 @@ export default function HorseDetailPage() {
   ];
 
   return (
-    <div className="h-full w-full overflow-y-auto bg-background">
-      <div className="mx-auto max-w-full shadow-2xl overflow-hidden">
-        <section className="relative overflow-hidden bg-[#173a35]">
+    <div className="h-full w-full px-40 py-4 overflow-y-auto bg-background">
+      <div className="mx-auto max-w-full overflow-hidden">
+        <div className="relative overflow-hidden bg-[#173a35] rounded-3xl">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.16),_transparent_28%),linear-gradient(135deg,rgba(18,54,45,0.98),rgba(24,73,58,0.92))]" />
           <div
             className="absolute inset-0 opacity-30"
             style={{
               backgroundImage:
-                "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+                "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
               backgroundSize: "52px 52px",
             }}
           />
-          <div className="relative h-full px-6 py-8 md:px-10 md:py-10">
-            <div className="flex h-full flex-col justify-end gap-8 md:flex-row md:items-end md:justify-between">
+          <div className="relative h-full px-10">
+            <div className="flex h-full flex-col justify-end gap-8 md:flex-row md:items-end md:justify-between py-8">
               <div className="flex flex-col gap-5 md:flex-row md:items-center">
-                <div className="overflow-hidden rounded-xl border border-white/20 bg-black/20 shadow-2xl">
+                <div className="overflow-hidden">
                   <img
                     src={
                       selectedHorse.imageUrl ||
                       "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?auto=format&fit=crop&w=900&q=80"
                     }
                     alt={selectedHorse.name}
-                    className="h-[200px] w-[200px] object-cover"
+                    className="h-[160px] w-[160px] object-cover rounded-xl"
                   />
                 </div>
 
@@ -247,97 +204,29 @@ export default function HorseDetailPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 md:items-end">
+              <div className="h-full flex flex-col gap-3 md:items-end">
                 <button
-                  onClick={() => navigate(ROUTES.HORSES)}
-                  className="inline-flex items-center gap-2 mb-10 rounded-xl border border-white/20 bg-white/10 px-3 py-3 font-semibold text-white backdrop-blur transition hover:bg-white/15"
+                  onClick={() => navigate(-1)}
+                  className="inline-flex items-center gap-2 mb-6 rounded-xl border border-white/20 bg-white/10 px-3 py-3 font-semibold text-white backdrop-blur transition hover:bg-white/15"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </button>
-                <button className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-3 font-semibold text-white backdrop-blur transition hover:bg-white/15">
+                <button className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-1 font-semibold text-white backdrop-blur transition hover:bg-white/15">
                   <Heart className="h-4 w-4" />
                   Add to Favorite
                 </button>
-                <button className="inline-flex items-center gap-2 rounded-xl bg-[#4d6b5f] px-5 py-3 font-semibold text-white transition hover:bg-[#466359]">
+                <button className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-1 font-semibold text-white backdrop-blur transition hover:bg-white/15">
                   <PlayCircle className="h-4 w-4" />
                   View Race History
                 </button>
               </div>
             </div>
           </div>
-        </section>
+        </div>
 
         {/* Body */}
         <div className="grid gap-6 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_290px] lg:px-6">
           <div className="space-y-6">
-            <section>
-              <SectionTitle title="Stat Dashboard" />
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <StatCard
-                  label="Speed Rating"
-                  value={
-                    (selectedHorse as any).speedRating?.toString() ??
-                    "No Info yet"
-                  }
-                />
-                <StatCard
-                  label="Stamina"
-                  value={
-                    (selectedHorse as any).stamina?.toString() ?? "No Info yet"
-                  }
-                />
-                <StatCard
-                  label="Agility"
-                  value={
-                    (selectedHorse as any).agility?.toString() ?? "No Info yet"
-                  }
-                />
-                <StatCard
-                  label="Career Wins"
-                  value={
-                    (selectedHorse as any).agility?.toString() ?? "No Info yet"
-                  }
-                  highlighted
-                />
-              </div>
-            </section>
-
-            <section className="rounded-2xl border bg-[#eef2ef] p-6 shadow-sm">
-              <SectionTitle title="Heritage & Lineage" />
-              <div className="grid gap-4 md:grid-cols-[1fr_1fr] xl:grid-cols-[1fr_180px_1fr] xl:items-center">
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm">
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
-                    Subject
-                  </div>
-                  <div className="mt-2 font-semibold text-[#173a35]">
-                    {selectedHorse.name}
-                  </div>
-                </div>
-
-                <div className="hidden justify-center xl:flex">
-                  <div className="h-px w-full bg-slate-300" />
-                </div>
-
-                <div className="space-y-4">
-                  <div className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm">
-                    <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
-                      Sire
-                    </div>
-                    <div className="mt-2 font-semibold text-[#173a35]">
-                      No Info yet
-                    </div>
-                  </div>
-                  <div className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm">
-                    <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
-                      Dam
-                    </div>
-                    <div className="mt-2 font-semibold text-[#173a35]">
-                      No Info yet
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
 
             <section>
               <SectionTitle
@@ -392,8 +281,9 @@ export default function HorseDetailPage() {
           </div>
 
           <aside className="space-y-6">
-            <section className="rounded-2xl border bg-white p-6 mt-13 shadow-sm">
-              <SectionTitle title="Physical Specs" />
+            <SectionTitle title="Physical Specs" />
+            <section className="rounded-2xl border bg-white p-6 shadow-sm">
+
               <div className="space-y-1 text-sm">
                 <InfoRow
                   label="Status"
