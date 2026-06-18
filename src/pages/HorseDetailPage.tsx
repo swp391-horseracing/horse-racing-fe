@@ -227,7 +227,6 @@ export default function HorseDetailPage() {
         {/* Body */}
         <div className="grid gap-6 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_290px] lg:px-6">
           <div className="space-y-6">
-
             <section>
               <SectionTitle
                 title="Performance History"
@@ -283,7 +282,6 @@ export default function HorseDetailPage() {
           <aside className="space-y-6">
             <SectionTitle title="Physical Specs" />
             <section className="rounded-2xl border bg-white p-6 shadow-sm">
-
               <div className="space-y-1 text-sm">
                 <InfoRow
                   label="Status"

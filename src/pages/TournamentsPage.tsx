@@ -143,7 +143,7 @@ export default function TournamentsPage() {
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
-      <div className="mx-auto max-w-[1400px] px-4 py-6">
+      <div className="mx-auto max-w-[1400px] px-6 py-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div className="min-w-0">
             <h1 className="text-3xl font-black font-headline text-primary tracking-tight leading-none">
