@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   Search,
-  X,
   CalendarDays,
   Clock,
   MapPin,
@@ -18,8 +17,7 @@ import type { RaceListItem, RaceApiStatus } from "../services/raceService";
 // Import Shared Abstracted Components
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
 import { ScheduleStatCard } from "../components/schedule/ScheduleStatCard";
-
-// ── Types ───────────────────────────────────────────────────────────────────
+import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
 
 type RaceStatus = "Live" | "Upcoming" | "Completed";
 type StatusFilter = "All" | RaceStatus;
@@ -33,8 +31,6 @@ interface RaceUI extends Omit<RaceListItem, "status"> {
   className: string;
   status: RaceStatus;
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const mapApiStatusToUi = (status: RaceApiStatus): RaceStatus => {
   if (status === "ongoing") return "Live";
@@ -186,16 +182,13 @@ export default function RacesPage() {
 
   const [viewMonth, setViewMonth] = useState<Date>(selectedDate || new Date());
 
-  // Extracted computed primitive variables to solve ESLint dependency checks
   const viewYear = viewMonth.getFullYear();
   const viewMonthIndex = viewMonth.getMonth();
 
-  // Fetch races when viewed month changes
   useEffect(() => {
     loadRacesByMonth(viewYear, viewMonthIndex + 1);
   }, [viewYear, viewMonthIndex, loadRacesByMonth]);
 
-  // Fetch race detail when selectedRaceId changes
   useEffect(() => {
     if (selectedRaceId) {
       loadDetail(selectedRaceId);
@@ -347,10 +340,10 @@ export default function RacesPage() {
             ${
               isCalendarMode
                 ? panelOpen
-                  ? "lg:col-span-4"
+                  ? "lg:col-span-5 xl:col-span-4"
                   : "lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-start"
                 : panelOpen
-                  ? "lg:col-span-3"
+                  ? "lg:col-span-4 xl:col-span-3"
                   : "lg:col-span-12"
             }
           `}
@@ -448,129 +441,178 @@ export default function RacesPage() {
 
           {panelOpen && (
             <div
-              className={`${isCalendarMode ? "lg:col-span-8" : "lg:col-span-9"} lg:sticky lg:top-8 overflow-hidden border border-border bg-card rounded-2xl shadow-lg flex flex-col min-h-[500px] xl:min-h-[640px] animate-in fade-in slide-in-from-right-8 duration-200`}
+              className={`${isCalendarMode ? "lg:col-span-7 xl:col-span-8" : "lg:col-span-8 xl:col-span-9"}`}
             >
               {detailLoading ? (
-                <div className="flex-1 flex items-center justify-center p-8">
+                <div className="flex min-h-[500px] items-center justify-center rounded-2xl border border-border bg-card p-8 shadow-lg">
                   <p className="text-sm font-semibold text-muted-foreground">
                     Loading race details...
                   </p>
                 </div>
               ) : detailError ? (
-                <div className="flex-1 flex items-center justify-center p-8">
+                <div className="flex min-h-[500px] items-center justify-center rounded-2xl border border-border bg-card p-8 shadow-lg">
                   <p className="text-sm font-semibold text-destructive">
                     {detailError}
                   </p>
                 </div>
               ) : raceDetail ? (
-                <>
-                  <div className="flex items-start justify-between gap-4 px-8 py-6 border-b border-border bg-background">
-                    <div className="min-w-0 flex-1">
+                <ScheduleDetailFrame
+                  title={
+                    <h2 className="text-3xl font-black font-headline tracking-tight leading-tight text-white">
+                      {raceDetail.name}
+                    </h2>
+                  }
+                  subtitle={
+                    <div className="mt-3 space-y-3">
                       {tournamentName && (
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 truncate">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-white/70 truncate">
                           {tournamentName}
                         </p>
                       )}
-                      <h2 className="text-3xl font-bold font-headline text-primary tracking-tight leading-tight">
-                        {raceDetail.name}
-                      </h2>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2 font-medium tracking-tight flex-wrap">
-                        <span className="px-2 py-0.5 rounded border border-border bg-card">
-                          {raceDetail.roundName || "Standard"}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
+                      <div className="flex flex-wrap items-center gap-2 font-semibold text-xs text-white">
+                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
+                          <Clock className="h-3.5 w-3.5" />
                           {formatDateTime(raceDetail.scheduledAt)}
                         </span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
+                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
+                          <MapPin className="h-3.5 w-3.5" />
                           {raceDetail.venue}
                         </span>
-                        {raceDetail.distanceMeters && (
-                          <span className="flex items-center gap-1">
-                            <Trophy className="h-3 w-3" />
-                            {raceDetail.distanceMeters}m
-                          </span>
-                        )}
+                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-[#EAB308]/45 text-[#EAB308] px-3 py-1.5 font-bold">
+                          <Trophy className="h-3.5 w-3.5" />
+                          {raceDetail.distanceMeters
+                            ? `${raceDetail.distanceMeters}m`
+                            : "Distance TBC"}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
+                          {raceDetail.roundName || "Standard"}
+                        </span>
                       </div>
                     </div>
-                    <button
-                      onClick={handleCloseDetail}
-                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-background hover:text-foreground transition-all shadow-sm active:scale-95"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-
-                  <div className="flex-1 p-8 space-y-10 overflow-y-auto custom-scrollbar">
-                    <div>
-                      <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">
-                        Race Entries - Horses & Jockeys
-                      </h3>
-                      {raceDetail.entries && raceDetail.entries.length > 0 ? (
-                        <div className="overflow-hidden rounded-xl border border-border bg-background shadow-sm">
-                          <table className="w-full text-left">
-                            <thead className="bg-muted/30 border-b border-border">
-                              <tr>
-                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground w-20 text-center">
-                                  #
-                                </th>
-                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                                  Horse Name
-                                </th>
-                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">
-                                  Lane
-                                </th>
-                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                                  Jockey Name
-                                </th>
-                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                                  weight
-                                </th>
-                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden md:table-cell">
-                                  Status
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border text-sm bg-card">
-                              {raceDetail.entries.map((entry, idx) => (
-                                <tr
-                                  key={entry.id || idx}
-                                  className="hover:bg-primary/5 transition-colors cursor-default"
-                                >
-                                  <td className="px-6 py-4.5 text-center">
-                                    <span className="flex h-6 w-6 items-center justify-center rounded-md border border-border bg-background shadow-sm text-xs font-black text-foreground mx-auto">
-                                      {entry.clothNumber || idx + 1}
-                                    </span>
-                                  </td>
-                                  <td className="px-6 py-4.5 font-bold font-headline text-primary text-base leading-snug">
-                                    {entry.name}
-                                  </td>
-                                  <td className="px-6 py-4.5 text-xs text-muted-foreground font-mono break-all">
-                                    {entry.laneNumber}
-                                  </td>
-                                  <td className="px-6 py-4.5 font-medium text-foreground">
-                                    {entry.jockeyName}
-                                  </td>
-                                  <td className="px-6 py-4.5 text-muted-foreground hidden md:table-cell">
-                                    {entry.weightKg}
-                                  </td>
-                                  <td className="px-6 py-4.5 font-medium text-foreground">
-                                    {entry.entryStatus}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      ) : (
-                        <div className="rounded-2xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground font-medium bg-background">
-                          No horse entries available yet.
-                        </div>
-                      )}
+                  }
+                  headerRight={
+                    <span className="px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm bg-secondary !text-secondary-foreground border-transparent">
+                      Race detail
+                    </span>
+                  }
+                  onClose={handleCloseDetail}
+                  containerClass="border-slate-200 bg-white shadow-lg"
+                >
+                  <div>
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3 block">
+                      Race Summary
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Round
+                        </span>
+                        <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
+                          {raceDetail.roundName || "Standard"}
+                        </span>
+                        <span className="text-xs text-slate-500 mt-0.5 block">
+                          Competition stage
+                        </span>
+                      </div>
+                      <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Venue
+                        </span>
+                        <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
+                          {raceDetail.venue}
+                        </span>
+                        <span className="text-xs text-slate-500 mt-0.5 block">
+                          Race location
+                        </span>
+                      </div>
+                      <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Entries
+                        </span>
+                        <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
+                          {raceDetail.entries?.length || 0}
+                        </span>
+                        <span className="text-xs text-slate-500 mt-0.5 block">
+                          Confirmed horses
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </>
+                  <div>
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3">
+                      Race Entries - Horses & Jockeys
+                    </h3>
+                    {raceDetail.entries && raceDetail.entries.length > 0 ? (
+                      <div className="overflow-hidden rounded-xl border border-[#064E3B]/10 bg-white shadow-sm">
+                        <table className="w-full text-left">
+                          <thead className="bg-[#F4F6F5] border-b border-slate-100">
+                            <tr>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 w-20 text-center">
+                                #
+                              </th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                Horse Name
+                              </th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">
+                                Lane
+                              </th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                Jockey Name
+                              </th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                Weight
+                              </th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hidden md:table-cell">
+                                Status
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-sm bg-card">
+                            {raceDetail.entries.map((entry, idx) => (
+                              <tr
+                                key={entry.id || idx}
+                                className="hover:bg-[#064E3B]/5 transition-colors cursor-default"
+                              >
+                                <td className="px-6 py-4.5 text-center">
+                                  <span className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white shadow-sm text-xs font-black text-slate-800 mx-auto">
+                                    {entry.clothNumber || idx + 1}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4.5 font-bold font-headline text-[#064E3B] text-base leading-snug">
+                                  <button
+                                    onClick={() => {
+                                      if (!entry.id) return;
+                                      navigate(`/horses/${entry.id}`);
+                                    }}
+                                    className="text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B]/40 rounded"
+                                  >
+                                    {entry.name}
+                                  </button>
+                                </td>
+                                <td className="px-6 py-4.5 text-xs text-slate-500 font-mono break-all text-center">
+                                  {entry.laneNumber}
+                                </td>
+                                <td className="px-6 py-4.5 font-medium text-slate-800">
+                                  {entry.jockeyName}
+                                </td>
+                                <td className="px-6 py-4.5 text-slate-500">
+                                  {entry.weightKg}
+                                </td>
+                                <td className="px-6 py-4.5 font-medium text-slate-800 hidden md:table-cell">
+                                  {entry.entryStatus}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-dashed border-slate-200 py-10 text-center text-sm text-slate-500 font-medium bg-white">
+                        No horse entries available yet.
+                      </div>
+                    )}
+                  </div>
+                </ScheduleDetailFrame>
               ) : null}
             </div>
           )}

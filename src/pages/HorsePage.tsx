@@ -1,49 +1,129 @@
-import { ChevronRight, X, Calendar, User, ChessKnight } from "lucide-react";
+import { Star } from "lucide-react";
+import { useState, useMemo } from "react";
 import useHorse from "../hooks/useHorse.ts";
-import useAuth from "../hooks/useAuth.ts";
-import { useEffect, useState } from "react";
+import NoInfoPage from "./NoInfoPage.tsx";
+import HorseSearch from "../components/horse/HorseSearch.tsx";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import { useNavigate } from "react-router-dom";
+import type { Horse } from "../services/horseService";
+
+function getAge(birthDate?: string) {
+  if (!birthDate) return "N/A";
+  const birth = new Date(birthDate);
+  if (Number.isNaN(birth.getTime())) return "N/A";
+
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+
+  return `${Math.max(age, 0)} yrs`;
+}
+
+function getDisplayStatus(horse: Horse): string {
+  if (horse.isRetired) return "Retired";
+  return horse.healthStatus || "Unknown";
+}
+
+function getStatusColor(horse: Horse): string {
+  if (horse.isRetired) return "bg-slate-400";
+  switch (horse.healthStatus?.toLowerCase()) {
+    case "healthy":
+      return "bg-green-500";
+    case "recovering":
+      return "bg-blue-500";
+    case "minor injury":
+      return "bg-yellow-500";
+    case "injured":
+      return "bg-red-500";
+    case "under observation":
+      return "bg-slate-200";
+    default:
+      return "bg-slate-400";
+  }
+}
+
+function HorseRow({ horse, selected }: { horse: Horse; selected: boolean }) {
+  const navigate = useNavigate();
+
+  return (
+    <div
+      className={`group flex items-center justify-between px-5 py-4 transition-all border-l-4 ${
+        selected
+          ? "bg-primary/5 border-l-primary"
+          : "border-l-transparent hover:bg-slate-50/50"
+      }`}
+    >
+      <div className="flex items-center gap-4 min-w-0">
+        <div className="h-10 w-10 rounded-full overflow-hidden bg-slate-200 shrink-0">
+          <img
+            src={horse.imageUrl || "/placeholder.jpg"}
+            alt={horse.name}
+            className="h-full w-full object-cover"
+          />
+        </div>
+        <div className="truncate">
+          <p
+            className={`font-bold font-headline text-base truncate ${
+              selected ? "text-primary" : "text-foreground"
+            }`}
+          >
+            {horse.name}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {horse.breed} · {getAge(horse.birthDate)} · {horse.weightKg}kg
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-3 shrink-0 pl-4">
+        <span className={`h-2 w-2 rounded-full ${getStatusColor(horse)}`} />
+        <span className="text-xs font-medium text-muted-foreground hidden sm:inline">
+          {getDisplayStatus(horse)}
+        </span>
+        <button
+          onClick={() => navigate(`/horses/${horse.id}`)}
+          className="px-3 py-1.5 text-xs font-bold rounded-lg border border-border bg-card hover:bg-muted/40 transition-colors shrink-0"
+        >
+          Horse Detail
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function HorsePage() {
-  const [ownerName, setOwnerName] = useState("loading... ");
-  const {
-    horses,
-    loading,
-    error,
+  const { horses, loading, error, pagination, setPagination } = useHorse();
 
-    page,
-    setPage,
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
-    pagination,
-
-    selectedHorse,
-    detailLoading,
-
-    openHorse,
-    closeHorse,
-  } = useHorse();
-  const { getUserByID } = useAuth();
-
-  useEffect(() => {
-    if (!selectedHorse?.ownerId) return;
-
-    getUserByID(selectedHorse.ownerId)
-      .then((user) => {
-        setOwnerName(user.full_name);
-      })
-      .catch(() => {
-        setOwnerName("Unknown");
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedHorse?.ownerId]);
-
-  const isPanelOpen = selectedHorse !== null;
+  const filteredHorses = useMemo(() => {
+    if (statusFilter === "all") return horses;
+    if (statusFilter === "retired") return horses.filter((h) => h.isRetired);
+    return horses.filter(
+      (h) => !h.isRetired && h.healthStatus?.toLowerCase() === statusFilter
+    );
+  }, [horses, statusFilter]);
 
   return (
     <div className="h-full overflow-y-auto bg-background">
-      <div className="max-w-[1400px] mx-auto p-6">
-        <h1 className="text-3xl font-black text-primary mb-6">
-          Horse Management
-        </h1>
+      <div className="max-w-[1600px] mx-auto m-6">
+        <div className="bg-primary px-4 py-8 pt-5 my-6 rounded-sm">
+          <h1 className="text-3xl font-black !text-[#F4F6F5]">Horse List</h1>
+          <div className="flex max-w-4xl text-lg md:text-2xl leading-relaxed text-[#F4F6F5]">
+            The Horse List page allows users to browse all available horses and
+            view detailed information about each horse, including ownership,
+            health status, weight, and important dates.
+          </div>
+        </div>
 
         {error && (
           <div className="mb-4 rounded-xl border border-destructive p-4 text-destructive">
@@ -51,184 +131,114 @@ export default function HorsePage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div
-            className={`space-y-3 ${
-              isPanelOpen ? "lg:col-span-4" : "lg:col-span-12"
-            }`}
-          >
-            {loading ? (
-              <div className="p-6 rounded-xl border bg-card">
-                Loading horses...
-              </div>
-            ) : (
-              horses.map((horse) => (
-                <div
-                  key={horse.id}
-                  onClick={() => openHorse(horse.id)}
-                  className="cursor-pointer rounded-2xl border bg-card p-4 hover:shadow-md transition"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <ChessKnight className="h-6 w-6 text-primary" />
-                    </div>
+        <h1 className="flex items-center justify-left text-xl font-black text-primary gap-2">
+          <Star />
+          <span className="text-2xl">Spotlight Horse</span>
+        </h1>
 
-                    <div className="flex-1">
-                      <h3 className="font-black text-primary">{horse.name}</h3>
-
-                      <p className="text-sm text-muted-foreground">
-                        {horse.breed}
-                      </p>
-                    </div>
-
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                </div>
-              ))
-            )}
-
-            {pagination.totalPages > 1 && (
-              <div className="flex items-center gap-2 pt-3">
-                <button
-                  disabled={page <= 1}
-                  onClick={() => setPage(page - 1)}
-                  className="border rounded-lg px-3 py-1"
-                >
-                  Prev
-                </button>
-
-                <span>
-                  {pagination.page} / {pagination.totalPages}
-                </span>
-
-                <button
-                  disabled={page >= pagination.totalPages}
-                  onClick={() => setPage(page + 1)}
-                  className="border rounded-lg px-3 py-1"
-                >
-                  Next
-                </button>
-              </div>
-            )}
+        <div className="bg-background border-1 border-gray-400 px-4 py-10 my-6 rounded-sm">
+          <div className="flex w-full justify-center items-center">
+            <NoInfoPage />
           </div>
+        </div>
 
-          {isPanelOpen && (
-            <div className="lg:col-span-8">
-              <div className="rounded-2xl border bg-card overflow-hidden">
-                <div className="flex justify-between items-center border-b p-5">
-                  <h2 className="text-2xl font-black text-primary">
-                    Horse Detail
-                  </h2>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 p-4">
+          <div className="w-full sm:max-w-md">
+            <HorseSearch
+              value={pagination.search}
+              onChange={(value) =>
+                setPagination((prev) => ({
+                  ...prev,
+                  search: value,
+                  page: 1,
+                }))
+              }
+            />
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => {
+                setStatusFilter(value);
+                setPagination((prev) => ({ ...prev, page: 1 }));
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-44 h-10 rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="healthy">Healthy</SelectItem>
+                <SelectItem value="recovering">Recovering</SelectItem>
+                <SelectItem value="minor injury">Minor Injury</SelectItem>
+                <SelectItem value="injured">Injured</SelectItem>
+                <SelectItem value="under observation">
+                  Under Observation
+                </SelectItem>
+                <SelectItem value="retired">Retired</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-                  <button onClick={closeHorse}>
-                    <X />
-                  </button>
-                </div>
+        <div>
+          {loading ? (
+            <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
+              <p className="text-sm font-semibold text-muted-foreground">
+                Loading horses...
+              </p>
+            </div>
+          ) : filteredHorses.length > 0 ? (
+            <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden divide-y divide-border">
+              {filteredHorses.map((horse) => (
+                <HorseRow key={horse.id} horse={horse} selected={false} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
+              <p className="text-sm font-semibold text-muted-foreground">
+                {statusFilter !== "all"
+                  ? "No horses match the selected status."
+                  : "No horses found."}
+              </p>
+            </div>
+          )}
 
-                {detailLoading ? (
-                  <div className="p-6">Loading...</div>
-                ) : (
-                  selectedHorse && (
-                    <div className="p-6 space-y-4">
-                      <div className="flex items-start gap-4">
-                        <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center overflow-hidden shrink-0">
-                          {selectedHorse.imageUrl ? (
-                            <img
-                              src={selectedHorse.imageUrl}
-                              alt={selectedHorse.name}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <ChessKnight className="h-8 w-8 text-primary" />
-                          )}
-                        </div>
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center gap-2 pt-3">
+              <button
+                disabled={pagination.page <= 1}
+                onClick={() =>
+                  setPagination((prev) => ({
+                    ...prev,
+                    page: prev.page - 1,
+                  }))
+                }
+                className="border rounded-lg px-3 py-1 disabled:opacity-50"
+              >
+                Prev
+              </button>
 
-                        <div className="min-w-0">
-                          <h3 className="text-3xl font-black truncate">
-                            {selectedHorse.name}
-                          </h3>
-                          <p className="text-muted-foreground">
-                            {selectedHorse.breed}
-                          </p>
-                        </div>
-                      </div>
+              <span className="text-sm text-muted-foreground">
+                {pagination.page} / {pagination.totalPages}
+              </span>
 
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <InfoCard
-                          icon={<Calendar size={18} />}
-                          label="Birth Date"
-                          value={selectedHorse.birthDate}
-                        />
-
-                        <InfoCard
-                          icon={<User size={18} />}
-                          label="Weight"
-                          value={`${selectedHorse.weightKg} kg`}
-                        />
-
-                        <InfoCard
-                          icon={<ChessKnight size={18} />}
-                          label="Health Status"
-                          value={selectedHorse.healthStatus}
-                        />
-
-                        <InfoCard
-                          icon={<User size={18} />}
-                          label="Owner"
-                          value={ownerName}
-                        />
-
-                        <InfoCard
-                          icon={<User size={18} />}
-                          label="Retired"
-                          value={selectedHorse.isRetired ? "Yes" : "No"}
-                        />
-
-                        <InfoCard
-                          icon={<Calendar size={18} />}
-                          label="Created At"
-                          value={new Date(
-                            selectedHorse.createdAt
-                          ).toLocaleDateString()}
-                        />
-
-                        <InfoCard
-                          icon={<Calendar size={18} />}
-                          label="Updated At"
-                          value={new Date(
-                            selectedHorse.updatedAt
-                          ).toLocaleDateString()}
-                        />
-                      </div>
-                    </div>
-                  )
-                )}
-              </div>
+              <button
+                disabled={pagination.page >= pagination.totalPages}
+                onClick={() =>
+                  setPagination((prev) => ({
+                    ...prev,
+                    page: prev.page + 1,
+                  }))
+                }
+                className="border rounded-lg px-3 py-1 disabled:opacity-50"
+              >
+                Next
+              </button>
             </div>
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-function InfoCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="border rounded-xl p-4 bg-card">
-      <div className="flex items-center gap-2 text-primary mb-2">
-        {icon}
-        <span className="text-xs uppercase font-bold">{label}</span>
-      </div>
-
-      <div className="font-semibold break-all">{value}</div>
     </div>
   );
 }
