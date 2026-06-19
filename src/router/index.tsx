@@ -1,9 +1,9 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { ROUTES } from "./routes";
 import LandingLayout from "../layouts/LandingLayout";
 import LoginLayout from "../layouts/LoginLayout.tsx";
 import MainLayout from "../layouts/MainLayout.tsx";
-import GuidesPage from "../pages/GuidesPage";
+import ProtectedRoute from "../components/auth/ProtectedRoute";
 import MainPage from "../pages/MainPage";
 import LoginPage from "../pages/LoginPage";
 import DashboardPage from "../pages/DashboardPage.tsx";
@@ -27,11 +27,6 @@ export const router = createBrowserRouter([
     children: [{ index: true, element: <MainPage /> }],
   },
   {
-    path: ROUTES.GUIDE,
-    element: <GuidesPage />,
-  },
-
-  {
     path: ROUTES.LOGIN,
     element: <LoginLayout />,
     children: [{ index: true, element: <LoginPage /> }],
@@ -41,6 +36,11 @@ export const router = createBrowserRouter([
     path: ROUTES.REGISTER,
     element: <LoginLayout />,
     children: [{ index: true, element: <LoginPage /> }],
+  },
+
+  {
+    path: "/",
+    element: <Navigate to={ROUTES.HOME} replace />,
   },
 
   {
@@ -78,20 +78,44 @@ export const router = createBrowserRouter([
       },
 
       {
-        path: ROUTES.JOCKEY_DASHBOARD,
-        element: <JockeyPage />,
+        element: <ProtectedRoute allowedRoles={["jockey"]} />,
+        children: [
+          {
+            path: ROUTES.JOCKEY_DASHBOARD,
+            element: <JockeyPage />,
+          },
+        ],
       },
       {
-        path: ROUTES.OWNER_DASHBOARD,
-        element: <OwnerPage />,
+        element: <ProtectedRoute allowedRoles={["horse_owner"]} />,
+        children: [
+          {
+            path: ROUTES.OWNER_DASHBOARD,
+            element: <OwnerPage />,
+          },
+        ],
       },
       {
-        path: ROUTES.SPECTATOR_DASHBOARD,
-        element: <SpectatorPage />,
+        element: <ProtectedRoute allowedRoles={["spectator"]} />,
+        children: [
+          {
+            path: ROUTES.SPECTATOR_DASHBOARD,
+            element: <SpectatorPage />,
+          },
+        ],
       },
       {
-        path: ROUTES.ADMIN_DASHBOARD,
-        element: <AdminPage />,
+        element: <ProtectedRoute allowedRoles={["admin"]} />,
+        children: [
+          {
+            path: ROUTES.ADMIN_DASHBOARD,
+            element: <AdminPage />,
+          },
+          {
+            path: ROUTES.ADMIN_TOURNAMENT_DETAIL,
+            element: <HorseDetailPage />,
+          },
+        ],
       },
       {
         path: ROUTES.USER_PROFILE,
@@ -103,10 +127,6 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.HORSE_DETAIL,
-        element: <HorseDetailPage />,
-      },
-      {
-        path: ROUTES.ADMIN_TOURNAMENT_DETAIL,
         element: <HorseDetailPage />,
       },
     ],
