@@ -159,7 +159,7 @@ export default function AccessManagement({
                       <span
                         className={cn(
                           "px-2 py-0.5 rounded text-[9px] font-black uppercase",
-                          u.status === "Active"
+                          u.status.toLowerCase() === "active"
                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                             : "bg-rose-50 text-rose-700 border border-rose-200"
                         )}
@@ -235,7 +235,7 @@ export default function AccessManagement({
                             }
                             className={cn(
                               "inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded border transition disabled:opacity-50",
-                              u.status === "Active"
+                              u.status.toLowerCase() === "active"
                                 ? "bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100"
                                 : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
                             )}
