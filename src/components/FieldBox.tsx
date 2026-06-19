@@ -7,8 +7,8 @@ type FieldBoxProps = {
   value: string;
   name?: keyof User;
   editing?: boolean;
-  draft: Partial<User>;
-  setDraft: (fn: (p: Partial<User>) => Partial<User>) => void;
+  draft?: Partial<User>;
+  setDraft?: (fn: (p: Partial<User>) => Partial<User>) => void;
 };
 
 export function FieldBox({
@@ -23,7 +23,7 @@ export function FieldBox({
     <div className="space-y-2">
       <Label>{label}</Label>
 
-      {editing && name ? (
+      {editing && name && draft && setDraft ? (
         <Input
           value={(draft[name] as string) ?? value}
           onChange={(e) => setDraft((p) => ({ ...p, [name]: e.target.value }))}

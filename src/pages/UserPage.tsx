@@ -8,12 +8,7 @@ export default function UserPage() {
     user,
     loading,
     activeTab,
-    editing,
-    draft,
-    setDraft,
-    startEdit,
-    saveEdit,
-    cancelEdit,
+    refreshUser,
   } = useUserProfile();
 
   if (loading)
@@ -44,12 +39,7 @@ export default function UserPage() {
         {activeTab === "account" && (
           <AccountPanel
             user={user}
-            editing={editing}
-            draft={draft}
-            setDraft={setDraft}
-            startEdit={startEdit}
-            saveEdit={saveEdit}
-            cancelEdit={cancelEdit}
+            refreshUser={refreshUser}
           />
         )}
 
