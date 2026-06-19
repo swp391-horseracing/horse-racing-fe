@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { ROUTES } from "./routes";
 import LandingLayout from "../layouts/LandingLayout";
 import LoginLayout from "../layouts/LoginLayout.tsx";
@@ -36,6 +36,11 @@ export const router = createBrowserRouter([
     path: ROUTES.REGISTER,
     element: <LoginLayout />,
     children: [{ index: true, element: <LoginPage /> }],
+  },
+
+  {
+    path: "/",
+    element: <Navigate to={ROUTES.HOME} replace />,
   },
 
   {
