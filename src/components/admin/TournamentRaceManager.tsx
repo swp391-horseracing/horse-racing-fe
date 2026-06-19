@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Calendar, Flag, ChevronLeft, Loader2 } from "lucide-react";
+import { Calendar, Flag, Loader2 } from "lucide-react";
 import type { ToastType } from "../../pages/AdminPage";
 import { TournamentForm } from "./tournament/TournamentForm";
 import TournamentList from "./tournament/TournamentList";
-import TournamentDetail from "./tournament/TournamentDetail";
+import TournamentDetailModal from "./tournament/TournamentDetailModal";
 import useAdminTournament from "../../hooks/useAdminTournament";
 
 export default function TournamentRaceManager({
@@ -145,27 +145,13 @@ export default function TournamentRaceManager({
           )}
         </div>
 
-        {selectedTournament && (
-          <div className="w-[550px] min-w-[550px] h-fit bg-white border rounded-2xl p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-sm text-[#064E3B] flex items-center gap-2">
-                <button
-                  onClick={clearSelectedTournament}
-                  className="p-1 rounded-lg hover:bg-slate-100"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                Tournament Detail
-              </h3>
-            </div>
-
-            <TournamentDetail
-              tournament={selectedTournament}
-              onUpdate={handleUpdateTournament}
-              onStatusChange={handleUpdateStatus}
-            />
-          </div>
-        )}
+        <TournamentDetailModal
+          isOpen={!!selectedTournament}
+          onClose={clearSelectedTournament}
+          tournament={selectedTournament!}
+          onUpdate={handleUpdateTournament}
+          onStatusChange={handleUpdateStatus}
+        />
       </div>
       {pagination.totalPages > 1 && (
         <div className="flex items-center gap-2 pt-3">
