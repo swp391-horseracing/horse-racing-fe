@@ -96,8 +96,9 @@ export function useLeaderboard() {
             : "Failed to load jockeys. Please try again."
         );
       } finally {
-        if (currentRequestId !== requestIdRef.current) return;
-        setLoading(false);
+        if (currentRequestId === requestIdRef.current) {
+          setLoading(false);
+        }
       }
     },
     []
