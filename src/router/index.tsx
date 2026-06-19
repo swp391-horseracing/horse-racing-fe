@@ -105,6 +105,10 @@ export const router = createBrowserRouter([
         path: ROUTES.HORSE_DETAIL,
         element: <HorseDetailPage />,
       },
+      {
+        path: ROUTES.ADMIN_TOURNAMENT_DETAIL,
+        element: <HorseDetailPage />,
+      },
     ],
   },
 ]);

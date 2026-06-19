@@ -44,7 +44,7 @@ export const ROUTES = {
   ADMIN_USER_LIST: "/admin/users",
   ADMIN_USER_PROFILE: "/admin/users/:id",
   ADMIN_TOURNAMENT_LIST: "/admin/tournaments",
-  ADMIN_TOURNAMENT_PROFILE: "/admin/tournaments/:id",
+  ADMIN_TOURNAMENT_DETAIL: "/admin/tournaments/:id",
   ADMIN_CALENDAR: "/admin/calendar",
   ADMIN_REPORTS: "/admin/reports",
 
@@ -55,8 +55,4 @@ export const ROUTES = {
 
   //ERROR
   NOTHING_DETAIL: "/*",
-};
-
-export const buildRoute = (path: string, id: string | number) => {
-  return path.replace(":id", String(id));
 };

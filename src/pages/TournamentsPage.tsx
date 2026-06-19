@@ -10,7 +10,6 @@ import {
   Clock,
   CheckCircle2,
   Play,
-  Landmark,
   ShieldAlert,
   Users,
   ArrowRight,
@@ -92,6 +91,18 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+function formatDateOrFallback(value?: string) {
+  if (!value) return "Not specified";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime())
+    ? "Not specified"
+    : d.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+}
+
 export default function TournamentsPage() {
   const navigate = useNavigate();
 
@@ -132,7 +143,7 @@ export default function TournamentsPage() {
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
-      <div className="mx-auto max-w-[1400px] px-4 py-6">
+      <div className="mx-auto max-w-[1400px] px-6 py-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div className="min-w-0">
             <h1 className="text-3xl font-black font-headline text-primary tracking-tight leading-none">
@@ -311,24 +322,24 @@ export default function TournamentsPage() {
 
           {isPanelOpen && selectedTournament && (
             <div className="lg:col-span-9 lg:sticky lg:top-4 bg-card border border-border rounded-2xl shadow-md overflow-hidden flex flex-col">
-              <div className="border-b border-border bg-background px-6 py-5 flex items-start justify-between gap-3">
+              <div className="border-b border-primary/20 bg-primary px-6 py-5 flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-primary-foreground/70">
                     <CalendarDays className="h-3 w-3" />
                     {selectedTournament.startDate} -{" "}
                     {selectedTournament.endDate}
                   </span>
-                  <h2 className="text-2xl font-black font-headline text-primary tracking-tight leading-snug truncate mt-1">
+                  <div className="text-2xl font-black font-headline text-white tracking-tight leading-snug truncate mt-1">
                     {selectedTournament.name}
-                  </h2>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  </div>
+                  <p className="text-xs text-primary-foreground/70 mt-1">
                     Races, structure and guidelines for{" "}
                     {selectedTournament.location}
                   </p>
                 </div>
                 <button
                   onClick={closeTournament}
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-background hover:text-foreground transition-colors"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -465,17 +476,16 @@ export default function TournamentsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
                         <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
-                          <Landmark className="h-4.5 w-4.5" />
+                          <Trophy className="h-4.5 w-4.5" />
                         </div>
                         <div>
                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            Nomination Fee
+                            Prize Pool
                           </p>
                           <p className="text-base font-black text-primary mt-1">
-                            Not provided by API
-                          </p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                            This section needs extra fields from backend.
+                            {selectedTournament.prizePool != null
+                              ? `$${selectedTournament.prizePool.toLocaleString()}`
+                              : "Not announced"}
                           </p>
                         </div>
                       </div>
@@ -489,11 +499,18 @@ export default function TournamentsPage() {
                             Nominations Close
                           </p>
                           <p className="text-base font-black text-foreground mt-1">
-                            Not provided by API
+                            {formatDateOrFallback(
+                              selectedTournament.registrationCloseDate
+                            )}
                           </p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                            This section needs extra fields from backend.
-                          </p>
+                          {selectedTournament.registrationOpenDate && (
+                            <p className="text-[10px] text-muted-foreground mt-0.5">
+                              Opens{" "}
+                              {formatDateOrFallback(
+                                selectedTournament.registrationOpenDate
+                              )}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -503,10 +520,11 @@ export default function TournamentsPage() {
                         </div>
                         <div>
                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            Eligibility Criteria
+                            Description
                           </p>
                           <p className="text-sm font-bold text-foreground mt-1 leading-snug">
-                            Not provided by API
+                            {selectedTournament.description ||
+                              "No description provided"}
                           </p>
                         </div>
                       </div>
@@ -517,26 +535,32 @@ export default function TournamentsPage() {
                         </div>
                         <div>
                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            Max Field Size
+                            Max Participants
                           </p>
                           <p className="text-base font-black text-foreground mt-1">
-                            Not provided by API
+                            {selectedTournament.maximumParticipants != null
+                              ? selectedTournament.maximumParticipants
+                              : "Not specified"}
                           </p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                            This section needs extra fields from backend.
-                          </p>
+                          {selectedTournament.minimumParticipants != null && (
+                            <p className="text-[10px] text-muted-foreground mt-0.5">
+                              Min {selectedTournament.minimumParticipants}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="p-4.5 rounded-xl border border-secondary/20 bg-secondary/5 text-xs text-foreground/90 leading-relaxed">
-                      <p className="font-bold text-primary mb-1 flex items-center gap-1.5">
-                        Tournament Notice & Regulations
-                      </p>
-                      Tournament entry policy is not included in the current API
-                      response. Add those fields to GET /tournaments/:id if you
-                      need this section fully populated.
-                    </div>
+                    {selectedTournament.rules && (
+                      <div className="p-4.5 rounded-xl border border-secondary/20 bg-secondary/5 text-xs text-foreground/90 leading-relaxed">
+                        <p className="font-bold text-primary mb-1 flex items-center gap-1.5">
+                          Rules & Regulations
+                        </p>
+                        <p className="whitespace-pre-wrap">
+                          {selectedTournament.rules}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

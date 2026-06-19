@@ -19,8 +19,6 @@ import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
 import { ScheduleStatCard } from "../components/schedule/ScheduleStatCard";
 import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
 
-// ── Types ───────────────────────────────────────────────────────────────────
-
 type RaceStatus = "Live" | "Upcoming" | "Completed";
 type StatusFilter = "All" | RaceStatus;
 
@@ -33,8 +31,6 @@ interface RaceUI extends Omit<RaceListItem, "status"> {
   className: string;
   status: RaceStatus;
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const mapApiStatusToUi = (status: RaceApiStatus): RaceStatus => {
   if (status === "ongoing") return "Live";
@@ -186,16 +182,13 @@ export default function RacesPage() {
 
   const [viewMonth, setViewMonth] = useState<Date>(selectedDate || new Date());
 
-  // Extracted computed primitive variables to solve ESLint dependency checks
   const viewYear = viewMonth.getFullYear();
   const viewMonthIndex = viewMonth.getMonth();
 
-  // Fetch races when viewed month changes
   useEffect(() => {
     loadRacesByMonth(viewYear, viewMonthIndex + 1);
   }, [viewYear, viewMonthIndex, loadRacesByMonth]);
 
-  // Fetch race detail when selectedRaceId changes
   useEffect(() => {
     if (selectedRaceId) {
       loadDetail(selectedRaceId);
@@ -347,10 +340,10 @@ export default function RacesPage() {
             ${
               isCalendarMode
                 ? panelOpen
-                  ? "lg:col-span-4"
+                  ? "lg:col-span-5 xl:col-span-4"
                   : "lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-start"
                 : panelOpen
-                  ? "lg:col-span-3"
+                  ? "lg:col-span-4 xl:col-span-3"
                   : "lg:col-span-12"
             }
           `}
@@ -448,7 +441,7 @@ export default function RacesPage() {
 
           {panelOpen && (
             <div
-              className={`${isCalendarMode ? "lg:col-span-8" : "lg:col-span-9"}`}
+              className={`${isCalendarMode ? "lg:col-span-7 xl:col-span-8" : "lg:col-span-8 xl:col-span-9"}`}
             >
               {detailLoading ? (
                 <div className="flex min-h-[500px] items-center justify-center rounded-2xl border border-border bg-card p-8 shadow-lg">
@@ -586,7 +579,15 @@ export default function RacesPage() {
                                   </span>
                                 </td>
                                 <td className="px-6 py-4.5 font-bold font-headline text-[#064E3B] text-base leading-snug">
-                                  {entry.name}
+                                  <button
+                                    onClick={() => {
+                                      if (!entry.id) return;
+                                      navigate(`/horses/${entry.id}`);
+                                    }}
+                                    className="text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B]/40 rounded"
+                                  >
+                                    {entry.name}
+                                  </button>
                                 </td>
                                 <td className="px-6 py-4.5 text-xs text-slate-500 font-mono break-all text-center">
                                   {entry.laneNumber}
