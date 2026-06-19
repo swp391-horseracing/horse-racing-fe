@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useRef } from "react";
 import { HorseService } from "../services/horseService";
 import type { Horse } from "../services/horseService";
 import { JockeyService } from "../services/jockeyService";
@@ -17,6 +18,7 @@ export function useLeaderboard() {
   const [activeTab, setActiveTab] = useState<LeaderboardTab>("horses");
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
+  const requestIdRef = useRef(0);
 
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
@@ -33,6 +35,7 @@ export function useLeaderboard() {
 
   const loadLeaderboardData = useCallback(
     async (tab: LeaderboardTab, currentPage: number, limit: number) => {
+      const currentRequestId = ++requestIdRef.current;
       setLoading(true);
       setError(null);
 
@@ -45,6 +48,7 @@ export function useLeaderboard() {
             currentPage,
             limit
           );
+          if (currentRequestId !== requestIdRef.current) return;
 
           const rawHorses: Horse[] = response?.data || [];
 
@@ -78,11 +82,13 @@ export function useLeaderboard() {
         } else {
           // Fetch real jockey rankings
           const data = await JockeyService.getJockeysByRanking();
+          if (currentRequestId !== requestIdRef.current) return;
           setJockeyRows(data);
           setTotalItems(data.length);
           setTotalPages(Math.max(1, Math.ceil(data.length / limit)));
         }
       } catch (err) {
+        if (currentRequestId !== requestIdRef.current) return;
         console.error("Leaderboard Service Error:", err);
         setError(
           tab === "horses"
@@ -90,6 +96,7 @@ export function useLeaderboard() {
             : "Failed to load jockeys. Please try again."
         );
       } finally {
+        if (currentRequestId !== requestIdRef.current) return;
         setLoading(false);
       }
     },
@@ -101,6 +108,7 @@ export function useLeaderboard() {
 
     async function fetchData() {
       if (cancelled) return;
+      if (activeTab === "jockeys" && jockeyRows.length > 0) return;
       await loadLeaderboardData(activeTab, page, pageSize);
     }
 
@@ -109,7 +117,7 @@ export function useLeaderboard() {
     return () => {
       cancelled = true;
     };
-  }, [activeTab, page, pageSize, loadLeaderboardData]);
+  }, [activeTab, page, pageSize, loadLeaderboardData, jockeyRows.length]);
 
   return {
     activeTab,
