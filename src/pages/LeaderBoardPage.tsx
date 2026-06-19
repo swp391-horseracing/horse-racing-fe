@@ -1,116 +1,22 @@
-import { useState, useEffect } from "react";
-import { HorseLeaderboardView } from "../components/HorseLeaderboardView";
-import type { TransformedHorseRow } from "../components/HorseLeaderboardView";
-import { JockeyLeaderboardView } from "../components/JockeyLeaderboardView";
-import { HorseService } from "../services/horseService";
-import type { Horse, HorseListResponse } from "../services/horseService";
-import type { Jockey } from "../types/jockey.ts";
-
-type LeaderboardTab = "horses" | "jockeys";
-
-interface LeaderboardHorse extends Horse {
-  earnings?: number;
-  winRate?: number;
-  speed?: number;
-}
+import { HorseLeaderboardView } from "../components/leaderboard/HorseLeaderboardView";
+import { JockeyLeaderboardView } from "../components/leaderboard/JockeyLeaderboardView";
+import { useLeaderboard } from "../hooks/useLeaderboard";
 
 export default function LeaderBoardPage() {
-  const [activeTab, setActiveTab] = useState<LeaderboardTab>("horses");
-  const [page, setPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(10);
-
-  const [totalPages, setTotalPages] = useState<number>(1);
-  const [totalItems, setTotalItems] = useState<number>(0);
-
-  const [horseRows, setHorseRows] = useState<TransformedHorseRow[]>([]);
-  const [jockeyRows, setJockeyRows] = useState<Jockey[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadLeaderboardData() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        if (activeTab === "horses") {
-          const response: HorseListResponse = await HorseService.getHorses(
-            undefined,
-            undefined,
-            undefined,
-            page,
-            pageSize
-          );
-
-          if (cancelled) return;
-
-          const rawHorses: Horse[] = response?.data || [];
-
-          const transformedRows: TransformedHorseRow[] = rawHorses.map(
-            (item: Horse, index: number) => {
-              const horse = item as LeaderboardHorse;
-
-              return {
-                rank: (page - 1) * pageSize + (index + 1),
-                horse: {
-                  id: horse.id,
-                  name: horse.name,
-                  imageUrl: horse.imageUrl || null,
-                  /* the horse model doesn't have earnings, winrate, or speed fields yet.
-                     using ?? 0 as a placeholder so the page doesn't crash with live data.
-                     once backend updates the schema, this will catch the real values automatically.
-                  */
-                  earnings: horse.earnings ?? 0,
-                  winRate: horse.winRate ?? 0,
-                  speed: horse.speed ?? 0,
-                },
-              };
-            }
-          );
-
-          if (!cancelled) {
-            const totalCount = response?.pagination?.total ?? rawHorses.length;
-            setTotalItems(totalCount);
-
-            if (response?.pagination?.totalPages) {
-              setTotalPages(response.pagination.totalPages);
-            } else {
-              setTotalPages(Math.max(1, Math.ceil(totalCount / pageSize)));
-            }
-            setHorseRows(transformedRows);
-          }
-        } else {
-          if (!cancelled) {
-            setJockeyRows([]);
-            setTotalPages(1);
-            setTotalItems(0);
-          }
-        }
-      } catch (err) {
-        console.error("Leaderboard Service Error:", err);
-        if (!cancelled) {
-          setError("Failed to stream live leaderboard metrics.");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadLeaderboardData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [activeTab, page, pageSize]);
-
-  const handleTabChange = (tab: LeaderboardTab) => {
-    setActiveTab(tab);
-    setPage(1);
-  };
+  const {
+    activeTab,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems,
+    horseRows,
+    jockeyRows,
+    loading,
+    error,
+    handleTabChange,
+  } = useLeaderboard();
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
