@@ -121,7 +121,7 @@ export default function TournamentDetail({
   };
 
   return (
-    <div className="bg-white rounded-3xl border p-6 space-y-5">
+    <div className="space-y-5">
       <div className="flex justify-between items-center gap-3">
         <div className="space-y-1">
           <h2 className="text-2xl font-bold text-[#064E3B]">

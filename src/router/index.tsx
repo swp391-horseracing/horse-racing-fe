@@ -13,6 +13,7 @@ import TournamentsPage from "../pages/TournamentsPage.tsx";
 import RacesPage from "../pages/RacesPage.tsx";
 import JockeyPage from "../pages/JockeyPage.tsx";
 import AdminPage from "../pages/AdminPage.tsx";
+import AdminTournamentDetailPage from "../pages/AdminTournamentDetailPage.tsx";
 import UserPage from "../pages/UserPage.tsx";
 import OwnerPage from "../pages/OwnerPage.tsx";
 import SpectatorPage from "../pages/SpectatorPage.tsx";
@@ -113,7 +114,7 @@ export const router = createBrowserRouter([
           },
           {
             path: ROUTES.ADMIN_TOURNAMENT_DETAIL,
-            element: <HorseDetailPage />,
+            element: <AdminTournamentDetailPage />,
           },
         ],
       },
