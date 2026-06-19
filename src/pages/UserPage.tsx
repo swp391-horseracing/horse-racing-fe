@@ -4,17 +4,7 @@ import NotificationsPanel from "../components/user_profile/NotificationsPanel.ts
 import UserLayout from "../layouts/UserLayout";
 
 export default function UserPage() {
-  const {
-    user,
-    loading,
-    activeTab,
-    editing,
-    draft,
-    setDraft,
-    startEdit,
-    saveEdit,
-    cancelEdit,
-  } = useUserProfile();
+  const { user, loading, activeTab, refreshUser } = useUserProfile();
 
   if (loading)
     return <div className="p-10 text-center">Loading profile...</div>;
@@ -42,15 +32,7 @@ export default function UserPage() {
         {/* Success Alert */}
 
         {activeTab === "account" && (
-          <AccountPanel
-            user={user}
-            editing={editing}
-            draft={draft}
-            setDraft={setDraft}
-            startEdit={startEdit}
-            saveEdit={saveEdit}
-            cancelEdit={cancelEdit}
-          />
+          <AccountPanel user={user} refreshUser={refreshUser} />
         )}
 
         {activeTab === "notifications" && <NotificationsPanel />}
