@@ -19,7 +19,6 @@ export function useUserProfile() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ProfileTab>("account");
   const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // Helper to handle 401 Unauthorized errors (Replaced 'any' with 'unknown')
   const handleAuthError = useCallback((err: unknown) => {
@@ -68,7 +67,7 @@ export function useUserProfile() {
     user,
     loading,
     error,
-    successMsg,
+
     activeTab,
     setActiveTab,
     clearError,

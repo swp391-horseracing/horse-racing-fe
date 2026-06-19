@@ -37,6 +37,9 @@ export default function LeaderBoardPage() {
       try {
         if (activeTab === "horses") {
           const response: HorseListResponse = await HorseService.getHorses(
+            undefined,
+            undefined,
+            undefined,
             page,
             pageSize
           );
