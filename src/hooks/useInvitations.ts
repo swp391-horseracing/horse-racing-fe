@@ -7,44 +7,42 @@ export function useInvitations() {
   const [loading, setLoading] = useState(false);
 
   const getInvitationsList = useCallback(
-      async (
-          raceId: string,
-          status?: string,
-          page: number = 1,
-          limit: number = 10
-      ) => {
-        try {
-          setLoading(true);
+    async (
+      raceId: string,
+      status?: string,
+      page: number = 1,
+      limit: number = 10
+    ) => {
+      try {
+        setLoading(true);
 
-          const response = await UserService.getRaceInvitations(
-              raceId,
-              status,
-              page,
-              limit
-          );
+        const response = await UserService.getRaceInvitations(
+          raceId,
+          status,
+          page,
+          limit
+        );
 
-          setInvitations(response.data ?? []);
+        setInvitations(response.data ?? []);
 
-          return response;
-        } catch (error) {
-          console.error("Error fetching invitations:", error);
-          throw error;
-        } finally {
-          setLoading(false);
-        }
-      },
-      []
+        return response;
+      } catch (error) {
+        console.error("Error fetching invitations:", error);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
   );
 
   const acceptInvitation = useCallback(async (id: string) => {
     const response = await UserService.acceptInvitation(id);
 
     setInvitations((prev) =>
-        prev.map((inv) =>
-            inv.id === id
-                ? { ...inv, status: "Accepted" as const }
-                : inv
-        )
+      prev.map((inv) =>
+        inv.id === id ? { ...inv, status: "Accepted" as const } : inv
+      )
     );
 
     return response;
@@ -54,9 +52,7 @@ export function useInvitations() {
     async (id: string | number, status: "Accepted" | "Declined") => {
       const strId = String(id);
       setInvitations((prev) =>
-        prev.map((inv) =>
-          inv.id === strId ? { ...inv, status } : inv
-        )
+        prev.map((inv) => (inv.id === strId ? { ...inv, status } : inv))
       );
     },
     []

@@ -1,20 +1,20 @@
 export type TournamentApiStatus =
-    | "upcoming"
-    | "registration_open"
-    | "registration_closed"
-    | "ongoing"
-    | "completed"
-    | "cancelled";
+  | "upcoming"
+  | "registration_open"
+  | "registration_closed"
+  | "ongoing"
+  | "completed"
+  | "cancelled";
 
 export type RaceApiStatus =
-    | "scheduled"
-    | "pre_race"
-    | "ongoing"
-    | "under_review"
-    | "result_confirmed"
-    | "completed"
-    | "postponed"
-    | "cancelled";
+  | "scheduled"
+  | "pre_race"
+  | "ongoing"
+  | "under_review"
+  | "result_confirmed"
+  | "completed"
+  | "postponed"
+  | "cancelled";
 
 export interface Tournament {
   id: string;
@@ -54,12 +54,12 @@ export interface TournamentDetail {
   id: string;
   name: string;
   status:
-      | "upcoming"
-      | "registration_open"
-      | "registration_closed"
-      | "ongoing"
-      | "completed"
-      | "cancelled";
+    | "upcoming"
+    | "registration_open"
+    | "registration_closed"
+    | "ongoing"
+    | "completed"
+    | "cancelled";
 
   location: string;
 

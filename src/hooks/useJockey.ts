@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { UserService} from "../services/UserService";
-import type {Ride} from "../types/race.ts";
+import { UserService } from "../services/UserService";
+import type { Ride } from "../types/race.ts";
 export type MyRide = Ride;
-import type {UserRace} from "../types/user.ts";
+import type { UserRace } from "../types/user.ts";
 
 export function useJockey() {
   const [rides, setRides] = useState<Ride[]>([]);

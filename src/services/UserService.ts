@@ -2,9 +2,10 @@ import api from "../lib/api";
 import type {
   UpdateProfilePayload,
   UpdateProfileResponse,
-  User, UserProfile,
+  User,
+  UserProfile,
   UserRaceDetail,
-  UserRaceListResponse
+  UserRaceListResponse,
 } from "../types/user.ts";
 
 export const UserService = {
@@ -16,8 +17,8 @@ export const UserService = {
 
   //get current user races
   getMyRaces: async (
-      page: number = 1,
-      limit: number = 10
+    page: number = 1,
+    limit: number = 10
   ): Promise<UserRaceListResponse> => {
     const response = await api.get("/me/races", {
       params: { page, limit },
@@ -27,9 +28,9 @@ export const UserService = {
 
   //get current user registration horse
   getMyRegistrations: async (
-      status?: "pending" | "approved" | "rejected",
-      page: number = 1,
-      limit: number = 10
+    status?: "pending" | "approved" | "rejected",
+    page: number = 1,
+    limit: number = 10
   ) => {
     const response = await api.get("/me/registrations", {
       params: {
@@ -44,10 +45,10 @@ export const UserService = {
 
   //get current user invitations
   getRaceInvitations: async (
-      raceId: string,
-      status?: string,
-      page: number = 1,
-      limit: number = 10
+    raceId: string,
+    status?: string,
+    page: number = 1,
+    limit: number = 10
   ) => {
     const response = await api.get(`/me/races/${raceId}/invitations`, {
       params: {
@@ -60,11 +61,7 @@ export const UserService = {
     return response.data;
   },
 
-  inviteJockey: async (
-      raceId: string,
-      jockeyId: string,
-      horseId: string
-  ) => {
+  inviteJockey: async (raceId: string, jockeyId: string, horseId: string) => {
     const response = await api.post(`/me/races/${raceId}/invitations`, {
       jockeyId,
       horseId,
@@ -73,31 +70,21 @@ export const UserService = {
     return response.data;
   },
 
-  cancelInvitation: async (
-      raceId: string,
-      id: string
-  ) => {
-    const response = await api.delete(
-        `/me/races/${raceId}/invitations/${id}`
-    );
+  cancelInvitation: async (raceId: string, id: string) => {
+    const response = await api.delete(`/me/races/${raceId}/invitations/${id}`);
 
     return response.data;
   },
 
   acceptInvitation: async (id: string) => {
-    const response = await api.patch(
-        `/me/invitations/${id}/accept`
-    );
+    const response = await api.patch(`/me/invitations/${id}/accept`);
 
     return response.data;
   },
 
-  confirmInvitation: async (
-      raceId: string,
-      id: string
-  ) => {
+  confirmInvitation: async (raceId: string, id: string) => {
     const response = await api.patch(
-        `/me/races/${raceId}/invitations/${id}/confirm`
+      `/me/races/${raceId}/invitations/${id}/confirm`
     );
 
     return response.data;

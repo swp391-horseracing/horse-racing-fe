@@ -34,8 +34,7 @@ export function RaceRegister({
   const [activeFilter, setActiveFilter] = useState<ActiveFilterType>("All");
 
   const filtered = tournaments.filter((t: Tournament) => {
-    const matchSearch =
-      t.name.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = t.name.toLowerCase().includes(search.toLowerCase());
     const statusMap: Record<ActiveFilterType, string[]> = {
       All: [
         "registration_open",

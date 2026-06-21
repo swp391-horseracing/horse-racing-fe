@@ -2,10 +2,10 @@ import api from "../lib/api";
 import type {
   TournamentApiStatus,
   RaceApiStatus,
-  TournamentListResponse, TournamentRacesResponse, TournamentDetail,
+  TournamentListResponse,
+  TournamentRacesResponse,
+  TournamentDetail,
 } from "../types/tournament";
-
-
 
 export const TournamentService = {
   getTournaments: async (params?: {
@@ -50,27 +50,16 @@ export const TournamentService = {
     return response.data;
   },
 
-  registerHorseForTournament: async (
-      id: string,
-      horseId: string
-  ) => {
-    const response = await api.post(
-        `/tournaments/${id}/registrations`,
-        {
-          horseId,
-        }
-    );
+  registerHorseForTournament: async (id: string, horseId: string) => {
+    const response = await api.post(`/tournaments/${id}/registrations`, {
+      horseId,
+    });
 
     return response.data;
   },
 
-  getTournamentRegistration: async (
-      id: string,
-      regId: string
-  ) => {
-    const response = await api.get(
-        `/tournaments/${id}/registrations/${regId}`
-    );
+  getTournamentRegistration: async (id: string, regId: string) => {
+    const response = await api.get(`/tournaments/${id}/registrations/${regId}`);
 
     return response.data;
   },

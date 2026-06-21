@@ -38,12 +38,11 @@ const mapRaceToPreview = (race: RaceItem): RacePreview => {
     distance: `${race.distanceMeters}m`,
     surface: race.trackCondition,
     status:
-        race.status === "ongoing"
-            ? "Live"
-            : race.status === "completed" ||
-            race.status === "result_confirmed"
-                ? "Completed"
-                : "Upcoming",
+      race.status === "ongoing"
+        ? "Live"
+        : race.status === "completed" || race.status === "result_confirmed"
+          ? "Completed"
+          : "Upcoming",
   };
 };
 
@@ -67,11 +66,12 @@ export default function useTournament() {
   const [loadingList, setLoadingList] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
 
-  const [selectedTournamentId, setSelectedTournamentId] =
-      useState<string | null>(null);
+  const [selectedTournamentId, setSelectedTournamentId] = useState<
+    string | null
+  >(null);
 
   const [selectedTournament, setSelectedTournament] =
-      useState<TournamentDetail | null>(null);
+    useState<TournamentDetail | null>(null);
 
   const [races, setRaces] = useState<RaceItem[]>([]);
 
@@ -85,11 +85,9 @@ export default function useTournament() {
   const [racesLoading, setRacesLoading] = useState(false);
   const [racesError, setRacesError] = useState<string | null>(null);
 
-  const [raceStatus, setRaceStatus] =
-      useState<RaceApiStatus | undefined>();
+  const [raceStatus, setRaceStatus] = useState<RaceApiStatus | undefined>();
 
-  const [detailTab, setDetailTab] =
-      useState<DetailTab>("schedule");
+  const [detailTab, setDetailTab] = useState<DetailTab>("schedule");
 
   const loadTournaments = useCallback(async () => {
     try {
@@ -106,7 +104,7 @@ export default function useTournament() {
       setPagination(response.pagination);
     } catch (error) {
       setListError(
-          error instanceof Error ? error.message : "Load tournaments failed"
+        error instanceof Error ? error.message : "Load tournaments failed"
       );
 
       setTournaments([]);
@@ -116,7 +114,9 @@ export default function useTournament() {
   }, [activeFilter, page, limit]);
 
   useEffect(() => {
-    void loadTournaments();
+    (async () => {
+      await loadTournaments();
+    })();
   }, [loadTournaments]);
 
   const loadTournamentDetail = useCallback(async () => {
@@ -140,7 +140,7 @@ export default function useTournament() {
       setRacesPagination(racesResponse.pagination);
     } catch (error) {
       setRacesError(
-          error instanceof Error ? error.message : "Load detail failed"
+        error instanceof Error ? error.message : "Load detail failed"
       );
 
       setSelectedTournament(null);
@@ -151,7 +151,9 @@ export default function useTournament() {
   }, [selectedTournamentId, raceStatus]);
 
   useEffect(() => {
-    void loadTournamentDetail();
+    (async () => {
+      await loadTournamentDetail();
+    })();
   }, [loadTournamentDetail]);
 
   const filteredTournaments = useMemo(() => {
@@ -160,33 +162,28 @@ export default function useTournament() {
     if (!keyword) return tournaments;
 
     return tournaments.filter(
-        (t) =>
-            t.name.toLowerCase().includes(keyword) ||
-            t.location.toLowerCase().includes(keyword)
+      (t) =>
+        t.name.toLowerCase().includes(keyword) ||
+        t.location.toLowerCase().includes(keyword)
     );
   }, [search, tournaments]);
 
   const counts = useMemo(
-      () => ({
-        All: tournaments.length,
-        Live: tournaments.filter((t) => t.status === "ongoing").length,
-        Scheduled: tournaments.filter(
-            (t) =>
-                t.status === "upcoming" ||
-                t.status === "registration_open" ||
-                t.status === "registration_closed"
-        ).length,
-        Completed: tournaments.filter(
-            (t) => t.status === "completed"
-        ).length,
-      }),
-      [tournaments]
+    () => ({
+      All: tournaments.length,
+      Live: tournaments.filter((t) => t.status === "ongoing").length,
+      Scheduled: tournaments.filter(
+        (t) =>
+          t.status === "upcoming" ||
+          t.status === "registration_open" ||
+          t.status === "registration_closed"
+      ).length,
+      Completed: tournaments.filter((t) => t.status === "completed").length,
+    }),
+    [tournaments]
   );
 
-  const selectedRaces = useMemo(
-      () => races.map(mapRaceToPreview),
-      [races]
-  );
+  const selectedRaces = useMemo(() => races.map(mapRaceToPreview), [races]);
 
   const openTournament = (id: string) => {
     setSelectedTournamentId(id);

@@ -1,8 +1,6 @@
 import api from "../lib/api";
-import type {
-  Tournament, TournamentResponse,
-} from "../types/tournament.ts";
-import type {UserResponse} from "../types/user.ts";
+import type { Tournament, TournamentResponse } from "../types/tournament.ts";
+import type { UserResponse } from "../types/user.ts";
 
 export const AdminService = {
   // List Users
@@ -47,7 +45,6 @@ export const AdminService = {
     return response.data;
   },
 
-
   // Update Tournament
   async updateTournament(
     id: string,
@@ -67,6 +64,4 @@ export const AdminService = {
     });
     return response.data;
   },
-
-
 };

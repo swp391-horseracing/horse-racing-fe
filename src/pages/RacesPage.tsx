@@ -568,41 +568,43 @@ export default function RacesPage() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 text-sm bg-card">
-                            {raceDetail.entries.map((entry: RaceEntry, idx: number) => (
-                              <tr
-                                key={entry.id || idx}
-                                className="hover:bg-[#064E3B]/5 transition-colors cursor-default"
-                              >
-                                <td className="px-6 py-4.5 text-center">
-                                  <span className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white shadow-sm text-xs font-black text-slate-800 mx-auto">
-                                    {entry.clothNumber || idx + 1}
-                                  </span>
-                                </td>
-                                <td className="px-6 py-4.5 font-bold font-headline text-[#064E3B] text-base leading-snug">
-                                  <button
-                                    onClick={() => {
-                                      if (!entry.id) return;
-                                      navigate(`/horses/${entry.id}`);
-                                    }}
-                                    className="text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B]/40 rounded"
-                                  >
-                                    {entry.name}
-                                  </button>
-                                </td>
-                                <td className="px-6 py-4.5 text-xs text-slate-500 font-mono break-all text-center">
-                                  {entry.laneNumber}
-                                </td>
-                                <td className="px-6 py-4.5 font-medium text-slate-800">
-                                  {entry.jockeyName}
-                                </td>
-                                <td className="px-6 py-4.5 text-slate-500">
-                                  {entry.weightKg}
-                                </td>
-                                <td className="px-6 py-4.5 font-medium text-slate-800 hidden md:table-cell">
-                                  {entry.entryStatus}
-                                </td>
-                              </tr>
-                            ))}
+                            {raceDetail.entries.map(
+                              (entry: RaceEntry, idx: number) => (
+                                <tr
+                                  key={entry.id || idx}
+                                  className="hover:bg-[#064E3B]/5 transition-colors cursor-default"
+                                >
+                                  <td className="px-6 py-4.5 text-center">
+                                    <span className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white shadow-sm text-xs font-black text-slate-800 mx-auto">
+                                      {entry.clothNumber || idx + 1}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4.5 font-bold font-headline text-[#064E3B] text-base leading-snug">
+                                    <button
+                                      onClick={() => {
+                                        if (!entry.id) return;
+                                        navigate(`/horses/${entry.id}`);
+                                      }}
+                                      className="text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B]/40 rounded"
+                                    >
+                                      {entry.name}
+                                    </button>
+                                  </td>
+                                  <td className="px-6 py-4.5 text-xs text-slate-500 font-mono break-all text-center">
+                                    {entry.laneNumber}
+                                  </td>
+                                  <td className="px-6 py-4.5 font-medium text-slate-800">
+                                    {entry.jockeyName}
+                                  </td>
+                                  <td className="px-6 py-4.5 text-slate-500">
+                                    {entry.weightKg}
+                                  </td>
+                                  <td className="px-6 py-4.5 font-medium text-slate-800 hidden md:table-cell">
+                                    {entry.entryStatus}
+                                  </td>
+                                </tr>
+                              )
+                            )}
                           </tbody>
                         </table>
                       </div>

@@ -1,5 +1,5 @@
 import api from "../lib/api";
-import type {HorseListResponse, RetireHorseResponse} from "../types/horse.ts";
+import type { HorseListResponse, RetireHorseResponse } from "../types/horse.ts";
 
 export const HorseService = {
   async getHorses(
@@ -16,12 +16,12 @@ export const HorseService = {
   },
 
   createHorse: async (
-      name: string,
-      breed: string,
-      birthDate: string,
-      weightKg: string,
-      imageUrl: string,
-      healthStatus: string
+    name: string,
+    breed: string,
+    birthDate: string,
+    weightKg: string,
+    imageUrl: string,
+    healthStatus: string
   ) => {
     const response = await api.post("/horses", {
       name,
@@ -36,14 +36,14 @@ export const HorseService = {
   },
 
   async getHorsesByOwnerId(
-      ownerId: string,
-      params?: {
-        search?: string;
-        breed?: string;
-        isRetired?: string;
-        page?: number;
-        limit?: number;
-      }
+    ownerId: string,
+    params?: {
+      search?: string;
+      breed?: string;
+      isRetired?: string;
+      page?: number;
+      limit?: number;
+    }
   ): Promise<HorseListResponse> {
     const response = await api.get(`/horses/owner/${ownerId}`, { params });
     return response.data;
@@ -55,13 +55,13 @@ export const HorseService = {
   },
 
   updateHorse: async (
-      id: string,
-      name: string,
-      breed: string,
-      birthDate: string,
-      weightKg: string,
-      imageUrl: string,
-      healthStatus: string
+    id: string,
+    name: string,
+    breed: string,
+    birthDate: string,
+    weightKg: string,
+    imageUrl: string,
+    healthStatus: string
   ) => {
     const response = await api.patch(`/horses/${id}`, {
       name,

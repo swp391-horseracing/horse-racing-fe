@@ -318,7 +318,8 @@ function InvitationDetail({
           </h3>
           <p className="text-xs text-slate-555 italic mt-3">
             "
-            {(inv as unknown as { medicalLogs?: { trainerNotes?: string } }).medicalLogs?.trainerNotes ||
+            {(inv as unknown as { medicalLogs?: { trainerNotes?: string } })
+              .medicalLogs?.trainerNotes ||
               "Horse is looking strong in the final furlong. Responds well."}
             "
           </p>

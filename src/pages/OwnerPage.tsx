@@ -179,10 +179,7 @@ export default function OwnerPage() {
 
     const isFull = (t.currentCount as number) >= (t.maxCapacity as number);
     try {
-      await registerTournament(
-        String(tournamentId),
-        horseId
-      );
+      await registerTournament(String(tournamentId), horseId);
       setShowRegisterTournament(false);
       addToast(
         isFull
@@ -201,7 +198,11 @@ export default function OwnerPage() {
     try {
       await Promise.all(
         jockeyIds.map((jockeyId) =>
-          inviteJockeys(String(selectedTournamentId), String(jockeyId), String(selectedHorseId))
+          inviteJockeys(
+            String(selectedTournamentId),
+            String(jockeyId),
+            String(selectedHorseId)
+          )
         )
       );
       setShowInviteJockey(false);
@@ -221,7 +222,8 @@ export default function OwnerPage() {
   };
 
   const handleCancelInvite = async (invId: number) => {
-    if (await cancelInvite("", String(invId))) addToast("Invitation cancelled.", "info");
+    if (await cancelInvite("", String(invId)))
+      addToast("Invitation cancelled.", "info");
     else addToast("Failed to cancel invitation.", "error");
   };
 

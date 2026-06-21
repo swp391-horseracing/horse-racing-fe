@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { AdminService} from "../../services/adminService";
+import { AdminService } from "../../services/adminService";
 import type {
   Tournament,
-  TournamentApiStatus, TournamentDetail, TournamentListResponse,
+  TournamentApiStatus,
+  TournamentDetail,
+  TournamentListResponse,
 } from "../../types/tournament";
-import {TournamentService} from "../../services/TournamentService.ts";
+import { TournamentService } from "../../services/TournamentService.ts";
 
 export default function useAdminTournament() {
   const [tournaments, setTournaments] = useState<TournamentListResponse>();

@@ -3,13 +3,10 @@ import { HorseService } from "../services/horseService";
 import { UserService } from "../services/UserService";
 
 import type { Horse } from "../types/horse";
-import type {
-  Tournament,
-  TournamentRegistration,
-} from "../types/tournament";
+import type { Tournament, TournamentRegistration } from "../types/tournament";
 import type { Invitation } from "../types/invitation";
 import type { Jockey } from "../types/jockey";
-import {TournamentService} from "../services/TournamentService.ts";
+import { TournamentService } from "../services/TournamentService.ts";
 
 export type { Horse } from "../types/horse";
 export type { Tournament, TournamentRegistration } from "../types/tournament";
@@ -19,9 +16,9 @@ export type { Jockey } from "../types/jockey";
 export function useOwner() {
   const [horses, setHorses] = useState<Horse[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [registrations, setRegistrations] = useState<
-      TournamentRegistration[]
-  >([]);
+  const [registrations, setRegistrations] = useState<TournamentRegistration[]>(
+    []
+  );
   const [jockeys, setJockeys] = useState<Jockey[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
 
@@ -65,22 +62,16 @@ export function useOwner() {
   }, []);
 
   const loadInvitations = useCallback(
-      async (
-          raceId: string,
-          status?: "pending" | "approved" | "rejected"
-      ) => {
-        try {
-          const response = await UserService.getRaceInvitations(
-              raceId,
-              status
-          );
+    async (raceId: string, status?: "pending" | "approved" | "rejected") => {
+      try {
+        const response = await UserService.getRaceInvitations(raceId, status);
 
-          setInvitations(response.data ?? []);
-        } catch (error) {
-          console.error("Failed to load invitations:", error);
-        }
-      },
-      []
+        setInvitations(response.data ?? []);
+      } catch (error) {
+        console.error("Failed to load invitations:", error);
+      }
+    },
+    []
   );
 
   const addHorse = async (payload: {
@@ -92,36 +83,36 @@ export function useOwner() {
     healthStatus: string;
   }) => {
     await HorseService.createHorse(
-        payload.name,
-        payload.breed,
-        payload.birthDate,
-        payload.weightKg,
-        payload.imageUrl,
-        payload.healthStatus
+      payload.name,
+      payload.breed,
+      payload.birthDate,
+      payload.weightKg,
+      payload.imageUrl,
+      payload.healthStatus
     );
 
     await loadHorses();
   };
 
   const updateHorse = async (
-      id: string,
-      payload: {
-        name: string;
-        breed: string;
-        birthDate: string;
-        weightKg: string;
-        imageUrl: string;
-        healthStatus: string;
-      }
+    id: string,
+    payload: {
+      name: string;
+      breed: string;
+      birthDate: string;
+      weightKg: string;
+      imageUrl: string;
+      healthStatus: string;
+    }
   ) => {
     await HorseService.updateHorse(
-        id,
-        payload.name,
-        payload.breed,
-        payload.birthDate,
-        payload.weightKg,
-        payload.imageUrl,
-        payload.healthStatus
+      id,
+      payload.name,
+      payload.breed,
+      payload.birthDate,
+      payload.weightKg,
+      payload.imageUrl,
+      payload.healthStatus
     );
 
     await loadHorses();
@@ -133,60 +124,36 @@ export function useOwner() {
     await loadHorses();
   };
 
-  const registerTournament = async (
-      tournamentId: string,
-      horseId: string
-  ) => {
-    await TournamentService.registerHorseForTournament(
-        tournamentId,
-        horseId
-    );
+  const registerTournament = async (tournamentId: string, horseId: string) => {
+    await TournamentService.registerHorseForTournament(tournamentId, horseId);
 
     await loadRegistrations();
   };
 
   const inviteJockey = async (
-      raceId: string,
-      jockeyId: string,
-      horseId: string
+    raceId: string,
+    jockeyId: string,
+    horseId: string
   ) => {
-    const response = await UserService.inviteJockey(
-        raceId,
-        jockeyId,
-        horseId
-    );
+    const response = await UserService.inviteJockey(raceId, jockeyId, horseId);
 
     await loadInvitations(raceId);
 
     return response;
   };
 
-  const confirmPairing = async (
-      raceId: string,
-      invitationId: string
-  ) => {
-    await UserService.confirmInvitation(
-        raceId,
-        invitationId
-    );
+  const confirmPairing = async (raceId: string, invitationId: string) => {
+    await UserService.confirmInvitation(raceId, invitationId);
 
     await loadInvitations(raceId);
 
     return true;
   };
 
-  const cancelInvite = async (
-      raceId: string,
-      invitationId: string
-  ) => {
-    await UserService.cancelInvitation(
-        raceId,
-        invitationId
-    );
+  const cancelInvite = async (raceId: string, invitationId: string) => {
+    await UserService.cancelInvitation(raceId, invitationId);
 
-    setInvitations((prev) =>
-        prev.filter((item) => item.id !== invitationId)
-    );
+    setInvitations((prev) => prev.filter((item) => item.id !== invitationId));
 
     return true;
   };
@@ -196,10 +163,7 @@ export function useOwner() {
       try {
         setLoading(true);
 
-        await Promise.all([
-          loadHorses(),
-          loadRegistrations(),
-        ]);
+        await Promise.all([loadHorses(), loadRegistrations()]);
       } finally {
         setLoading(false);
       }

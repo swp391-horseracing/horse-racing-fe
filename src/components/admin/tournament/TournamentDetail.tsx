@@ -10,9 +10,7 @@ import {
   formatTournamentStatus,
   getAvailableStatuses,
 } from "../../../styles/schema/tournamentStatusFlow";
-import type {Tournament} from "../../../types/tournament.ts";
-
-
+import type { Tournament } from "../../../types/tournament.ts";
 
 type Props = {
   tournament: Tournament;
@@ -130,7 +128,9 @@ export default function TournamentDetail({
         <div className="flex gap-2 items-center flex-wrap">
           <select
             value={status}
-            onChange={(e) => setStatus(e.target.value as typeof tournament.status)}
+            onChange={(e) =>
+              setStatus(e.target.value as typeof tournament.status)
+            }
             className="border rounded-lg px-3 py-2 text-sm"
           >
             {availableStatuses.map((item) => (

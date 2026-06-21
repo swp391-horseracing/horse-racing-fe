@@ -3,7 +3,9 @@ import { TournamentService } from "../services/TournamentService";
 import type { Tournament } from "../types/tournament";
 
 export function useEvent() {
-  const [eventList, setEventList] = useState<{ id: string; title: string }[]>([]);
+  const [eventList, setEventList] = useState<{ id: string; title: string }[]>(
+    []
+  );
 
   useEffect(() => {
     TournamentService.getTournaments()
