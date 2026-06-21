@@ -41,7 +41,7 @@ export function useInvitations() {
 
     setInvitations((prev) =>
       prev.map((inv) =>
-        inv.id === id ? { ...inv, status: "Accepted" as const } : inv
+        inv.id === id ? { ...inv, status: "accepted" as const } : inv
       )
     );
 
@@ -49,7 +49,7 @@ export function useInvitations() {
   }, []);
 
   const updateInvitationStatus = useCallback(
-    async (id: string | number, status: "Accepted" | "Declined") => {
+    async (id: string | number, status: "accepted" | "declined") => {
       const strId = String(id);
       setInvitations((prev) =>
         prev.map((inv) => (inv.id === strId ? { ...inv, status } : inv))

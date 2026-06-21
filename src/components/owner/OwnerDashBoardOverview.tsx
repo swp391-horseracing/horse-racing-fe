@@ -39,7 +39,7 @@ export function OwnerDashBoardOverview({
     (r: TournamentRegistration) => r.status === "pending"
   ).length;
   const pendingInvCount = invitations.filter(
-    (i: Invitation) => i.status === "Pending"
+    (i: Invitation) => i.status === "pending"
   ).length;
 
   return (

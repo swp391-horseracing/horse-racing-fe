@@ -76,7 +76,7 @@ export default function UserLayout({
   const { invitations } = useInvitations();
 
   const pendingCount =
-    invitations?.filter((i) => i.status === "Pending").length || 0;
+    invitations?.filter((i) => i.status === "pending").length || 0;
 
   // Detect role context based on routing path prefix
   const path = location.pathname.toLowerCase();

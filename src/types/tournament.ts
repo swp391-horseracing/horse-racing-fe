@@ -1,3 +1,5 @@
+import type {Horse} from "./horse.ts";
+
 export type TournamentApiStatus =
   | "upcoming"
   | "registration_open"
@@ -55,6 +57,7 @@ export interface TournamentDetail {
   name: string;
   status:
     | "upcoming"
+      |"live_now"
     | "registration_open"
     | "registration_closed"
     | "ongoing"
@@ -85,14 +88,22 @@ export interface TournamentDetail {
 
 export interface TournamentRegistration {
   id: string;
-  horseId: string;
   tournamentId: string;
-  ownerId?: string;
-  status: "pending" | "approved" | "rejected";
+  horseId: string;
+  ownerId: string;
+  status: string;
   submittedAt?: string;
   reviewedBy?: string;
   reviewedAt?: string;
   rejectReason?: string;
+}
+
+export interface TournamentRegistrationResponse {
+  id: string;
+  status: "pending" | "approved" | "rejected";
+  submittedAt: string;
+  horse: Horse;
+  tournament: Tournament;
 }
 
 export interface RaceItem {

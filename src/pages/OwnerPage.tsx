@@ -15,14 +15,13 @@ import {
 // Modals
 import { AddHorseModal } from "../components/owner/AddHorseModal";
 import { RegisterTournamentModal } from "../components/owner/RegisterTournamentModal";
-import { InviteJockeyModal } from "../components/owner/InviteJockeyModal";
 
 // Newly Extracted Sub-Components
 import { OwnerDashBoardOverview } from "../components/owner/OwnerDashBoardOverview";
 import { HorseManagement } from "../components/owner/HorseManagement";
 import { RaceRegister } from "../components/owner/RaceRegister";
-import { JockeyRosterManagement } from "../components/owner/JockeyRosterManagement";
 import { OwnerScheduleView } from "../components/owner/OwnerScheduleView";
+import JockeyRosterManagement from "../components/owner/jockey-roster/JockeyRosterManagement.tsx";
 
 type ToastType = "success" | "error" | "warning" | "info";
 type Toast = { id: number; message: string; type: ToastType };
@@ -42,9 +41,7 @@ export default function OwnerPage() {
     addHorse,
     retireHorse,
     registerTournament,
-    inviteJockey: inviteJockeys,
-    confirmPairing,
-    cancelInvite,
+
   } = useOwner();
 
   const { rides: ownerRides, loading: ridesLoading } = useJockey();
@@ -52,7 +49,6 @@ export default function OwnerPage() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [showAddHorse, setShowAddHorse] = useState(false);
   const [showRegisterTournament, setShowRegisterTournament] = useState(false);
-  const [showInviteJockey, setShowInviteJockey] = useState(false);
 
   const [selectedHorseId, setSelectedHorseId] = useState<string | null>(null);
   const [selectedTournamentId, setSelectedTournamentId] = useState<
@@ -192,41 +188,6 @@ export default function OwnerPage() {
     }
   };
 
-  const handleInviteJockeys = async (jockeyIds: number[]) => {
-    if (jockeyIds.length === 0 || !selectedTournamentId || !selectedHorseId)
-      return;
-    try {
-      await Promise.all(
-        jockeyIds.map((jockeyId) =>
-          inviteJockeys(
-            String(selectedTournamentId),
-            String(jockeyId),
-            String(selectedHorseId)
-          )
-        )
-      );
-      setShowInviteJockey(false);
-      addToast(
-        `Dispatched invitations to ${jockeyIds.length} Jockey(s).`,
-        "success"
-      );
-    } catch {
-      addToast("Failed to dispatch riding invitations.", "error");
-    }
-  };
-
-  const handleConfirmPairing = async (invId: number) => {
-    if (await confirmPairing("", String(invId)))
-      addToast("Jockey-horse pairing confirmed & locked.", "success");
-    else addToast("Failed to confirm jockey pairing.", "error");
-  };
-
-  const handleCancelInvite = async (invId: number) => {
-    if (await cancelInvite("", String(invId)))
-      addToast("Invitation cancelled.", "info");
-    else addToast("Failed to cancel invitation.", "error");
-  };
-
   const renderContent = () => {
     if (loading)
       return (
@@ -274,22 +235,7 @@ export default function OwnerPage() {
           />
         );
       case "/owner/jockeys":
-        return (
-          <JockeyRosterManagement
-            horses={horses}
-            registrations={registrations}
-            tournaments={tournaments}
-            jockeys={jockeys}
-            invitations={invitations}
-            onOpenInviteModal={(h, t) => {
-              setSelectedHorseId(h);
-              setSelectedTournamentId(t);
-              setShowInviteJockey(true);
-            }}
-            onConfirmPairing={handleConfirmPairing}
-            onCancelInvite={handleCancelInvite}
-          />
-        );
+        return <JockeyRosterManagement />;
       case "/owner/schedule":
         return <OwnerScheduleView rides={ownerRides} loading={ridesLoading} />;
       default:
@@ -352,13 +298,6 @@ export default function OwnerPage() {
           initialHorseId={selectedHorseId}
           initialTournamentId={selectedTournamentId}
           onSubmit={handleRegisterTournament}
-        />
-
-        <InviteJockeyModal
-          isOpen={showInviteJockey}
-          onClose={() => setShowInviteJockey(false)}
-          jockeys={jockeys}
-          onDispatch={handleInviteJockeys}
         />
       </div>
     </UserLayout>
