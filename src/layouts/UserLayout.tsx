@@ -32,7 +32,7 @@ import {
 } from "../components/ui/breadcrumb";
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
-import { useInvitations } from "../hooks/useInvitations.ts";
+import { useInvitations } from "../hooks/useInvitations";
 
 // ─── Inline Custom Horse Icon Fallback ────────────────────────────────────────
 const HorseIcon = ({ className }: { className?: string }) => (

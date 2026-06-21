@@ -1,7 +1,7 @@
 import { useState } from "react";
-import type { User } from "../../types/user.ts";
+import type { User } from "../../types/user";
 import { FieldBox } from "../FieldBox.tsx";
-import useAuth from "../../hooks/useAuth.ts";
+import useAuth from "../../hooks/useAuth";
 import EditProfileModal from "./EditProfileModal.tsx";
 import ChangePasswordModal from "./ChangePasswordModal.tsx";
 

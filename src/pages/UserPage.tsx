@@ -1,4 +1,4 @@
-import { useUserProfile } from "../hooks/useUserProfile.ts";
+import { useUserProfile } from "../hooks/useUserProfile";
 import AccountPanel from "../components/user_profile/accountPanel.tsx";
 import NotificationsPanel from "../components/user_profile/NotificationsPanel.tsx";
 import UserLayout from "../layouts/UserLayout";

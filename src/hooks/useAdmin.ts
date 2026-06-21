@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { AdminService } from "../services/adminService.ts";
+import { AdminService } from "../services/adminService";
 import type { User } from "../types/user";
 
 type UserFilters = {

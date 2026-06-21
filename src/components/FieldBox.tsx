@@ -1,4 +1,4 @@
-import type { User } from "../types/user.ts";
+import type { User } from "../types/user";
 import { Label } from "./ui/label.tsx";
 import { Input } from "./ui/input.tsx";
 

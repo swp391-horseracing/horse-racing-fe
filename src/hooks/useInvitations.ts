@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { InvitationService } from "../services/invitationService.ts";
+import { InvitationService } from "../services/invitationService";
 import type { Invitation, InvStatus } from "../types/invitation";
 
 export function useInvitations() {

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
-import { useOwner } from "../hooks/useOwner.ts";
-import { useJockeyRaces } from "../hooks/useJockeyRaces.ts";
+import { useOwner } from "../hooks/useOwner";
+import { useJockeyRaces } from "../hooks/useJockeyRaces";
 import { cn } from "../lib/utils";
 import {
   Clock,

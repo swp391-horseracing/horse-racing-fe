@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import type { CalendarEvent } from "../types/event.ts";
-import { CalendarService } from "../services/calendarService.ts";
+import type { CalendarEvent } from "../types/event";
+import { CalendarService } from "../services/calendarService";
 
 export function useEvent() {
   const [eventList, setEvent] = useState<CalendarEvent[]>([]);

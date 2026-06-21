@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { ToastType } from "../../pages/AdminPage";
-import useAdmin from "../../hooks/useAdmin.ts";
+import useAdmin from "../../hooks/useAdmin";
 import UserSearch from "./user/UserSearch.tsx";
 
 type OpenMenuState =

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { AuthService } from "../services/authService.ts";
-import { UserService } from "../services/userService.ts";
+import { AuthService } from "../services/authService";
+import { UserService } from "../services/userService";
 
 declare global {
   interface Window {

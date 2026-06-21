@@ -13,8 +13,8 @@ import {
   Clock7,
   Info,
 } from "lucide-react";
-import useHorse from "../hooks/useHorse.ts";
-import useAuth from "../hooks/useAuth.ts";
+import useHorse from "../hooks/useHorse";
+import useAuth from "../hooks/useAuth";
 
 function getAge(birthDate?: string) {
   if (!birthDate) return "N/A";

@@ -6,7 +6,7 @@ import type {
   TournamentDetail,
   TournamentListItem,
 } from "../types/tournament";
-import { TournamentService } from "../services/tournamentService.ts";
+import { TournamentService } from "../services/tournamentService";
 
 type FilterTab = "All" | TournamentApiStatus;
 type DetailTab = "schedule" | "entry";

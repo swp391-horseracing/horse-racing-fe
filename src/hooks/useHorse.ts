@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { HorseService } from "../services/horseService.ts";
+import { HorseService } from "../services/horseService";
 import type { Horse } from "../types/horse";
 
 export default function useHorse() {

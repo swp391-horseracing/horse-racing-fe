@@ -2,8 +2,8 @@ import { useState } from "react";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
-import useHorse from "../hooks/useHorse.ts";
-import { useInvitations } from "../hooks/useInvitations.ts";
+import useHorse from "../hooks/useHorse";
+import { useInvitations } from "../hooks/useInvitations";
 import { useJockeyRaces } from "../hooks/useJockeyRaces";
 import { CheckCircle, XCircle, ShieldAlert, Activity } from "lucide-react";
 

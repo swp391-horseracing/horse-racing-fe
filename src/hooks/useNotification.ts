@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { NotificationService } from "../services/notificationService.ts";
-import type { Notification } from "../types/notification.ts";
+import { NotificationService } from "../services/notificationService";
+import type { Notification } from "../types/notification";
 
 export function useNotification() {
   const [NotificationList, setList] = useState<Notification[]>([]);

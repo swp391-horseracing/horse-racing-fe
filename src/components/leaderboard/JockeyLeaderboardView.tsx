@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { Jockey } from "../../types/jockey.ts";
+import type { Jockey } from "../../types/jockey";
 
 function formatWinRate(winRate: number) {
   return `${(winRate * 100).toFixed(1)}%`;

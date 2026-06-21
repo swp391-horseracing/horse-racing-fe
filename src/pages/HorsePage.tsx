@@ -1,6 +1,6 @@
 import { Star } from "lucide-react";
 import { useState, useMemo } from "react";
-import useHorse from "../hooks/useHorse.ts";
+import useHorse from "../hooks/useHorse";
 import NoInfoPage from "./NoInfoPage.tsx";
 import HorseSearch from "../components/horse/HorseSearch.tsx";
 import {

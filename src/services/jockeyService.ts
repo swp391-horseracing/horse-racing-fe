@@ -1,4 +1,4 @@
-import type { Jockey } from "../types/jockey.ts";
+import type { Jockey } from "../types/jockey";
 
 const mockJockeys: Jockey[] = [
   {

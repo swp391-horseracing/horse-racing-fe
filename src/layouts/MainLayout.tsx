@@ -4,9 +4,9 @@ import { ROUTES } from "../router/routes.tsx";
 import { Bell, Newspaper } from "lucide-react";
 import React from "react";
 import NotificationTab from "../components/NotificationTab.tsx";
-import useAuth from "../hooks/useAuth.ts";
+import useAuth from "../hooks/useAuth";
 import Footer from "../components/Footer.tsx";
-import { useUserProfile } from "../hooks/useUserProfile.ts";
+import { useUserProfile } from "../hooks/useUserProfile";
 
 export default function MainLayout() {
   interface LinkItem {
