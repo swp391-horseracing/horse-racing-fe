@@ -10,22 +10,7 @@ import {
   formatTournamentStatus,
   getAvailableStatuses,
 } from "../../../styles/schema/tournamentStatusFlow";
-
-export type Tournament = {
-  id: string;
-  name: string;
-  status: string;
-  location: string;
-  startDate: string;
-  endDate: string;
-  description?: string;
-  rules?: string;
-  registrationOpenDate?: string;
-  registrationCloseDate?: string;
-  prizePool?: number;
-  maximumParticipants?: number;
-  minimumParticipants?: number;
-};
+import type { Tournament } from "../../../types/tournament.ts";
 
 type Props = {
   tournament: Tournament;
@@ -143,7 +128,9 @@ export default function TournamentDetail({
         <div className="flex gap-2 items-center flex-wrap">
           <select
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
+            onChange={(e) =>
+              setStatus(e.target.value as typeof tournament.status)
+            }
             className="border rounded-lg px-3 py-2 text-sm"
           >
             {availableStatuses.map((item) => (

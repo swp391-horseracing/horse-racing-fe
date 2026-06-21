@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { cn } from "../../lib/utils";
-import type { MyRide } from "../../hooks/useJockeyRaces";
+import type { MyRide } from "../../hooks/useJockey";
 import {
   Clock,
   Trophy,

@@ -1,39 +1,22 @@
-import { useEffect, useState, useCallback } from "react";
-import type { CalendarEvent } from "../types/event.ts";
-import { CalendarService } from "../services/calendarService.ts";
+import { useState, useEffect } from "react";
+import { TournamentService } from "../services/TournamentService";
+import type { Tournament } from "../types/tournament";
 
 export function useEvent() {
-  const [eventList, setEvent] = useState<CalendarEvent[]>([]);
-
-  const getEventList = useCallback(async () => {
-    try {
-      const getEvents = await CalendarService.getEvent();
-      setEvent(getEvents);
-    } catch (error) {
-      console.error("Error fetching event list:", error);
-    }
-  }, []);
+  const [eventList, setEventList] = useState<{ id: string; title: string }[]>(
+    []
+  );
 
   useEffect(() => {
-    let active = true;
-
-    const fetchEvents = async () => {
-      try {
-        const getEvents = await CalendarService.getEvent();
-        if (active) {
-          setEvent(getEvents);
-        }
-      } catch (error) {
-        console.error("Error fetching events on mount:", error);
-      }
-    };
-
-    fetchEvents();
-
-    return () => {
-      active = false;
-    };
+    TournamentService.getTournaments()
+      .then((res) => {
+        const tournaments = res.data as Tournament[];
+        setEventList(tournaments.map((t) => ({ id: t.id, title: t.name })));
+      })
+      .catch(() => {
+        setEventList([]);
+      });
   }, []);
 
-  return { eventList, getEventList };
+  return { eventList };
 }

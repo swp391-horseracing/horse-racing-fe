@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { TournamentService } from "../services/TournamentService";
+
 import type {
   RaceApiStatus,
   RaceItem,
@@ -6,7 +8,6 @@ import type {
   TournamentDetail,
   TournamentListItem,
 } from "../types/tournament";
-import { TournamentService } from "../services/TournamentService.ts";
 
 type FilterTab = "All" | TournamentApiStatus;
 type DetailTab = "schedule" | "entry";
@@ -15,7 +16,7 @@ type RacePreview = {
   id: string;
   title: string;
   time: string;
-  date: string; // Added full date
+  date: string;
   distance: string;
   surface: string;
   status: "Live" | "Upcoming" | "Completed";
@@ -26,22 +27,14 @@ const DEFAULT_LIMIT = 10;
 const mapRaceToPreview = (race: RaceItem): RacePreview => {
   const scheduled = new Date(race.scheduledAt);
 
-  const time = scheduled.toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
-  // Format date as "YYYY-MM-DD" for consistency
-  const yyyy = scheduled.getFullYear();
-  const mm = String(scheduled.getMonth() + 1).padStart(2, "0");
-  const dd = String(scheduled.getDate()).padStart(2, "0");
-  const date = `${yyyy}-${mm}-${dd}`;
-
   return {
     id: race.id,
     title: race.name,
-    time,
-    date, // Added
+    time: scheduled.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    date: scheduled.toISOString().split("T")[0],
     distance: `${race.distanceMeters}m`,
     surface: race.trackCondition,
     status:
@@ -55,12 +48,14 @@ const mapRaceToPreview = (race: RaceItem): RacePreview => {
 
 export default function useTournament() {
   const [search, setSearch] = useState("");
+
   const [activeFilter, setActiveFilter] = useState<FilterTab>("All");
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(DEFAULT_LIMIT);
 
   const [tournaments, setTournaments] = useState<TournamentListItem[]>([]);
+
   const [pagination, setPagination] = useState({
     page: 1,
     limit: DEFAULT_LIMIT,
@@ -74,140 +69,103 @@ export default function useTournament() {
   const [selectedTournamentId, setSelectedTournamentId] = useState<
     string | null
   >(null);
+
   const [selectedTournament, setSelectedTournament] =
     useState<TournamentDetail | null>(null);
 
   const [races, setRaces] = useState<RaceItem[]>([]);
+
   const [racesPagination, setRacesPagination] = useState({
     page: 1,
     limit: DEFAULT_LIMIT,
     total: 0,
     totalPages: 0,
   });
+
   const [racesLoading, setRacesLoading] = useState(false);
   const [racesError, setRacesError] = useState<string | null>(null);
 
   const [raceStatus, setRaceStatus] = useState<RaceApiStatus | undefined>();
+
   const [detailTab, setDetailTab] = useState<DetailTab>("schedule");
 
-  useEffect(() => {
-    let mounted = true;
-
-    const loadTournaments = async () => {
+  const loadTournaments = useCallback(async () => {
+    try {
       setLoadingList(true);
       setListError(null);
 
-      try {
-        const res = await TournamentService.getTournaments({
-          status: activeFilter === "All" ? undefined : activeFilter,
-          page,
-          limit,
-        });
+      const response = await TournamentService.getTournaments({
+        status: activeFilter === "All" ? undefined : activeFilter,
+        page,
+        limit,
+      });
 
-        if (!mounted) return;
+      setTournaments(response.data as unknown as TournamentListItem[]);
+      setPagination(response.pagination);
+    } catch (error) {
+      setListError(
+        error instanceof Error ? error.message : "Load tournaments failed"
+      );
 
-        setTournaments(res.data);
-        setPagination(res.pagination);
-      } catch (error) {
-        if (!mounted) return;
-
-        setListError(error instanceof Error ? error.message : "Load failed");
-        setTournaments([]);
-        setPagination({
-          page: 1,
-          limit: DEFAULT_LIMIT,
-          total: 0,
-          totalPages: 0,
-        });
-      } finally {
-        if (mounted) setLoadingList(false);
-      }
-    };
-
-    loadTournaments();
-
-    return () => {
-      mounted = false;
-    };
+      setTournaments([]);
+    } finally {
+      setLoadingList(false);
+    }
   }, [activeFilter, page, limit]);
 
-  const resetRaceState = useCallback(() => {
-    setSelectedTournament(null);
-    setRaces([]);
-    setRacesError(null);
-    setRacesPagination({
-      page: 1,
-      limit: DEFAULT_LIMIT,
-      total: 0,
-      totalPages: 0,
-    });
-  }, []);
-
   useEffect(() => {
-    if (!selectedTournamentId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      resetRaceState();
-      return;
-    }
+    (async () => {
+      await loadTournaments();
+    })();
+  }, [loadTournaments]);
 
-    let mounted = true;
+  const loadTournamentDetail = useCallback(async () => {
+    if (!selectedTournamentId) return;
 
-    const loadDetail = async () => {
+    try {
       setRacesLoading(true);
       setRacesError(null);
 
-      try {
-        const [detailRes, racesRes] = await Promise.all([
-          TournamentService.getTournament(selectedTournamentId),
-          TournamentService.getTournamentRaces(selectedTournamentId, {
-            status: raceStatus,
-            page: 1,
-            limit: DEFAULT_LIMIT,
-          }),
-        ]);
-
-        if (!mounted) return;
-
-        setSelectedTournament(detailRes);
-        setRaces(racesRes.data);
-        setRacesPagination(racesRes.pagination);
-      } catch (error) {
-        if (!mounted) return;
-
-        setRacesError(
-          error instanceof Error ? error.message : "Load detail failed"
-        );
-        setSelectedTournament(null);
-        setRaces([]);
-        setRacesPagination({
+      const [detail, racesResponse] = await Promise.all([
+        TournamentService.getTournamentByID(selectedTournamentId),
+        TournamentService.getTournamentRaces(selectedTournamentId, {
+          status: raceStatus,
           page: 1,
           limit: DEFAULT_LIMIT,
-          total: 0,
-          totalPages: 0,
-        });
-      } finally {
-        if (mounted) setRacesLoading(false);
-      }
-    };
+        }),
+      ]);
 
-    loadDetail();
+      setSelectedTournament(detail);
+      setRaces(racesResponse.data);
+      setRacesPagination(racesResponse.pagination);
+    } catch (error) {
+      setRacesError(
+        error instanceof Error ? error.message : "Load detail failed"
+      );
 
-    return () => {
-      mounted = false;
-    };
-  }, [selectedTournamentId, raceStatus, resetRaceState]);
+      setSelectedTournament(null);
+      setRaces([]);
+    } finally {
+      setRacesLoading(false);
+    }
+  }, [selectedTournamentId, raceStatus]);
+
+  useEffect(() => {
+    (async () => {
+      await loadTournamentDetail();
+    })();
+  }, [loadTournamentDetail]);
 
   const filteredTournaments = useMemo(() => {
     const keyword = search.trim().toLowerCase();
 
     if (!keyword) return tournaments;
 
-    return tournaments.filter((tournament) => {
-      return (
-        tournament.name.toLowerCase().includes(keyword) ||
-        tournament.location.toLowerCase().includes(keyword)
-      );
-    });
+    return tournaments.filter(
+      (t) =>
+        t.name.toLowerCase().includes(keyword) ||
+        t.location.toLowerCase().includes(keyword)
+    );
   }, [search, tournaments]);
 
   const counts = useMemo(
@@ -225,9 +183,7 @@ export default function useTournament() {
     [tournaments]
   );
 
-  const selectedRaces = useMemo(() => {
-    return races.map(mapRaceToPreview);
-  }, [races]);
+  const selectedRaces = useMemo(() => races.map(mapRaceToPreview), [races]);
 
   const openTournament = (id: string) => {
     setSelectedTournamentId(id);
@@ -241,12 +197,6 @@ export default function useTournament() {
     setRaces([]);
     setRacesError(null);
     setRaceStatus(undefined);
-    setRacesPagination({
-      page: 1,
-      limit: DEFAULT_LIMIT,
-      total: 0,
-      totalPages: 0,
-    });
   };
 
   return {
@@ -258,18 +208,22 @@ export default function useTournament() {
 
     page,
     setPage,
+
     limit,
     setLimit,
 
     tournaments: filteredTournaments,
     rawTournaments: tournaments,
-    counts,
+
     pagination,
+    counts,
+
     loadingList,
     listError,
 
     selectedTournamentId,
     selectedTournament,
+
     openTournament,
     closeTournament,
 
@@ -279,8 +233,11 @@ export default function useTournament() {
     races: selectedRaces,
     raceStatus,
     setRaceStatus,
+
     racesPagination,
     racesLoading,
     racesError,
+
+    reloadTournaments: loadTournaments,
   };
 }

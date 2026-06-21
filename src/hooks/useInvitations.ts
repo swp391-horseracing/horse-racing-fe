@@ -1,62 +1,68 @@
-import { useState, useEffect, useCallback } from "react";
-import { InvitationService } from "../services/invitationService.ts";
-import type { Invitation, InvStatus } from "../services/invitationService.ts";
+import { useState, useCallback } from "react";
+import type { Invitation } from "../types/invitation";
+import { UserService } from "../services/UserService";
 
 export function useInvitations() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const getInvitationsList = useCallback(async () => {
-    try {
-      const data = await InvitationService.getInvitations();
-      setInvitations(data);
-    } catch (error) {
-      console.error("Error fetching invitations:", error);
-    }
-  }, []);
-
-  const updateInvitationStatus = useCallback(
-    async (id: number, status: InvStatus) => {
+  const getInvitationsList = useCallback(
+    async (
+      raceId: string,
+      status?: string,
+      page: number = 1,
+      limit: number = 10
+    ) => {
       try {
-        const updated = await InvitationService.updateInvitationStatus(
-          id,
-          status
+        setLoading(true);
+
+        const response = await UserService.getRaceInvitations(
+          raceId,
+          status,
+          page,
+          limit
         );
-        if (updated) {
-          setInvitations((prev) =>
-            prev.map((inv) => (inv.id === id ? { ...inv, status } : inv))
-          );
-        }
+
+        setInvitations(response.data ?? []);
+
+        return response;
       } catch (error) {
-        console.error("Error updating invitation status:", error);
+        console.error("Error fetching invitations:", error);
+        throw error;
+      } finally {
+        setLoading(false);
       }
     },
     []
   );
 
-  useEffect(() => {
-    let active = true;
+  const acceptInvitation = useCallback(async (id: string) => {
+    const response = await UserService.acceptInvitation(id);
 
-    const fetchInvitations = async () => {
-      try {
-        const data = await InvitationService.getInvitations();
-        if (active) {
-          setInvitations(data);
-        }
-      } catch (error) {
-        console.error("Error fetching invitations on mount:", error);
-      }
-    };
+    setInvitations((prev) =>
+      prev.map((inv) =>
+        inv.id === id ? { ...inv, status: "Accepted" as const } : inv
+      )
+    );
 
-    fetchInvitations();
-
-    return () => {
-      active = false;
-    };
+    return response;
   }, []);
+
+  const updateInvitationStatus = useCallback(
+    async (id: string | number, status: "Accepted" | "Declined") => {
+      const strId = String(id);
+      setInvitations((prev) =>
+        prev.map((inv) => (inv.id === strId ? { ...inv, status } : inv))
+      );
+    },
+    []
+  );
 
   return {
     invitations,
+    loading,
     getInvitationsList,
+    acceptInvitation,
     updateInvitationStatus,
     setInvitations,
   };

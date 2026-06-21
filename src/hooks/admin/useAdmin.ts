@@ -1,15 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { type User, AdminService } from "../services/adminService.ts";
-
-type UserFilters = {
-  search?: string;
-  status?: string;
-  role?: string;
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-};
+import type { User, UserFilters } from "../../types/user.ts";
+import { AdminService } from "../../services/adminService.ts";
 
 export default function useAdmin() {
   const [users, setUsers] = useState<User[]>([]);

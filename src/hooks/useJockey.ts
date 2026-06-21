@@ -1,29 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { UserService, type UserRace } from "../services/UserService";
+import { UserService } from "../services/UserService";
+import type { Ride } from "../types/race.ts";
+export type MyRide = Ride;
+import type { UserRace } from "../types/user.ts";
 
-export type MyRide = {
-  id: string;
-  tournamentId: string;
-  name: string;
-  roundName: string;
-  distanceMeters: number;
-  scheduledAt: string;
-  venue: string;
-  status: "scheduled" | "live" | "completed";
-  ride: string;
-  laneNumber: number;
-  entryStatus: "pending" | "accepted" | "declined";
-  confirmedAt: string | null;
-  horseOwner: string;
-  horsesId: string;
-  ownerId: string;
-  trackCondition: string;
-  laneCount: number;
-  ranking?: number;
-};
-
-export function useJockeyRaces() {
-  const [rides, setRides] = useState<MyRide[]>([]);
+export function useJockey() {
+  const [rides, setRides] = useState<Ride[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
@@ -33,7 +15,7 @@ export function useJockeyRaces() {
     totalPages: 0,
   });
 
-  const mapApiRaceToMyRide = (race: UserRace): MyRide => {
+  const mapApiRaceToMyRide = (race: UserRace): Ride => {
     return {
       id: race.id,
       tournamentId: race.tournamentId,

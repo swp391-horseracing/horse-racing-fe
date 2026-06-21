@@ -10,7 +10,7 @@ import {
 } from "../components/ui/select.tsx";
 import { ROUTES } from "../router/routes.tsx";
 import * as axios from "axios";
-import useAuth from "../hooks/useAuth.ts";
+import useAuth from "../hooks/auth/useAuth.ts";
 import ReCaptchaPanel from "../components/reCapchaPanel.tsx";
 
 type Mode = "login" | "register";

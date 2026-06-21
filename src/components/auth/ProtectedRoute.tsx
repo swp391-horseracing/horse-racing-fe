@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useUserProfile } from "../../hooks/useUserProfile";
-import useAuth from "../../hooks/useAuth";
+import useAuth from "../../hooks/auth/useAuth";
 import { ROUTES } from "../../router/routes";
 
 const ROLE_HOME: Record<string, string> = {

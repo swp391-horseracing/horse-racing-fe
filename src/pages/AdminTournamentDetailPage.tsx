@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
-import useAdminTournament from "../hooks/useAdminTournament";
+import useAdminTournament from "../hooks/admin/useAdminTournament";
 import TournamentDetail from "../components/admin/tournament/TournamentDetail";
 
 export default function AdminTournamentDetailPage() {
@@ -44,7 +44,7 @@ export default function AdminTournamentDetailPage() {
 
         <TournamentDetail
           tournament={selectedTournament}
-          onUpdate={updateTournament}
+          onUpdate={(id, data) => updateTournament(id, data as never)}
           onStatusChange={updateTournamentStatus}
         />
       </div>

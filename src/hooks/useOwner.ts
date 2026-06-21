@@ -1,76 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
-import api from "../lib/api";
-import { HorseService, type Horse as ApiHorse } from "../services/horseService";
+import { HorseService } from "../services/horseService";
+import { UserService } from "../services/UserService";
 
-export interface Horse {
-  id: string;
-  ownerId: string;
-  name: string;
-  breed: string;
-  gender: string;
-  dob: string;
-  status: "Active" | "Retired";
-}
+import type { Horse } from "../types/horse";
+import type { Tournament, TournamentRegistration } from "../types/tournament";
+import type { Invitation } from "../types/invitation";
+import type { Jockey } from "../types/jockey";
+import { TournamentService } from "../services/TournamentService.ts";
 
-export interface Tournament {
-  id: number;
-  name: string;
-  status:
-    | "Registration Open"
-    | "Registration Closed"
-    | "Scheduled"
-    | "Live"
-    | "Concluded";
-  allowedBreed: string;
-  minAge: number;
-  maxAge: number;
-  currentCount: number;
-  maxCapacity: number;
-}
-
-export interface TournamentRegistration {
-  id: number;
-  horseId: string;
-  tournamentId: number;
-  status: "Pending Approval" | "Approved" | "Waitlisted" | "Withdrawn";
-}
-
-export interface Jockey {
-  id: number;
-  name: string;
-  club: string;
-  winRate: string;
-  totalRuns: number;
-}
-
-export interface Invitation {
-  id: number;
-  horseId: string;
-  tournamentId: number;
-  jockeyId: number;
-  status: "Pending" | "Accepted" | "Declined" | "Confirmed" | "Superseded";
-  horse: string;
-  tournament: string;
-  owner: string;
-  raceTime: string;
-}
-
-const mapApiHorse = (h: ApiHorse): Horse => ({
-  id: h.id,
-  ownerId: h.ownerId,
-  name: h.name,
-  breed: h.breed,
-  gender: "Unknown",
-  dob: h.birthDate,
-  status: h.isRetired ? "Retired" : "Active",
-});
-
-// Helper to safely extract array from API response
-const extractArray = (response: any): any[] => {
-  if (Array.isArray(response)) return response;
-  if (response?.data && Array.isArray(response.data)) return response.data;
-  return [];
-};
+export type { Horse } from "../types/horse";
+export type { Tournament, TournamentRegistration } from "../types/tournament";
+export type { Invitation } from "../types/invitation";
+export type { Jockey } from "../types/jockey";
 
 export function useOwner() {
   const [horses, setHorses] = useState<Horse[]>([]);
@@ -80,8 +21,9 @@ export function useOwner() {
   );
   const [jockeys, setJockeys] = useState<Jockey[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
+
+  const [loading, setLoading] = useState(false);
+
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -89,178 +31,173 @@ export function useOwner() {
     totalPages: 0,
   });
 
+  const [page, setPage] = useState(1);
+
   const loadHorses = useCallback(async () => {
     const ownerId = sessionStorage.getItem("userId");
+
     if (!ownerId) return;
 
     try {
-      setLoading(true);
-
-      const res = await HorseService.getHorsesByOwnerId(ownerId, {
-        page: page,
+      const response = await HorseService.getHorsesByOwnerId(ownerId, {
+        page,
         limit: 10,
       });
 
-      setHorses(extractArray(res.data).map(mapApiHorse));
-      setPagination(res.pagination);
-    } catch (err: unknown) {
-      console.error(err || "Failed to fetch horses");
-    } finally {
-      setLoading(false);
+      setHorses(response.data ?? []);
+      setPagination(response.pagination);
+    } catch (error) {
+      console.error("Failed to load horses:", error);
     }
   }, [page]);
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadHorses();
-  }, [loadHorses]);
+  const loadRegistrations = useCallback(async () => {
+    try {
+      const response = await UserService.getMyRegistrations();
 
-  useEffect(() => {
-    const loadAll = async () => {
-      setLoading(true);
+      setRegistrations(response.data ?? []);
+    } catch (error) {
+      console.error("Failed to load registrations:", error);
+    }
+  }, []);
+
+  const loadInvitations = useCallback(
+    async (raceId: string, status?: "pending" | "approved" | "rejected") => {
       try {
-        // 1. Load Horses
-        await loadHorses();
+        const response = await UserService.getRaceInvitations(raceId, status);
 
-        // 2. Load Tournaments - Handle paginated response
-        try {
-          const tournRes = await api.get("/tournaments");
-          setTournaments(extractArray(tournRes.data));
-        } catch (err) {
-          console.error("Failed to load tournaments:", err);
-          setTournaments([]);
-        }
+        setInvitations(response.data ?? []);
+      } catch (error) {
+        console.error("Failed to load invitations:", error);
+      }
+    },
+    []
+  );
 
-        // 3. Load Jockeys
-        try {
-          const jockRes = await api.get("/jockeys");
-          setJockeys(extractArray(jockRes.data));
-        } catch (err) {
-          console.error("Failed to load jockeys:", err);
-          setJockeys([]);
-        }
+  const addHorse = async (payload: {
+    name: string;
+    breed: string;
+    birthDate: string;
+    weightKg: string;
+    imageUrl: string;
+    healthStatus: string;
+  }) => {
+    await HorseService.createHorse(
+      payload.name,
+      payload.breed,
+      payload.birthDate,
+      payload.weightKg,
+      payload.imageUrl,
+      payload.healthStatus
+    );
 
-        // 4. Load Invitations
-        try {
-          const invRes = await api.get("/invitations");
-          setInvitations(extractArray(invRes.data));
-        } catch (err) {
-          console.error("Failed to load invitations:", err);
-          setInvitations([]);
-        }
+    await loadHorses();
+  };
 
-        // 5. Load Registrations
-        try {
-          const regRes = await api.get("/registrations");
-          setRegistrations(extractArray(regRes.data));
-        } catch (err) {
-          console.error("Failed to load registrations:", err);
-          setRegistrations([]);
-        }
-      } catch (err) {
-        console.error("Failed to load owner data:", err);
+  const updateHorse = async (
+    id: string,
+    payload: {
+      name: string;
+      breed: string;
+      birthDate: string;
+      weightKg: string;
+      imageUrl: string;
+      healthStatus: string;
+    }
+  ) => {
+    await HorseService.updateHorse(
+      id,
+      payload.name,
+      payload.breed,
+      payload.birthDate,
+      payload.weightKg,
+      payload.imageUrl,
+      payload.healthStatus
+    );
+
+    await loadHorses();
+  };
+
+  const retireHorse = async (id: string) => {
+    await HorseService.retireHorse(id);
+
+    await loadHorses();
+  };
+
+  const registerTournament = async (tournamentId: string, horseId: string) => {
+    await TournamentService.registerHorseForTournament(tournamentId, horseId);
+
+    await loadRegistrations();
+  };
+
+  const inviteJockey = async (
+    raceId: string,
+    jockeyId: string,
+    horseId: string
+  ) => {
+    const response = await UserService.inviteJockey(raceId, jockeyId, horseId);
+
+    await loadInvitations(raceId);
+
+    return response;
+  };
+
+  const confirmPairing = async (raceId: string, invitationId: string) => {
+    await UserService.confirmInvitation(raceId, invitationId);
+
+    await loadInvitations(raceId);
+
+    return true;
+  };
+
+  const cancelInvite = async (raceId: string, invitationId: string) => {
+    await UserService.cancelInvitation(raceId, invitationId);
+
+    setInvitations((prev) => prev.filter((item) => item.id !== invitationId));
+
+    return true;
+  };
+
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        setLoading(true);
+
+        await Promise.all([loadHorses(), loadRegistrations()]);
       } finally {
         setLoading(false);
       }
     };
 
-    loadAll();
-  }, [loadHorses]);
-
-  const retireHorse = async (id: string): Promise<boolean> => {
-    try {
-      const res = await HorseService.retireHorse(id);
-
-      setHorses((prev) =>
-        prev.map((h) => (h.id === id ? mapApiHorse(res.horse) : h))
-      );
-      return true;
-    } catch (err) {
-      throw new Error(
-        err instanceof Error ? err.message : "Cannot retire horse",
-        {
-          cause: err,
-        }
-      );
-    }
-  };
-
-  const addHorse = async (data: any) => {
-    try {
-      await api.post("/horses", data);
-      await loadHorses();
-    } catch (err) {
-      console.error("Failed to add horse:", err);
-      throw err;
-    }
-  };
-
-  const registerTournament = async (
-    horseId: string,
-    tournamentId: number,
-    status: any
-  ) => {
-    try {
-      await api.post("/registrations", { horseId, tournamentId, status });
-      const res = await api.get("/registrations");
-      setRegistrations(extractArray(res.data));
-    } catch (err) {
-      console.error("Failed to register:", err);
-      throw err;
-    }
-  };
-
-  const inviteJockeys = async (
-    jockeyIds: number[],
-    tournamentId: number,
-    horseId: string
-  ) => {
-    try {
-      await api.post("/invitations", { jockeyIds, tournamentId, horseId });
-      const res = await api.get("/invitations");
-      setInvitations(extractArray(res.data));
-    } catch (err) {
-      console.error("Failed to invite:", err);
-      throw err;
-    }
-  };
-
-  const confirmPairing = async (invId: number) => {
-    try {
-      await api.patch(`/invitations/${invId}`, { status: "Confirmed" });
-      const res = await api.get("/invitations");
-      setInvitations(extractArray(res.data));
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  const cancelInvite = async (invId: number) => {
-    try {
-      await api.delete(`/invitations/${invId}`);
-      const res = await api.get("/invitations");
-      setInvitations(extractArray(res.data));
-      return true;
-    } catch {
-      return false;
-    }
-  };
+    initialize();
+  }, [loadHorses, loadRegistrations]);
 
   return {
-    pagination,
     page,
     setPage,
+    pagination,
+
     horses,
     tournaments,
+    setTournaments,
     registrations,
     jockeys,
+    setJockeys,
     invitations,
+
     loading,
+
+    loadHorses,
+    loadRegistrations,
+    loadInvitations,
+
     addHorse,
+    updateHorse,
     retireHorse,
+
     registerTournament,
-    inviteJockeys,
+
+    inviteJockey,
     confirmPairing,
     cancelInvite,
   };

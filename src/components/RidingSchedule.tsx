@@ -2,9 +2,9 @@ import { useState, useMemo, useCallback } from "react";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
-import useHorse from "../hooks/useHorse.ts";
+import useHorse from "../hooks/horse/useHorse.ts";
 import { useInvitations } from "../hooks/useInvitations.ts";
-import { useJockeyRaces, type MyRide } from "../hooks/useJockeyRaces";
+import { useJockey, type MyRide } from "../hooks/useJockey";
 import type { Invitation, InvStatus } from "../services/invitationService.ts";
 
 import {
@@ -154,7 +154,7 @@ export default function JockeyPage() {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   // Use the new hook instead of mock data
-  const { rides, loading: ridesLoading } = useJockeyRaces();
+  const { rides, loading: ridesLoading } = useJockey();
 
   // Shared hooks data
   const { horses } = useHorse();
@@ -171,7 +171,8 @@ export default function JockeyPage() {
   };
 
   const handleAcceptInvitation = (id: number) => {
-    const target = invitations.find((inv) => inv.id === id);
+    const strId = String(id);
+    const target = invitations.find((inv) => inv.id === strId);
     updateInvitationStatus(id, "Accepted");
     addToast(
       `Response recorded successfully! Tentatively registered to ride ${target?.horse}. Awaiting final Owner confirmation.`,
@@ -180,7 +181,8 @@ export default function JockeyPage() {
   };
 
   const handleDeclineInvitation = (id: number) => {
-    const target = invitations.find((inv) => inv.id === id);
+    const strId = String(id);
+    const target = invitations.find((inv) => inv.id === strId);
     updateInvitationStatus(id, "Declined");
     addToast(
       `You declined the invitation to ride ${target?.horse}. Deep access revoked.`,
@@ -1277,7 +1279,7 @@ function InvitationsView({
     });
   }, [data, filter, search]);
 
-  const selectedInv = data.find((i) => i.id === selectedId) ?? null;
+  const selectedInv = data.find((i) => i.id === String(selectedId)) ?? null;
   const pendingInvites = data.filter((i) => i.status === "Pending");
 
   return (
@@ -1342,10 +1344,10 @@ function InvitationsView({
               return (
                 <div
                   key={inv.id}
-                  onClick={() => setSelectedId(inv.id)}
+                  onClick={() => setSelectedId(Number(inv.id))}
                   className={cn(
                     "relative group flex items-start gap-3 rounded-2xl border p-4 cursor-pointer",
-                    selectedId === inv.id
+                    selectedId === Number(inv.id)
                       ? "border-[#064E3B] bg-[#064E3B]/5"
                       : "border-slate-200 bg-white"
                   )}
@@ -1494,13 +1496,13 @@ function InvitationDetail({
         <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 space-y-4 shadow-sm">
           <div className="flex gap-4">
             <button
-              onClick={() => onAccept(inv.id)}
+              onClick={() => onAccept(Number(inv.id))}
               className="flex-1 rounded-xl bg-[#064E3B] text-white hover:bg-[#043E2F] py-3.5 text-xs font-bold transition"
             >
               Accept Invitation
             </button>
             <button
-              onClick={() => onDecline(inv.id)}
+              onClick={() => onDecline(Number(inv.id))}
               className="flex-1 border border-slate-200 bg-[#F4F6F5] text-slate-655 hover:bg-slate-100 py-3.5 text-xs font-bold transition"
             >
               Decline

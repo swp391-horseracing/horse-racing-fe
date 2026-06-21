@@ -2,9 +2,9 @@ import { useState } from "react";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
-import useHorse from "../hooks/useHorse.ts";
+import useHorse from "../hooks/horse/useHorse.ts";
 import { useInvitations } from "../hooks/useInvitations.ts";
-import { useJockeyRaces } from "../hooks/useJockeyRaces";
+import { useJockey } from "../hooks/useJockey";
 import { CheckCircle, XCircle, ShieldAlert, Activity } from "lucide-react";
 
 // Sub-components
@@ -19,7 +19,7 @@ export default function JockeyPage() {
   const [active, setActive] = useState<string>(ROUTES.JOCKEY_INVITATIONS);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const { rides, loading: ridesLoading } = useJockeyRaces();
+  const { rides, loading: ridesLoading } = useJockey();
   const { horses } = useHorse();
   const { invitations, updateInvitationStatus } = useInvitations();
 
@@ -34,7 +34,8 @@ export default function JockeyPage() {
   };
 
   const handleAcceptInvitation = (id: number) => {
-    const target = invitations.find((inv) => inv.id === id);
+    const strId = String(id);
+    const target = invitations.find((inv) => inv.id === strId);
     updateInvitationStatus(id, "Accepted");
     addToast(
       `Response recorded successfully! Tentatively registered to ride ${target?.horse}. Awaiting final Owner confirmation.`,
@@ -43,7 +44,8 @@ export default function JockeyPage() {
   };
 
   const handleDeclineInvitation = (id: number) => {
-    const target = invitations.find((inv) => inv.id === id);
+    const strId = String(id);
+    const target = invitations.find((inv) => inv.id === strId);
     updateInvitationStatus(id, "Declined");
     addToast(
       `You declined the invitation to ride ${target?.horse}. Deep access revoked.`,
