@@ -157,11 +157,6 @@ export default function UserLayout({
         icon: Activity,
         key: "/spectator/predictions",
       },
-      {
-        label: "Live Feed",
-        icon: Radio,
-        key: ROUTES.FEED,
-      },
     ],
     Admin: [
       {
