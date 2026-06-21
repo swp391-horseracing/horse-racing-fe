@@ -44,16 +44,28 @@ export default function SpectatorPage() {
               key={t.id}
               className={cn(
                 "p-3 rounded-lg border shadow-lg backdrop-blur-md flex items-center gap-2 pointer-events-auto animate-in slide-in-from-top duration-200 text-xs font-semibold",
-                t.type === "success" && "bg-emerald-50 border-emerald-200 text-emerald-955",
-                t.type === "error" && "bg-rose-50 border-rose-200 text-rose-955",
-                t.type === "warning" && "bg-amber-50 border-amber-200 text-amber-955",
-                t.type === "info" && "bg-[#F4F6F5] border-slate-200 text-slate-800"
+                t.type === "success" &&
+                  "bg-emerald-50 border-emerald-200 text-emerald-955",
+                t.type === "error" &&
+                  "bg-rose-50 border-rose-200 text-rose-955",
+                t.type === "warning" &&
+                  "bg-amber-50 border-amber-200 text-amber-955",
+                t.type === "info" &&
+                  "bg-[#F4F6F5] border-slate-200 text-slate-800"
               )}
             >
-              {t.type === "success" && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />}
-              {t.type === "error" && <XCircle className="w-4 h-4 text-rose-600 shrink-0" />}
-              {t.type === "warning" && <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />}
-              {t.type === "info" && <Info className="w-4 h-4 text-[#064E3B] shrink-0" />}
+              {t.type === "success" && (
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              )}
+              {t.type === "error" && (
+                <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              )}
+              {t.type === "warning" && (
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+              )}
+              {t.type === "info" && (
+                <Info className="w-4 h-4 text-[#064E3B] shrink-0" />
+              )}
               <span>{t.message}</span>
             </div>
           ))}
