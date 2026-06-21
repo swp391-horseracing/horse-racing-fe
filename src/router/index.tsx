@@ -6,7 +6,7 @@ import MainLayout from "../layouts/MainLayout.tsx";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import MainPage from "../pages/MainPage";
 import LoginPage from "../pages/LoginPage";
-import DashboardPage from "../pages/DashboardPage.tsx";
+import FeedPage from "../pages/FeedPage.tsx";
 import CalendarPage from "../pages/CalendarPage.tsx";
 import HorsePage from "../pages/HorsePage.tsx";
 import TournamentsPage from "../pages/TournamentsPage.tsx";
@@ -48,8 +48,8 @@ export const router = createBrowserRouter([
     element: <MainLayout />,
     children: [
       {
-        path: ROUTES.DASHBOARD,
-        element: <DashboardPage />,
+        path: ROUTES.FEED,
+        element: <FeedPage />,
       },
       {
         path: ROUTES.CALENDAR,

@@ -7,7 +7,7 @@ type Props = {
 
 export default function TournamentList({ tournaments, onView }: Props) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
       {tournaments.map((tournament) => (
         <TournamentCard
           key={tournament.id}

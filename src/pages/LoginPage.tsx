@@ -115,7 +115,7 @@ export default function Login() {
       } else {
         await register(name, email, password, role, captchaToken);
       }
-      navigate(ROUTES.DASHBOARD);
+      navigate(ROUTES.FEED);
     } catch (err: unknown) {
       let errorMessage =
         mode === "login"
