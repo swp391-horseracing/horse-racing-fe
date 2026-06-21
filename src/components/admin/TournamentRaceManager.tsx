@@ -71,7 +71,7 @@ export default function TournamentRaceManager({
   };
 
   return (
-    <div className="p-6 space-y-5 max-w-7xl mx-auto h-full">
+    <div className="p-4 space-y-4 max-w-7xl mx-auto h-full">
       <div className="border-b border-[#064E3B]/10 pb-4 flex justify-between items-center">
         <div>
           <h2 className="text-xl font-black font-headline text-[#064E3B]">
@@ -123,7 +123,7 @@ export default function TournamentRaceManager({
       </div>
 
       <div className="flex gap-4">
-        <div className="flex-1 bg-white border rounded-2xl p-5 shadow-sm space-y-4">
+        <div className="flex-1 bg-white border rounded-2xl p-4 shadow-sm space-y-3">
           <h3 className="font-bold text-sm text-[#064E3B] border-b pb-2">
             Active Tournaments
           </h3>

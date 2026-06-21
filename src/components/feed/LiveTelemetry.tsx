@@ -14,7 +14,7 @@ export function LiveTelemetry() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setDistanceRemaining((prev) => {
+      setDistanceRemaining((prev) => {      
         if (prev <= 10) {
           setElapsedSeconds(0);
           return 1200;
