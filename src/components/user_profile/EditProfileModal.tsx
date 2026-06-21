@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UserService } from "../../services/UserService";
+import { UserService } from "../../services/userService";
 import type { User } from "../../types/user";
 
 type Props = {
@@ -15,7 +15,7 @@ export default function EditProfileModal({
   user,
   onSaved,
 }: Props) {
-  const [fullName, setFullName] = useState(user.full_name ?? "");
+  const [fullName, setFullName] = useState(user.fullName ?? "");
   const [email, setEmail] = useState(user.email ?? "");
   const [phone, setPhone] = useState(user.phone ?? "");
   const [address, setAddress] = useState(user.address ?? "");

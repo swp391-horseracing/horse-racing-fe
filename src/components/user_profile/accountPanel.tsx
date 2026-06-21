@@ -20,10 +20,10 @@ export default function AccountPanel({ user, refreshUser }: Props) {
       {/* Profile card */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-3 w-56 shrink-0">
         <div className="w-16 h-16 rounded-full bg-[#064E3B]/10 flex items-center justify-center text-2xl font-bold text-[#064E3B]">
-          {user.full_name?.charAt(0).toUpperCase()}
+          {(user.fullName ?? "").charAt(0).toUpperCase()}
         </div>
         <div className="text-center">
-          <p className="font-bold text-sm text-slate-900">{user.full_name}</p>
+          <p className="font-bold text-sm text-slate-900">{user.fullName}</p>
           <p className="text-xs text-slate-500 mt-0.5">{user.email}</p>
         </div>
         <span className="px-3 py-1 rounded-full bg-[#D1FAE5] text-[#064E3B] text-xs font-bold border border-[#064E3B]/20">
@@ -54,12 +54,12 @@ export default function AccountPanel({ user, refreshUser }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <FieldBox
               label="Full Name"
-              value={user.full_name}
+              value={user.fullName ?? ""}
               editing={false}
             />
             <FieldBox label="Email" value={user.email} editing={false} />
-            <FieldBox label="Phone Number" value={user.phone} editing={false} />
-            <FieldBox label="Address" value={user.address} editing={false} />
+            <FieldBox label="Phone Number" value={user.phone ?? ""} editing={false} />
+            <FieldBox label="Address" value={user.address ?? ""} editing={false} />
           </div>
         </div>
 

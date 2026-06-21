@@ -1,41 +1,5 @@
-import api from "../lib/api.ts";
-
-export type RaceApiStatus =
-  | "draft"
-  | "upcoming"
-  | "ongoing"
-  | "completed"
-  | "result_confirmed";
-
-export interface RaceListItem {
-  id: string;
-  tournamentId: string;
-  date: string;
-  name: string;
-  scheduledAt: string;
-  venue: string;
-  status: RaceApiStatus;
-}
-
-export interface RaceEntry {
-  id: string;
-  horseId: string;
-  name: string;
-  laneNumber: string;
-  weightKg: string;
-  entryStatus: string;
-  jockeyName: string;
-  clothNumber: number;
-  trainerName?: string;
-}
-
-export interface RaceDetail extends RaceListItem {
-  roundName?: string;
-  distanceMeters?: number;
-  trackCondition?: string;
-  laneCount?: number;
-  entries?: RaceEntry[];
-}
+import api from "../lib/api";
+import type { RaceListItem, RaceDetail } from "../types/race";
 
 export const RaceService = {
   async getRacesByMonth(year: number, month: number): Promise<RaceListItem[]> {

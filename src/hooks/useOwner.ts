@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "../lib/api";
-import { HorseService, type Horse as ApiHorse } from "../services/horseService";
+import { HorseService } from "../services/horseService";
+import type { Horse as ApiHorse } from "../types/horse";
 
 export interface Horse {
   id: string;

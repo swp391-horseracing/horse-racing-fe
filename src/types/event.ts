@@ -4,7 +4,12 @@ export type Description = {
   url?: string;
 };
 
+export type Comment = {
+  // placeholder for comment type used in CalendarEvent
+};
+
 export type ExtendedProps = {
+  email?: string;
   descriptions?: Description[];
   comments?: Comment[];
   location?: string;

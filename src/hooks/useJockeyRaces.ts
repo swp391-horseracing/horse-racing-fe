@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { UserService, type UserRace } from "../services/UserService";
+import { UserService } from "../services/userService";
+import type { UserRace } from "../types/user";
 
 export type MyRide = {
   id: string;

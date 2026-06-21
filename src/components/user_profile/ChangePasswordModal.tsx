@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UserService } from "../../services/UserService";
+import { UserService } from "../../services/userService";
 
 type Props = {
   isOpen: boolean;

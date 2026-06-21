@@ -3,39 +3,9 @@ import type {
   TournamentApiStatus,
   RaceApiStatus,
   TournamentDetail,
-  TournamentListItem,
+  TournamentListResponse,
+  TournamentRacesResponse,
 } from "../types/tournament";
-
-export interface TournamentListResponse {
-  data: TournamentListItem[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-export interface TournamentRacesResponse {
-  data: {
-    id: string;
-    tournamentId: string;
-    name: string;
-    roundName: string;
-    distanceMeters: number;
-    trackCondition: string;
-    scheduledAt: string;
-    venue: string;
-    laneCount: number;
-    status: RaceApiStatus;
-  }[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
 
 export const TournamentService = {
   getTournaments: async (params?: {

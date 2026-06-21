@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { type User, AdminService } from "../services/adminService.ts";
+import { AdminService } from "../services/adminService.ts";
+import type { User } from "../types/user";
 
 type UserFilters = {
   search?: string;

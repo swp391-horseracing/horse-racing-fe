@@ -1,33 +1,5 @@
 import api from "../lib/api";
-
-export interface Horse {
-  id: string;
-  ownerId: string;
-  name: string;
-  breed: string;
-  birthDate: string;
-  weightKg: string;
-  imageUrl: string;
-  healthStatus: string;
-  isRetired: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface HorseListResponse {
-  data: Horse[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-export interface RetireHorseResponse {
-  message: string;
-  horse: Horse;
-}
+import type { HorseListResponse, RetireHorseResponse } from "../types/horse";
 
 export const HorseService = {
   async getHorses(
@@ -62,7 +34,6 @@ export const HorseService = {
     return response.data;
   },
 
-  // NEW: Retire a horse
   async retireHorse(id: string): Promise<RetireHorseResponse> {
     const response = await api.post(`/horses/${id}/retire`);
     return response.data;

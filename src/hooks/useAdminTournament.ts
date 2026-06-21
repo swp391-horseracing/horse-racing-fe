@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { AdminService, type Tournament } from "../services/adminService";
+import { AdminService } from "../services/adminService";
+import type { Tournament } from "../types/admin";
 import type {
   TournamentApiStatus,
   TournamentDetail,
@@ -66,7 +67,7 @@ export default function useAdminTournament() {
 
         await loadTournaments();
 
-        return res.Tournament;
+        return res.tournament;
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Create tournament failed"

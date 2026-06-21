@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { NotificationService } from "../services/NotificationService.ts";
+import { NotificationService } from "../services/notificationService.ts";
 import type { Notification } from "../types/notification.ts";
 
 export function useNotification() {

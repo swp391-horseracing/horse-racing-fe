@@ -3,7 +3,7 @@ import { cn } from "../../lib/utils";
 import type {
   Invitation,
   InvStatus,
-} from "../../services/invitationService.ts";
+} from "../../types/invitation";
 import {
   Clock,
   CheckCircle,

@@ -1,9 +1,6 @@
 import { useState, useCallback } from "react";
-import {
-  RaceService,
-  type RaceListItem,
-  type RaceDetail,
-} from "../services/raceService";
+import { RaceService } from "../services/raceService";
+import type { RaceListItem, RaceDetail } from "../types/race";
 
 export function useRaces() {
   const [races, setRaces] = useState<RaceListItem[]>([]);

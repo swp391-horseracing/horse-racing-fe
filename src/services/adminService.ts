@@ -2,51 +2,9 @@ import api from "../lib/api";
 import type {
   TournamentApiStatus,
   TournamentDetail,
-} from "../types/tournament.ts";
-import type { TournamentListResponse } from "./TournamentService.ts";
-
-export interface User {
-  id: string;
-  fullName: string;
-  email: string;
-  role: string;
-  status: string;
-  avatarUrl: string;
-  createdAt: string;
-}
-
-export interface Tournament {
-  name: string;
-  startDate: string;
-  endDate: string;
-  description: string;
-  rules: string;
-  location: string;
-  registrationOpenDate: string;
-  registrationCloseDate: string;
-  maximumParticipants: number;
-  minimumParticipants: number;
-  prizePool: number;
-}
-export interface UserListResponse {
-  data: User[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-export interface UserResponse {
-  message: string;
-  User: User;
-}
-
-export interface TournamentResponse {
-  message: string;
-  Tournament: Tournament;
-}
+  TournamentListResponse,
+} from "../types/tournament";
+import type { Tournament, UserResponse, TournamentResponse } from "../types/admin";
 
 export const AdminService = {
   async getUsers(
@@ -67,7 +25,6 @@ export const AdminService = {
     return response.data.horse;
   },
 
-  //Tournament
   async createTournament(tournament: Tournament): Promise<TournamentResponse> {
     const response = await api.post("/admin/tournaments", tournament);
     return response.data;
@@ -123,7 +80,6 @@ export const AdminService = {
     return response.data;
   },
 
-  //Update User
   async updateUserRole(id: string, role: string): Promise<UserResponse> {
     const response = await api.patch(`/admin/users/${id}/role`, {
       role,

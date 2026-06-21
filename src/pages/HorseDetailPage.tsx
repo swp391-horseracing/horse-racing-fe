@@ -87,7 +87,7 @@ export default function HorseDetailPage() {
     let alive = true;
     getUserByID(selectedHorse.ownerId)
       .then((user) => {
-        if (alive) setOwnerName(user.full_name ?? "Unknown");
+        if (alive) setOwnerName(user.fullName ?? "Unknown");
       })
       .catch(() => {
         if (alive) setOwnerName("Unknown");

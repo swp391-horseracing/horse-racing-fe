@@ -12,7 +12,7 @@ import { ROUTES } from "../router/routes.tsx";
 
 import { useEvent } from "../hooks/useEvent";
 import { useRaces, useRaceDetail } from "../hooks/useRaces";
-import type { RaceListItem, RaceApiStatus } from "../services/raceService";
+import type { RaceListItem, RaceStatus as RaceApiStatus } from "../types/race";
 
 // Import Shared Abstracted Components
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";

@@ -1,13 +1,6 @@
-import api from "../lib/api.ts";
-import type { User } from "../types/user.ts";
-
-interface LoginResponse {
-  email: string;
-  password: string;
-  captchaToken: string;
-  token: string;
-  user: User;
-}
+import api from "../lib/api";
+import type { User } from "../types/user";
+import type { LoginResponse } from "../types/auth";
 
 export const AuthService = {
   login: async (

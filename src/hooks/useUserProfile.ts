@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { UserService } from "../services/UserService";
+import { UserService } from "../services/userService";
 import type { User } from "../types/user";
 
 export type ProfileTab = "account" | "notifications";

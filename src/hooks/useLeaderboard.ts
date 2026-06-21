@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRef } from "react";
 import { HorseService } from "../services/horseService";
-import type { Horse } from "../services/horseService";
+import type { Horse } from "../types/horse";
 import { JockeyService } from "../services/jockeyService";
 import type { Jockey } from "../types/jockey";
 import type { TransformedHorseRow } from "../components/leaderboard/HorseLeaderboardView";

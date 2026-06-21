@@ -1,6 +1,4 @@
-import type { CalendarEvent } from "../types/event.ts";
-
-// const MOCK = true;
+import type { CalendarEvent } from "../types/event";
 
 const mockList: CalendarEvent[] = [
   {

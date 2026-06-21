@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { useNavigate } from "react-router-dom";
-import type { Horse } from "../services/horseService";
+import type { Horse } from "../types/horse";
 import banner from "../assets/images/horse-banner.png";
 
 function getAge(birthDate?: string) {

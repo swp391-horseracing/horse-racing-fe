@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { InvitationService } from "../services/invitationService.ts";
-import type { Invitation, InvStatus } from "../services/invitationService.ts";
+import type { Invitation, InvStatus } from "../types/invitation";
 
 export function useInvitations() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
