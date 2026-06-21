@@ -53,6 +53,10 @@ export default function MainLayout() {
       label: "Admin",
       to: ROUTES.ADMIN_DASHBOARD,
     },
+    referee: {
+      label: "Referee",
+      to: ROUTES.REFEREE_DASHBOARD,
+    },
   };
 
   const roleLinks: LinkItem[] =
