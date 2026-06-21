@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
@@ -13,9 +14,13 @@ import {
   ShieldAlert,
   Users,
   ArrowRight,
+  AlertCircle,
+  Send,
 } from "lucide-react";
 import useTournament from "../hooks/useTournament";
 import { ROUTES } from "../router/routes";
+import { useOwner } from "../hooks/useOwner";
+import { useUserProfile } from "../hooks/useUserProfile";
 
 function StatFilterCard({
   label,
@@ -137,6 +142,54 @@ export default function TournamentsPage() {
         date: race.date,
       },
     });
+  };
+
+  const { user } = useUserProfile();
+  const isOwner = user?.role === "horse_owner";
+  const {
+    horses: ownerHorses,
+    registrations: ownerRegistrations,
+    registerTournament,
+  } = useOwner();
+
+  const [selectedRegHorseId, setSelectedRegHorseId] = useState("");
+  const [regStatus, setRegStatus] = useState<{
+    type: "idle" | "loading" | "success" | "error";
+    message?: string;
+  }>({ type: "idle" });
+
+  const isHorseRegistered = (horseId: string) =>
+    ownerRegistrations.some(
+      (r) => r.tournamentId === selectedTournament?.id && r.horseId === horseId
+    );
+
+  const activeHorses = ownerHorses.filter((h) => h.status !== "Retired");
+  const availableHorses = activeHorses.filter((h) => !isHorseRegistered(h.id));
+  const tournamentRegistrations = ownerRegistrations.filter(
+    (r) => r.tournamentId === selectedTournament?.id
+  );
+
+  const handleRegister = async () => {
+    if (!selectedRegHorseId || !selectedTournament) return;
+
+    setRegStatus({ type: "loading" });
+    try {
+      await registerTournament(selectedTournament.id, selectedRegHorseId);
+      setRegStatus({
+        type: "success",
+        message: "Registration submitted successfully!",
+      });
+      setSelectedRegHorseId("");
+    } catch (err: unknown) {
+      const error = err as {
+        response?: { data?: { message?: string } };
+      };
+      setRegStatus({
+        type: "error",
+        message:
+          error?.response?.data?.message || "Failed to register for tournament.",
+      });
+    }
   };
 
   const isPanelOpen = selectedTournament !== null;
@@ -366,6 +419,19 @@ export default function TournamentsPage() {
                 >
                   Entry Info & Rules
                 </button>
+
+                {isOwner && selectedTournament.status === "registration_open" && (
+                  <button
+                    onClick={() => setDetailTab("registration")}
+                    className={`py-2.5 px-4 text-xs font-bold border-b-2 transition-all -mb-[1px] ${
+                      detailTab === "registration"
+                        ? "border-primary text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Registration
+                  </button>
+                )}
               </div>
 
               <div className="p-6 max-h-[550px] overflow-y-auto custom-scrollbar">
@@ -559,6 +625,104 @@ export default function TournamentsPage() {
                         <p className="whitespace-pre-wrap">
                           {selectedTournament.rules}
                         </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {detailTab === "registration" && selectedTournament && (
+                  <div className="space-y-6">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                      Register Your Horse
+                    </h4>
+
+                    {regStatus.type === "success" && (
+                      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                        {regStatus.message}
+                      </div>
+                    )}
+
+                    {regStatus.type === "error" && (
+                      <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+                        {regStatus.message}
+                      </div>
+                    )}
+
+                    <div className="p-4.5 rounded-xl border border-border bg-card">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                        Select a horse to register
+                      </p>
+
+                      {availableHorses.length > 0 ? (
+                        <div className="flex items-center gap-3">
+                          <select
+                            value={selectedRegHorseId}
+                            onChange={(e) =>
+                              setSelectedRegHorseId(e.target.value)
+                            }
+                            className="flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-medium outline-none focus:ring-1 focus:ring-primary"
+                          >
+                            <option value="">Choose a horse...</option>
+                            {availableHorses.map((h) => (
+                              <option key={h.id} value={h.id}>
+                                {h.name}
+                              </option>
+                            ))}
+                          </select>
+
+                          <button
+                            onClick={handleRegister}
+                            disabled={
+                              !selectedRegHorseId ||
+                              regStatus.type === "loading"
+                            }
+                            className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {regStatus.type === "loading" ? (
+                              "Registering..."
+                            ) : (
+                              <>
+                                Register <Send className="h-4 w-4" />
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          {ownerHorses.length === 0
+                            ? "You don't have any horses yet. Add one from your dashboard."
+                            : "All your horses are already registered for this tournament."}
+                        </p>
+                      )}
+                    </div>
+
+                    {tournamentRegistrations.length > 0 && (
+                      <div className="space-y-3">
+                        <h5 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          Registered Horses ({tournamentRegistrations.length})
+                        </h5>
+                        <div className="space-y-2">
+                          {tournamentRegistrations.map((r) => {
+                            const horse = ownerHorses.find(
+                              (h) => h.id === r.horseId
+                            );
+                            return (
+                              <div
+                                key={r.id}
+                                className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3"
+                              >
+                                <span className="text-sm font-bold text-foreground">
+                                  {horse?.name || "Unknown Horse"}
+                                </span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                                  {r.status}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>

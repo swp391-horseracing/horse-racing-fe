@@ -10,7 +10,7 @@ import type {
 } from "../types/tournament";
 
 type FilterTab = "All" | TournamentApiStatus;
-type DetailTab = "schedule" | "entry";
+export type DetailTab = "schedule" | "entry" | "registration";
 
 type RacePreview = {
   id: string;

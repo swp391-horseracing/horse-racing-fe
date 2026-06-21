@@ -1,8 +1,9 @@
 import React from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { cn } from "../../lib/utils";
 import type { Horse } from "../../types/horse.ts";
+import {useNavigate} from "react-router-dom";
+import {ROUTES} from "../../router/routes.tsx";
 
 export interface HorseManagementProps {
   horses: Horse[];
@@ -26,7 +27,6 @@ function HorseRow({
   onRetire: (id: string) => void;
 }) {
   const navigate = useNavigate();
-
   return (
     <div className="group flex items-center justify-between px-6 py-5 border-b last:border-b-0 hover:bg-slate-50/70 transition-all">
       <div className="flex items-center gap-5 flex-1 min-w-0">
@@ -42,7 +42,9 @@ function HorseRow({
         {/* Info */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-3">
-            <h3 className="font-bold text-lg truncate">{horse.name}</h3>
+            <button onClick={() => navigate(`/horses/${horse.id}`)}>
+              <h3 className="font-bold text-lg truncate hover:underline">{horse.name}</h3>
+            </button>
             <span
               className={cn(
                 "text-xs font-semibold px-3 py-1 rounded-full border",
@@ -69,16 +71,17 @@ function HorseRow({
       {/* Actions */}
       <div className="flex items-center gap-3 shrink-0">
         <button
-          onClick={() => navigate(`/horses/${horse.id}`)}
-          className="px-5 py-2.5 text-sm font-semibold border border-border rounded-xl hover:bg-white hover:shadow transition"
+            onClick={() => navigate(ROUTES.TOURNAMENTS)}
+            disabled={isLocked}
+            className="flex items-center gap-2 px-5 py-1 text-sm font-semibold border border-primary text-primary hover:bg-primary hover:text-white rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          View Detail
+          Register
         </button>
 
         <button
           onClick={() => onRetire(horse.id)}
           disabled={isLocked}
-          className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-5 py-1 text-sm font-semibold border border-rose-200  text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <Trash2 className="w-4 h-4" />
           Retire
@@ -99,13 +102,13 @@ export function HorseManagement({
   const activeHorses = horses.filter((h) => h.status !== "Retired");
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8">
+    <div className="max-w-6xl mx-auto p-5">
       {/* Header */}
       <div className="flex items-center justify-between mb-8 border-b pb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#064E3B]">
-            Horse Registry
-          </h1>
+          <h2 className="text-3xl font-bold tracking-tight !text-primary">
+            Horse Manager
+          </h2>
           <p className="text-muted-foreground mt-1">
             Manage your stable profiles and retire active horses
           </p>
