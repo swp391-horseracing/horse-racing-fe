@@ -1,9 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { cn } from "../../lib/utils";
-import type {
-  Invitation,
-  InvStatus,
-} from "../../types/invitation";
+import type { Invitation, InvStatus } from "../../types/invitation";
 import {
   Clock,
   CheckCircle,

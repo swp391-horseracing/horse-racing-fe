@@ -23,7 +23,12 @@ export type {
 } from "./tournament";
 export type { Notification } from "./notification";
 export type { LeaderboardRow, LeaderboardData } from "./leaderboard";
-export type { Description, Comment, ExtendedProps, CalendarEvent } from "./event";
+export type {
+  Description,
+  Comment,
+  ExtendedProps,
+  CalendarEvent,
+} from "./event";
 export type { RaceStatus, RaceListItem, RaceEntry, RaceDetail } from "./race";
 export type { InvStatus, Invitation } from "./invitation";
 export type {

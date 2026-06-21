@@ -58,8 +58,16 @@ export default function AccountPanel({ user, refreshUser }: Props) {
               editing={false}
             />
             <FieldBox label="Email" value={user.email} editing={false} />
-            <FieldBox label="Phone Number" value={user.phone ?? ""} editing={false} />
-            <FieldBox label="Address" value={user.address ?? ""} editing={false} />
+            <FieldBox
+              label="Phone Number"
+              value={user.phone ?? ""}
+              editing={false}
+            />
+            <FieldBox
+              label="Address"
+              value={user.address ?? ""}
+              editing={false}
+            />
           </div>
         </div>
 

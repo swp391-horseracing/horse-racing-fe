@@ -4,7 +4,11 @@ import type {
   TournamentDetail,
   TournamentListResponse,
 } from "../types/tournament";
-import type { Tournament, UserResponse, TournamentResponse } from "../types/admin";
+import type {
+  Tournament,
+  UserResponse,
+  TournamentResponse,
+} from "../types/admin";
 
 export const AdminService = {
   async getUsers(

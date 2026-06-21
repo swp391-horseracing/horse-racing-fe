@@ -4,9 +4,7 @@ export type Description = {
   url?: string;
 };
 
-export type Comment = {
-  // placeholder for comment type used in CalendarEvent
-};
+export type Comment = Record<string, unknown>;
 
 export type ExtendedProps = {
   email?: string;
