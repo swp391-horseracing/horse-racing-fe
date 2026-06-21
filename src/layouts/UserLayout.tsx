@@ -8,6 +8,7 @@ import {
   Activity,
   UserCheck,
   ClipboardList,
+  Radio,
 } from "lucide-react";
 import {
   Sidebar,
@@ -115,6 +116,11 @@ export default function UserLayout({
         key: ROUTES.JOCKEY_INVITATIONS,
         badge: pendingCount,
       },
+      {
+        label: "Live Feed",
+        icon: Radio,
+        key: ROUTES.FEED,
+      },
     ],
     Owner: [
       {
@@ -134,6 +140,11 @@ export default function UserLayout({
       },
       { label: "Jockey Roster", icon: UserCheck, key: "/owner/jockeys" },
       { label: "Horse Schedule", icon: Calendar, key: "/owner/schedule" },
+      {
+        label: "Live Feed",
+        icon: Radio,
+        key: ROUTES.FEED,
+      },
     ],
     Spectator: [
       {
@@ -145,6 +156,11 @@ export default function UserLayout({
         label: "Predictions Hub",
         icon: Activity,
         key: "/spectator/predictions",
+      },
+      {
+        label: "Live Feed",
+        icon: Radio,
+        key: ROUTES.FEED,
       },
     ],
     Admin: [
@@ -161,6 +177,11 @@ export default function UserLayout({
         key: "/admin/tournaments",
       },
       { label: "Virtual Economy", icon: TrendingUp, key: "/admin/economy" },
+      {
+        label: "Live Feed",
+        icon: Radio,
+        key: ROUTES.FEED,
+      },
     ],
     UserProfile: [{ label: "Account", icon: UserCheck, key: "account" }],
   };

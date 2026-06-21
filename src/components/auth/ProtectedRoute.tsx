@@ -29,7 +29,7 @@ export default function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
     if (loading) return;
 
     if (!user || !allowedRoles.includes(user.role)) {
-      const home = ROLE_HOME[user?.role || ""] || ROUTES.DASHBOARD;
+      const home = ROLE_HOME[user?.role || ""] || ROUTES.FEED;
       navigate(home, { replace: true });
     }
   }, [user, loading, token, allowedRoles, navigate]);

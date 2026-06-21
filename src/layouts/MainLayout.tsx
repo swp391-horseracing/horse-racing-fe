@@ -20,7 +20,7 @@ export default function MainLayout() {
   const generalLinks: LinkItem[] = [
     {
       label: "Feed",
-      to: ROUTES.DASHBOARD,
+      to: ROUTES.FEED,
       icon: <Newspaper className="w-4 h-4 mr-1.5" />,
     },
     { label: "Schedule", to: ROUTES.CALENDAR },

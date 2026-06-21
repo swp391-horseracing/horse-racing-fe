@@ -1,7 +1,7 @@
 export const ROUTES = {
   // GENERAL
   HOME: "/landing",
-  DASHBOARD: "/dashboard",
+  FEED: "/feed",
   LOGIN: "/login",
   REGISTER: "/register",
   CALENDAR: "/calendar",
