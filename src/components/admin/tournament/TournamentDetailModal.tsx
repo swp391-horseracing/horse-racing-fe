@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import TournamentDetail from "./TournamentDetail";
-import type { Tournament } from "./TournamentDetail";
 import type { TournamentFormValues } from "../../../styles/schema/tournamentSchema";
+import type {Tournament} from "../../../types/tournament.ts";
 
 type Props = {
   isOpen: boolean;

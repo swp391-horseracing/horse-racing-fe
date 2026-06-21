@@ -3,7 +3,7 @@ import lonely from "../assets/images/LonelyHorse.png";
 export default function NoInfoPage() {
   return (
     <div className="h-full w-full text-[#1f3a34] flex items-center justify-center px-10 py-5">
-      <div className="w-full flex flex-cow items-center">
+      <div className="w-full flex flex-row items-center">
         <div className="relative flex items-center justify-center">
           <div className="relative rounded-3xl bg-white p-3 shadow-[0_18px_50px_rgba(0,0,0,0.12)] ring-1 ring-black/5">
             <div className="overflow-hidden rounded-2xl bg-gradient-to-b from-zinc-700 via-zinc-300 to-zinc-100">

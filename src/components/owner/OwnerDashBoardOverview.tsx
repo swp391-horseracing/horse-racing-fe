@@ -36,7 +36,7 @@ export function OwnerDashBoardOverview({
     (h: Horse) => h.status === "Active"
   ).length;
   const pendingRegCount = registrations.filter(
-    (r: TournamentRegistration) => r.status === "Pending Approval"
+    (r: TournamentRegistration) => r.status === "pending"
   ).length;
   const pendingInvCount = invitations.filter(
     (i: Invitation) => i.status === "Pending"
@@ -62,7 +62,7 @@ export function OwnerDashBoardOverview({
             label: "Open Events",
             val: `${
               tournaments.filter(
-                (t: Tournament) => t.status === "Registration Open"
+                (t: Tournament) => t.status === ("registration_open" as const)
               ).length
             } Active`,
             action: () => setActiveTab("/owner/raceRegister"),
@@ -117,7 +117,7 @@ export function OwnerDashBoardOverview({
                   <div>
                     <p className="font-bold text-slate-800">{horse.name}</p>
                     <p className="text-slate-400 text-[10px]">
-                      {horse.breed} • {horse.gender}
+                      {horse.breed} • {(horse as { gender?: string }).gender}
                     </p>
                   </div>
                   <span className="bg-emerald-50 text-emerald-800 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded border border-emerald-200">

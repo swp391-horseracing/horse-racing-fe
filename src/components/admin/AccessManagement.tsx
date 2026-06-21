@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { ToastType } from "../../pages/AdminPage";
-import useAdmin from "../../hooks/useAdmin.ts";
+import useAdmin from "../../hooks/admin/useAdmin.ts";
 import UserSearch from "./user/UserSearch.tsx";
 
 type OpenMenuState =
@@ -147,7 +147,7 @@ export default function AccessManagement({
                 users.map((u) => (
                   <tr key={u.id} className="hover:bg-slate-50/50">
                     <td className="p-3">
-                      <p className="font-bold text-slate-800">{u.fullName}</p>
+                      <p className="font-bold text-slate-800">{u.full_name}</p>
                       <p className="text-[10px] text-slate-400">{u.email}</p>
                     </td>
 

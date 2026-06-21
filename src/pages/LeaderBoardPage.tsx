@@ -12,7 +12,6 @@ export default function LeaderBoardPage() {
     totalPages,
     totalItems,
     horseRows,
-    jockeyRows,
     loading,
     error,
     handleTabChange,
@@ -79,7 +78,7 @@ export default function LeaderBoardPage() {
           />
         ) : (
           <JockeyLeaderboardView
-            data={jockeyRows}
+            data={[]}
             page={page}
             setPage={setPage}
             pageSize={pageSize}

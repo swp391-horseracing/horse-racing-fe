@@ -29,7 +29,7 @@ export function JockeyRosterManagement({
   onCancelInvite,
 }: JockeyRosterManagementProps) {
   const approved = registrations.filter(
-    (r: TournamentRegistration) => r.status === "Approved"
+    (r: TournamentRegistration) => r.status === "approved"
   );
 
   return (
@@ -46,7 +46,7 @@ export function JockeyRosterManagement({
 
           const invites = invitations.filter(
             (i: Invitation) =>
-              i.horseId === reg.horseId && i.tournamentId === reg.tournamentId
+              i.horseId === reg.horseId && i.tournamentId === Number(reg.tournamentId)
           );
           const locked = invites.find(
             (i: Invitation) => i.status === "Confirmed"
@@ -72,7 +72,7 @@ export function JockeyRosterManagement({
                   </span>
                 ) : (
                   <button
-                    onClick={() => onOpenInviteModal(horse.id, tournament.id)}
+                    onClick={() => onOpenInviteModal(horse.id, Number(tournament.id))}
                     className="rounded-lg bg-[#064E3B] text-white px-2.5 py-1.5 text-[10px] font-bold"
                   >
                     Hire Jockey
@@ -114,7 +114,7 @@ export function JockeyRosterManagement({
                         </span>
                         {inv.status === "Accepted" && !locked && (
                           <button
-                            onClick={() => onConfirmPairing(inv.id)}
+                            onClick={() => onConfirmPairing(Number(inv.id))}
                             className="rounded bg-emerald-600 text-white px-2 py-0.5 text-[9px] font-bold"
                           >
                             Lock
@@ -122,7 +122,7 @@ export function JockeyRosterManagement({
                         )}
                         {inv.status === "Pending" && (
                           <button
-                            onClick={() => onCancelInvite(inv.id)}
+                            onClick={() => onCancelInvite(Number(inv.id))}
                             className="text-rose-600 text-[10px] font-bold"
                           >
                             Cancel

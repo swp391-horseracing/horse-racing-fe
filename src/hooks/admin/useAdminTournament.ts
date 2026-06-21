@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { AdminService, type Tournament } from "../services/adminService";
+import { AdminService} from "../../services/adminService";
 import type {
-  TournamentApiStatus,
-  TournamentDetail,
-  TournamentListItem,
-} from "../types/tournament";
+  Tournament,
+  TournamentApiStatus, TournamentDetail, TournamentListResponse,
+} from "../../types/tournament";
+import {TournamentService} from "../../services/TournamentService.ts";
 
 export default function useAdminTournament() {
-  const [tournaments, setTournaments] = useState<TournamentListItem[]>([]);
+  const [tournaments, setTournaments] = useState<TournamentListResponse>();
   const [selectedTournament, setSelectedTournament] =
     useState<TournamentDetail | null>(null);
 
@@ -29,16 +29,13 @@ export default function useAdminTournament() {
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem("token") ?? "";
-
-      const res = await AdminService.getAdminTournaments({
+      const res = await TournamentService.getTournaments({
         status: filterStatus,
         page: pagination.page,
         limit: pagination.limit,
-        token,
       });
 
-      setTournaments(res.data);
+      setTournaments(res);
 
       setPagination((prev) => ({
         ...prev,
@@ -66,7 +63,7 @@ export default function useAdminTournament() {
 
         await loadTournaments();
 
-        return res.Tournament;
+        return res.tournament;
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Create tournament failed"
@@ -131,9 +128,7 @@ export default function useAdminTournament() {
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem("token") ?? "";
-
-      const data = await AdminService.getAdminTournament(id, token);
+      const data = await TournamentService.getTournamentByID(id);
       console.log("detail: ", data);
 
       setSelectedTournament(data);

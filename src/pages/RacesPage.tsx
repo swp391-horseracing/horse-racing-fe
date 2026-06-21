@@ -12,7 +12,7 @@ import { ROUTES } from "../router/routes.tsx";
 
 import { useEvent } from "../hooks/useEvent";
 import { useRaces, useRaceDetail } from "../hooks/useRaces";
-import type { RaceListItem, RaceApiStatus } from "../services/raceService";
+import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
 
 // Import Shared Abstracted Components
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
@@ -568,7 +568,7 @@ export default function RacesPage() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 text-sm bg-card">
-                            {raceDetail.entries.map((entry, idx) => (
+                            {raceDetail.entries.map((entry: RaceEntry, idx: number) => (
                               <tr
                                 key={entry.id || idx}
                                 className="hover:bg-[#064E3B]/5 transition-colors cursor-default"

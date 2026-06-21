@@ -4,7 +4,7 @@ import type { ToastType } from "../../pages/AdminPage";
 import { TournamentForm } from "./tournament/TournamentForm";
 import TournamentList from "./tournament/TournamentList";
 import TournamentDetailModal from "./tournament/TournamentDetailModal";
-import useAdminTournament from "../../hooks/useAdminTournament";
+import useAdminTournament from "../../hooks/admin/useAdminTournament";
 
 export default function TournamentRaceManager({
   addToast,
@@ -139,7 +139,7 @@ export default function TournamentRaceManager({
             </div>
           ) : (
             <TournamentList
-              tournaments={tournaments}
+              tournaments={tournaments?.data ?? []}
               onView={handleOpenDetail}
             />
           )}

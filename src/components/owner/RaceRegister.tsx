@@ -35,20 +35,19 @@ export function RaceRegister({
 
   const filtered = tournaments.filter((t: Tournament) => {
     const matchSearch =
-      t.name.toLowerCase().includes(search.toLowerCase()) ||
-      t.allowedBreed.toLowerCase().includes(search.toLowerCase());
+      t.name.toLowerCase().includes(search.toLowerCase());
     const statusMap: Record<ActiveFilterType, string[]> = {
       All: [
-        "Registration Open",
-        "Registration Closed",
-        "Scheduled",
-        "Live",
-        "Concluded",
+        "registration_open",
+        "registration_closed",
+        "upcoming",
+        "ongoing",
+        "completed",
       ],
-      "Live now": ["Live"],
-      "Registration open": ["Registration Open"],
-      Upcoming: ["Scheduled", "Registration Closed"],
-      Completed: ["Concluded"],
+      "Live now": ["ongoing"],
+      "Registration open": ["registration_open"],
+      Upcoming: ["upcoming", "registration_closed"],
+      Completed: ["completed"],
     };
     return matchSearch && statusMap[activeFilter].includes(t.status);
   });
@@ -101,9 +100,9 @@ export function RaceRegister({
             <div className="flex items-center gap-1.5 text-[13px] text-slate-500 mb-4">
               <MapPin className="w-3.5 h-3.5" /> Ho Chi Minh City
             </div>
-            {t.status === "Registration Open" && (
+            {t.status === "registration_open" && (
               <button
-                onClick={() => onOpenRegisterModal(null, t.id)}
+                onClick={() => onOpenRegisterModal(null, Number(t.id))}
                 className="w-full rounded-xl border bg-white py-3 text-[13px] font-bold hover:bg-slate-50 flex items-center justify-center gap-1.5"
               >
                 Register horse <ArrowUpRight className="w-4 h-4" />

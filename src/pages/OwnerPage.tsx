@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { useOwner } from "../hooks/useOwner.ts";
-import { useJockeyRaces } from "../hooks/useJockeyRaces.ts";
+import { useJockey } from "../hooks/useJockey.ts";
 import { cn } from "../lib/utils";
 import {
   Clock,
@@ -42,12 +42,12 @@ export default function OwnerPage() {
     addHorse,
     retireHorse,
     registerTournament,
-    inviteJockeys,
+    inviteJockey: inviteJockeys,
     confirmPairing,
     cancelInvite,
   } = useOwner();
 
-  const { rides: ownerRides, loading: ridesLoading } = useJockeyRaces();
+  const { rides: ownerRides, loading: ridesLoading } = useJockey();
 
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [showAddHorse, setShowAddHorse] = useState(false);
@@ -114,6 +114,7 @@ export default function OwnerPage() {
       breed: data.get("breed") as string,
       birthDate: rawBirthDate,
       weightKg: rawWeight,
+      imageUrl: "",
       healthStatus: healthStatusVal,
     };
 
@@ -156,31 +157,31 @@ export default function OwnerPage() {
     tournamentId: number
   ) => {
     const horse = horses.find((h) => h.id === horseId);
-    const tournament = tournaments.find((t) => t.id === tournamentId);
+    const tournament = tournaments.find((t) => t.id === String(tournamentId));
     if (!horse || !tournament) return;
 
-    if (horse.breed !== tournament.allowedBreed) {
+    const t = tournament as unknown as Record<string, unknown>;
+    if (horse.breed !== t.allowedBreed) {
       addToast(
-        `Eligibility Failure: Requires breed "${tournament.allowedBreed}".`,
+        `Eligibility Failure: Requires breed "${t.allowedBreed}".`,
         "error"
       );
       return;
     }
     const age = calculateAge(horse.dob);
-    if (age < tournament.minAge || age > tournament.maxAge) {
+    if (age < (t.minAge as number) || age > (t.maxAge as number)) {
       addToast(
-        `Eligibility Failure: Age must be ${tournament.minAge}-${tournament.maxAge} years.`,
+        `Eligibility Failure: Age must be ${t.minAge}-${t.maxAge} years.`,
         "error"
       );
       return;
     }
 
-    const isFull = tournament.currentCount >= tournament.maxCapacity;
+    const isFull = (t.currentCount as number) >= (t.maxCapacity as number);
     try {
       await registerTournament(
-        horseId,
-        tournamentId,
-        isFull ? "Waitlisted" : "Pending Approval"
+        String(tournamentId),
+        horseId
       );
       setShowRegisterTournament(false);
       addToast(
@@ -198,7 +199,11 @@ export default function OwnerPage() {
     if (jockeyIds.length === 0 || !selectedTournamentId || !selectedHorseId)
       return;
     try {
-      await inviteJockeys(jockeyIds, selectedTournamentId, selectedHorseId);
+      await Promise.all(
+        jockeyIds.map((jockeyId) =>
+          inviteJockeys(String(selectedTournamentId), String(jockeyId), String(selectedHorseId))
+        )
+      );
       setShowInviteJockey(false);
       addToast(
         `Dispatched invitations to ${jockeyIds.length} Jockey(s).`,
@@ -210,13 +215,13 @@ export default function OwnerPage() {
   };
 
   const handleConfirmPairing = async (invId: number) => {
-    if (await confirmPairing(invId))
+    if (await confirmPairing("", String(invId)))
       addToast("Jockey-horse pairing confirmed & locked.", "success");
     else addToast("Failed to confirm jockey pairing.", "error");
   };
 
   const handleCancelInvite = async (invId: number) => {
-    if (await cancelInvite(invId)) addToast("Invitation cancelled.", "info");
+    if (await cancelInvite("", String(invId))) addToast("Invitation cancelled.", "info");
     else addToast("Failed to cancel invitation.", "error");
   };
 

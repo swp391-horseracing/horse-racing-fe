@@ -1,21 +1,43 @@
-// src/types/tournament.ts
 export type TournamentApiStatus =
-  | "upcoming"
-  | "registration_open"
-  | "registration_closed"
-  | "ongoing"
-  | "completed"
-  | "cancelled";
+    | "upcoming"
+    | "registration_open"
+    | "registration_closed"
+    | "ongoing"
+    | "completed"
+    | "cancelled";
 
 export type RaceApiStatus =
-  | "scheduled"
-  | "pre_race"
-  | "ongoing"
-  | "under_review"
-  | "result_confirmed"
-  | "completed"
-  | "postponed"
-  | "cancelled";
+    | "scheduled"
+    | "pre_race"
+    | "ongoing"
+    | "under_review"
+    | "result_confirmed"
+    | "completed"
+    | "postponed"
+    | "cancelled";
+
+export interface Tournament {
+  id: string;
+  name: string;
+  status: TournamentApiStatus;
+  location: string;
+  startDate: string;
+  endDate: string;
+
+  description?: string;
+  rules?: string;
+
+  registrationOpenDate?: string;
+  registrationCloseDate?: string;
+
+  prizePool?: number;
+  maximumParticipants?: number;
+  minimumParticipants?: number;
+
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 export interface TournamentListItem {
   id: string;
@@ -28,15 +50,49 @@ export interface TournamentListItem {
   status: TournamentApiStatus;
 }
 
-export interface TournamentDetail extends TournamentListItem {
+export interface TournamentDetail {
+  id: string;
+  name: string;
+  status:
+      | "upcoming"
+      | "registration_open"
+      | "registration_closed"
+      | "ongoing"
+      | "completed"
+      | "cancelled";
+
+  location: string;
+
+  startDate: string;
+  endDate: string;
+
   description?: string;
   rules?: string;
+
+  registrationOpenDate?: string;
+  registrationCloseDate?: string;
+
+  prizePool?: number;
+
   maximumParticipants?: number;
   minimumParticipants?: number;
-  prizePool?: number;
+
   createdBy?: string;
+
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface TournamentRegistration {
+  id: string;
+  horseId: string;
+  tournamentId: string;
+  ownerId?: string;
+  status: "pending" | "approved" | "rejected";
+  submittedAt?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  rejectReason?: string;
 }
 
 export interface RaceItem {
@@ -52,24 +108,26 @@ export interface RaceItem {
   status: RaceApiStatus;
 }
 
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface TournamentResponse {
+  message: string;
+  tournament: Tournament;
+}
+
 export interface TournamentListResponse {
-  data: TournamentListItem[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+  data: Tournament[];
+  pagination: Pagination;
 }
 
 export interface TournamentRacesResponse {
   data: RaceItem[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+  pagination: Pagination;
 }
 
 export interface TournamentListQuery {

@@ -1,9 +1,7 @@
 import { useState, useCallback } from "react";
-import {
-  RaceService,
-  type RaceListItem,
-  type RaceDetail,
-} from "../services/raceService";
+import { ScheduleService } from "../services/ScheduleService";
+import { RaceService } from "../services/raceService";
+import type { RaceListItem, RaceDetail } from "../types/race";
 
 export function useRaces() {
   const [races, setRaces] = useState<RaceListItem[]>([]);
@@ -14,7 +12,7 @@ export function useRaces() {
     try {
       setLoading(true);
       setError(null);
-      const data = await RaceService.getRacesByMonth(year, month);
+      const data = await ScheduleService.getRacesByMonth(year, month);
       setRaces(data);
     } catch (err: unknown) {
       const error = err as {

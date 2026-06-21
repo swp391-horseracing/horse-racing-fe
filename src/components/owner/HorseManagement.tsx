@@ -1,7 +1,8 @@
 import React from "react";
 import { Plus, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "../../lib/utils";
-import type { Horse } from "../../hooks/useOwner";
+import type {Horse} from "../../types/horse.ts";
 
 export interface HorseManagementProps {
   horses: Horse[];
@@ -15,110 +16,156 @@ export interface HorseManagementProps {
   setPage: React.Dispatch<React.SetStateAction<number>>;
 }
 
-export function HorseManagement({
-  horses,
-  isHorseLocked,
-  onRetire,
-  onOpenAddModal,
-  pagination,
-  setPage,
-}: HorseManagementProps) {
-  return (
-    <div className="p-5 space-y-5 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between border-b pb-4">
-        <div>
-          <h2 className="text-xl font-black text-[#064E3B]">Horse Registry</h2>
-          <p className="text-xs text-slate-500 mt-1">
-            Manage your stable profiles and retire active horses.
-          </p>
-        </div>
-        <button
-          onClick={onOpenAddModal}
-          className="flex items-center gap-1 rounded-lg bg-[#064E3B] text-white px-3.5 py-2 text-xs font-bold shadow-xs hover:bg-[#043E2F]"
-        >
-          <Plus className="w-3.5 h-3.5" /> Add Horse
-        </button>
-      </div>
+function HorseRow({ horse, isLocked, onRetire }: {
+  horse: Horse;
+  isLocked: boolean;
+  onRetire: (id: string) => void;
+}) {
+  const navigate = useNavigate();
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {horses
-          .filter((h: Horse) => h.status !== "Retired")
-          .map((horse: Horse) => {
-            const locked = isHorseLocked(horse.id);
-            return (
-              <div
-                key={horse.id}
-                className="bg-white border rounded-xl p-4.5 shadow-xs flex flex-col justify-between hover:shadow-md transition"
+  return (
+      <div className="group flex items-center justify-between px-6 py-5 border-b last:border-b-0 hover:bg-slate-50/70 transition-all">
+        <div className="flex items-center gap-5 flex-1 min-w-0">
+          {/* Avatar */}
+          <div className="h-12 w-12 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+            <img
+                src={horse.imageUrl || "/placeholder.jpg"}
+                alt={horse.name}
+                className="h-full w-full object-cover"
+            />
+          </div>
+
+          {/* Info */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-3">
+              <h3 className="font-bold text-lg truncate">{horse.name}</h3>
+              <span
+                  className={cn(
+                      "text-xs font-semibold px-3 py-1 rounded-full border",
+                      isLocked
+                          ? "bg-amber-100 border-amber-200 text-amber-700"
+                          : "bg-emerald-100 border-emerald-200 text-emerald-700"
+                  )}
               >
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-bold text-sm text-[#064E3B] truncate">
-                      {horse.name}
-                    </h3>
-                    <span
-                      className={cn(
-                        "text-[8px] font-black uppercase px-2 py-0.5 rounded-full border",
-                        locked
-                          ? "bg-amber-50 border-amber-200 text-amber-800"
-                          : "bg-emerald-50 border-emerald-200 text-emerald-800"
-                      )}
-                    >
-                      {locked ? "Locked" : "Active"}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-[10px]">
-                    <div>
-                      <span className="text-slate-400 block text-[8px] uppercase">
-                        Breed
-                      </span>
-                      <span className="font-bold text-slate-700">
-                        {horse.breed}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block text-[8px] uppercase">
-                        Gender
-                      </span>
-                      <span className="font-bold text-slate-700">
-                        {horse.gender}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+              {isLocked ? "Locked" : "Active"}
+            </span>
+            </div>
+
+            <div className="flex items-center gap-6 text-sm text-muted-foreground mt-1">
+              <span>{horse.breed}</span>
+              <span>
+              {horse.birthDate
+                  ? `${new Date().getFullYear() - new Date(horse.birthDate).getFullYear()} years old`
+                  : "N/A"}
+            </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+              onClick={() => navigate(`/horses/${horse.id}`)}
+              className="px-5 py-2.5 text-sm font-semibold border border-border rounded-xl hover:bg-white hover:shadow transition"
+          >
+            View Detail
+          </button>
+
+          <button
+              onClick={() => onRetire(horse.id)}
+              disabled={isLocked}
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Trash2 className="w-4 h-4" />
+            Retire
+          </button>
+        </div>
+      </div>
+  );
+}
+
+export function HorseManagement({
+                                  horses,
+                                  isHorseLocked,
+                                  onRetire,
+                                  onOpenAddModal,
+                                  pagination,
+                                  setPage,
+                                }: HorseManagementProps) {
+  const activeHorses = horses.filter((h) => h.status !== "Retired");
+
+  return (
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8 border-b pb-6">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-[#064E3B]">
+              Horse Registry
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Manage your stable profiles and retire active horses
+            </p>
+          </div>
+
+          <button
+              onClick={onOpenAddModal}
+              className="flex items-center gap-2 bg-[#064E3B] text-white px-6 py-3 rounded-2xl font-semibold hover:bg-[#043E2F] transition shadow-sm"
+          >
+            <Plus className="w-5 h-5" />
+            Add New Horse
+          </button>
+        </div>
+
+        {/* List */}
+        <div className="bg-white border rounded-2xl overflow-hidden">
+          {activeHorses.length > 0 ? (
+              <div className="divide-y">
+                {activeHorses.map((horse) => (
+                    <HorseRow
+                        key={horse.id}
+                        horse={horse}
+                        isLocked={isHorseLocked(horse.id)}
+                        onRetire={onRetire}
+                    />
+                ))}
+              </div>
+          ) : (
+              <div className="py-24 text-center">
+                <p className="text-muted-foreground text-lg">No active horses in your registry.</p>
                 <button
-                  onClick={() => onRetire(horse.id)}
-                  disabled={locked}
-                  className="mt-4 w-full flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 hover:border-rose-300 text-slate-500 hover:text-rose-600 py-2 transition disabled:opacity-40"
+                    onClick={onOpenAddModal}
+                    className="mt-4 text-[#064E3B] font-semibold hover:underline"
                 >
-                  <Trash2 className="w-3.5 h-3.5" /> Retire Horse
+                  Add your first horse →
                 </button>
               </div>
-            );
-          })}
-      </div>
-      {pagination.totalPages > 1 && (
-        <div className="flex items-center gap-2 pt-3">
-          <button
-            disabled={pagination.page <= 1}
-            onClick={() => setPage(pagination.page - 1)}
-            className="border rounded-lg px-3 py-1"
-          >
-            Prev
-          </button>
+          )}
+        </div>
 
-          <span>
-            {pagination.page} / {pagination.totalPages}
+        {/* Pagination */}
+        {pagination.totalPages > 1 && (
+            <div className="flex items-center justify-center gap-4 mt-8">
+              <button
+                  disabled={pagination.page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="px-6 py-2 border rounded-xl disabled:opacity-50 hover:bg-muted transition"
+              >
+                Previous
+              </button>
+
+              <span className="px-6 py-2 text-sm font-medium text-muted-foreground">
+            Page {pagination.page} of {pagination.totalPages}
           </span>
 
-          <button
-            disabled={pagination.page >= pagination.totalPages}
-            onClick={() => setPage(pagination.page + 1)}
-            className="border rounded-lg px-3 py-1"
-          >
-            Next
-          </button>
-        </div>
-      )}
-    </div>
+              <button
+                  disabled={pagination.page >= pagination.totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="px-6 py-2 border rounded-xl disabled:opacity-50 hover:bg-muted transition"
+              >
+                Next
+              </button>
+            </div>
+        )}
+      </div>
   );
 }

@@ -2,40 +2,10 @@ import api from "../lib/api";
 import type {
   TournamentApiStatus,
   RaceApiStatus,
-  TournamentDetail,
-  TournamentListItem,
+  TournamentListResponse, TournamentRacesResponse, TournamentDetail,
 } from "../types/tournament";
 
-export interface TournamentListResponse {
-  data: TournamentListItem[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
 
-export interface TournamentRacesResponse {
-  data: {
-    id: string;
-    tournamentId: string;
-    name: string;
-    roundName: string;
-    distanceMeters: number;
-    trackCondition: string;
-    scheduledAt: string;
-    venue: string;
-    laneCount: number;
-    status: RaceApiStatus;
-  }[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
 
 export const TournamentService = {
   getTournaments: async (params?: {
@@ -56,7 +26,7 @@ export const TournamentService = {
     return response.data;
   },
 
-  getTournament: async (id: string): Promise<TournamentDetail> => {
+  getTournamentByID: async (id: string): Promise<TournamentDetail> => {
     const response = await api.get(`/tournaments/${id}`);
     return response.data;
   },
@@ -76,6 +46,31 @@ export const TournamentService = {
         limit: params?.limit ?? 10,
       },
     });
+
+    return response.data;
+  },
+
+  registerHorseForTournament: async (
+      id: string,
+      horseId: string
+  ) => {
+    const response = await api.post(
+        `/tournaments/${id}/registrations`,
+        {
+          horseId,
+        }
+    );
+
+    return response.data;
+  },
+
+  getTournamentRegistration: async (
+      id: string,
+      regId: string
+  ) => {
+    const response = await api.get(
+        `/tournaments/${id}/registrations/${regId}`
+    );
 
     return response.data;
   },

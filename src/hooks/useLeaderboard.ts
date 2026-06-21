@@ -1,10 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRef } from "react";
 import { HorseService } from "../services/horseService";
-import type { Horse } from "../services/horseService";
-import { JockeyService } from "../services/jockeyService";
-import type { Jockey } from "../types/jockey";
 import type { TransformedHorseRow } from "../components/leaderboard/HorseLeaderboardView";
+import type {Horse} from "../types/horse.ts";
 
 export type LeaderboardTab = "horses" | "jockeys";
 
@@ -24,7 +22,6 @@ export function useLeaderboard() {
   const [totalItems, setTotalItems] = useState<number>(0);
 
   const [horseRows, setHorseRows] = useState<TransformedHorseRow[]>([]);
-  const [jockeyRows, setJockeyRows] = useState<Jockey[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,11 +78,6 @@ export function useLeaderboard() {
           setHorseRows(transformedRows);
         } else {
           // Fetch real jockey rankings
-          const data = await JockeyService.getJockeysByRanking();
-          if (currentRequestId !== requestIdRef.current) return;
-          setJockeyRows(data);
-          setTotalItems(data.length);
-          setTotalPages(Math.max(1, Math.ceil(data.length / limit)));
         }
       } catch (err) {
         if (currentRequestId !== requestIdRef.current) return;
@@ -109,7 +101,6 @@ export function useLeaderboard() {
 
     async function fetchData() {
       if (cancelled) return;
-      if (activeTab === "jockeys" && jockeyRows.length > 0) return;
       await loadLeaderboardData(activeTab, page, pageSize);
     }
 
@@ -118,7 +109,7 @@ export function useLeaderboard() {
     return () => {
       cancelled = true;
     };
-  }, [activeTab, page, pageSize, loadLeaderboardData, jockeyRows.length]);
+  }, [activeTab, page, pageSize, loadLeaderboardData]);
 
   return {
     activeTab,
@@ -129,7 +120,6 @@ export function useLeaderboard() {
     totalPages,
     totalItems,
     horseRows,
-    jockeyRows,
     loading,
     error,
     handleTabChange,

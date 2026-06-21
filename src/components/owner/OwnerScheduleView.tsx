@@ -13,7 +13,7 @@ import { cn } from "../../lib/utils";
 import { ScheduleLayout } from "../schedule/ScheduleLayout";
 import { ScheduleCalendar } from "../schedule/ScheduleCalendar";
 import { ScheduleDetailFrame } from "../schedule/ScheduleDetailFrame";
-import type { MyRide } from "../../hooks/useJockeyRaces";
+import type { MyRide } from "../../hooks/useJockey";
 
 export interface OwnerScheduleViewProps {
   rides: MyRide[];

@@ -1,3 +1,22 @@
+
+export interface LoginResponse {
+  email: string;
+  password: string;
+  captchaToken: string;
+  token: string;
+  user: User;
+}
+
+export type UserFilters = {
+  search?: string;
+  status?: string;
+  role?: string;
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
 export type User = {
   id: string;
   email: string;
@@ -14,6 +33,21 @@ export type User = {
   updated_at: string;
 };
 
+export interface UserListResponse {
+  data: User[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface UserResponse {
+  message: string;
+  User: User;
+}
+
 export type ExtendedProps = {
   email: string;
 };
@@ -24,4 +58,82 @@ export type jockey = {
   weight: number;
   license_number: string;
   experience: string;
+};
+
+export type UpdateProfilePayload = {
+  full_name?: string;
+  email?: string;
+  password?: string;
+  phone?: string;
+  address?: string;
+  avatar?: string;
+};
+
+export type UpdateProfileResponse = {
+  message: string;
+  user: {
+    id: string;
+    full_name: string;
+    email: string;
+    role: string;
+    status: string;
+  };
+  token?: string;
+};
+
+export type UserProfile = {
+  id: string;
+  full_name: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  avatar_url: string;
+  avatarUrl: string;
+  role: string;
+  status: string;
+  weightKg: string;
+  experienceYear: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type UserRace = {
+  id: string;
+  tournamentId: string;
+  name: string;
+  roundName: string;
+  distanceMeters: number;
+  scheduledAt: string;
+  venue: string;
+  status: string;
+};
+
+export type UserRaceListResponse = {
+  data: UserRace[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+export type UserRaceDetail = {
+  id: string;
+  tournamentId: string;
+  name: string;
+  roundName: string;
+  distanceMeters: number;
+  scheduledAt: string;
+  venue: string;
+  status: string;
+  entries?: Array<{
+    id: string;
+    horseId: string;
+    horseName: string;
+    jockeyName: string;
+    clothNumber: number;
+    trainerName?: string;
+  }>;
 };
