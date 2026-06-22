@@ -11,8 +11,10 @@ import {
 import { useNavigate } from "react-router-dom";
 import { usePredictions } from "../../hooks/usePredictions";
 import { useRaces } from "../../hooks/useRaces";
+import { RaceService } from "../../services/RaceService";
+import { PlacePredictionModal } from "./PlacePredictionModal";
 import type { PredictionStatus } from "../../types/prediction";
-import type { RaceListItem } from "../../types/race";
+import type { RaceEntry, RaceListItem } from "../../types/race";
 import { cn } from "../../lib/utils";
 
 type SubTab = "my-predictions" | "open-races";
@@ -65,6 +67,21 @@ const formatDateTime = (dateString: string | undefined) => {
 function OpenRacesTab() {
   const navigate = useNavigate();
   const { races, loading, loadRacesByMonth } = useRaces();
+  const [selectedRace, setSelectedRace] = useState<{ id: string; name: string } | null>(null);
+  const [entries, setEntries] = useState<RaceEntry[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [loadingRaceId, setLoadingRaceId] = useState<string | null>(null);
+
+  type ToastType = "success" | "error" | "info" | "warning";
+  type Toast = { id: number; message: string; type: ToastType };
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const addToast = (message: string, type: ToastType = "success") => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  };
 
   const now = new Date();
   useEffect(() => {
@@ -74,6 +91,21 @@ function OpenRacesTab() {
   const openRaces = races.filter(
     (r: RaceListItem) => r.status === "scheduled" || r.status === "pre_race"
   );
+
+  const handlePredict = async (raceId: string, raceName: string) => {
+    setLoadingRaceId(raceId);
+    setSelectedRace({ id: raceId, name: raceName });
+    try {
+      const raceEntries = await RaceService.getRaceHorses(raceId);
+      setEntries(raceEntries);
+      setModalOpen(true);
+    } catch {
+      addToast("Failed to load race entries", "error");
+      setSelectedRace(null);
+    } finally {
+      setLoadingRaceId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -103,39 +135,87 @@ function OpenRacesTab() {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-3">
-      {openRaces.map((race: RaceListItem) => (
-        <div
-          key={race.id}
-          className="bg-white border border-[#064E3B]/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0 flex-1">
-              <h3 className="font-headline font-bold text-[#064E3B] text-base leading-tight">
-                {race.name}
-              </h3>
-              <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-500 font-medium">
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5" />
-                  {formatDateTime(race.scheduledAt)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5" />
-                  {race.venue}
-                </span>
+    <>
+      <div className="p-4 md:p-6 space-y-3">
+        {openRaces.map((race: RaceListItem) => (
+          <div
+            key={race.id}
+            className="bg-white border border-[#064E3B]/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-headline font-bold text-[#064E3B] text-base leading-tight">
+                  {race.name}
+                </h3>
+                <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-500 font-medium">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    {formatDateTime(race.scheduledAt)}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5" />
+                    {race.venue}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => navigate(`/races/${race.id}`)}
+                  className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 font-bold text-sm px-3 py-2.5 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer"
+                >
+                  Detail
+                </button>
+                <button
+                  onClick={() => handlePredict(race.id, race.name)}
+                  disabled={loadingRaceId === race.id}
+                  className="flex items-center gap-1.5 bg-[#EAB308] text-[#064E3B] font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-[#D9A207] hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <Target className="w-4 h-4" />
+                  {loadingRaceId === race.id ? "Loading..." : "Predict"}
+                </button>
               </div>
             </div>
-            <button
-              onClick={() => navigate(`/races/${race.id}?predict=true`)}
-              className="shrink-0 flex items-center gap-1.5 bg-[#EAB308] text-[#064E3B] font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-[#D9A207] hover:shadow-md transition-all cursor-pointer"
-            >
-              <Target className="w-4 h-4" />
-              Predict
-            </button>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+
+      {/* Toasts */}
+      <div className="fixed top-4 right-4 z-[60] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+        {toasts.map((t) => (
+          <div
+            key={t.id}
+            className={cn(
+              "p-3 rounded-lg border shadow-lg backdrop-blur-md flex items-center gap-2 pointer-events-auto text-xs font-semibold",
+              t.type === "success" && "bg-emerald-50 border-emerald-200 text-emerald-800",
+              t.type === "error" && "bg-rose-50 border-rose-200 text-rose-800",
+              t.type === "warning" && "bg-amber-50 border-amber-200 text-amber-800",
+              t.type === "info" && "bg-white border-slate-200 text-slate-800"
+            )}
+          >
+            <span>{t.message}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Prediction Modal */}
+      {selectedRace && (
+        <PlacePredictionModal
+          raceId={selectedRace.id}
+          raceName={selectedRace.name}
+          entries={entries}
+          open={modalOpen}
+          onClose={() => {
+            setModalOpen(false);
+            setSelectedRace(null);
+            setEntries([]);
+          }}
+          onSuccess={() => {
+            addToast("Prediction placed successfully!", "success");
+          }}
+          addToast={addToast}
+        />
+      )}
+    </>
   );
 }
 
