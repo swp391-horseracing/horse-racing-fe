@@ -383,7 +383,7 @@ export function RaceRegister({ registrations }: RaceRegisterProps) {
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {selectedRegistration.horse.breed} ·{" "}
-                        {formatAge(selectedRegistration.horse.dob)}
+                        {formatAge(selectedRegistration.horse.birthDate)}
                       </p>
                     </div>
                   </div>

@@ -40,7 +40,7 @@ export const HorseService = {
     params?: {
       search?: string;
       breed?: string;
-      isRetired?: string;
+      isRetired?: boolean;
       page?: number;
       limit?: number;
     }
@@ -77,6 +77,21 @@ export const HorseService = {
 
   async retireHorse(id: string): Promise<RetireHorseResponse> {
     const response = await api.post(`/horses/${id}/retire`);
+    return response.data;
+  },
+
+  editHorse: async (
+    id: string,
+    data: {
+      name: string;
+      breed: string;
+      birthDate: string;
+      weightKg: string;
+      imageUrl: string;
+      healthStatus: string;
+    }
+  ) => {
+    const response = await api.patch(`/horses/${id}`, data);
     return response.data;
   },
 };

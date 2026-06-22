@@ -51,7 +51,7 @@ export type ExtendedProps = {
   email: string;
 };
 
-export type jockey = {
+export type Jockey = {
   id: string;
   user_id: string;
   weight: number;
@@ -83,12 +83,10 @@ export type UpdateProfileResponse = {
 export type UserProfile = {
   id: string;
   full_name: string;
-  fullName: string;
   email: string;
   phone: string;
   address: string;
   avatar_url: string;
-  avatarUrl: string;
   role: string;
   status: string;
   weightKg: string;

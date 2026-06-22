@@ -5,7 +5,6 @@ export interface Horse {
   breed: string;
   birthDate: string;
   weightKg: string;
-  dob: string;
   imageUrl: string;
   healthStatus: string;
   status: "Active" | "Retired";

@@ -295,7 +295,7 @@ export function JockeyDashboardOverview({
                 >
                   <div>
                     <p className="font-bold text-[#064E3B] text-sm font-headline">
-                      Horse #{r.horseId}
+                      Horse #{r.horse.id}
                     </p>
                     <p className="text-xs text-slate-555 font-medium mt-0.5">
                       Race #{r.raceId}

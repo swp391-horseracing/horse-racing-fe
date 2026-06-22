@@ -1,4 +1,7 @@
 import type { Horse } from "./horse.ts";
+import type { RaceApiStatus } from "./race.ts";
+
+export type { RaceApiStatus };
 
 export type TournamentApiStatus =
   | "upcoming"
@@ -7,16 +10,6 @@ export type TournamentApiStatus =
   | "registration_closed"
   | "ongoing"
   | "completed"
-  | "cancelled";
-
-export type RaceApiStatus =
-  | "scheduled"
-  | "pre_race"
-  | "ongoing"
-  | "under_review"
-  | "result_confirmed"
-  | "completed"
-  | "postponed"
   | "cancelled";
 
 export interface Tournament {

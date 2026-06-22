@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { HorseService } from "../services/HorseService";
 import { UserService } from "../services/UserService";
+import { JockeyService } from "../services/JockeyService.ts";
 
 import type { Horse } from "../types/horse";
 import type {
@@ -39,6 +40,14 @@ export function useOwner() {
 
   const [page, setPage] = useState(1);
 
+  const [jockeysPagination, setJockeysPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+  });
+  const [jockeyPage, setJockeyPage] = useState(1);
+
   const loadHorses = useCallback(async () => {
     const ownerId = sessionStorage.getItem("userId");
 
@@ -57,6 +66,20 @@ export function useOwner() {
     }
   }, [page]);
 
+  const loadJockeys = useCallback(async () => {
+    try {
+      const response = await JockeyService.getJockeys({
+        page: jockeyPage,
+        limit: 10,
+      });
+
+      setJockeys(response.data ?? []);
+      setJockeysPagination(response.pagination);
+    } catch (error) {
+      console.error("Failed to load jockeys:", error);
+    }
+  }, [jockeyPage]);
+
   const loadRegistrations = useCallback(async () => {
     try {
       const response = await UserService.getMyRegistrations();
@@ -71,14 +94,63 @@ export function useOwner() {
     async (raceId: string, status?: "pending" | "approved" | "rejected") => {
       try {
         const response = await UserService.getRaceInvitations(raceId, status);
-
-        setInvitations(response.data ?? []);
+        const data = (response.data ?? []).map((inv: Invitation) => ({
+          ...inv,
+          raceId: inv.raceId || raceId,
+        }));
+        setInvitations(data);
       } catch (error) {
         console.error("Failed to load invitations:", error);
       }
     },
     []
   );
+
+  const loadAllInvitations = useCallback(async () => {
+    try {
+      const approved = registrations.filter(
+        (r: TournamentRegistrationResponse) => r.status === "approved"
+      );
+      if (approved.length === 0) return;
+
+      const allInvitations: Invitation[] = [];
+
+      for (const reg of approved) {
+        try {
+          const racesRes = await TournamentService.getTournamentRaces(
+            reg.tournament.id
+          );
+          const races = racesRes.data ?? [];
+
+          for (const race of races) {
+            try {
+              const invRes = await UserService.getRaceInvitations(race.id);
+              const raceInvitations = (invRes.data ?? []).map(
+                (inv: Invitation) => ({
+                  ...inv,
+                  raceId: inv.raceId || race.id,
+                })
+              );
+              for (const inv of raceInvitations) {
+                if (!allInvitations.some((i) => i.id === inv.id)) {
+                  allInvitations.push(inv);
+                }
+              }
+            } catch {
+              // skip race if failed
+            }
+          }
+        } catch {
+          // skip tournament if failed
+        }
+      }
+
+      setInvitations(allInvitations);
+      console.log("all invitations:", allInvitations);
+    } catch (error) {
+      console.error("Failed to load all invitations:", error);
+    }
+  }, [registrations]);
 
   const addHorse = async (payload: {
     name: string;
@@ -126,6 +198,22 @@ export function useOwner() {
 
   const retireHorse = async (id: string) => {
     await HorseService.retireHorse(id);
+
+    await loadHorses();
+  };
+
+  const editHorse = async (
+    id: string,
+    payload: {
+      name: string;
+      breed: string;
+      birthDate: string;
+      weightKg: string;
+      imageUrl: string;
+      healthStatus: string;
+    }
+  ) => {
+    await HorseService.editHorse(id, payload);
 
     await loadHorses();
   };
@@ -198,19 +286,23 @@ export function useOwner() {
       try {
         setLoading(true);
 
-        await Promise.all([loadHorses(), loadRegistrations()]);
+        await Promise.all([loadHorses(), loadRegistrations(), loadJockeys()]);
       } finally {
         setLoading(false);
       }
     };
 
     initialize();
-  }, [loadHorses, loadRegistrations]);
+  }, [loadHorses, loadRegistrations, loadJockeys]);
 
   return {
     page,
     setPage,
     pagination,
+
+    jockeyPage,
+    setJockeyPage,
+    jockeysPagination,
 
     horses,
     tournaments,
@@ -223,12 +315,15 @@ export function useOwner() {
     loading,
 
     loadHorses,
+    loadJockeys,
     loadRegistrations,
     loadRegistration,
     loadInvitations,
+    loadAllInvitations,
 
     addHorse,
     updateHorse,
+    editHorse,
     retireHorse,
 
     registerTournament,
