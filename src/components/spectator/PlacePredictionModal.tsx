@@ -1,0 +1,254 @@
+import { useState, useMemo } from "react";
+import { X, Trophy, ArrowRight } from "lucide-react";
+
+import { PredictionService } from "../../services/PredictionService";
+import type { RaceEntry } from "../../types/race";
+
+export interface ExistingPrediction {
+  entryId: string;
+  horseName: string;
+  predictedPosition: number;
+}
+
+interface PlacePredictionModalProps {
+  raceId: string;
+  raceName: string;
+  entries: RaceEntry[];
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  addToast: (
+    message: string,
+    type: "success" | "error" | "info" | "warning"
+  ) => void;
+  existingPrediction?: ExistingPrediction | null;
+  onPlaced?: (data: ExistingPrediction) => void;
+}
+
+const POSITIONS = [
+  { value: 1, label: "1st" },
+  { value: 2, label: "2nd" },
+  { value: 3, label: "3rd" },
+];
+
+export function PlacePredictionModal({
+  raceId,
+  raceName,
+  entries,
+  open,
+  onClose,
+  onSuccess,
+  addToast,
+  existingPrediction,
+  onPlaced,
+}: PlacePredictionModalProps) {
+  const [selectedEntryId, setSelectedEntryId] = useState<string>(
+    () => existingPrediction?.entryId ?? ""
+  );
+  const [selectedPosition, setSelectedPosition] = useState<number>(
+    () => existingPrediction?.predictedPosition ?? 1
+  );
+  const [submitting, setSubmitting] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+
+  const entryMap = useMemo(
+    () => new Map(entries.map((e) => [e.id, e.name])),
+    [entries]
+  );
+
+  if (!open) return null;
+
+  const isEdit = !!existingPrediction;
+
+  const handleConfirmClick = () => {
+    if (!selectedEntryId) {
+      addToast("Please select a horse entry.", "warning");
+      return;
+    }
+    setConfirming(true);
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedEntryId) {
+      addToast("Please select a horse entry.", "warning");
+      return;
+    }
+    try {
+      setSubmitting(true);
+      await PredictionService.placePrediction(
+        raceId,
+        selectedEntryId,
+        selectedPosition
+      );
+      const horseName = entryMap.get(selectedEntryId) || "Unknown";
+      addToast(
+        isEdit
+          ? "Prediction updated successfully!"
+          : "Prediction placed successfully!",
+        "success"
+      );
+      onPlaced?.({
+        entryId: selectedEntryId,
+        horseName,
+        predictedPosition: selectedPosition,
+      });
+      setSelectedEntryId("");
+      setSelectedPosition(1);
+      onSuccess();
+      onClose();
+    } catch (err: unknown) {
+      const error = err as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+      addToast(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to place prediction",
+        "error"
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white border border-[#064E3B]/10 rounded-2xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
+          <div className="flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-[#EAB308]" />
+            <h2 className="font-headline font-bold text-[#064E3B] text-lg">
+              {isEdit ? "Update Prediction" : "Place Prediction"}
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5 text-slate-400" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 mb-1">Race</p>
+            <p className="font-headline font-bold text-[#064E3B] text-base">
+              {raceName}
+            </p>
+          </div>
+
+          <div>
+            <label className="block font-label text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+              Select Entry
+            </label>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {entries.map((entry) => (
+                <label
+                  key={entry.id}
+                  className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all ${
+                    selectedEntryId === entry.id
+                      ? "border-[#064E3B] bg-[#064E3B]/5 ring-1 ring-[#064E3B]"
+                      : "border-slate-100"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="entry"
+                      value={entry.id}
+                      checked={selectedEntryId === entry.id}
+                      onChange={() => setSelectedEntryId(entry.id)}
+                      className="text-[#064E3B] focus:ring-[#064E3B] h-4 w-4 border-slate-300"
+                    />
+                    <div>
+                      <span className="text-sm font-bold text-slate-700">
+                        {entry.name}
+                      </span>
+                      {entry.jockeyName && (
+                        <span className="text-xs text-slate-400 ml-2">
+                          (J: {entry.jockeyName})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <span className="font-label text-[10px] font-bold text-slate-400">
+                    Lane {entry.laneNumber}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-label text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+              Predicted Position
+            </label>
+            <div className="flex gap-3">
+              {POSITIONS.map((pos) => (
+                <button
+                  key={pos.value}
+                  type="button"
+                  onClick={() => setSelectedPosition(pos.value)}
+                  className={`flex-1 py-3 rounded-xl border font-bold text-sm transition-all cursor-pointer ${
+                    selectedPosition === pos.value
+                      ? "border-[#064E3B] bg-[#064E3B]/5 text-[#064E3B] ring-1 ring-[#064E3B]"
+                      : "border-slate-200 text-slate-500 hover:border-slate-300"
+                  }`}
+                >
+                  {pos.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {confirming ? (
+            <div className="space-y-3">
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                <p className="text-xs font-bold text-amber-800 uppercase tracking-wider">
+                  Are you sure?
+                </p>
+                <p className="text-sm font-bold text-amber-700 mt-1">
+                  {entryMap.get(selectedEntryId)} →{" "}
+                  {{ 1: "1st", 2: "2nd", 3: "3rd" }[selectedPosition]} position
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirming(false)}
+                  className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className="flex-1 bg-[#064E3B] text-white font-bold text-sm py-3 rounded-xl hover:bg-[#043E2F] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {submitting ? "Submitting..." : "Yes, Confirm"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={handleConfirmClick}
+              disabled={submitting}
+              className="w-full bg-[#064E3B] text-white font-bold text-sm py-3 rounded-xl hover:bg-[#043E2F] hover:shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {isEdit ? "Update Prediction" : "Confirm Prediction"}
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

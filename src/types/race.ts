@@ -1,9 +1,13 @@
 export type RaceApiStatus =
   | "draft"
-  | "upcoming"
+  | "scheduled"
+  | "pre_race"
   | "ongoing"
+  | "under_review"
+  | "result_confirmed"
   | "completed"
-  | "result_confirmed";
+  | "postponed"
+  | "cancelled";
 
 export interface RaceListItem {
   id: string;

@@ -1,5 +1,10 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
-import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { useMemo, useState, useCallback, useEffect } from "react";
+import {
+  useNavigate,
+  useSearchParams,
+  useLocation,
+  useParams,
+} from "react-router-dom";
 import {
   ArrowLeft,
   Search,
@@ -7,6 +12,11 @@ import {
   Clock,
   MapPin,
   Trophy,
+  Target,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Info,
 } from "lucide-react";
 import { ROUTES } from "../router/routes.tsx";
 
@@ -17,6 +27,8 @@ import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
 import { ScheduleStatCard } from "../components/schedule/ScheduleStatCard";
 import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
+import { PlacePredictionModal } from "../components/spectator/PlacePredictionModal";
+import { cn } from "../lib/utils";
 
 type RaceStatus = "Live" | "Upcoming" | "Completed";
 type StatusFilter = "All" | RaceStatus;
@@ -29,12 +41,14 @@ interface RaceUI extends Omit<RaceListItem, "status"> {
   surface: string;
   className: string;
   status: RaceStatus;
+  isOpenForPrediction: boolean;
 }
 
 const mapApiStatusToUi = (status: RaceApiStatus): RaceStatus => {
   if (status === "ongoing") return "Live";
   if (status === "completed" || status === "result_confirmed")
     return "Completed";
+  if (status === "scheduled" || status === "pre_race") return "Upcoming";
   return "Upcoming";
 };
 
@@ -55,6 +69,8 @@ const mapRaceToUi = (race: RaceListItem): RaceUI => {
     surface: race.venue,
     className: "Standard",
     status: mapApiStatusToUi(race.status),
+    isOpenForPrediction:
+      race.status === "scheduled" || race.status === "pre_race",
   };
 };
 
@@ -94,10 +110,12 @@ function RaceRow({
   race,
   selected,
   onClick,
+  showPredictBadge,
 }: {
   race: RaceUI;
   selected: boolean;
   onClick: () => void;
+  showPredictBadge?: boolean;
 }) {
   const isLive = race.status === "Live";
   return (
@@ -129,8 +147,16 @@ function RaceRow({
         </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0 pl-4">
+        {race.isOpenForPrediction && showPredictBadge && (
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#EAB308]/15 text-[#8A6D00] border border-[#EAB308]/30">
+            Predict
+          </span>
+        )}
         {race.status === "Live" && (
-          <span className="h-2 w-2 rounded-full bg-secondary animate-pulse" />
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
+            Live
+          </span>
         )}
         {race.status === "Completed" && (
           <span className="h-2 w-2 rounded-full bg-muted/80" />
@@ -149,6 +175,7 @@ export default function RacesPage() {
   const [searchParams] = useSearchParams();
   const tournamentIdParam = searchParams.get("tournamentId");
   const tournamentId = tournamentIdParam ?? null;
+  const { id: urlRaceId } = useParams<{ id: string }>();
 
   const routeState = location.state as {
     raceId?: string;
@@ -168,11 +195,44 @@ export default function RacesPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     routeState?.date ? parseLocalDate(routeState.date) : new Date()
   );
-  const [selectedRaceId, setSelectedRaceId] = useState<string | null>(
-    routeState?.raceId ?? null
-  );
+  const raceId = urlRaceId ?? routeState?.raceId ?? null;
 
   const [viewMonth, setViewMonth] = useState<Date>(selectedDate || new Date());
+
+  const [userSession] = useState<{
+    id: string;
+    role: string;
+    fullName: string;
+  } | null>(() => {
+    try {
+      const raw = sessionStorage.getItem("user");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+  const isSpectator = userSession?.role === "spectator";
+  const [predictModalOpen, setPredictModalOpen] = useState(
+    () => !!(urlRaceId && searchParams.get("predict") === "true")
+  );
+  const [modalKey, setModalKey] = useState(0);
+  type ToastType = "success" | "error" | "warning" | "info";
+  type Toast = { id: number; message: string; type: ToastType };
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const addToast = (message: string, type: ToastType = "success") => {
+    const toastId = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id: toastId, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== toastId));
+    }, 4000);
+  };
+
+  const [myPredictions, setMyPredictions] = useState<
+    Map<
+      string,
+      { entryId: string; horseName: string; predictedPosition: number }
+    >
+  >(new Map());
 
   const viewYear = viewMonth.getFullYear();
   const viewMonthIndex = viewMonth.getMonth();
@@ -181,7 +241,12 @@ export default function RacesPage() {
     detail: raceDetail,
     loading: detailLoading,
     error: detailError,
-  } = useRaceDetail(selectedRaceId);
+    refetch: loadDetail,
+  } = useRaceDetail(raceId);
+
+  const currentPrediction = raceDetail
+    ? myPredictions.get(raceDetail.id)
+    : undefined;
 
   useEffect(() => {
     loadRacesByMonth(viewYear, viewMonthIndex + 1);
@@ -197,16 +262,6 @@ export default function RacesPage() {
     }
     return "Tournament";
   }, [tournamentId, eventList]);
-
-  const counts = useMemo(
-    () => ({
-      All: allRaces.length,
-      Live: allRaces.filter((r) => r.status === "Live").length,
-      Upcoming: allRaces.filter((r) => r.status === "Upcoming").length,
-      Completed: allRaces.filter((r) => r.status === "Completed").length,
-    }),
-    [allRaces]
-  );
 
   const filteredRaces = useMemo(() => {
     const lower = search.toLowerCase();
@@ -251,16 +306,31 @@ export default function RacesPage() {
     return allRaces.map((r) => parseLocalDate(r.date));
   }, [allRaces]);
 
-  const handleSelectRace = useCallback((raceId: string) => {
-    setSelectedRaceId(raceId);
-  }, []);
+  const handleSelectRace = useCallback(
+    (id: string) => {
+      navigate(`/races/${id}`);
+    },
+    [navigate]
+  );
 
   const handleCloseDetail = useCallback(() => {
-    setSelectedRaceId(null);
-  }, []);
+    navigate(ROUTES.RACES);
+  }, [navigate]);
 
-  const panelOpen = selectedRaceId !== null;
+  const panelOpen = raceId !== null;
   const isCalendarMode = !tournamentId;
+
+  const visibleRaces = isCalendarMode ? calendarFilteredRaces : filteredRaces;
+
+  const counts = useMemo(
+    () => ({
+      All: visibleRaces.length,
+      Live: visibleRaces.filter((r) => r.status === "Live").length,
+      Upcoming: visibleRaces.filter((r) => r.status === "Upcoming").length,
+      Completed: visibleRaces.filter((r) => r.status === "Completed").length,
+    }),
+    [visibleRaces]
+  );
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
@@ -382,8 +452,9 @@ export default function RacesPage() {
                           <RaceRow
                             key={race.id}
                             race={race}
-                            selected={selectedRaceId === race.id}
+                            selected={raceId === race.id}
                             onClick={() => handleSelectRace(race.id)}
+                            showPredictBadge={isSpectator}
                           />
                         ))
                       ) : (
@@ -411,8 +482,9 @@ export default function RacesPage() {
                           <RaceRow
                             key={race.id}
                             race={race}
-                            selected={selectedRaceId === race.id}
+                            selected={raceId === race.id}
                             onClick={() => handleSelectRace(race.id)}
+                            showPredictBadge={isSpectator}
                           />
                         ))}
                       </div>
@@ -481,9 +553,25 @@ export default function RacesPage() {
                     </div>
                   }
                   headerRight={
-                    <span className="px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm bg-secondary !text-secondary-foreground border-transparent">
-                      Race detail
-                    </span>
+                    isSpectator &&
+                    (raceDetail?.status === "scheduled" ||
+                      raceDetail?.status === "pre_race" ||
+                      currentPrediction) ? (
+                      <button
+                        onClick={() => {
+                          setModalKey((k) => k + 1);
+                          setPredictModalOpen(true);
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EAB308] text-[#064E3B] font-bold text-[11px] hover:bg-[#D9A207] hover:shadow-md transition-all cursor-pointer"
+                      >
+                        <Target className="w-3.5 h-3.5" />
+                        {currentPrediction ? "Update Prediction" : "Predict"}
+                      </button>
+                    ) : (
+                      <span className="px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm bg-secondary !text-secondary-foreground border-transparent">
+                        Race detail
+                      </span>
+                    )
                   }
                   onClose={handleCloseDetail}
                   containerClass="border-slate-200 bg-white shadow-lg"
@@ -528,7 +616,31 @@ export default function RacesPage() {
                       </div>
                     </div>
                   </div>
-
+                  {currentPrediction && (
+                    <div className="bg-amber-50/50 border border-[#EAB308]/20 rounded-xl p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
+                            Your Prediction
+                          </p>
+                          <p className="font-bold text-[#064E3B] text-sm">
+                            {currentPrediction.horseName} →{" "}
+                            {
+                              { 1: "1st", 2: "2nd", 3: "3rd" }[
+                                currentPrediction.predictedPosition
+                              ]
+                            }
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => navigate(ROUTES.ME_PREDICTIONS)}
+                          className="text-xs font-bold text-[#064E3B] hover:underline cursor-pointer"
+                        >
+                          View all predictions →
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3">
                       Race Entries - Horses & Jockeys
@@ -608,6 +720,64 @@ export default function RacesPage() {
                 </ScheduleDetailFrame>
               ) : null}
             </div>
+          )}
+
+          {/* Toast notifications */}
+          <div className="fixed top-4 right-4 z-[60] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+            {toasts.map((t) => (
+              <div
+                key={t.id}
+                className={cn(
+                  "p-3 rounded-lg border shadow-lg backdrop-blur-md flex items-center gap-2 pointer-events-auto text-xs font-semibold",
+                  t.type === "success" &&
+                    "bg-emerald-50 border-emerald-200 text-emerald-800",
+                  t.type === "error" &&
+                    "bg-rose-50 border-rose-200 text-rose-800",
+                  t.type === "warning" &&
+                    "bg-amber-50 border-amber-200 text-amber-800",
+                  t.type === "info" &&
+                    "bg-white border-slate-200 text-slate-800"
+                )}
+              >
+                {t.type === "success" && (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                )}
+                {t.type === "error" && (
+                  <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                )}
+                {t.type === "warning" && (
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                )}
+                {t.type === "info" && (
+                  <Info className="w-4 h-4 text-[#064E3B] shrink-0" />
+                )}
+                <span>{t.message}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Place Prediction Modal */}
+          {raceDetail && (
+            <PlacePredictionModal
+              key={modalKey}
+              raceId={raceDetail.id}
+              raceName={raceDetail.name}
+              entries={raceDetail.entries || []}
+              open={predictModalOpen}
+              onClose={() => setPredictModalOpen(false)}
+              onSuccess={() => {
+                loadDetail();
+              }}
+              addToast={addToast}
+              existingPrediction={currentPrediction}
+              onPlaced={(data) => {
+                setMyPredictions((prev) => {
+                  const next = new Map(prev);
+                  next.set(raceDetail.id, data);
+                  return next;
+                });
+              }}
+            />
           )}
         </div>
       </div>

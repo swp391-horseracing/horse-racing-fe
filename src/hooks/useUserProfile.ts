@@ -40,7 +40,10 @@ export function useUserProfile() {
 
       const u = await UserService.getUser(userId);
       setUser(u);
-      sessionStorage.setItem("user", JSON.stringify(u));
+      sessionStorage.setItem(
+        "user",
+        JSON.stringify({ id: u.id, role: u.role, fullName: u.fullName })
+      );
     } catch (err: unknown) {
       const error = err as ApiError;
       const msg =

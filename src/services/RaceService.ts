@@ -1,5 +1,5 @@
 import api from "../lib/api.ts";
-import type { RaceDetail, RaceListItem } from "../types/race.ts";
+import type { RaceDetail, RaceEntry, RaceListItem } from "../types/race.ts";
 
 export const RaceService = {
   async getRaces(params?: {
@@ -20,6 +20,11 @@ export const RaceService = {
 
   async getRaceHorses(raceId: string) {
     const response = await api.get(`/races/${raceId}/horses/`);
+    return response.data;
+  },
+
+  async getRaceEntries(raceId: string): Promise<RaceEntry[]> {
+    const response = await api.get(`/races/${raceId}/entries`);
     return response.data;
   },
 };

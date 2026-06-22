@@ -40,7 +40,12 @@ export default function FeedPage() {
   // Filter and sort races (Upcoming/Live first, then limit to 5)
   const upcomingRaces = useMemo(() => {
     return apiRaces
-      .filter((r) => r.status === "upcoming" || r.status === "ongoing")
+      .filter(
+        (r) =>
+          r.status === "scheduled" ||
+          r.status === "pre_race" ||
+          r.status === "ongoing"
+      )
       .sort(
         (a, b) =>
           new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()

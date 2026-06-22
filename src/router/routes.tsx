@@ -51,6 +51,9 @@ export const ROUTES = {
   HORSE_DETAIL: "/horses/:id",
   JOCKEY_DETAIL: "/jockeys/:id",
   RACE_DETAIL: "/races/:id",
+  RACE_PREDICT: "/races/:id/predictions",
+  SPECTATOR_PREDICTIONS: "/spectator/predictions",
+  ME_PREDICTIONS: "/me/predictions",
 
   //ERROR
   NOTHING_DETAIL: "/*",
