@@ -12,7 +12,7 @@ import {
   type Violation,
   type ViolationCategory,
   VIOLATION_CATEGORIES,
-} from "./types";
+} from "../../types/referee";
 import { cn } from "../../lib/utils";
 
 interface LiveMonitorPanelProps {

@@ -21,7 +21,7 @@ import {
   formatTime,
   phaseLabel,
   phaseBadgeStyle,
-} from "../components/referee/types";
+} from "../types/referee";
 import RefereeDashboard from "../components/referee/RefereeDashboard";
 import RefereeRaceList from "../components/referee/RefereeRaceList";
 import PreRaceInspectionPanel from "../components/referee/PreRaceInspectionPanel";

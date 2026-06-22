@@ -6,7 +6,7 @@ import {
   Send,
   CheckCircle,
 } from "lucide-react";
-import type { MockRace, LaneEntry, Violation } from "./types";
+import type { MockRace, LaneEntry, Violation } from "../../types/referee";
 import { cn } from "../../lib/utils";
 
 interface RaceReportPanelProps {

@@ -4,7 +4,7 @@ import {
   type RacePhase,
   phaseBadgeStyle,
   phaseLabel,
-} from "./types";
+} from "../../types/referee";
 import { cn } from "../../lib/utils";
 
 interface RefereeRaceListProps {

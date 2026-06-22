@@ -4,7 +4,7 @@ import {
   type MockRace,
   PRE_RACE_WITHDRAW_REASONS,
   PRE_RACE_DISQUALIFY_REASONS,
-} from "./types";
+} from "../../types/referee";
 import { cn } from "../../lib/utils";
 
 interface PreRaceInspectionPanelProps {

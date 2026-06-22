@@ -1,5 +1,5 @@
 import { Trophy, CheckCircle } from "lucide-react";
-import type { MockRace, LaneEntry } from "./types";
+import type { MockRace, LaneEntry } from "../../types/referee";
 import { cn } from "../../lib/utils";
 
 interface ConfirmResultsPanelProps {
