@@ -101,12 +101,15 @@ function RaceRow({
   race,
   selected,
   onClick,
+  showPredictBadge,
 }: {
   race: RaceUI;
   selected: boolean;
   onClick: () => void;
+  showPredictBadge?: boolean;
 }) {
   const isLive = race.status === "Live";
+  const isOpen = race.status === "Upcoming";
   return (
     <button
       onClick={onClick}
@@ -136,8 +139,16 @@ function RaceRow({
         </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0 pl-4">
+        {isOpen && showPredictBadge && (
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#EAB308]/15 text-[#8A6D00] border border-[#EAB308]/30">
+            Predict
+          </span>
+        )}
         {race.status === "Live" && (
-          <span className="h-2 w-2 rounded-full bg-secondary animate-pulse" />
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
+            Live
+          </span>
         )}
         {race.status === "Completed" && (
           <span className="h-2 w-2 rounded-full bg-muted/80" />
@@ -213,6 +224,10 @@ export default function RacesPage() {
     }
   }, []);
 
+  const [myPredictions, setMyPredictions] = useState<
+    Map<string, { entryId: string; horseName: string; predictedPosition: number }>
+  >(new Map());
+
   const viewYear = viewMonth.getFullYear();
   const viewMonthIndex = viewMonth.getMonth();
 
@@ -220,7 +235,12 @@ export default function RacesPage() {
     detail: raceDetail,
     loading: detailLoading,
     error: detailError,
+    refetch: loadDetail,
   } = useRaceDetail(selectedRaceId);
+
+  const currentPrediction = raceDetail
+    ? myPredictions.get(raceDetail.id)
+    : undefined;
 
   useEffect(() => {
     loadRacesByMonth(viewYear, viewMonthIndex + 1);
@@ -251,7 +271,8 @@ export default function RacesPage() {
     const lower = search.toLowerCase();
     return allRaces
       .filter((r) => {
-        const matchStatus = statusFilter === "All" || r.status === statusFilter;
+        const matchStatus =
+          statusFilter === "All" || r.status === statusFilter;
         const matchSearch =
           !lower ||
           r.title.toLowerCase().includes(lower) ||
@@ -423,6 +444,7 @@ export default function RacesPage() {
                             race={race}
                             selected={selectedRaceId === race.id}
                             onClick={() => handleSelectRace(race.id)}
+                            showPredictBadge={isSpectator}
                           />
                         ))
                       ) : (
@@ -452,6 +474,7 @@ export default function RacesPage() {
                             race={race}
                             selected={selectedRaceId === race.id}
                             onClick={() => handleSelectRace(race.id)}
+                            showPredictBadge={isSpectator}
                           />
                         ))}
                       </div>
@@ -520,13 +543,13 @@ export default function RacesPage() {
                     </div>
                   }
                   headerRight={
-                    isSpectator ? (
+                    isSpectator && (raceDetail?.status === "upcoming" || currentPrediction) ? (
                       <button
                         onClick={() => setPredictModalOpen(true)}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EAB308] text-[#064E3B] font-bold text-[11px] hover:bg-[#D9A207] hover:shadow-md transition-all cursor-pointer"
                       >
                         <Target className="w-3.5 h-3.5" />
-                        Predict
+                        {currentPrediction ? "Update Prediction" : "Predict"}
                       </button>
                     ) : (
                       <span className="px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm bg-secondary !text-secondary-foreground border-transparent">
@@ -577,7 +600,30 @@ export default function RacesPage() {
                       </div>
                     </div>
                   </div>
-
+                  {currentPrediction && (
+                    <div className="bg-amber-50/50 border border-[#EAB308]/20 rounded-xl p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
+                            Your Prediction
+                          </p>
+                          <p className="font-bold text-[#064E3B] text-sm">
+                            {currentPrediction.horseName} → {
+                              {1: "1st", 2: "2nd", 3: "3rd"}[
+                                currentPrediction.predictedPosition
+                              ]
+                            }
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => navigate("/spectator/predictions")}
+                          className="text-xs font-bold text-[#064E3B] hover:underline cursor-pointer"
+                        >
+                          View all predictions →
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3">
                       Race Entries - Horses & Jockeys
@@ -705,6 +751,14 @@ export default function RacesPage() {
                 if (selectedRaceId) loadDetail(selectedRaceId);
               }}
               addToast={addToast}
+              existingPrediction={currentPrediction}
+              onPlaced={(data) => {
+                setMyPredictions((prev) => {
+                  const next = new Map(prev);
+                  next.set(raceDetail.id, data);
+                  return next;
+                });
+              }}
             />
           )}
         </div>

@@ -1,8 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { X, Trophy, ArrowRight } from "lucide-react";
 
 import { PredictionService } from "../../services/PredictionService";
 import type { RaceEntry } from "../../types/race";
+
+export interface ExistingPrediction {
+  entryId: string;
+  horseName: string;
+  predictedPosition: number;
+}
 
 interface PlacePredictionModalProps {
   raceId: string;
@@ -15,6 +21,8 @@ interface PlacePredictionModalProps {
     message: string,
     type: "success" | "error" | "info" | "warning"
   ) => void;
+  existingPrediction?: ExistingPrediction | null;
+  onPlaced?: (data: ExistingPrediction) => void;
 }
 
 const POSITIONS = [
@@ -31,12 +39,33 @@ export function PlacePredictionModal({
   onClose,
   onSuccess,
   addToast,
+  existingPrediction,
+  onPlaced,
 }: PlacePredictionModalProps) {
   const [selectedEntryId, setSelectedEntryId] = useState<string>("");
   const [selectedPosition, setSelectedPosition] = useState<number>(1);
   const [submitting, setSubmitting] = useState(false);
 
+  const entryMap = useMemo(
+    () => new Map(entries.map((e) => [e.id, e.name])),
+    [entries]
+  );
+
+  useEffect(() => {
+    if (open) {
+      if (existingPrediction) {
+        setSelectedEntryId(existingPrediction.entryId);
+        setSelectedPosition(existingPrediction.predictedPosition);
+      } else {
+        setSelectedEntryId("");
+        setSelectedPosition(1);
+      }
+    }
+  }, [open, existingPrediction]);
+
   if (!open) return null;
+
+  const isEdit = !!existingPrediction;
 
   const handleSubmit = async () => {
     if (!selectedEntryId) {
@@ -50,7 +79,18 @@ export function PlacePredictionModal({
         selectedEntryId,
         selectedPosition
       );
-      addToast("Prediction placed successfully!", "success");
+      const horseName = entryMap.get(selectedEntryId) || "Unknown";
+      addToast(
+        isEdit
+          ? "Prediction updated successfully!"
+          : "Prediction placed successfully!",
+        "success"
+      );
+      onPlaced?.({
+        entryId: selectedEntryId,
+        horseName,
+        predictedPosition: selectedPosition,
+      });
       setSelectedEntryId("");
       setSelectedPosition(1);
       onSuccess();
@@ -84,7 +124,7 @@ export function PlacePredictionModal({
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-[#EAB308]" />
             <h2 className="font-headline font-bold text-[#064E3B] text-lg">
-              Place Prediction
+              {isEdit ? "Update Prediction" : "Place Prediction"}
             </h2>
           </div>
           <button
@@ -178,7 +218,7 @@ export function PlacePredictionModal({
               "Submitting..."
             ) : (
               <>
-                Confirm Prediction
+                {isEdit ? "Update Prediction" : "Confirm Prediction"}
                 <ArrowRight className="w-4 h-4" />
               </>
             )}

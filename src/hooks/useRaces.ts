@@ -186,6 +186,9 @@ export function useRaceDetail(raceId: string | null) {
   const [detail, setDetail] = useState<RaceDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refetchIndex, setRefetchIndex] = useState(0);
+
+  const refetch = useCallback(() => setRefetchIndex((i) => i + 1), []);
 
   useEffect(() => {
     if (!raceId) {
@@ -227,7 +230,7 @@ export function useRaceDetail(raceId: string | null) {
     return () => {
       cancelled = true;
     };
-  }, [raceId]);
+  }, [raceId, refetchIndex]);
 
   const detailToken = localStorage.getItem("token");
 
@@ -259,5 +262,5 @@ export function useRaceDetail(raceId: string | null) {
     { token: detailToken }
   );
 
-  return { detail, loading, error };
+  return { detail, loading, error, refetch };
 }
