@@ -207,9 +207,11 @@ export default function UserLayout({
   const currentNav = navConfigurations[currentRole];
 
   // Safely handles exact matching, or falls back to 'Dashboard' as the default label
-  const activePath = activeKey || (location.pathname === ROUTES.ME_PREDICTIONS
-    ? "/spectator/predictions"
-    : location.pathname);
+  const activePath =
+    activeKey ||
+    (location.pathname === ROUTES.ME_PREDICTIONS
+      ? "/spectator/predictions"
+      : location.pathname);
   const activeLabel =
     currentNav.find(
       (n) => activePath === n.key || activePath.startsWith(n.key + "/")

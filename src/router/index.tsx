@@ -116,9 +116,7 @@ export const router = createBrowserRouter([
           {
             path: ROUTES.ME_PREDICTIONS,
             element: <SpectatorPage />,
-            children: [
-              { index: true, element: <PredictionsHub /> },
-            ],
+            children: [{ index: true, element: <PredictionsHub /> }],
           },
         ],
       },

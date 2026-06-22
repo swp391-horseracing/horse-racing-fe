@@ -34,8 +34,8 @@ export function usePredictions() {
           (overrideParams?.status ?? statusFilter) !== "all" &&
           (overrideParams?.status ?? statusFilter)
         ) {
-          params.status =
-            (overrideParams?.status ?? statusFilter) as PredictionStatus;
+          params.status = (overrideParams?.status ??
+            statusFilter) as PredictionStatus;
         }
         const data = await PredictionService.getMyPredictions(params);
         setPredictions(data.data);
@@ -60,21 +60,15 @@ export function usePredictions() {
     [page, search, statusFilter]
   );
 
-  const handleSearchChange = useCallback(
-    (value: string) => {
-      setSearch(value);
-      setPage(1);
-    },
-    []
-  );
+  const handleSearchChange = useCallback((value: string) => {
+    setSearch(value);
+    setPage(1);
+  }, []);
 
-  const handleStatusChange = useCallback(
-    (value: PredictionStatus | "all") => {
-      setStatusFilter(value);
-      setPage(1);
-    },
-    []
-  );
+  const handleStatusChange = useCallback((value: PredictionStatus | "all") => {
+    setStatusFilter(value);
+    setPage(1);
+  }, []);
 
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { X, Trophy, ArrowRight } from "lucide-react";
 
 import { PredictionService } from "../../services/PredictionService";
@@ -42,8 +42,12 @@ export function PlacePredictionModal({
   existingPrediction,
   onPlaced,
 }: PlacePredictionModalProps) {
-  const [selectedEntryId, setSelectedEntryId] = useState<string>("");
-  const [selectedPosition, setSelectedPosition] = useState<number>(1);
+  const [selectedEntryId, setSelectedEntryId] = useState<string>(
+    () => existingPrediction?.entryId ?? ""
+  );
+  const [selectedPosition, setSelectedPosition] = useState<number>(
+    () => existingPrediction?.predictedPosition ?? 1
+  );
   const [submitting, setSubmitting] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
@@ -51,19 +55,6 @@ export function PlacePredictionModal({
     () => new Map(entries.map((e) => [e.id, e.name])),
     [entries]
   );
-
-  useEffect(() => {
-    if (open) {
-      setConfirming(false);
-      if (existingPrediction) {
-        setSelectedEntryId(existingPrediction.entryId);
-        setSelectedPosition(existingPrediction.predictedPosition);
-      } else {
-        setSelectedEntryId("");
-        setSelectedPosition(1);
-      }
-    }
-  }, [open, existingPrediction]);
 
   if (!open) return null;
 
@@ -147,9 +138,7 @@ export function PlacePredictionModal({
 
         <div className="p-6 space-y-6">
           <div>
-            <p className="text-xs font-semibold text-slate-500 mb-1">
-              Race
-            </p>
+            <p className="text-xs font-semibold text-slate-500 mb-1">Race</p>
             <p className="font-headline font-bold text-[#064E3B] text-base">
               {raceName}
             </p>
@@ -227,10 +216,7 @@ export function PlacePredictionModal({
                 </p>
                 <p className="text-sm font-bold text-amber-700 mt-1">
                   {entryMap.get(selectedEntryId)} →{" "}
-                  {
-                    { 1: "1st", 2: "2nd", 3: "3rd" }[selectedPosition]
-                  }{" "}
-                  position
+                  {{ 1: "1st", 2: "2nd", 3: "3rd" }[selectedPosition]} position
                 </p>
               </div>
               <div className="flex gap-2">
