@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { cn } from "../../lib/utils";
 import type { MyRide } from "../../hooks/useJockey";
 import {
@@ -20,6 +20,8 @@ import {
   ScheduleDetailFrame,
   type TabConfig,
 } from "../schedule/ScheduleDetailFrame";
+import { RaceService } from "../../services/RaceService";
+import type { RaceEntry } from "../../types/race";
 
 type ComputedRideStatus = "pending" | "accepted" | "declined" | "finished";
 type RideDetailTab = "info" | "runners";
@@ -94,26 +96,6 @@ function RideStatusBadge({
     </span>
   );
 }
-
-const buildMockRunnersForJockey = (selectedRide: MyRide) => {
-  const sampleRunners = [
-    { cloth: 1, horseName: "Northern Star", jockeyName: "D. Patel" },
-    { cloth: 2, horseName: "Silver Drift", jockeyName: "M. Larsson" },
-    { cloth: 3, horseName: "Iron Cascade", jockeyName: "C. Nguyen" },
-    { cloth: 4, horseName: "Desert Wind", jockeyName: "R. Santos" },
-    { cloth: 5, horseName: "Dark Current", jockeyName: "T. Evans" },
-    { cloth: 6, horseName: "Golden Shore", jockeyName: "A. Kim" },
-  ];
-  const ours = {
-    cloth: selectedRide.laneNumber,
-    horseName: selectedRide.ride,
-    jockeyName: "You (Pro Jockey)",
-  };
-  return [
-    ...sampleRunners.filter((r) => r.cloth !== selectedRide.laneNumber),
-    ours,
-  ].sort((a, b) => a.cloth - b.cloth);
-};
 
 export function RidingSchedule({
   rides,
@@ -440,8 +422,25 @@ function JockeyDetailPanel({
   onDecline: (id: string) => void;
 }) {
   const [activeTab, setActiveTab] = useState<RideDetailTab>("info");
+  const [raceEntries, setRaceEntries] = useState<RaceEntry[]>([]);
+  const [entriesLoading, setEntriesLoading] = useState(false);
   const computedRideStatus = getComputedRideStatus(ride);
-  const runners = buildMockRunnersForJockey(ride);
+
+  useEffect(() => {
+    let cancelled = false;
+    setEntriesLoading(true);
+    RaceService.getRaceHorses(ride.id)
+      .then((data) => {
+        if (!cancelled) {
+          setRaceEntries(data ?? []);
+          setEntriesLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setEntriesLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [ride.id]);
 
   const tabs: TabConfig<RideDetailTab>[] = [
     { key: "info", label: "Race Info", icon: <Flag className="w-3.5 h-3.5" /> },
@@ -630,88 +629,98 @@ function JockeyDetailPanel({
             Confirmed Runner Line-up
           </h3>
           <div className="overflow-hidden rounded-xl border border-[#064E3B]/10 bg-white shadow-sm">
-            <table className="w-full text-left">
-              <thead className="bg-[#F4F6F5] border-b border-slate-100">
-                <tr>
-                  <th className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">
-                    Gate
-                  </th>
-                  <th className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-slate-400">
-                    Horse
-                  </th>
-                  <th className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-slate-400">
-                    Jockey
-                  </th>
-                  <th className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-slate-400 text-right">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
-                {runners.map((runner, idx) => {
-                  const isOurs = runner.horseName === ride.ride;
-                  return (
-                    <tr
-                      key={idx}
-                      className={cn(
-                        "transition-colors",
-                        isOurs
-                          ? "bg-[#064E3B]/5 font-semibold"
-                          : "hover:bg-slate-50/50"
-                      )}
-                    >
-                      <td className="px-5 py-3.5 text-center">
-                        <span
-                          className={cn(
-                            "flex h-6 w-6 items-center justify-center rounded-md border text-xs font-black mx-auto shadow-sm",
-                            isOurs
-                              ? "bg-[#064E3B] text-white border-[#064E3B]"
-                              : "bg-white text-slate-700 border-slate-200"
+            {entriesLoading ? (
+              <div className="p-6 text-center text-xs font-semibold text-slate-500">
+                Loading entries...
+              </div>
+            ) : raceEntries.length > 0 ? (
+              <table className="w-full text-left">
+                <thead className="bg-[#F4F6F5] border-b border-slate-100">
+                  <tr>
+                    <th className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">
+                      Gate
+                    </th>
+                    <th className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-slate-400">
+                      Horse
+                    </th>
+                    <th className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-slate-400">
+                      Jockey
+                    </th>
+                    <th className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-slate-400 text-right">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-sm">
+                  {raceEntries.map((entry) => {
+                    const isOurs = entry.name === ride.ride;
+                    return (
+                      <tr
+                        key={entry.id}
+                        className={cn(
+                          "transition-colors",
+                          isOurs
+                            ? "bg-[#064E3B]/5 font-semibold"
+                            : "hover:bg-slate-50/50"
+                        )}
+                      >
+                        <td className="px-5 py-3.5 text-center">
+                          <span
+                            className={cn(
+                              "flex h-6 w-6 items-center justify-center rounded-md border text-xs font-black mx-auto shadow-sm",
+                              isOurs
+                                ? "bg-[#064E3B] text-white border-[#064E3B]"
+                                : "bg-white text-slate-700 border-slate-200"
+                            )}
+                          >
+                            {entry.clothNumber}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span
+                            className={cn(
+                              "font-bold font-headline text-base leading-snug",
+                              isOurs ? "text-[#064E3B]" : "text-slate-800"
+                            )}
+                          >
+                            {entry.name}
+                          </span>
+                          {isOurs && (
+                            <span className="ml-2 text-[9px] font-black uppercase bg-[#064E3B]/10 text-[#064E3B] px-1.5 py-0.5 rounded">
+                              Your Ride
+                            </span>
                           )}
-                        >
-                          {runner.cloth}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span
-                          className={cn(
-                            "font-bold font-headline text-base leading-snug",
-                            isOurs ? "text-[#064E3B]" : "text-slate-800"
+                        </td>
+                        <td className="px-5 py-3.5 text-slate-600 font-medium">
+                          {isOurs ? (
+                            <span className="text-[#064E3B] font-bold">
+                              {computedRideStatus === "declined"
+                                ? "— Refused —"
+                                : "You"}
+                            </span>
+                          ) : (
+                            entry.jockeyName
                           )}
-                        >
-                          {runner.horseName}
-                        </span>
-                        {isOurs && (
-                          <span className="ml-2 text-[9px] font-black uppercase bg-[#064E3B]/10 text-[#064E3B] px-1.5 py-0.5 rounded">
-                            Your Ride
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3.5 text-slate-600 font-medium">
-                        {isOurs ? (
-                          <span className="text-[#064E3B] font-bold">
-                            {computedRideStatus === "declined"
-                              ? "— Refused —"
-                              : "You"}
-                          </span>
-                        ) : (
-                          runner.jockeyName
-                        )}
-                      </td>
-                      <td className="px-5 py-3.5 text-right">
-                        {isOurs ? (
-                          <RideStatusBadge status={computedRideStatus} />
-                        ) : (
-                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded border bg-emerald-50 border-emerald-200 text-emerald-700">
-                            Confirmed
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        </td>
+                        <td className="px-5 py-3.5 text-right">
+                          {isOurs ? (
+                            <RideStatusBadge status={computedRideStatus} />
+                          ) : (
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded border bg-emerald-50 border-emerald-200 text-emerald-700">
+                              Confirmed
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            ) : (
+              <div className="p-6 text-center text-xs font-semibold text-slate-500">
+                No horse entries available yet.
+              </div>
+            )}
           </div>
         </div>
       )}
