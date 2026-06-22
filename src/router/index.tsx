@@ -17,6 +17,7 @@ import AdminTournamentDetailPage from "../pages/AdminTournamentDetailPage.tsx";
 import UserPage from "../pages/UserPage.tsx";
 import OwnerPage from "../pages/OwnerPage.tsx";
 import SpectatorPage from "../pages/SpectatorPage.tsx";
+import RefereePage from "../pages/RefereePage.tsx";
 import LeaderBoardPage from "../pages/LeaderBoardPage.tsx";
 import NotFoundPage from "../pages/NotFoundPage.tsx";
 import HorseDetailPage from "../pages/HorseDetailPage.tsx";
@@ -102,6 +103,23 @@ export const router = createBrowserRouter([
           {
             path: ROUTES.SPECTATOR_DASHBOARD,
             element: <SpectatorPage />,
+          },
+        ],
+      },
+      {
+        element: <ProtectedRoute allowedRoles={["referee"]} />,
+        children: [
+          {
+            path: ROUTES.REFEREE_DASHBOARD,
+            element: <RefereePage />,
+          },
+          {
+            path: ROUTES.REFEREE_RACE_LIST,
+            element: <RefereePage />,
+          },
+          {
+            path: ROUTES.REFEREE_TRACKS,
+            element: <RefereePage />,
           },
         ],
       },

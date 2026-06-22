@@ -80,8 +80,13 @@ export default function UserLayout({
 
   // Detect role context based on routing path prefix
   const path = location.pathname.toLowerCase();
-  let currentRole: "Jockey" | "Owner" | "Spectator" | "UserProfile" | "Admin" =
-    "Jockey";
+  let currentRole:
+    | "Jockey"
+    | "Owner"
+    | "Spectator"
+    | "UserProfile"
+    | "Admin"
+    | "Referee" = "Jockey";
   let sidebarGroupLabel = "Jockey Operations";
 
   if (path.includes("/owner")) {
@@ -90,6 +95,9 @@ export default function UserLayout({
   } else if (path.includes("/spectator")) {
     currentRole = "Spectator";
     sidebarGroupLabel = "Spectator Arena";
+  } else if (path.includes("/referee")) {
+    currentRole = "Referee";
+    sidebarGroupLabel = "Referee Operations";
   } else if (path.includes("/admin")) {
     currentRole = "Admin";
     sidebarGroupLabel = "Admin Controls";
@@ -100,7 +108,7 @@ export default function UserLayout({
 
   // Role-based Nav configurations
   const navConfigurations: Record<
-    "Jockey" | "Owner" | "Spectator" | "Admin" | "UserProfile",
+    "Jockey" | "Owner" | "Spectator" | "Admin" | "UserProfile" | "Referee",
     NavItem[]
   > = {
     Jockey: [
@@ -176,6 +184,18 @@ export default function UserLayout({
         label: "Live Feed",
         icon: Radio,
         key: ROUTES.FEED,
+      },
+    ],
+    Referee: [
+      {
+        label: "Dashboard",
+        icon: LayoutDashboard,
+        key: ROUTES.REFEREE_DASHBOARD,
+      },
+      {
+        label: "Assigned Races",
+        icon: Calendar,
+        key: ROUTES.REFEREE_RACE_LIST,
       },
     ],
     UserProfile: [{ label: "Account", icon: UserCheck, key: "account" }],

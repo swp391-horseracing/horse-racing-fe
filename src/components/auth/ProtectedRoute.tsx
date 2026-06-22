@@ -9,6 +9,7 @@ const ROLE_HOME: Record<string, string> = {
   jockey: ROUTES.JOCKEY_DASHBOARD,
   horse_owner: ROUTES.OWNER_DASHBOARD,
   spectator: ROUTES.SPECTATOR_DASHBOARD,
+  referee: ROUTES.REFEREE_DASHBOARD,
 };
 
 interface ProtectedRouteProps {
