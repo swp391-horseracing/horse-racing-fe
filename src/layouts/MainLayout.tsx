@@ -23,7 +23,6 @@ export default function MainLayout() {
       to: ROUTES.FEED,
       icon: <Newspaper className="w-4 h-4 mr-1.5" />,
     },
-    { label: "Schedule", to: ROUTES.CALENDAR },
     { label: "Horses", to: ROUTES.HORSES },
     { label: "Races", to: ROUTES.RACES },
     { label: "Tournaments", to: ROUTES.TOURNAMENTS },
