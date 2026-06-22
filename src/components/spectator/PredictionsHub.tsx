@@ -1,5 +1,9 @@
-import React, { useState } from "react";
-import { Coins, ArrowRight, Clock } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Search, ChevronLeft, ChevronRight, Coins } from "lucide-react";
+import { usePredictions } from "../../hooks/usePredictions";
+import { useNavigate } from "react-router-dom";
+import type { PredictionStatus } from "../../types/prediction";
+import { cn } from "../../lib/utils";
 
 interface PredictionsHubProps {
   addToast: (
@@ -8,353 +12,282 @@ interface PredictionsHubProps {
   ) => void;
 }
 
-export function PredictionsHub({ addToast }: PredictionsHubProps) {
-  const [selectedRunner, setSelectedRunner] = useState<string>("");
-  const [stake, setStake] = useState<number | "">("");
-  const [activeSubTab, setActiveSubTab] = useState<"Active" | "Historical">(
-    "Active"
-  );
+const FILTER_TABS: { key: PredictionStatus | "all"; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "pending", label: "Pending" },
+  { key: "correct", label: "Correct" },
+  { key: "incorrect", label: "Incorrect" },
+];
 
-  // Dynamic payouts calculation
-  const getMultiplier = (runner: string) => {
-    switch (runner) {
-      case "shadowfax":
-        return 4.0; // 3/1 odds -> stake + 3*stake = 4*stake
-      case "silver-blaze":
-        return 3.5; // 5/2 odds -> stake + 2.5*stake = 3.5*stake
-      case "bucephalus":
-        return 9.0; // 8/1 odds -> stake + 8*stake = 9*stake
-      default:
-        return 0;
+const POSITION_LABELS: Record<number, string> = {
+  1: "1st",
+  2: "2nd",
+  3: "3rd",
+};
+
+const STATUS_BADGE: Record<
+  string,
+  { label: string; class: string }
+> = {
+  pending: {
+    label: "Pending",
+    class: "bg-slate-50 border-slate-200 text-slate-500",
+  },
+  correct: {
+    label: "Correct",
+    class: "bg-emerald-50 border-emerald-200 text-emerald-800",
+  },
+  incorrect: {
+    label: "Incorrect",
+    class: "bg-rose-50 border-rose-200 text-rose-800",
+  },
+};
+
+function getStatus(isCorrect: boolean | null): PredictionStatus {
+  if (isCorrect === null) return "pending";
+  return isCorrect ? "correct" : "incorrect";
+}
+
+export function PredictionsHub({ addToast: _addToast }: PredictionsHubProps) {
+  const navigate = useNavigate();
+  const {
+    predictions,
+    loading,
+    error,
+    page,
+    totalPages,
+    total,
+    search,
+    statusFilter,
+    loadPredictions,
+    handleSearchChange,
+    handleStatusChange,
+    handlePageChange,
+  } = usePredictions();
+
+  const [localSearch, setLocalSearch] = useState(search);
+
+  useEffect(() => {
+    loadPredictions();
+  }, [page, statusFilter]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== search) {
+        handleSearchChange(localSearch);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [localSearch]);
+
+  useEffect(() => {
+    if (search !== localSearch) {
+      loadPredictions({ search: localSearch });
     }
+  }, [page]);
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
-
-  const getMultiplierLabel = (runner: string) => {
-    switch (runner) {
-      case "shadowfax":
-        return "3/1";
-      case "silver-blaze":
-        return "5/2";
-      case "bucephalus":
-        return "8/1";
-      default:
-        return "--";
-    }
-  };
-
-  const potentialPayout =
-    selectedRunner && stake
-      ? Math.round(Number(stake) * getMultiplier(selectedRunner))
-      : "--";
-
-  const handlePlacePrediction = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedRunner) {
-      addToast("Please select a runner first.", "warning");
-      return;
-    }
-    if (!stake || stake < 10) {
-      addToast("Minimum stake amount is 10 tokens.", "warning");
-      return;
-    }
-
-    const runnerName =
-      selectedRunner === "shadowfax"
-        ? "Shadowfax"
-        : selectedRunner === "silver-blaze"
-          ? "Silver Blaze"
-          : "Bucephalus";
-    addToast(
-      `Successfully placed prediction: ${stake} TKNS on ${runnerName} (${getMultiplierLabel(selectedRunner)} odds).`,
-      "success"
-    );
-    setSelectedRunner("");
-    setStake("");
-  };
-
-  const activePredictions = [
-    {
-      event: "R4: Cheltenham",
-      pick: "Desert Orchid",
-      stake: 500,
-      payout: 1250,
-      status: "Live",
-    },
-    {
-      event: "R5: Royal Ascot",
-      pick: "Silver Blaze",
-      stake: 250,
-      payout: 875,
-      status: "Scheduled",
-    },
-    {
-      event: "R6: Epsom Derby",
-      pick: "Red Rum",
-      stake: 1000,
-      payout: 4500,
-      status: "Scheduled",
-    },
-  ];
-
-  const historicalPredictions = [
-    {
-      event: "R3: Dubai World Cup",
-      pick: "Thunderstrike",
-      stake: 300,
-      payout: 900,
-      status: "Won",
-    },
-    {
-      event: "R2: Belmont Stakes",
-      pick: "Golden Boy",
-      stake: 200,
-      payout: 0,
-      status: "Lost",
-    },
-    {
-      event: "R1: Kentucky Derby Prep",
-      pick: "Bourbon Legend",
-      stake: 150,
-      payout: 450,
-      status: "Won",
-    },
-  ];
 
   return (
     <div className="flex-1 overflow-y-auto p-6 max-w-7xl w-full mx-auto font-body">
       <div className="mb-6">
         <h2 className="font-headline text-3xl text-[#064E3B] mb-2">
-          Predictions Hub
+          My Predictions
         </h2>
         <p className="text-sm text-slate-500 font-medium">
-          Place your stakes and monitor live race outcomes.
+          Track your race predictions and results.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Predict Outcome Form (Left/Top) */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 shadow-sm relative overflow-hidden">
-            {/* Decorative Header Accent */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#064E3B] to-[#EAB308]"></div>
+      <div className="bg-white border border-[#064E3B]/10 rounded-2xl shadow-sm overflow-hidden">
+        {/* Toolbar */}
+        <div className="p-4 md:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+              placeholder="Search by race name..."
+              className="w-full h-10 rounded-xl bg-slate-50 border border-slate-200 pl-10 pr-4 text-sm font-medium outline-none focus:ring-1 focus:ring-[#064E3B] focus:border-[#064E3B] transition-all"
+            />
+          </div>
 
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#EAB308]/15 text-[#8A6D00] rounded-full font-label text-[10px] font-bold mb-2 border border-[#EAB308]/30">
-                  <span className="w-2 h-2 rounded-full bg-[#EAB308] animate-pulse"></span>
-                  NEXT RACE
-                </span>
-                <h3 className="font-headline font-bold text-[#064E3B] text-lg">
-                  R5: Royal Ascot
-                </h3>
-              </div>
-              <span className="font-label text-xs text-slate-400 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" /> 12:45
-              </span>
-            </div>
-
-            <form onSubmit={handlePlacePrediction} className="space-y-5">
-              {/* Select Horse */}
-              <div>
-                <label className="block font-label text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                  Select Runner
-                </label>
-                <div className="space-y-2">
-                  {[
-                    {
-                      id: "shadowfax",
-                      name: "Shadowfax",
-                      label: "1. Shadowfax",
-                      odds: "3/1",
-                    },
-                    {
-                      id: "silver-blaze",
-                      name: "Silver Blaze",
-                      label: "2. Silver Blaze",
-                      odds: "5/2",
-                    },
-                    {
-                      id: "bucephalus",
-                      name: "Bucephalus",
-                      label: "3. Bucephalus",
-                      odds: "8/1",
-                    },
-                  ].map((runner) => (
-                    <label
-                      key={runner.id}
-                      className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all ${
-                        selectedRunner === runner.id
-                          ? "border-[#064E3B] bg-[#064E3B]/5 ring-1 ring-[#064E3B]"
-                          : "border-slate-100"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="radio"
-                          name="runner"
-                          value={runner.id}
-                          checked={selectedRunner === runner.id}
-                          onChange={() => setSelectedRunner(runner.id)}
-                          className="text-[#064E3B] focus:ring-[#064E3B] h-4 w-4 border-slate-300"
-                        />
-                        <span className="text-xs font-bold text-slate-700">
-                          {runner.label}
-                        </span>
-                      </div>
-                      <span className="font-label text-[10px] font-bold text-slate-400">
-                        Odds: {runner.odds}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Stake Input */}
-              <div>
-                <label className="block font-label text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                  Stake Amount (Tokens)
-                </label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 pointer-events-none">
-                    <Coins className="w-4 h-4" />
-                  </span>
-                  <input
-                    type="number"
-                    min="10"
-                    step="10"
-                    placeholder="Enter amount..."
-                    value={stake}
-                    onChange={(e) =>
-                      setStake(
-                        e.target.value === "" ? "" : Number(e.target.value)
-                      )
-                    }
-                    className="block w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-1 focus:ring-[#064E3B] focus:border-[#064E3B] text-xs font-semibold transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Expected Return Preview */}
-              <div className="bg-[#F4F6F5]/80 p-4 rounded-xl flex justify-between items-center border border-slate-100 shadow-inner">
-                <span className="font-label text-xs font-bold text-slate-455">
-                  Potential Payout
-                </span>
-                <span className="font-headline text-lg font-black text-[#064E3B] flex items-baseline gap-1">
-                  {potentialPayout}{" "}
-                  {potentialPayout !== "--" && (
-                    <span className="text-xs font-bold font-body text-slate-550">
-                      TKNS
-                    </span>
-                  )}
-                </span>
-              </div>
-
+          <div className="flex gap-1 bg-slate-50 rounded-lg p-1 border border-slate-100">
+            {FILTER_TABS.map((tab) => (
               <button
-                type="submit"
-                className="w-full bg-[#064E3B] text-white font-bold text-sm py-3 rounded-xl hover:bg-[#043E2F] hover:shadow-lg transition-all flex justify-center items-center gap-2 cursor-pointer"
+                key={tab.key}
+                onClick={() => handleStatusChange(tab.key)}
+                className={cn(
+                  "px-3.5 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer",
+                  statusFilter === tab.key
+                    ? "bg-white text-[#064E3B] shadow-sm border border-slate-200"
+                    : "text-slate-500 hover:text-slate-700"
+                )}
               >
-                Place Prediction
-                <ArrowRight className="w-4 h-4" />
+                {tab.label}
               </button>
-            </form>
+            ))}
           </div>
         </div>
 
-        {/* My Predictions Table (Right/Bottom) */}
-        <div className="lg:col-span-8 space-y-6">
-          <div className="bg-white border border-[#064E3B]/10 rounded-2xl shadow-sm overflow-hidden flex flex-col">
-            {/* Header & Tabs */}
-            <div className="p-6 pb-0 border-b border-slate-100 bg-slate-50/20">
-              <h3 className="font-headline font-bold text-[#064E3B] text-lg mb-4">
-                My Predictions
-              </h3>
-              <div className="flex gap-6 border-b border-slate-100">
-                <button
-                  onClick={() => setActiveSubTab("Active")}
-                  className={`pb-3 font-semibold text-sm transition-all relative ${
-                    activeSubTab === "Active"
-                      ? "text-[#064E3B] font-extrabold border-b-2 border-[#064E3B]"
-                      : "text-slate-400 hover:text-slate-650"
-                  }`}
-                >
-                  Active ({activePredictions.length})
-                </button>
-                <button
-                  onClick={() => setActiveSubTab("Historical")}
-                  className={`pb-3 font-semibold text-sm transition-all relative ${
-                    activeSubTab === "Historical"
-                      ? "text-[#064E3B] font-extrabold border-b-2 border-[#064E3B]"
-                      : "text-slate-400 hover:text-slate-650"
-                  }`}
-                >
-                  Historical ({historicalPredictions.length})
-                </button>
-              </div>
-            </div>
-
-            {/* Data Table */}
+        {/* Content */}
+        {loading ? (
+          <div className="py-20 text-center">
+            <p className="text-sm font-semibold text-slate-400">
+              Loading predictions...
+            </p>
+          </div>
+        ) : error ? (
+          <div className="py-20 text-center">
+            <p className="text-sm font-semibold text-red-500">{error}</p>
+            <button
+              onClick={() => loadPredictions()}
+              className="mt-2 text-xs font-bold text-[#064E3B] hover:underline cursor-pointer"
+            >
+              Try again
+            </button>
+          </div>
+        ) : predictions.length === 0 ? (
+          <div className="py-20 text-center">
+            <Coins className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+            <p className="text-sm font-semibold text-slate-400">
+              {search || statusFilter !== "all"
+                ? "No predictions match your filters."
+                : "No predictions yet. Start by predicting on a race!"}
+            </p>
+            {!search && statusFilter === "all" && (
+              <button
+                onClick={() => navigate("/races")}
+                className="mt-3 text-xs font-bold text-[#064E3B] hover:underline cursor-pointer"
+              >
+                Browse races
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50/40">
                     <th className="py-3 px-6 font-label text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      Event
+                      Race
                     </th>
                     <th className="py-3 px-6 font-label text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      Pick
+                      Horse
+                    </th>
+                    <th className="py-3 px-6 font-label text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">
+                      Predicted
                     </th>
                     <th className="py-3 px-6 font-label text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">
-                      Stake
-                    </th>
-                    <th className="py-3 px-6 font-label text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">
-                      Pot. Payout
+                      Reward
                     </th>
                     <th className="py-3 px-6 font-label text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">
                       Status
                     </th>
+                    <th className="py-3 px-6 font-label text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right hidden md:table-cell">
+                      Date
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
-                  {(activeSubTab === "Active"
-                    ? activePredictions
-                    : historicalPredictions
-                  ).map((row, idx) => (
-                    <tr
-                      key={idx}
-                      className="hover:bg-slate-50/50 transition-colors"
-                    >
-                      <td className="py-4 px-6 font-bold text-slate-800">
-                        {row.event}
-                      </td>
-                      <td className="py-4 px-6 text-slate-500">{row.pick}</td>
-                      <td className="py-4 px-6 text-right font-mono text-slate-600">
-                        {row.stake}
-                      </td>
-                      <td className="py-4 px-6 text-right font-mono text-[#064E3B] font-bold">
-                        {row.payout}
-                      </td>
-                      <td className="py-4 px-6 text-center">
-                        <span
-                          className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full font-label text-[9px] font-bold uppercase border ${
-                            row.status === "Live"
-                              ? "bg-amber-50 border-amber-200 text-amber-800 animate-pulse"
-                              : row.status === "Scheduled"
-                                ? "bg-slate-50 border-slate-200 text-slate-500"
-                                : row.status === "Won"
-                                  ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-                                  : "bg-rose-50 border-rose-200 text-rose-800"
-                          }`}
-                        >
-                          {row.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {predictions.map((prediction) => {
+                    const status = getStatus(prediction.isCorrect);
+                    const badge = STATUS_BADGE[status];
+                    return (
+                      <tr
+                        key={prediction.id}
+                        className="hover:bg-slate-50/50 transition-colors"
+                      >
+                        <td className="py-4 px-6">
+                          <button
+                            onClick={() =>
+                              navigate(`/races/${prediction.race.id}`)
+                            }
+                            className="font-bold text-slate-800 hover:text-[#064E3B] hover:underline text-left cursor-pointer"
+                          >
+                            {prediction.race.name}
+                          </button>
+                          <p className="text-[10px] text-slate-400 mt-0.5">
+                            {prediction.race.venue}
+                          </p>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="text-slate-700">
+                            {prediction.predictedEntry.horseName}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-center">
+                          <span className="inline-flex items-center justify-center h-6 w-6 rounded-md border border-slate-200 bg-white shadow-sm text-xs font-black text-slate-800">
+                            {POSITION_LABELS[prediction.predictedPosition] ||
+                              prediction.predictedPosition}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-right font-mono text-slate-600">
+                          {prediction.rewardAmount ? (
+                            <span className="text-[#064E3B] font-bold">
+                              {prediction.rewardAmount}
+                            </span>
+                          ) : (
+                            <span className="text-slate-300">—</span>
+                          )}
+                        </td>
+                        <td className="py-4 px-6 text-center">
+                          <span
+                            className={cn(
+                              "inline-flex items-center justify-center px-2.5 py-0.5 rounded-full font-label text-[9px] font-bold uppercase border",
+                              badge.class
+                            )}
+                          >
+                            {badge.label}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-right text-slate-400 hidden md:table-cell">
+                          {formatDate(prediction.placedAt)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-          </div>
-        </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/20">
+                <p className="text-xs text-slate-500 font-medium">
+                  Page {page} of {totalPages} ({total} total)
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handlePageChange(page - 1)}
+                    disabled={page <= 1}
+                    className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handlePageChange(page + 1)}
+                    disabled={page >= totalPages}
+                    className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

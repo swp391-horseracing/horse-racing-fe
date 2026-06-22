@@ -7,6 +7,11 @@ import {
   Clock,
   MapPin,
   Trophy,
+  Target,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Info,
 } from "lucide-react";
 import { ROUTES } from "../router/routes.tsx";
 
@@ -17,6 +22,8 @@ import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
 import { ScheduleStatCard } from "../components/schedule/ScheduleStatCard";
 import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
+import { PlacePredictionModal } from "../components/spectator/PlacePredictionModal";
+import { cn } from "../lib/utils";
 
 type RaceStatus = "Live" | "Upcoming" | "Completed";
 type StatusFilter = "All" | RaceStatus;
@@ -173,6 +180,38 @@ export default function RacesPage() {
   );
 
   const [viewMonth, setViewMonth] = useState<Date>(selectedDate || new Date());
+
+  const [userSession, setUserSession] = useState<{ role?: string } | null>(
+    () => {
+      try {
+        const raw = sessionStorage.getItem("user");
+        return raw ? JSON.parse(raw) : null;
+      } catch {
+        return null;
+      }
+    }
+  );
+  const isSpectator = userSession?.role === "spectator";
+  const [predictModalOpen, setPredictModalOpen] = useState(false);
+  type ToastType = "success" | "error" | "warning" | "info";
+  type Toast = { id: number; message: string; type: ToastType };
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const addToast = (message: string, type: ToastType = "success") => {
+    const toastId = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id: toastId, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== toastId));
+    }, 4000);
+  };
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("user");
+      setUserSession(raw ? JSON.parse(raw) : null);
+    } catch {
+      setUserSession(null);
+    }
+  }, []);
 
   const viewYear = viewMonth.getFullYear();
   const viewMonthIndex = viewMonth.getMonth();
@@ -481,9 +520,19 @@ export default function RacesPage() {
                     </div>
                   }
                   headerRight={
-                    <span className="px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm bg-secondary !text-secondary-foreground border-transparent">
-                      Race detail
-                    </span>
+                    isSpectator ? (
+                      <button
+                        onClick={() => setPredictModalOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EAB308] text-[#064E3B] font-bold text-[11px] hover:bg-[#D9A207] hover:shadow-md transition-all cursor-pointer"
+                      >
+                        <Target className="w-3.5 h-3.5" />
+                        Predict
+                      </button>
+                    ) : (
+                      <span className="px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm bg-secondary !text-secondary-foreground border-transparent">
+                        Race detail
+                      </span>
+                    )
                   }
                   onClose={handleCloseDetail}
                   containerClass="border-slate-200 bg-white shadow-lg"
@@ -608,6 +657,55 @@ export default function RacesPage() {
                 </ScheduleDetailFrame>
               ) : null}
             </div>
+          )}
+
+          {/* Toast notifications */}
+          <div className="fixed top-4 right-4 z-[60] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+            {toasts.map((t) => (
+              <div
+                key={t.id}
+                className={cn(
+                  "p-3 rounded-lg border shadow-lg backdrop-blur-md flex items-center gap-2 pointer-events-auto text-xs font-semibold",
+                  t.type === "success" &&
+                    "bg-emerald-50 border-emerald-200 text-emerald-800",
+                  t.type === "error" &&
+                    "bg-rose-50 border-rose-200 text-rose-800",
+                  t.type === "warning" &&
+                    "bg-amber-50 border-amber-200 text-amber-800",
+                  t.type === "info" &&
+                    "bg-white border-slate-200 text-slate-800"
+                )}
+              >
+                {t.type === "success" && (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                )}
+                {t.type === "error" && (
+                  <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                )}
+                {t.type === "warning" && (
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                )}
+                {t.type === "info" && (
+                  <Info className="w-4 h-4 text-[#064E3B] shrink-0" />
+                )}
+                <span>{t.message}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Place Prediction Modal */}
+          {raceDetail && (
+            <PlacePredictionModal
+              raceId={raceDetail.id}
+              raceName={raceDetail.name}
+              entries={raceDetail.entries || []}
+              open={predictModalOpen}
+              onClose={() => setPredictModalOpen(false)}
+              onSuccess={() => {
+                if (selectedRaceId) loadDetail(selectedRaceId);
+              }}
+              addToast={addToast}
+            />
           )}
         </div>
       </div>

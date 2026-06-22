@@ -69,13 +69,16 @@ export const router = createBrowserRouter([
         element: <LeaderBoardPage />,
       },
 
-      // ADDED RACES ROUTES HERE:
       {
         path: ROUTES.RACES,
         element: <RacesPage />,
       },
       {
         path: ROUTES.RACE_DETAIL,
+        element: <RacesPage />,
+      },
+      {
+        path: ROUTES.RACE_PREDICT,
         element: <RacesPage />,
       },
 
