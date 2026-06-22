@@ -183,6 +183,7 @@ export default function UserLayout({
         key: "/admin/tournaments",
       },
       { label: "Virtual Economy", icon: TrendingUp, key: "/admin/economy" },
+
       {
         label: "Live Feed",
         icon: Radio,

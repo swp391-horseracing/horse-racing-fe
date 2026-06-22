@@ -14,6 +14,8 @@ import RacesPage from "../pages/RacesPage.tsx";
 import JockeyPage from "../pages/JockeyPage.tsx";
 import AdminPage from "../pages/AdminPage.tsx";
 import AdminTournamentDetailPage from "../pages/AdminTournamentDetailPage.tsx";
+import AdminRaceDetailPage from "../pages/AdminRaceDetailPage.tsx";
+
 import UserPage from "../pages/UserPage.tsx";
 import OwnerPage from "../pages/OwnerPage.tsx";
 import SpectatorPage from "../pages/SpectatorPage.tsx";
@@ -145,8 +147,30 @@ export const router = createBrowserRouter([
             element: <AdminPage />,
           },
           {
+            path: ROUTES.ADMIN_USER_LIST,
+            element: <AdminPage />,
+          },
+          {
+            path: ROUTES.ADMIN_USER_PROFILE,
+            element: <AdminPage />,
+          },
+          { path: "/admin/registry", element: <AdminPage /> },
+          {
+            path: ROUTES.ADMIN_TOURNAMENT_LIST,
+            element: <AdminPage />,
+          },
+          {
             path: ROUTES.ADMIN_TOURNAMENT_DETAIL,
             element: <AdminTournamentDetailPage />,
+          },
+          { path: "/admin/economy", element: <AdminPage /> },
+          {
+            path: ROUTES.ADMIN_TOURNAMENT_RACE_NEW,
+            element: <AdminRaceDetailPage />,
+          },
+          {
+            path: ROUTES.ADMIN_RACE_DETAIL,
+            element: <AdminRaceDetailPage />,
           },
         ],
       },

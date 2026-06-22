@@ -320,16 +320,14 @@ export default function RacesPage() {
   const panelOpen = raceId !== null;
   const isCalendarMode = !tournamentId;
 
-  const visibleRaces = isCalendarMode ? calendarFilteredRaces : filteredRaces;
-
   const counts = useMemo(
     () => ({
-      All: visibleRaces.length,
-      Live: visibleRaces.filter((r) => r.status === "Live").length,
-      Upcoming: visibleRaces.filter((r) => r.status === "Upcoming").length,
-      Completed: visibleRaces.filter((r) => r.status === "Completed").length,
+      All: allRaces.length,
+      Live: allRaces.filter((r) => r.status === "Live").length,
+      Upcoming: allRaces.filter((r) => r.status === "Upcoming").length,
+      Completed: allRaces.filter((r) => r.status === "Completed").length,
     }),
-    [visibleRaces]
+    [allRaces]
   );
 
   return (

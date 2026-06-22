@@ -44,6 +44,10 @@ export const ROUTES = {
   ADMIN_USER_PROFILE: "/admin/users/:id",
   ADMIN_TOURNAMENT_LIST: "/admin/tournaments",
   ADMIN_TOURNAMENT_DETAIL: "/admin/tournaments/:id",
+  ADMIN_TOURNAMENT_NEW: "/admin/tournaments/new",
+  ADMIN_TOURNAMENT_EDIT: "/admin/tournaments/:id/edit",
+  ADMIN_TOURNAMENT_RACE_NEW: "/admin/tournaments/:tournamentId/races/new",
+  ADMIN_RACE_DETAIL: "/admin/races/:id",
   ADMIN_CALENDAR: "/admin/calendar",
   ADMIN_REPORTS: "/admin/reports",
 
