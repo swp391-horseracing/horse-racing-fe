@@ -45,6 +45,7 @@ export function PlacePredictionModal({
   const [selectedEntryId, setSelectedEntryId] = useState<string>("");
   const [selectedPosition, setSelectedPosition] = useState<number>(1);
   const [submitting, setSubmitting] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   const entryMap = useMemo(
     () => new Map(entries.map((e) => [e.id, e.name])),
@@ -53,6 +54,7 @@ export function PlacePredictionModal({
 
   useEffect(() => {
     if (open) {
+      setConfirming(false);
       if (existingPrediction) {
         setSelectedEntryId(existingPrediction.entryId);
         setSelectedPosition(existingPrediction.predictedPosition);
@@ -66,6 +68,14 @@ export function PlacePredictionModal({
   if (!open) return null;
 
   const isEdit = !!existingPrediction;
+
+  const handleConfirmClick = () => {
+    if (!selectedEntryId) {
+      addToast("Please select a horse entry.", "warning");
+      return;
+    }
+    setConfirming(true);
+  };
 
   const handleSubmit = async () => {
     if (!selectedEntryId) {
@@ -209,20 +219,48 @@ export function PlacePredictionModal({
             </div>
           </div>
 
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="w-full bg-[#064E3B] text-white font-bold text-sm py-3 rounded-xl hover:bg-[#043E2F] hover:shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          >
-            {submitting ? (
-              "Submitting..."
-            ) : (
-              <>
-                {isEdit ? "Update Prediction" : "Confirm Prediction"}
-                <ArrowRight className="w-4 h-4" />
-              </>
-            )}
-          </button>
+          {confirming ? (
+            <div className="space-y-3">
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                <p className="text-xs font-bold text-amber-800 uppercase tracking-wider">
+                  Are you sure?
+                </p>
+                <p className="text-sm font-bold text-amber-700 mt-1">
+                  {entryMap.get(selectedEntryId)} →{" "}
+                  {
+                    { 1: "1st", 2: "2nd", 3: "3rd" }[selectedPosition]
+                  }{" "}
+                  position
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirming(false)}
+                  className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className="flex-1 bg-[#064E3B] text-white font-bold text-sm py-3 rounded-xl hover:bg-[#043E2F] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {submitting ? "Submitting..." : "Yes, Confirm"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={handleConfirmClick}
+              disabled={submitting}
+              className="w-full bg-[#064E3B] text-white font-bold text-sm py-3 rounded-xl hover:bg-[#043E2F] hover:shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {isEdit ? "Update Prediction" : "Confirm Prediction"}
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
     </div>
