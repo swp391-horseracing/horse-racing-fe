@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from "react";
 import { X } from "lucide-react";
-import DateTimePicker from "../../DateTimePicker.tsx";
 
 type TournamentFormData = {
   name: string;
@@ -221,14 +220,16 @@ export function TournamentForm({
               <label className="block text-sm font-semibold mb-2">
                 Registration Close Date
               </label>
-              <DateTimePicker
+              <input
+                type="datetime-local"
                 value={form.registrationCloseDate}
-                onChange={(value) =>
+                onChange={(e) =>
                   setForm((prev) => ({
                     ...prev,
-                    registrationCloseDate: value,
+                    registrationCloseDate: e.target.value,
                   }))
                 }
+                className="w-full border rounded-xl px-4 py-3"
               />
             </div>
           </div>
