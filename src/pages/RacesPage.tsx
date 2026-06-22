@@ -199,7 +199,7 @@ export default function RacesPage() {
 
   const [viewMonth, setViewMonth] = useState<Date>(selectedDate || new Date());
 
-  const [userSession] = useState<{ role?: string } | null>(() => {
+  const [userSession] = useState<{ id: string; role: string; fullName: string } | null>(() => {
     try {
       const raw = sessionStorage.getItem("user");
       return raw ? JSON.parse(raw) : null;
