@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Edit3, Plus, Trash2 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { Horse } from "../../types/horse.ts";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +9,7 @@ export interface HorseManagementProps {
   horses: Horse[];
   isHorseLocked: (id: string) => boolean;
   onRetire: (id: string) => void;
+  onEdit: (horse: Horse) => void;
   onOpenAddModal: () => void;
   pagination: {
     page: number;
@@ -20,10 +21,12 @@ export interface HorseManagementProps {
 function HorseRow({
   horse,
   isLocked,
+  onEdit,
   onRetire,
 }: {
   horse: Horse;
   isLocked: boolean;
+  onEdit: (horse: Horse) => void;
   onRetire: (id: string) => void;
 }) {
   const navigate = useNavigate();
@@ -73,6 +76,14 @@ function HorseRow({
       {/* Actions */}
       <div className="flex items-center gap-3 shrink-0">
         <button
+          onClick={() => onEdit(horse)}
+          className="flex items-center gap-2 px-5 py-1 text-sm font-semibold border border-slate-300 text-slate-600 hover:bg-slate-100 rounded-xl transition"
+        >
+          <Edit3 className="w-4 h-4" />
+          Edit
+        </button>
+
+        <button
           onClick={() => navigate(ROUTES.TOURNAMENTS)}
           disabled={isLocked}
           className="flex items-center gap-2 px-5 py-1 text-sm font-semibold border border-primary text-primary hover:bg-primary hover:text-white rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
@@ -96,6 +107,7 @@ function HorseRow({
 export function HorseManagement({
   horses,
   isHorseLocked,
+  onEdit,
   onRetire,
   onOpenAddModal,
   pagination,
@@ -134,6 +146,7 @@ export function HorseManagement({
                 key={horse.id}
                 horse={horse}
                 isLocked={isHorseLocked(horse.id)}
+                onEdit={onEdit}
                 onRetire={onRetire}
               />
             ))}

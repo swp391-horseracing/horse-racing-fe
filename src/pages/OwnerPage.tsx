@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { useOwner } from "../hooks/useOwner.ts";
 import { useJockey } from "../hooks/useJockey.ts";
+import type { Horse } from "../types/horse";
 import { cn } from "../lib/utils";
 import {
   Clock,
@@ -14,6 +15,7 @@ import {
 
 // Modals
 import { AddHorseModal } from "../components/owner/AddHorseModal";
+import { EditHorseModal } from "../components/owner/EditHorseModal";
 import { RegisterTournamentModal } from "../components/owner/RegisterTournamentModal";
 
 // Newly Extracted Sub-Components
@@ -39,6 +41,7 @@ export default function OwnerPage() {
     invitations,
     loading,
     addHorse,
+    editHorse,
     retireHorse,
     registerTournament,
     confirmPairing,
@@ -52,7 +55,11 @@ export default function OwnerPage() {
 
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [showAddHorse, setShowAddHorse] = useState(false);
+  const [editingHorse, setEditingHorse] = useState<Horse | null>(null);
+  const [showEditHorse, setShowEditHorse] = useState(false);
   const [showRegisterTournament, setShowRegisterTournament] = useState(false);
+
+  const toastIdRef = useRef(0);
 
   const [selectedHorseId, setSelectedHorseId] = useState<string | null>(null);
   const [selectedTournamentId, setSelectedTournamentId] = useState<
@@ -60,7 +67,7 @@ export default function OwnerPage() {
   >(null);
 
   const addToast = (message: string, type: ToastType = "success") => {
-    const id = Date.now() + Math.random();
+    const id = ++toastIdRef.current;
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(
       () => setToasts((prev) => prev.filter((t) => t.id !== id)),
@@ -131,6 +138,54 @@ export default function OwnerPage() {
         : serverMessage;
 
       addToast(formattedError || "Failed to save horse details.", "error");
+    }
+  };
+
+  const handleEditHorse = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const data = new FormData(e.currentTarget);
+    const id = data.get("horseId") as string;
+    const name = data.get("name") as string;
+
+    if (
+      horses.some(
+        (h) =>
+          h.id !== id &&
+          h.name.toLowerCase() === name.toLowerCase() &&
+          h.status !== "Retired"
+      )
+    ) {
+      addToast(
+        "Duplicate Name: Another active horse already shares this name.",
+        "error"
+      );
+      return;
+    }
+
+    const payload = {
+      name,
+      breed: data.get("breed") as string,
+      birthDate: data.get("birth_date") as string,
+      weightKg: data.get("weight_kg") as string,
+      imageUrl: "",
+      healthStatus: (data.get("health_status") as string) || "Healthy",
+    };
+
+    try {
+      await editHorse(id, payload);
+      setShowEditHorse(false);
+      setEditingHorse(null);
+      addToast(`Horse "${name}" updated successfully!`, "success");
+    } catch (err: unknown) {
+      const axiosError = err as {
+        response?: { data?: { message?: string | string[] } };
+      };
+      const serverMessage = axiosError?.response?.data?.message;
+      const formattedError = Array.isArray(serverMessage)
+        ? serverMessage.join(", ")
+        : serverMessage;
+
+      addToast(formattedError || "Failed to update horse details.", "error");
     }
   };
 
@@ -218,6 +273,10 @@ export default function OwnerPage() {
           <HorseManagement
             horses={horses}
             isHorseLocked={isHorseLocked}
+            onEdit={(horse) => {
+              setEditingHorse(horse);
+              setShowEditHorse(true);
+            }}
             onRetire={handleRetireHorse}
             onOpenAddModal={() => setShowAddHorse(true)}
             pagination={pagination}
@@ -256,7 +315,10 @@ export default function OwnerPage() {
                   "success"
                 );
               } catch {
-                addToast("Failed to confirm pairing. Please try again.", "error");
+                addToast(
+                  "Failed to confirm pairing. Please try again.",
+                  "error"
+                );
               }
             }}
             onCancelInvite={(invId) => {
@@ -320,6 +382,16 @@ export default function OwnerPage() {
           isOpen={showAddHorse}
           onClose={() => setShowAddHorse(false)}
           onSubmit={handleAddHorse}
+        />
+
+        <EditHorseModal
+          isOpen={showEditHorse}
+          onClose={() => {
+            setShowEditHorse(false);
+            setEditingHorse(null);
+          }}
+          onSubmit={handleEditHorse}
+          initialData={editingHorse}
         />
 
         <RegisterTournamentModal

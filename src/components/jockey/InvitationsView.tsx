@@ -29,7 +29,11 @@ interface InvitationsViewProps {
   onAccept: (id: string) => void;
   onDecline: (id: string) => void;
   onCancel: (id: string) => void;
-  loadAllInvitation: (status?: string, page?: number, limit?: number) => Promise<unknown>;
+  loadAllInvitation: (
+    status?: string,
+    page?: number,
+    limit?: number
+  ) => Promise<unknown>;
   loading?: boolean;
 }
 
@@ -134,9 +138,13 @@ export function InvitationsView({
     return data.filter((item) => {
       const matchesFilter = filter === "All" || item.status === filter;
       const matchesSearch =
-        safeStr(item.horse?.name).toLowerCase().includes(search.toLowerCase()) ||
+        safeStr(item.horse?.name)
+          .toLowerCase()
+          .includes(search.toLowerCase()) ||
         safeStr(item.tournament).toLowerCase().includes(search.toLowerCase()) ||
-        safeStr(item.owner, "fullName").toLowerCase().includes(search.toLowerCase());
+        safeStr(item.owner, "fullName")
+          .toLowerCase()
+          .includes(search.toLowerCase());
       return matchesFilter && matchesSearch;
     });
   }, [data, filter, search]);
@@ -158,7 +166,9 @@ export function InvitationsView({
                 disabled={loading}
                 className="rounded bg-[#F4F6F5] border border-slate-200 p-1.5 text-slate-500 hover:text-[#064E3B] disabled:opacity-40"
               >
-                <RotateCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+                <RotateCw
+                  className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
+                />
               </button>
               {pendingInvites.length > 0 && (
                 <span className="rounded bg-[#EAB308]/20 text-[#D97706] font-bold px-2.5 py-0.5 text-[9px] uppercase border border-[#EAB308]/30">
@@ -326,7 +336,9 @@ function InvitationDetail({
             <p className="text-[9px] text-slate-400 font-bold uppercase">
               Owner
             </p>
-            <p className="text-sm font-semibold text-slate-800">{safeStr(inv.owner, "fullName")}</p>
+            <p className="text-sm font-semibold text-slate-800">
+              {safeStr(inv.owner, "fullName")}
+            </p>
           </div>
           <div>
             <p className="text-[9px] text-slate-400 font-bold uppercase">

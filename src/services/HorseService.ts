@@ -79,4 +79,19 @@ export const HorseService = {
     const response = await api.post(`/horses/${id}/retire`);
     return response.data;
   },
+
+  editHorse: async (
+    id: string,
+    data: {
+      name: string;
+      breed: string;
+      birthDate: string;
+      weightKg: string;
+      imageUrl: string;
+      healthStatus: string;
+    }
+  ) => {
+    const response = await api.patch(`/horses/${id}`, data);
+    return response.data;
+  },
 };

@@ -117,7 +117,9 @@ export function useOwner() {
 
       for (const reg of approved) {
         try {
-          const racesRes = await TournamentService.getTournamentRaces(reg.tournament.id);
+          const racesRes = await TournamentService.getTournamentRaces(
+            reg.tournament.id
+          );
           const races = racesRes.data ?? [];
 
           for (const race of races) {
@@ -196,6 +198,22 @@ export function useOwner() {
 
   const retireHorse = async (id: string) => {
     await HorseService.retireHorse(id);
+
+    await loadHorses();
+  };
+
+  const editHorse = async (
+    id: string,
+    payload: {
+      name: string;
+      breed: string;
+      birthDate: string;
+      weightKg: string;
+      imageUrl: string;
+      healthStatus: string;
+    }
+  ) => {
+    await HorseService.editHorse(id, payload);
 
     await loadHorses();
   };
@@ -305,6 +323,7 @@ export function useOwner() {
 
     addHorse,
     updateHorse,
+    editHorse,
     retireHorse,
 
     registerTournament,
