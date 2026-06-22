@@ -1,24 +1,6 @@
 import { useState } from "react";
 import { X, Trophy, ArrowRight } from "lucide-react";
 
-function HorseIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M4 16v4h3l1-4" />
-      <path d="M10 16v4h3l1-4" />
-      <path d="M2 12c0-2 1-3 3-4l2-1c1-3 3-5 7-5 2 0 4 1 5 3l1 2h1c1 0 1 1 1 2v2c0 1-1 2-2 2h-1l-1 2H7l-1-2H5c-2 0-3-1-3-3z" />
-    </svg>
-  );
-}
 import { PredictionService } from "../../services/PredictionService";
 import type { RaceEntry } from "../../types/race";
 
@@ -146,7 +128,6 @@ export function PlacePredictionModal({
                       onChange={() => setSelectedEntryId(entry.id)}
                       className="text-[#064E3B] focus:ring-[#064E3B] h-4 w-4 border-slate-300"
                     />
-                    <HorseIcon className="w-4 h-4 text-slate-400" />
                     <div>
                       <span className="text-sm font-bold text-slate-700">
                         {entry.name}
