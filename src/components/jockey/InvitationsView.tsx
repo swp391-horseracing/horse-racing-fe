@@ -1,9 +1,5 @@
 import React, { useState, useMemo } from "react";
 import { cn } from "../../lib/utils";
-import type {
-  Invitation,
-  InvStatus,
-} from "../../services/invitationService.ts";
 import {
   Clock,
   CheckCircle,
@@ -14,6 +10,8 @@ import {
   Lock,
   Activity,
 } from "lucide-react";
+import type { Invitation } from "../../types/invitation.ts";
+import type { InvStatus } from "../../services/InvitationService.ts";
 
 type FilterType = "All" | InvStatus;
 

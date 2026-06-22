@@ -5,7 +5,7 @@ import { cn } from "../lib/utils";
 import useHorse from "../hooks/horse/useHorse.ts";
 import { useInvitations } from "../hooks/useInvitations.ts";
 import { useJockey, type MyRide } from "../hooks/useJockey";
-import type { Invitation, InvStatus } from "../services/invitationService.ts";
+import type { Invitation, InvStatus } from "../services/InvitationService.ts";
 
 import {
   Calendar as CalendarIcon,
