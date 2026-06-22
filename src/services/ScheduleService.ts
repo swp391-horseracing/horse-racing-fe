@@ -6,6 +6,6 @@ export const ScheduleService = {
     const response = await api.get("/schedules/races", {
       params: { year, month },
     });
-    return response.data;
+    return response.data?.data ?? response.data ?? [];
   },
 };

@@ -1,74 +1,261 @@
-import { useState, useCallback } from "react";
-import { ScheduleService } from "../services/ScheduleService.ts";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RaceService } from "../services/RaceService";
-import type { RaceListItem, RaceDetail } from "../types/race";
+import { ScheduleService } from "../services/ScheduleService";
+import type { RaceDetail, RaceEntry, RaceListItem } from "../types/race";
+
+type SocketEventHandler = (type: string, data: any) => void;
+
+interface UseRaceSocketOptions {
+  token?: string | null;
+  enabled?: boolean;
+  reconnectDelayMs?: number;
+}
+
+export function useRaceSocket(
+    topics: string[] | null,
+    onEvent: SocketEventHandler,
+    options: UseRaceSocketOptions = {}
+) {
+  const onEventRef = useRef(onEvent);
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shouldReconnectRef = useRef(false);
+  const reconnectCountRef = useRef(0);
+
+  useEffect(() => {
+    onEventRef.current = onEvent;
+  }, [onEvent]);
+
+  const topicsKey = useMemo(() => JSON.stringify(topics ?? []), [topics]);
+
+  useEffect(() => {
+    if (options.enabled === false) return;
+    if (!topics || topics.length === 0) return;
+
+    shouldReconnectRef.current = true;
+
+    const WS_URL = import.meta.env.VITE_WS_URL || "wss://horse-racing-api.patohru.qzz.io";
+    const url = new URL(WS_URL);
+    if (options.token) {
+      url.searchParams.set("token", options.token);
+    }
+
+    const connect = () => {
+      const ws = new WebSocket(url.toString());
+      wsRef.current = ws;
+      console.log("WS",wsRef.current);
+
+      ws.onopen = () => {
+        console.log(`%c✅ WS connected (after ${reconnectCountRef.current} attempt(s))`, 'color:#22c55e');
+        reconnectCountRef.current = 0;
+        try {
+          ws.send(
+              JSON.stringify({
+                type: "subscribe",
+                topics,
+              })
+          );
+        } catch {
+          // ignore
+        }
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          if (message?.type) {
+            console.group(`%c📡 WS event: ${message.type}`, 'font-weight:bold;color:#6366f1');
+            console.log('payload:', message);
+            if (message.data) console.log('data:', message.data);
+            console.groupEnd();
+            onEventRef.current(message.type, message.data);
+          }
+        } catch {
+          // ignore malformed message
+        }
+      };
+
+      ws.onerror = () => {
+        console.warn(`⚠️ WS error (will reconnect...)`);
+      };
+
+      ws.onclose = (event) => {
+        console.warn(`🔌 WS closed (code=${event.code} reason="${event.reason}")`);
+        if (!shouldReconnectRef.current) return;
+
+        reconnectCountRef.current++;
+        reconnectTimerRef.current = setTimeout(
+            connect,
+            options.reconnectDelayMs ?? 3000
+        );
+      };
+    };
+
+    connect();
+
+    return () => {
+      shouldReconnectRef.current = false;
+
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
+
+      const ws = wsRef.current;
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        try {
+          ws.send(
+              JSON.stringify({
+                type: "unsubscribe",
+                topics,
+              })
+          );
+        } catch {
+          // ignore
+        }
+      }
+
+      try {
+        ws?.close();
+      } catch {
+        // ignore
+      }
+
+      wsRef.current = null;
+    };
+  }, [topicsKey, options.enabled, options.token, options.reconnectDelayMs]);
+}
 
 export function useRaces() {
   const [races, setRaces] = useState<RaceListItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const loadRacesByMonth = useCallback(async (year: number, month: number) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      setError(null);
       const data = await ScheduleService.getRacesByMonth(year, month);
-      setRaces(data);
-    } catch (err: unknown) {
-      const error = err as {
-        response?: { data?: { message?: string } };
-        message?: string;
-      };
-      setError(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Failed to load races"
-      );
+      setRaces(Array.isArray(data) ? data : []);
+    } catch {
       setRaces([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  return { races, loading, error, loadRacesByMonth };
+  const token = localStorage.getItem("token");
+
+  useRaceSocket(
+      ["race:*"],
+      useCallback((type, data) => {
+        switch (type) {
+          case "connection:ack":
+            console.log(`%c👤 Dashboard connected as ${data.userId} (${data.role})`, 'color:#059669');
+            break;
+          case "race:status_changed":
+            console.log(`%c🏁 Race ${data.raceId} status: ${data.previousStatus} → ${data.status}`, 'color:#059669');
+            setRaces((prev) =>
+                prev.map((r) =>
+                    r.id === data.raceId ? { ...r, ...data } : r
+                )
+            );
+            break;
+          case "race:result_published":
+            console.log(`%c📋 Results published for race ${data.raceId}`, 'color:#059669');
+            setRaces((prev) =>
+                prev.map((r) =>
+                    r.id === data.raceId ? { ...r, ...data } : r
+                )
+            );
+            break;
+          case "race:result_updated":
+            console.log(`%c✏️ Results updated for race ${data.raceId}`, 'color:#059669');
+            setRaces((prev) =>
+                prev.map((r) =>
+                    r.id === data.raceId ? { ...r, ...data } : r
+                )
+            );
+            break;
+        }
+      }, []),
+      { token }
+  );
+
+  return { races, loading, loadRacesByMonth };
 }
 
-export function useRaceDetail() {
+export function useRaceDetail(raceId: string | null) {
   const [detail, setDetail] = useState<RaceDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadDetail = useCallback(async (raceId: string) => {
+  useEffect(() => {
     if (!raceId) {
       setDetail(null);
+      setError(null);
       return;
     }
-    try {
+
+    let cancelled = false;
+
+    const fetchDetail = async () => {
       setLoading(true);
       setError(null);
-      const data = await RaceService.getRaceById(raceId);
-      data.entries = await RaceService.getRaceHorses(raceId);
-      setDetail(data);
-    } catch (err: unknown) {
-      const error = err as {
-        response?: { data?: { message?: string } };
-        message?: string;
-      };
-      setError(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Failed to load race detail"
-      );
-      setDetail(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      try {
+        const data = await RaceService.getRaceById(raceId);
+        let entries: RaceEntry[] | undefined;
+        try {
+          const horsesResponse = await RaceService.getRaceHorses(raceId);
+          entries = Array.isArray(horsesResponse)
+            ? horsesResponse
+            : horsesResponse?.data ?? [];
+        } catch {
+          entries = undefined;
+        }
+        if (!cancelled) setDetail({ ...data, entries } as RaceDetail);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to load race");
+          setDetail(null);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
 
-  const clearDetail = useCallback(() => {
-    setDetail(null);
-    setError(null);
-  }, []);
+    fetchDetail();
 
-  return { detail, loading, error, loadDetail, clearDetail };
+    return () => {
+      cancelled = true;
+    };
+  }, [raceId]);
+
+  const detailToken = localStorage.getItem("token");
+
+  useRaceSocket(
+      raceId ? [`race:${raceId}`] : null,
+      useCallback((type, data) => {
+        switch (type) {
+          case "connection:ack":
+            console.log(`%c👤 Detail panel connected as ${data.userId} (${data.role})`, 'color:#2563eb');
+            break;
+          case "race:status_changed":
+            console.log(`%c🏁 Race ${data.raceId} status: ${data.previousStatus} → ${data.status}`, 'color:#2563eb');
+            setDetail((prev) =>
+                prev ? { ...prev, status: data.status } : prev
+            );
+            break;
+          case "race:result_published":
+            console.log(`%c📋 Results published for race ${data.raceId}`, 'color:#2563eb');
+            setDetail((prev) => (prev ? { ...prev, ...data } : prev));
+            break;
+          case "race:result_updated":
+            console.log(`%c✏️ Results updated for race ${data.raceId}`, 'color:#2563eb');
+            setDetail((prev) => (prev ? { ...prev, ...data } : prev));
+            break;
+        }
+      }, []),
+      { token: detailToken }
+  );
+
+  return { detail, loading, error };
 }
