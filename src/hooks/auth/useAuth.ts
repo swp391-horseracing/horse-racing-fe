@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AuthService } from "../../services/authService.ts";
+import { AuthService } from "../../services/AuthService.ts";
 import { UserService } from "../../services/UserService.ts";
 
 declare global {

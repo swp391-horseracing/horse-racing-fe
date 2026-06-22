@@ -15,14 +15,13 @@ import {
 // Modals
 import { AddHorseModal } from "../components/owner/AddHorseModal";
 import { RegisterTournamentModal } from "../components/owner/RegisterTournamentModal";
-import { InviteJockeyModal } from "../components/owner/InviteJockeyModal";
 
 // Newly Extracted Sub-Components
 import { OwnerDashBoardOverview } from "../components/owner/OwnerDashBoardOverview";
 import { HorseManagement } from "../components/owner/HorseManagement";
 import { RaceRegister } from "../components/owner/RaceRegister";
-import { JockeyRosterManagement } from "../components/owner/JockeyRosterManagement";
 import { OwnerScheduleView } from "../components/owner/OwnerScheduleView";
+import { JockeyRosterManagement } from "../components/owner/JockeyRosterManagement";
 
 type ToastType = "success" | "error" | "warning" | "info";
 type Toast = { id: number; message: string; type: ToastType };
@@ -42,7 +41,6 @@ export default function OwnerPage() {
     addHorse,
     retireHorse,
     registerTournament,
-    inviteJockey: inviteJockeys,
     confirmPairing,
     cancelInvite,
   } = useOwner();
@@ -52,7 +50,6 @@ export default function OwnerPage() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [showAddHorse, setShowAddHorse] = useState(false);
   const [showRegisterTournament, setShowRegisterTournament] = useState(false);
-  const [showInviteJockey, setShowInviteJockey] = useState(false);
 
   const [selectedHorseId, setSelectedHorseId] = useState<string | null>(null);
   const [selectedTournamentId, setSelectedTournamentId] = useState<
@@ -84,8 +81,7 @@ export default function OwnerPage() {
   const isHorseLocked = (horseId: string): boolean =>
     registrations.some(
       (r) =>
-        r.horseId === horseId &&
-        ["Pending Approval", "Approved", "Waitlisted"].includes(r.status)
+        r.horse.id === horseId && ["pending", "approved"].includes(r.status)
     );
 
   const handleAddHorse = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -192,41 +188,6 @@ export default function OwnerPage() {
     }
   };
 
-  const handleInviteJockeys = async (jockeyIds: number[]) => {
-    if (jockeyIds.length === 0 || !selectedTournamentId || !selectedHorseId)
-      return;
-    try {
-      await Promise.all(
-        jockeyIds.map((jockeyId) =>
-          inviteJockeys(
-            String(selectedTournamentId),
-            String(jockeyId),
-            String(selectedHorseId)
-          )
-        )
-      );
-      setShowInviteJockey(false);
-      addToast(
-        `Dispatched invitations to ${jockeyIds.length} Jockey(s).`,
-        "success"
-      );
-    } catch {
-      addToast("Failed to dispatch riding invitations.", "error");
-    }
-  };
-
-  const handleConfirmPairing = async (invId: number) => {
-    if (await confirmPairing("", String(invId)))
-      addToast("Jockey-horse pairing confirmed & locked.", "success");
-    else addToast("Failed to confirm jockey pairing.", "error");
-  };
-
-  const handleCancelInvite = async (invId: number) => {
-    if (await cancelInvite("", String(invId)))
-      addToast("Invitation cancelled.", "info");
-    else addToast("Failed to cancel invitation.", "error");
-  };
-
   const renderContent = () => {
     if (loading)
       return (
@@ -281,13 +242,23 @@ export default function OwnerPage() {
             tournaments={tournaments}
             jockeys={jockeys}
             invitations={invitations}
-            onOpenInviteModal={(h, t) => {
-              setSelectedHorseId(h);
-              setSelectedTournamentId(t);
-              setShowInviteJockey(true);
+            onOpenInviteModal={(horseId, tournamentId) => {
+              setSelectedHorseId(horseId);
+              setSelectedTournamentId(Number(tournamentId));
+              addToast("Jockey invite modal coming soon", "info");
             }}
-            onConfirmPairing={handleConfirmPairing}
-            onCancelInvite={handleCancelInvite}
+            onConfirmPairing={(invId) => {
+              const inv = invitations.find((i) => i.id === invId);
+              if (inv) {
+                confirmPairing(inv.raceId, invId);
+              }
+            }}
+            onCancelInvite={(invId) => {
+              const inv = invitations.find((i) => i.id === invId);
+              if (inv) {
+                cancelInvite(inv.raceId, invId);
+              }
+            }}
           />
         );
       case "/owner/schedule":
@@ -352,13 +323,6 @@ export default function OwnerPage() {
           initialHorseId={selectedHorseId}
           initialTournamentId={selectedTournamentId}
           onSubmit={handleRegisterTournament}
-        />
-
-        <InviteJockeyModal
-          isOpen={showInviteJockey}
-          onClose={() => setShowInviteJockey(false)}
-          jockeys={jockeys}
-          onDispatch={handleInviteJockeys}
         />
       </div>
     </UserLayout>

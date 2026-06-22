@@ -13,9 +13,9 @@ export interface JockeyRosterManagementProps {
   tournaments: Tournament[];
   jockeys: Jockey[];
   invitations: Invitation[];
-  onOpenInviteModal: (horseId: string, tournamentId: number) => void;
-  onConfirmPairing: (invId: number) => void;
-  onCancelInvite: (invId: number) => void;
+  onOpenInviteModal: (horseId: string, tournamentId: string) => void;
+  onConfirmPairing: (invId: string) => void;
+  onCancelInvite: (invId: string) => void;
 }
 
 export function JockeyRosterManagement({
@@ -38,19 +38,18 @@ export function JockeyRosterManagement({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {approved.map((reg: TournamentRegistration) => {
-          const horse = horses.find((h: Horse) => h.id === reg.horseId);
+          const horse = horses.find((h: Horse) => h.id === reg.horse.id);
           const tournament = tournaments.find(
-            (t: Tournament) => t.id === reg.tournamentId
+            (t: Tournament) => t.id === reg.tournament.id
           );
           if (!horse || !tournament) return null;
 
           const invites = invitations.filter(
             (i: Invitation) =>
-              i.horseId === reg.horseId &&
-              i.tournamentId === Number(reg.tournamentId)
+              i.horseId === reg.horse.id && i.tournamentId === reg.tournament.id
           );
           const locked = invites.find(
-            (i: Invitation) => i.status === "Confirmed"
+            (i: Invitation) => i.status === "confirmed"
           );
 
           return (
@@ -73,9 +72,7 @@ export function JockeyRosterManagement({
                   </span>
                 ) : (
                   <button
-                    onClick={() =>
-                      onOpenInviteModal(horse.id, Number(tournament.id))
-                    }
+                    onClick={() => onOpenInviteModal(horse.id, tournament.id)}
                     className="rounded-lg bg-[#064E3B] text-white px-2.5 py-1.5 text-[10px] font-bold"
                   >
                     Hire Jockey
@@ -86,7 +83,7 @@ export function JockeyRosterManagement({
               <div className="space-y-1.5 pt-2 mt-3 border-t">
                 {invites.map((inv: Invitation) => {
                   const jockey = jockeys.find(
-                    (j: Jockey) => j.id === inv.jockeyId
+                    (j: Jockey) => String(j.id) === inv.jockeyId
                   );
                   return (
                     <div
@@ -105,27 +102,27 @@ export function JockeyRosterManagement({
                         <span
                           className={cn(
                             "text-[8px] font-black uppercase px-1.5 py-0.5 rounded border",
-                            inv.status === "Confirmed" &&
+                            inv.status === "confirmed" &&
                               "bg-emerald-50 border-emerald-200 text-emerald-800",
-                            inv.status === "Accepted" &&
+                            inv.status === "accepted" &&
                               "bg-blue-50 border-blue-200 text-blue-800",
-                            inv.status === "Pending" &&
+                            inv.status === "pending" &&
                               "bg-amber-50 border-amber-200 text-amber-800"
                           )}
                         >
                           {inv.status}
                         </span>
-                        {inv.status === "Accepted" && !locked && (
+                        {inv.status === "accepted" && !locked && (
                           <button
-                            onClick={() => onConfirmPairing(Number(inv.id))}
+                            onClick={() => onConfirmPairing(inv.id)}
                             className="rounded bg-emerald-600 text-white px-2 py-0.5 text-[9px] font-bold"
                           >
                             Lock
                           </button>
                         )}
-                        {inv.status === "Pending" && (
+                        {inv.status === "pending" && (
                           <button
-                            onClick={() => onCancelInvite(Number(inv.id))}
+                            onClick={() => onCancelInvite(inv.id)}
                             className="text-rose-600 text-[10px] font-bold"
                           >
                             Cancel

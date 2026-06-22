@@ -3,6 +3,8 @@ import { UserService } from "../services/UserService";
 import type { Ride } from "../types/race.ts";
 export type MyRide = Ride;
 import type { UserRace } from "../types/user.ts";
+import type { Jockey } from "../types/jockey.ts";
+import { JockeyService } from "../services/JockeyService.ts";
 
 export function useJockey() {
   const [rides, setRides] = useState<Ride[]>([]);
@@ -14,6 +16,14 @@ export function useJockey() {
     total: 0,
     totalPages: 0,
   });
+  const [jockeysPagination, setJockeysPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+  });
+  const [page, setPage] = useState(1);
+  const [jockeys, setJockeys] = useState<Jockey[]>([]);
 
   const mapApiRaceToMyRide = (race: UserRace): Ride => {
     return {
@@ -42,6 +52,26 @@ export function useJockey() {
       ranking: undefined,
     };
   };
+
+  const loadJockey = useCallback(async () => {
+    try {
+      const response = await JockeyService.getJockeys({
+        page,
+        limit: 10,
+      });
+
+      console.log("jockey is here:", response.data);
+      setJockeys(response.data ?? []);
+      setJockeysPagination(response.pagination);
+    } catch (error) {
+      console.error("Failed to load horses:", error);
+    }
+  }, [page]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadJockey();
+  }, [loadJockey]);
 
   const loadRaces = useCallback(
     async (page: number = 1, limit: number = 20) => {
@@ -98,10 +128,14 @@ export function useJockey() {
   }, [loadRaces]);
 
   return {
+    page,
+    setPage,
+    jockeys,
     rides,
     loading,
     error,
     pagination,
+    jockeysPagination,
     loadRaces,
     updateRideStatus,
   };

@@ -89,7 +89,7 @@ const Icons = {
 };
 
 const statusConfig: Record<
-  InvStatus | "Confirmed",
+  InvStatus,
   {
     color: string;
     bg: string;
@@ -98,49 +98,49 @@ const statusConfig: Record<
     label: string;
   }
 > = {
-  Pending: {
+  pending: {
     color: "text-[#D97706]",
     bg: "bg-[#D97706]/10",
     border: "border-[#D97706]/20",
     Icon: Icons.Clock,
     label: "Pending",
   },
-  Accepted: {
+  accepted: {
     color: "text-[#064E3B]",
     bg: "bg-[#064E3B]/10",
     border: "border-[#064E3B]/20",
     Icon: Icons.CheckCircle,
     label: "Accepted",
   },
-  Confirmed: {
+  confirmed: {
     color: "text-[#064E3B]",
     bg: "bg-[#064E3B]/10",
     border: "border-[#064E3B]/20",
     Icon: Icons.CheckCircle,
     label: "Confirmed",
   },
-  Declined: {
+  declined: {
     color: "text-rose-700",
     bg: "bg-rose-500/10",
     border: "border-rose-500/20",
     Icon: Icons.XCircle,
     label: "Declined",
   },
-  Expired: {
+  expired: {
     color: "text-slate-500",
     bg: "bg-slate-500/10",
     border: "border-slate-500/20",
     Icon: Icons.Clock,
     label: "Expired",
   },
-  Cancelled: {
+  cancelled: {
     color: "text-slate-500",
     bg: "bg-slate-500/10",
     border: "border-slate-500/20",
     Icon: Icons.XCircle,
     label: "Cancelled",
   },
-  Superseded: {
+  superseded: {
     color: "text-slate-500",
     bg: "bg-slate-500/10",
     border: "border-slate-500/20",
@@ -160,7 +160,7 @@ export default function JockeyPage() {
   const { horses } = useHorse();
   const { invitations, updateInvitationStatus } = useInvitations();
 
-  const [selectedInvId, setSelectedInvId] = useState<number | null>(1);
+  const [selectedInvId, setSelectedInvId] = useState<string | null>("1");
 
   const addToast = (message: string, type: ToastType = "success") => {
     const id = Date.now() + Math.random();
@@ -170,20 +170,18 @@ export default function JockeyPage() {
     }, 4000);
   };
 
-  const handleAcceptInvitation = (id: number) => {
-    const strId = String(id);
-    const target = invitations.find((inv) => inv.id === strId);
-    updateInvitationStatus(id, "Accepted");
+  const handleAcceptInvitation = (id: string) => {
+    const target = invitations.find((inv) => inv.id === id);
+    updateInvitationStatus(id, "accepted");
     addToast(
       `Response recorded successfully! Tentatively registered to ride ${target?.horse}. Awaiting final Owner confirmation.`,
       "success"
     );
   };
 
-  const handleDeclineInvitation = (id: number) => {
-    const strId = String(id);
-    const target = invitations.find((inv) => inv.id === strId);
-    updateInvitationStatus(id, "Declined");
+  const handleDeclineInvitation = (id: string) => {
+    const target = invitations.find((inv) => inv.id === id);
+    updateInvitationStatus(id, "declined");
     addToast(
       `You declined the invitation to ride ${target?.horse}. Deep access revoked.`,
       "info"
@@ -293,8 +291,8 @@ function DashboardOverview({
   setActiveTab: (k: string) => void;
   horseList: JockeyHorse[];
 }) {
-  const pendingInvites = data.filter((inv) => inv.status === "Pending");
-  const activeRaces = data.filter((inv) => inv.status === "Accepted");
+  const pendingInvites = data.filter((inv) => inv.status === "pending");
+  const activeRaces = data.filter((inv) => inv.status === "accepted");
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-7xl w-full mx-auto font-body h-full">
@@ -1252,35 +1250,35 @@ function InvitationsView({
   onDecline,
 }: {
   data: Invitation[];
-  selectedId: number | null;
-  setSelectedId: (id: number | null) => void;
-  onAccept: (id: number) => void;
-  onDecline: (id: number) => void;
+  selectedId: string | null;
+  setSelectedId: (id: string | null) => void;
+  onAccept: (id: string) => void;
+  onDecline: (id: string) => void;
 }) {
   const [filter, setFilter] = useState<FilterType>("All");
   const [search, setSearch] = useState("");
 
   const filters: FilterType[] = [
     "All",
-    "Pending",
-    "Accepted",
-    "Declined",
-    "Expired",
+    "pending",
+    "accepted",
+    "declined",
+    "expired",
   ];
 
   const filtered = useMemo(() => {
     return data.filter((item) => {
       const matchesFilter = filter === "All" || item.status === filter;
       const matchesSearch =
-        item.horse.toLowerCase().includes(search.toLowerCase()) ||
-        item.tournament.toLowerCase().includes(search.toLowerCase()) ||
-        item.owner.toLowerCase().includes(search.toLowerCase());
+        item.horse?.toLowerCase().includes(search.toLowerCase()) ||
+        item.tournament?.toLowerCase().includes(search.toLowerCase()) ||
+        item.owner?.toLowerCase().includes(search.toLowerCase());
       return matchesFilter && matchesSearch;
     });
   }, [data, filter, search]);
 
-  const selectedInv = data.find((i) => i.id === String(selectedId)) ?? null;
-  const pendingInvites = data.filter((i) => i.status === "Pending");
+  const selectedInv = data.find((i) => i.id === selectedId) ?? null;
+  const pendingInvites = data.filter((i) => i.status === "pending");
 
   return (
     <div className="flex-1 flex h-full w-full overflow-hidden font-body">
@@ -1340,14 +1338,14 @@ function InvitationsView({
             filtered.map((inv) => {
               const cfg = statusConfig[inv.status];
               const StatusIcon = cfg.Icon;
-              const isPending = inv.status === "Pending";
+              const isPending = inv.status === "pending";
               return (
                 <div
                   key={inv.id}
-                  onClick={() => setSelectedId(Number(inv.id))}
+                  onClick={() => setSelectedId(inv.id)}
                   className={cn(
                     "relative group flex items-start gap-3 rounded-2xl border p-4 cursor-pointer",
-                    selectedId === Number(inv.id)
+                    selectedId === inv.id
                       ? "border-[#064E3B] bg-[#064E3B]/5"
                       : "border-slate-200 bg-white"
                   )}
@@ -1405,8 +1403,8 @@ function InvitationDetail({
   onDecline,
 }: {
   inv: Invitation | null;
-  onAccept: (id: number) => void;
-  onDecline: (id: number) => void;
+  onAccept: (id: string) => void;
+  onDecline: (id: string) => void;
 }) {
   if (!inv) {
     return (
@@ -1421,7 +1419,7 @@ function InvitationDetail({
 
   const cfg = statusConfig[inv.status];
   const StatusIcon = cfg.Icon;
-  const isPending = inv.status === "Pending";
+  const isPending = inv.status === "pending";
 
   return (
     <div className="p-6 h-full overflow-y-auto space-y-6 font-body">
@@ -1496,13 +1494,13 @@ function InvitationDetail({
         <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 space-y-4 shadow-sm">
           <div className="flex gap-4">
             <button
-              onClick={() => onAccept(Number(inv.id))}
+              onClick={() => onAccept(inv.id)}
               className="flex-1 rounded-xl bg-[#064E3B] text-white hover:bg-[#043E2F] py-3.5 text-xs font-bold transition"
             >
               Accept Invitation
             </button>
             <button
-              onClick={() => onDecline(Number(inv.id))}
+              onClick={() => onDecline(inv.id)}
               className="flex-1 border border-slate-200 bg-[#F4F6F5] text-slate-655 hover:bg-slate-100 py-3.5 text-xs font-bold transition"
             >
               Decline

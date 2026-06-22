@@ -24,8 +24,8 @@ export function JockeyDashboardOverview({
   setActiveTab,
   horseList,
 }: DashboardOverviewProps) {
-  const pendingInvites = data.filter((inv) => inv.status === "Pending");
-  const activeRaces = data.filter((inv) => inv.status === "Accepted");
+  const pendingInvites = data.filter((inv) => inv.status === "pending");
+  const activeRaces = data.filter((inv) => inv.status === "accepted");
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-7xl w-full mx-auto font-body h-full">
@@ -295,13 +295,13 @@ export function JockeyDashboardOverview({
                 >
                   <div>
                     <p className="font-bold text-[#064E3B] text-sm font-headline">
-                      {r.horse}
+                      Horse #{r.horseId}
                     </p>
                     <p className="text-xs text-slate-555 font-medium mt-0.5">
-                      {r.tournament}
+                      Race #{r.raceId}
                     </p>
                     <span className="text-[10px] text-[#D97706] font-bold mt-1 block">
-                      Owner: {r.owner}
+                      Owner #{r.ownerId}
                     </span>
                   </div>
                   <div className="text-right shrink-0">
@@ -309,7 +309,7 @@ export function JockeyDashboardOverview({
                       Gate 5 • Turf
                     </span>
                     <p className="text-xs text-slate-600 font-black font-label">
-                      {r.raceTime}
+                      {r.invitedAt}
                     </p>
                   </div>
                 </div>

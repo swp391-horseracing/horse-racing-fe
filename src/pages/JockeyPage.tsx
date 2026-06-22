@@ -23,7 +23,7 @@ export default function JockeyPage() {
   const { horses } = useHorse();
   const { invitations, updateInvitationStatus } = useInvitations();
 
-  const [selectedInvId, setSelectedInvId] = useState<number | null>(1);
+  const [selectedInvId, setSelectedInvId] = useState<string | null>("1");
 
   const addToast = (message: string, type: ToastType = "success") => {
     const id = Date.now() + Math.random();
@@ -33,22 +33,20 @@ export default function JockeyPage() {
     }, 4000);
   };
 
-  const handleAcceptInvitation = (id: number) => {
-    const strId = String(id);
-    const target = invitations.find((inv) => inv.id === strId);
-    updateInvitationStatus(id, "Accepted");
+  const handleAcceptInvitation = (id: string) => {
+    const target = invitations.find((inv) => inv.id === id);
+    updateInvitationStatus(id, "accepted");
     addToast(
-      `Response recorded successfully! Tentatively registered to ride ${target?.horse}. Awaiting final Owner confirmation.`,
+      `Response recorded successfully! Tentatively registered to ride ${target?.horse ?? target?.horseId}. Awaiting final Owner confirmation.`,
       "success"
     );
   };
 
-  const handleDeclineInvitation = (id: number) => {
-    const strId = String(id);
-    const target = invitations.find((inv) => inv.id === strId);
-    updateInvitationStatus(id, "Declined");
+  const handleDeclineInvitation = (id: string) => {
+    const target = invitations.find((inv) => inv.id === id);
+    updateInvitationStatus(id, "declined");
     addToast(
-      `You declined the invitation to ride ${target?.horse}. Deep access revoked.`,
+      `You declined the invitation to ride ${target?.horse ?? target?.horseId}. Deep access revoked.`,
       "info"
     );
   };

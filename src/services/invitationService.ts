@@ -1,10 +1,10 @@
 export type InvStatus =
-  | "Pending"
-  | "Accepted"
-  | "Declined"
-  | "Confirmed"
-  | "Expired"
-  | "Cancelled"
-  | "Superseded";
+  | "pending"
+  | "accepted"
+  | "declined"
+  | "confirmed"
+  | "expired"
+  | "cancelled"
+  | "superseded";
 
 export type { Invitation } from "../types/invitation";

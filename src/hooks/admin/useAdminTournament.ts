@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { AdminService } from "../../services/adminService";
+import { AdminService } from "../../services/AdminService";
 import type {
   Tournament,
   TournamentApiStatus,
