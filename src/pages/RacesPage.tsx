@@ -37,12 +37,15 @@ interface RaceUI extends Omit<RaceListItem, "status"> {
   surface: string;
   className: string;
   status: RaceStatus;
+  isOpenForPrediction: boolean;
 }
 
 const mapApiStatusToUi = (status: RaceApiStatus): RaceStatus => {
   if (status === "ongoing") return "Live";
   if (status === "completed" || status === "result_confirmed")
     return "Completed";
+  if (status === "scheduled" || status === "pre_race")
+    return "Upcoming";
   return "Upcoming";
 };
 
@@ -63,6 +66,7 @@ const mapRaceToUi = (race: RaceListItem): RaceUI => {
     surface: race.venue,
     className: "Standard",
     status: mapApiStatusToUi(race.status),
+    isOpenForPrediction: race.status === "scheduled" || race.status === "pre_race",
   };
 };
 
@@ -110,7 +114,6 @@ function RaceRow({
   showPredictBadge?: boolean;
 }) {
   const isLive = race.status === "Live";
-  const isOpen = race.status === "Upcoming";
   return (
     <button
       onClick={onClick}
@@ -140,7 +143,7 @@ function RaceRow({
         </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0 pl-4">
-        {isOpen && showPredictBadge && (
+        {race.isOpenForPrediction && showPredictBadge && (
           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#EAB308]/15 text-[#8A6D00] border border-[#EAB308]/30">
             Predict
           </span>
@@ -568,7 +571,7 @@ export default function RacesPage() {
                     </div>
                   }
                   headerRight={
-                    isSpectator && (raceDetail?.status === "upcoming" || currentPrediction) ? (
+                    isSpectator && (raceDetail?.status === "scheduled" || raceDetail?.status === "pre_race" || currentPrediction) ? (
                       <button
                         onClick={() => setPredictModalOpen(true)}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EAB308] text-[#064E3B] font-bold text-[11px] hover:bg-[#D9A207] hover:shadow-md transition-all cursor-pointer"
