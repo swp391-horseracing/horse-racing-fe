@@ -262,7 +262,13 @@ export default function OwnerPage() {
           />
         );
       case "/owner/schedule":
-        return <RidingSchedule rides={ownerRides} loading={ridesLoading} userRole="owner" />;
+        return (
+          <RidingSchedule
+            rides={ownerRides}
+            loading={ridesLoading}
+            userRole="owner"
+          />
+        );
       default:
         return null;
     }

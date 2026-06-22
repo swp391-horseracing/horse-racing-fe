@@ -42,7 +42,10 @@ export function useJockey() {
             : "scheduled",
       ride: race.horse ?? race.ride ?? "",
       laneNumber: race.laneNumber ?? 0,
-      entryStatus: (race.entryStatus ?? "pending") as "pending" | "accepted" | "declined",
+      entryStatus: (race.entryStatus ?? "pending") as
+        | "pending"
+        | "accepted"
+        | "declined",
       confirmedAt: race.confirmedAt ?? null,
       horseOwner: race.jockey ?? race.horseOwner ?? "",
       horsesId: race.horsesId ?? "",

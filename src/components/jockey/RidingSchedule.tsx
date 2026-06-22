@@ -428,6 +428,7 @@ function JockeyDetailPanel({
 
   useEffect(() => {
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEntriesLoading(true);
     RaceService.getRaceHorses(ride.id)
       .then((data) => {
@@ -439,7 +440,9 @@ function JockeyDetailPanel({
       .catch(() => {
         if (!cancelled) setEntriesLoading(false);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [ride.id]);
 
   const tabs: TabConfig<RideDetailTab>[] = [
@@ -824,9 +827,7 @@ function OwnerDetailPanel({
               <MapPin className="w-4 h-4 text-slate-400" />
               Venue
             </span>
-            <span className="font-bold text-slate-800">
-              {ride.venue}
-            </span>
+            <span className="font-bold text-slate-800">{ride.venue}</span>
           </div>
           <div className="flex items-center justify-between px-5 py-3">
             <span className="text-slate-555 flex items-center gap-2 font-medium">
