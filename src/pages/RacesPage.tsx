@@ -238,8 +238,7 @@ export default function RacesPage() {
     loading: detailLoading,
     error: detailError,
     refetch: loadDetail,
-    clearDetail,
-  } = useRaceDetail(selectedRaceId);
+  } = useRaceDetail(raceId);
 
   const currentPrediction = raceDetail
     ? myPredictions.get(raceDetail.id)
@@ -249,25 +248,6 @@ export default function RacesPage() {
     loadRacesByMonth(viewYear, viewMonthIndex + 1);
   }, [viewYear, viewMonthIndex, loadRacesByMonth]);
 
-  useEffect(() => {
-    if (selectedRaceId) {
-      loadDetail(selectedRaceId);
-    } else {
-      clearDetail();
-    }
-  }, [selectedRaceId, loadDetail, clearDetail]);
-
-  useEffect(() => {
-    if (urlRaceId && urlRaceId !== selectedRaceId) {
-      setSelectedRaceId(urlRaceId);
-    }
-  }, [urlRaceId]);
-
-  useEffect(() => {
-    if (urlRaceId && searchParams.get("predict") === "true") {
-      setPredictModalOpen(true);
-    }
-  }, []);
   const allRaces = useMemo(() => apiRaces.map(mapRaceToUi), [apiRaces]);
 
   const tournamentName = useMemo(() => {
@@ -782,7 +762,7 @@ export default function RacesPage() {
               open={predictModalOpen}
               onClose={() => setPredictModalOpen(false)}
               onSuccess={() => {
-                if (raceId) loadDetail(raceId);
+                loadDetail();
               }}
               addToast={addToast}
               existingPrediction={currentPrediction}

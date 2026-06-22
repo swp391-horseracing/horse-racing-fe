@@ -126,7 +126,13 @@ export function useRaceSocket(
 
       wsRef.current = null;
     };
-  }, [topicsKey, options.enabled, options.token, options.reconnectDelayMs]);
+  }, [
+    topicsKey,
+    topics,
+    options.enabled,
+    options.token,
+    options.reconnectDelayMs,
+  ]);
 }
 
 export function useRaces() {
