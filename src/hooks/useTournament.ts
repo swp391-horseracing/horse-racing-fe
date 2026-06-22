@@ -34,7 +34,7 @@ const mapRaceToPreview = (race: RaceItem): RacePreview => {
       hour: "2-digit",
       minute: "2-digit",
     }),
-    date: scheduled.toISOString().split("T")[0],
+    date: `${scheduled.getFullYear()}-${String(scheduled.getMonth() + 1).padStart(2, "0")}-${String(scheduled.getDate()).padStart(2, "0")}`,
     distance: `${race.distanceMeters}m`,
     surface: race.trackCondition,
     status:
