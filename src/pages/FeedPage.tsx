@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { LiveTelemetry } from "../components/feed/LiveTelemetry";
+// import { LiveTelemetry } from "../components/feed/LiveTelemetry";
 import { useRaces } from "../hooks/useRaces";
 import useTournament from "../hooks/useTournament";
 import { ROUTES } from "../router/routes";
@@ -10,7 +10,7 @@ import {
   MapPin,
   Clock,
   Flame,
-  Activity,
+  // Activity,
   ArrowRight,
   Sparkles,
   Award,
@@ -139,7 +139,7 @@ export default function FeedPage() {
           {/* Main Content Area (2 Columns) */}
           <div className="lg:col-span-2 space-y-6">
             {/* Live Telemetry Card (Wraps the telemetry simulation) */}
-            <div className="bg-white rounded-2xl border border-[#064E3B]/10 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+            {/* <div className="bg-white rounded-2xl border border-[#064E3B]/10 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
               <div className="bg-gradient-to-r from-[#064E3B]/5 to-transparent px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Activity className="w-5 h-5 text-[#064E3B]" />
@@ -155,7 +155,7 @@ export default function FeedPage() {
               <div className="p-2">
                 <LiveTelemetry />
               </div>
-            </div>
+            </div> */}
 
             {/* Featured Tournaments Widget */}
             <div className="space-y-4">
