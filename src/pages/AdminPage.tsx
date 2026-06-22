@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
@@ -10,12 +11,40 @@ import TournamentRaceManager from "../components/admin/TournamentRaceManager";
 import VirtualEconomy from "../components/admin/VirtualEconomy";
 import ControlCenterOverview from "../components/admin/controlCenterOverview.tsx";
 
+
 export type ToastType = "success" | "error" | "warning" | "info";
 export type Toast = { id: number; message: string; type: ToastType };
 
+const TAB_ROUTE_MAP: Record<string, string> = {
+  [ROUTES.ADMIN_DASHBOARD]: ROUTES.ADMIN_DASHBOARD,
+  [ROUTES.ADMIN_USER_LIST]: "/admin/access",
+  "/admin/registry": "/admin/registry",
+  [ROUTES.ADMIN_TOURNAMENT_LIST]: "/admin/tournaments",
+  "/admin/economy": "/admin/economy",
+
+};
+
+function getTabKey(pathname: string): string {
+  return TAB_ROUTE_MAP[pathname] ?? ROUTES.ADMIN_DASHBOARD;
+}
+
 export default function AdminPage() {
-  const [active, setActive] = useState<string>(ROUTES.ADMIN_DASHBOARD);
+  const location = useLocation();
+  const [active, setActive] = useState<string>(() => getTabKey(location.pathname));
   const [toasts, setToasts] = useState<Toast[]>([]);
+
+  useEffect(() => {
+    const tabKey = getTabKey(location.pathname);
+    if (tabKey !== active) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setActive(tabKey);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  const handleActiveChange = (key: string) => {
+    setActive(key);
+  };
 
   const addToast = (message: string, type: ToastType = "success") => {
     const id = Date.now() + Math.random();
@@ -29,7 +58,7 @@ export default function AdminPage() {
   const renderContent = () => {
     switch (active) {
       case ROUTES.ADMIN_DASHBOARD:
-        return <ControlCenterOverview setActiveTab={setActive} />;
+        return <ControlCenterOverview setActiveTab={handleActiveChange} />;
       case "/admin/access":
         return <AccessManagement addToast={addToast} />;
       case "/admin/registry":
@@ -39,12 +68,12 @@ export default function AdminPage() {
       case "/admin/economy":
         return <VirtualEconomy addToast={addToast} />;
       default:
-        return <ControlCenterOverview setActiveTab={setActive} />;
+        return <ControlCenterOverview setActiveTab={handleActiveChange} />;
     }
   };
 
   return (
-    <UserLayout activeKey={active} onActiveKeyChange={setActive}>
+    <UserLayout activeKey={active} onActiveKeyChange={handleActiveChange}>
       <div className="h-full w-full relative flex flex-col overflow-hidden">
         {/* Floating Toasts */}
         <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">

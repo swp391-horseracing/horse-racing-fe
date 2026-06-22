@@ -3,7 +3,8 @@ import type { Tournament, TournamentResponse } from "../types/tournament.ts";
 import type { UserResponse } from "../types/user.ts";
 
 export const AdminService = {
-  // List Users
+  // ── Users ──
+
   async getUsers(
     search?: string,
     status?: string,
@@ -17,13 +18,11 @@ export const AdminService = {
     return response.data;
   },
 
-  // Get User By ID
   async getUserById(id: string) {
     const response = await api.get(`/admin/users/${id}`);
-    return response.data.horse;
+    return response.data.user;
   },
 
-  //Update User Role
   async updateUserRole(id: string, role: string): Promise<UserResponse> {
     const response = await api.patch(`/admin/users/${id}/role`, {
       role,
@@ -31,7 +30,6 @@ export const AdminService = {
     return response.data;
   },
 
-  //Update User Status
   async updateUserStatus(id: string, status: string): Promise<UserResponse> {
     const response = await api.patch(`/admin/users/${id}/status`, {
       status,
@@ -39,13 +37,13 @@ export const AdminService = {
     return response.data;
   },
 
-  //Create Tournament
+  // ── Tournaments ──
+
   async createTournament(tournament: Tournament): Promise<TournamentResponse> {
     const response = await api.post("/admin/tournaments", tournament);
     return response.data;
   },
 
-  // Update Tournament
   async updateTournament(
     id: string,
     tournament: Tournament
@@ -54,7 +52,6 @@ export const AdminService = {
     return response.data;
   },
 
-  // Update Tournament Status
   async updateTournamentStatus(
     id: string,
     status: string
@@ -64,4 +61,27 @@ export const AdminService = {
     });
     return response.data;
   },
+
+  // ── Races ──
+
+  async createRace(tournamentId: string, data: Record<string, unknown>) {
+    const response = await api.post(
+      `/admin/tournaments/${tournamentId}/races`,
+      data
+    );
+    return response.data;
+  },
+
+  async updateRace(raceId: string, data: Record<string, unknown>) {
+    const response = await api.patch(`/admin/races/${raceId}`, data);
+    return response.data;
+  },
+
+  async updateRaceStatus(raceId: string, status: string) {
+    const response = await api.patch(`/admin/races/${raceId}/status`, {
+      status,
+    });
+    return response.data;
+  },
+
 };
