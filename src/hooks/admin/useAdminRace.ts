@@ -11,25 +11,28 @@ export default function useAdminRace() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadRaces = useCallback(async (params?: {
-    year?: number;
-    month?: number;
-    status?: string;
-    page?: number;
-    limit?: number;
-  }) => {
-    try {
-      setLoading(true);
-      setError(null);
+  const loadRaces = useCallback(
+    async (params?: {
+      year?: number;
+      month?: number;
+      status?: string;
+      page?: number;
+      limit?: number;
+    }) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const data = await RaceService.getRaces(params);
-      setRaces(Array.isArray(data) ? data : []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Load races failed");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+        const data = await RaceService.getRaces(params);
+        setRaces(Array.isArray(data) ? data : []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Load races failed");
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   const getRaceDetail = useCallback(async (raceId: string) => {
     try {
@@ -41,9 +44,7 @@ export default function useAdminRace() {
 
       return data;
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Load race detail failed"
-      );
+      setError(err instanceof Error ? err.message : "Load race detail failed");
 
       return null;
     } finally {
@@ -61,9 +62,7 @@ export default function useAdminRace() {
 
         return res;
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Create race failed"
-        );
+        setError(err instanceof Error ? err.message : "Create race failed");
 
         return null;
       } finally {
@@ -83,9 +82,7 @@ export default function useAdminRace() {
 
         return true;
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Update race failed"
-        );
+        setError(err instanceof Error ? err.message : "Update race failed");
 
         return false;
       } finally {

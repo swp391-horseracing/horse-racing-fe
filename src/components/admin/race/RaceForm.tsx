@@ -181,9 +181,7 @@ export default function RaceForm({
           </div>
 
           <div>
-            <label className="block text-sm font-semibold mb-2">
-              Venue
-            </label>
+            <label className="block text-sm font-semibold mb-2">Venue</label>
             <input
               type="text"
               value={form.venue}

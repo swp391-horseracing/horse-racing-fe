@@ -172,7 +172,6 @@ export const router = createBrowserRouter([
             path: ROUTES.ADMIN_RACE_DETAIL,
             element: <AdminRaceDetailPage />,
           },
-
         ],
       },
       {

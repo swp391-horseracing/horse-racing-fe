@@ -79,10 +79,7 @@ export default function AdminTournamentDetailPage() {
             <button
               onClick={() =>
                 navigate(
-                  ROUTES.ADMIN_TOURNAMENT_RACE_NEW.replace(
-                    ":tournamentId",
-                    id!
-                  )
+                  ROUTES.ADMIN_TOURNAMENT_RACE_NEW.replace(":tournamentId", id!)
                 )
               }
               className="bg-[#064E3B] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-[#043E2F] flex items-center gap-1"
@@ -139,10 +136,7 @@ export default function AdminTournamentDetailPage() {
                         <button
                           onClick={() =>
                             navigate(
-                              ROUTES.ADMIN_RACE_DETAIL.replace(
-                                ":id",
-                                race.id
-                              )
+                              ROUTES.ADMIN_RACE_DETAIL.replace(":id", race.id)
                             )
                           }
                           className="text-[10px] font-bold text-[#064E3B] underline hover:no-underline"

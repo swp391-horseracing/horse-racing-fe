@@ -98,7 +98,7 @@ export default function AdminRaceDetailPage() {
             <h2 className="text-2xl font-bold text-[#064E3B]">
               {isCreateMode
                 ? "Create Race"
-                : selectedRace?.name ?? "Race Detail"}
+                : (selectedRace?.name ?? "Race Detail")}
             </h2>
 
             {!isCreateMode && selectedRace && (

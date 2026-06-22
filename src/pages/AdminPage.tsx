@@ -11,7 +11,6 @@ import TournamentRaceManager from "../components/admin/TournamentRaceManager";
 import VirtualEconomy from "../components/admin/VirtualEconomy";
 import ControlCenterOverview from "../components/admin/controlCenterOverview.tsx";
 
-
 export type ToastType = "success" | "error" | "warning" | "info";
 export type Toast = { id: number; message: string; type: ToastType };
 
@@ -21,7 +20,6 @@ const TAB_ROUTE_MAP: Record<string, string> = {
   "/admin/registry": "/admin/registry",
   [ROUTES.ADMIN_TOURNAMENT_LIST]: "/admin/tournaments",
   "/admin/economy": "/admin/economy",
-
 };
 
 function getTabKey(pathname: string): string {
@@ -30,7 +28,9 @@ function getTabKey(pathname: string): string {
 
 export default function AdminPage() {
   const location = useLocation();
-  const [active, setActive] = useState<string>(() => getTabKey(location.pathname));
+  const [active, setActive] = useState<string>(() =>
+    getTabKey(location.pathname)
+  );
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
