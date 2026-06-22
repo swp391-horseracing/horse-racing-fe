@@ -72,7 +72,7 @@ function OpenRacesTab() {
   }, []);
 
   const openRaces = races.filter(
-    (r: RaceListItem) => r.status === "upcoming"
+    (r: RaceListItem) => r.status === "scheduled" || r.status === "pre_race"
   );
 
   if (loading) {
