@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
@@ -14,7 +14,6 @@ import { useEvent } from "../hooks/useEvent";
 import { useRaces, useRaceDetail } from "../hooks/useRaces";
 import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
 
-// Import Shared Abstracted Components
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
 import { ScheduleStatCard } from "../components/schedule/ScheduleStatCard";
 import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
@@ -162,13 +161,6 @@ export default function RacesPage() {
     loading: racesLoading,
     loadRacesByMonth,
   } = useRaces();
-  const {
-    detail: raceDetail,
-    loading: detailLoading,
-    error: detailError,
-    loadDetail,
-    clearDetail,
-  } = useRaceDetail();
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
   const [search, setSearch] = useState("");
@@ -185,17 +177,15 @@ export default function RacesPage() {
   const viewYear = viewMonth.getFullYear();
   const viewMonthIndex = viewMonth.getMonth();
 
+  const {
+    detail: raceDetail,
+    loading: detailLoading,
+    error: detailError,
+  } = useRaceDetail(selectedRaceId);
+
   useEffect(() => {
     loadRacesByMonth(viewYear, viewMonthIndex + 1);
   }, [viewYear, viewMonthIndex, loadRacesByMonth]);
-
-  useEffect(() => {
-    if (selectedRaceId) {
-      loadDetail(selectedRaceId);
-    } else {
-      clearDetail();
-    }
-  }, [selectedRaceId, loadDetail, clearDetail]);
 
   const allRaces = useMemo(() => apiRaces.map(mapRaceToUi), [apiRaces]);
 
@@ -538,6 +528,7 @@ export default function RacesPage() {
                       </div>
                     </div>
                   </div>
+
                   <div>
                     <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3">
                       Race Entries - Horses & Jockeys

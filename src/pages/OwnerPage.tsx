@@ -20,7 +20,7 @@ import { RegisterTournamentModal } from "../components/owner/RegisterTournamentM
 import { OwnerDashBoardOverview } from "../components/owner/OwnerDashBoardOverview";
 import { HorseManagement } from "../components/owner/HorseManagement";
 import { RaceRegister } from "../components/owner/RaceRegister";
-import { OwnerScheduleView } from "../components/owner/OwnerScheduleView";
+import { RidingSchedule } from "../components/jockey/RidingSchedule";
 import { JockeyRosterManagement } from "../components/owner/JockeyRosterManagement";
 
 type ToastType = "success" | "error" | "warning" | "info";
@@ -262,7 +262,13 @@ export default function OwnerPage() {
           />
         );
       case "/owner/schedule":
-        return <OwnerScheduleView rides={ownerRides} loading={ridesLoading} />;
+        return (
+          <RidingSchedule
+            rides={ownerRides}
+            loading={ridesLoading}
+            userRole="owner"
+          />
+        );
       default:
         return null;
     }

@@ -30,7 +30,7 @@ export function useJockey() {
       id: race.id,
       tournamentId: race.tournamentId,
       name: race.name,
-      roundName: race.roundName,
+      roundName: race.roundName ?? "",
       distanceMeters: race.distanceMeters,
       scheduledAt: race.scheduledAt,
       venue: race.venue,
@@ -40,16 +40,19 @@ export function useJockey() {
           : race.status === "ongoing"
             ? "live"
             : "scheduled",
-      ride: "Horse TBD",
-      laneNumber: 0,
-      entryStatus: "pending",
-      confirmedAt: null,
-      horseOwner: "Owner TBD",
-      horsesId: "",
-      ownerId: "",
-      trackCondition: "good",
-      laneCount: 8,
-      ranking: undefined,
+      ride: race.horse ?? race.ride ?? "",
+      laneNumber: race.laneNumber ?? 0,
+      entryStatus: (race.entryStatus ?? "pending") as
+        | "pending"
+        | "accepted"
+        | "declined",
+      confirmedAt: race.confirmedAt ?? null,
+      horseOwner: race.jockey ?? race.horseOwner ?? "",
+      horsesId: race.horsesId ?? "",
+      ownerId: race.ownerId ?? "",
+      trackCondition: race.trackCondition ?? "good",
+      laneCount: race.laneCount ?? 8,
+      ranking: race.ranking ?? undefined,
     };
   };
 
@@ -80,8 +83,9 @@ export function useJockey() {
         setError(null);
 
         const response = await UserService.getMyRaces(page, limit);
+        console.log("jockey races response:", response);
         const mappedRides = response.data.map(mapApiRaceToMyRide);
-
+        console.log("map races response:", mappedRides);
         setRides(mappedRides);
         setPagination(response.pagination);
       } catch (err: unknown) {
