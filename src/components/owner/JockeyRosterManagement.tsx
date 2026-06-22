@@ -46,8 +46,7 @@ export function JockeyRosterManagement({
 
           const invites = invitations.filter(
             (i: Invitation) =>
-              i.horseId === reg.horse.id &&
-              i.tournamentId === reg.tournament.id
+              i.horseId === reg.horse.id && i.tournamentId === reg.tournament.id
           );
           const locked = invites.find(
             (i: Invitation) => i.status === "confirmed"
@@ -73,9 +72,7 @@ export function JockeyRosterManagement({
                   </span>
                 ) : (
                   <button
-                    onClick={() =>
-                      onOpenInviteModal(horse.id, tournament.id)
-                    }
+                    onClick={() => onOpenInviteModal(horse.id, tournament.id)}
                     className="rounded-lg bg-[#064E3B] text-white px-2.5 py-1.5 text-[10px] font-bold"
                   >
                     Hire Jockey

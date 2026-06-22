@@ -3,22 +3,28 @@ import { HorseService } from "../services/HorseService";
 import { UserService } from "../services/UserService";
 
 import type { Horse } from "../types/horse";
-import type { Tournament, TournamentRegistrationResponse } from "../types/tournament";
+import type {
+  Tournament,
+  TournamentRegistrationResponse,
+} from "../types/tournament";
 import type { Invitation } from "../types/invitation";
 import type { Jockey } from "../types/jockey";
 import { TournamentService } from "../services/TournamentService.ts";
 
 export type { Horse } from "../types/horse";
-export type { Tournament, TournamentRegistrationResponse as TournamentRegistration } from "../types/tournament";
+export type {
+  Tournament,
+  TournamentRegistrationResponse as TournamentRegistration,
+} from "../types/tournament";
 export type { Invitation } from "../types/invitation";
 export type { Jockey } from "../types/jockey";
 
 export function useOwner() {
   const [horses, setHorses] = useState<Horse[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [registrations, setRegistrations] = useState<TournamentRegistrationResponse[]>(
-    []
-  );
+  const [registrations, setRegistrations] = useState<
+    TournamentRegistrationResponse[]
+  >([]);
   const [jockeys, setJockeys] = useState<Jockey[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
 
@@ -152,9 +158,14 @@ export function useOwner() {
 
   const loadRegistration = useCallback(async (id: string, regId: string) => {
     try {
-      const response = await TournamentService.getTournamentRegistration(id, regId);
+      const response = await TournamentService.getTournamentRegistration(
+        id,
+        regId
+      );
 
-      const registration = (response as { registration?: TournamentRegistrationResponse }).registration;
+      const registration = (
+        response as { registration?: TournamentRegistrationResponse }
+      ).registration;
 
       if (registration) {
         setRegistrations((prev) => {

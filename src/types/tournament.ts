@@ -1,4 +1,4 @@
-import type {Horse} from "./horse.ts";
+import type { Horse } from "./horse.ts";
 
 export type TournamentApiStatus =
   | "upcoming"
@@ -58,7 +58,7 @@ export interface TournamentDetail {
   name: string;
   status:
     | "upcoming"
-      |"live_now"
+    | "live_now"
     | "registration_open"
     | "registration_closed"
     | "ongoing"

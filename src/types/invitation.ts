@@ -1,6 +1,6 @@
-import type {Horse} from "./horse.ts";
-import type {Tournament} from "./tournament.ts";
-import type {Jockey} from "./jockey.ts";
+import type { Horse } from "./horse.ts";
+import type { Tournament } from "./tournament.ts";
+import type { Jockey } from "./jockey.ts";
 
 export interface Invitation {
   id: string;
@@ -55,9 +55,9 @@ export type TabProps = {
   selectedMessageId: string | null;
   onSelectMessage: (id: string) => void;
 } & LookupHandlers &
-    ActionHandlers;
+  ActionHandlers;
 
 export type DetailProps = {
   item: MessageItem | null;
 } & LookupHandlers &
-    ActionHandlers;
+  ActionHandlers;

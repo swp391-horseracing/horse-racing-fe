@@ -4,7 +4,7 @@ import type { Ride } from "../types/race.ts";
 export type MyRide = Ride;
 import type { UserRace } from "../types/user.ts";
 import type { Jockey } from "../types/jockey.ts";
-import {JockeyService} from "../services/JockeyService.ts";
+import { JockeyService } from "../services/JockeyService.ts";
 
 export function useJockey() {
   const [rides, setRides] = useState<Ride[]>([]);
@@ -54,7 +54,6 @@ export function useJockey() {
   };
 
   const loadJockey = useCallback(async () => {
-
     try {
       const response = await JockeyService.getJockeys({
         page,

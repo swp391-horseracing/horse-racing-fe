@@ -81,8 +81,7 @@ export default function OwnerPage() {
   const isHorseLocked = (horseId: string): boolean =>
     registrations.some(
       (r) =>
-        r.horse.id === horseId &&
-        ["pending", "approved"].includes(r.status)
+        r.horse.id === horseId && ["pending", "approved"].includes(r.status)
     );
 
   const handleAddHorse = async (e: React.FormEvent<HTMLFormElement>) => {

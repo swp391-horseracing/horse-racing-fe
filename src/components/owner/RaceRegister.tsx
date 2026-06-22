@@ -13,7 +13,10 @@ import {
   Flag,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
-import type { Tournament, TournamentRegistrationResponse } from "../../types/tournament";
+import type {
+  Tournament,
+  TournamentRegistrationResponse,
+} from "../../types/tournament";
 import type { Horse } from "../../types/horse";
 
 export interface RaceRegisterProps {
@@ -134,9 +137,7 @@ function StatFilterCard({
       >
         {label}
       </p>
-      <p className="text-lg font-black leading-none text-foreground">
-        {value}
-      </p>
+      <p className="text-lg font-black leading-none text-foreground">{value}</p>
     </button>
   );
 }
@@ -152,9 +153,7 @@ function formatAge(dob: string): string {
   return `${age} years`;
 }
 
-export function RaceRegister({
-  registrations,
-}: RaceRegisterProps) {
+export function RaceRegister({ registrations }: RaceRegisterProps) {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<ActiveFilterType>("All");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -184,12 +183,14 @@ export function RaceRegister({
   const counts = useMemo(() => {
     return {
       all: registrations.length,
-      ongoing: registrations.filter((r) => r.tournament.status === "ongoing").length,
+      ongoing: registrations.filter((r) => r.tournament.status === "ongoing")
+        .length,
       open: registrations.filter(
         (r) => r.tournament.status === "registration_open"
       ).length,
-      completed: registrations.filter((r) => r.tournament.status === "completed")
-        .length,
+      completed: registrations.filter(
+        (r) => r.tournament.status === "completed"
+      ).length,
     };
   }, [registrations]);
 
@@ -279,7 +280,7 @@ export function RaceRegister({
                 const isSelected = selectedRegistration?.id === r.id;
                 const tournament = r.tournament;
                 const horse = r.horse;
-                const isLive = tournament.status === "ongoing"
+                const isLive = tournament.status === "ongoing";
 
                 return (
                   <div
@@ -348,8 +349,9 @@ export function RaceRegister({
                 <div className="min-w-0">
                   <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-primary-foreground/70">
                     <CalendarDays className="h-3 w-3" />
-                    {formatDate(selectedRegistration.tournament.startDate)} -{" "}
-                    {formatDate(selectedRegistration.tournament.endDate)}
+                    {formatDate(
+                      selectedRegistration.tournament.startDate
+                    )} - {formatDate(selectedRegistration.tournament.endDate)}
                   </span>
                   <div className="text-2xl font-black font-headline text-white tracking-tight leading-snug truncate mt-1">
                     {selectedRegistration.tournament.name}
@@ -400,8 +402,7 @@ export function RaceRegister({
                         />
                       </div>
                       <p className="text-[10px] text-muted-foreground mt-1.5">
-                        Submitted{" "}
-                        {formatDate(selectedRegistration.submittedAt)}
+                        Submitted {formatDate(selectedRegistration.submittedAt)}
                       </p>
                     </div>
                   </div>
@@ -509,8 +510,7 @@ export function RaceRegister({
 
                 {selectedRegistration.tournament.status ===
                   "registration_open" && (
-                  <div className="flex items-center justify-end gap-3">
-                  </div>
+                  <div className="flex items-center justify-end gap-3"></div>
                 )}
               </div>
             </div>

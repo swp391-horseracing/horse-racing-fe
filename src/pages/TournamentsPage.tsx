@@ -160,7 +160,8 @@ export default function TournamentsPage() {
 
   const isHorseRegistered = (horseId: string) =>
     ownerRegistrations.some(
-      (r) => r.tournament.id === selectedTournament?.id && r.horse.id === horseId
+      (r) =>
+        r.tournament.id === selectedTournament?.id && r.horse.id === horseId
     );
 
   const activeHorses = ownerHorses.filter((h) => h.status !== "Retired");
@@ -187,7 +188,8 @@ export default function TournamentsPage() {
       setRegStatus({
         type: "error",
         message:
-          error?.response?.data?.message || "Failed to register for tournament.",
+          error?.response?.data?.message ||
+          "Failed to register for tournament.",
       });
     }
   };
@@ -420,18 +422,19 @@ export default function TournamentsPage() {
                   Entry Info & Rules
                 </button>
 
-                {isOwner && selectedTournament.status === "registration_open" && (
-                  <button
-                    onClick={() => setDetailTab("registration")}
-                    className={`py-2.5 px-4 text-xs font-bold border-b-2 transition-all -mb-[1px] ${
-                      detailTab === "registration"
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Registration
-                  </button>
-                )}
+                {isOwner &&
+                  selectedTournament.status === "registration_open" && (
+                    <button
+                      onClick={() => setDetailTab("registration")}
+                      className={`py-2.5 px-4 text-xs font-bold border-b-2 transition-all -mb-[1px] ${
+                        detailTab === "registration"
+                          ? "border-primary text-primary"
+                          : "border-transparent text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Registration
+                    </button>
+                  )}
               </div>
 
               <div className="p-6 max-h-[550px] overflow-y-auto custom-scrollbar">

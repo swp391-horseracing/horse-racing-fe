@@ -2,8 +2,8 @@ import React from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { Horse } from "../../types/horse.ts";
-import {useNavigate} from "react-router-dom";
-import {ROUTES} from "../../router/routes.tsx";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../router/routes.tsx";
 
 export interface HorseManagementProps {
   horses: Horse[];
@@ -43,7 +43,9 @@ function HorseRow({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-3">
             <button onClick={() => navigate(`/horses/${horse.id}`)}>
-              <h3 className="font-bold text-lg truncate hover:underline">{horse.name}</h3>
+              <h3 className="font-bold text-lg truncate hover:underline">
+                {horse.name}
+              </h3>
             </button>
             <span
               className={cn(
@@ -71,9 +73,9 @@ function HorseRow({
       {/* Actions */}
       <div className="flex items-center gap-3 shrink-0">
         <button
-            onClick={() => navigate(ROUTES.TOURNAMENTS)}
-            disabled={isLocked}
-            className="flex items-center gap-2 px-5 py-1 text-sm font-semibold border border-primary text-primary hover:bg-primary hover:text-white rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
+          onClick={() => navigate(ROUTES.TOURNAMENTS)}
+          disabled={isLocked}
+          className="flex items-center gap-2 px-5 py-1 text-sm font-semibold border border-primary text-primary hover:bg-primary hover:text-white rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Register
         </button>
