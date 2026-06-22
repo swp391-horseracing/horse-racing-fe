@@ -12,9 +12,9 @@ interface UseRaceSocketOptions {
 }
 
 export function useRaceSocket(
-    topics: string[] | null,
-    onEvent: SocketEventHandler,
-    options: UseRaceSocketOptions = {}
+  topics: string[] | null,
+  onEvent: SocketEventHandler,
+  options: UseRaceSocketOptions = {}
 ) {
   const onEventRef = useRef(onEvent);
   const wsRef = useRef<WebSocket | null>(null);
@@ -34,7 +34,8 @@ export function useRaceSocket(
 
     shouldReconnectRef.current = true;
 
-    const WS_URL = import.meta.env.VITE_WS_URL || "wss://horse-racing-api.patohru.qzz.io";
+    const WS_URL =
+      import.meta.env.VITE_WS_URL || "wss://horse-racing-api.patohru.qzz.io";
     const url = new URL(WS_URL);
     if (options.token) {
       url.searchParams.set("token", options.token);
@@ -43,17 +44,19 @@ export function useRaceSocket(
     const connect = () => {
       const ws = new WebSocket(url.toString());
       wsRef.current = ws;
-      console.log("WS",wsRef.current);
+      console.log("WS", wsRef.current);
 
       ws.onopen = () => {
-        console.log(`%c✅ WS connected (after ${reconnectCountRef.current} attempt(s))`, 'color:#22c55e');
+        console.log(
+          `WS connected (after ${reconnectCountRef.current} attempt(s))`
+        );
         reconnectCountRef.current = 0;
         try {
           ws.send(
-              JSON.stringify({
-                type: "subscribe",
-                topics,
-              })
+            JSON.stringify({
+              type: "subscribe",
+              topics,
+            })
           );
         } catch {
           // ignore
@@ -64,9 +67,9 @@ export function useRaceSocket(
         try {
           const message = JSON.parse(event.data);
           if (message?.type) {
-            console.group(`%c📡 WS event: ${message.type}`, 'font-weight:bold;color:#6366f1');
-            console.log('payload:', message);
-            if (message.data) console.log('data:', message.data);
+            console.group(`WS event: ${message.type}`);
+            console.log("payload:", message);
+            if (message.data) console.log("data:", message.data);
             console.groupEnd();
             onEventRef.current(message.type, message.data);
           }
@@ -76,17 +79,17 @@ export function useRaceSocket(
       };
 
       ws.onerror = () => {
-        console.warn(`⚠️ WS error (will reconnect...)`);
+        console.warn(`WS error (will reconnect...)`);
       };
 
       ws.onclose = (event) => {
-        console.warn(`🔌 WS closed (code=${event.code} reason="${event.reason}")`);
+        console.warn(`WS closed (code=${event.code} reason="${event.reason}")`);
         if (!shouldReconnectRef.current) return;
 
         reconnectCountRef.current++;
         reconnectTimerRef.current = setTimeout(
-            connect,
-            options.reconnectDelayMs ?? 3000
+          connect,
+          options.reconnectDelayMs ?? 3000
         );
       };
     };
@@ -105,10 +108,10 @@ export function useRaceSocket(
       if (ws && ws.readyState === WebSocket.OPEN) {
         try {
           ws.send(
-              JSON.stringify({
-                type: "unsubscribe",
-                topics,
-              })
+            JSON.stringify({
+              type: "unsubscribe",
+              topics,
+            })
           );
         } catch {
           // ignore
@@ -145,39 +148,35 @@ export function useRaces() {
   const token = localStorage.getItem("token");
 
   useRaceSocket(
-      ["race:*"],
-      useCallback((type, data) => {
-        switch (type) {
-          case "connection:ack":
-            console.log(`%c👤 Dashboard connected as ${data.userId} (${data.role})`, 'color:#059669');
-            break;
-          case "race:status_changed":
-            console.log(`%c🏁 Race ${data.raceId} status: ${data.previousStatus} → ${data.status}`, 'color:#059669');
-            setRaces((prev) =>
-                prev.map((r) =>
-                    r.id === data.raceId ? { ...r, ...data } : r
-                )
-            );
-            break;
-          case "race:result_published":
-            console.log(`%c📋 Results published for race ${data.raceId}`, 'color:#059669');
-            setRaces((prev) =>
-                prev.map((r) =>
-                    r.id === data.raceId ? { ...r, ...data } : r
-                )
-            );
-            break;
-          case "race:result_updated":
-            console.log(`%c✏️ Results updated for race ${data.raceId}`, 'color:#059669');
-            setRaces((prev) =>
-                prev.map((r) =>
-                    r.id === data.raceId ? { ...r, ...data } : r
-                )
-            );
-            break;
-        }
-      }, []),
-      { token }
+    ["race:*"],
+    useCallback((type, data) => {
+      switch (type) {
+        case "connection:ack":
+          console.log(`Dashboard connected as ${data.userId} (${data.role})`);
+          break;
+        case "race:status_changed":
+          console.log(
+            `Race ${data.raceId} status: ${data.previousStatus} → ${data.status}`
+          );
+          setRaces((prev) =>
+            prev.map((r) => (r.id === data.raceId ? { ...r, ...data } : r))
+          );
+          break;
+        case "race:result_published":
+          console.log(`Results published for race ${data.raceId}`);
+          setRaces((prev) =>
+            prev.map((r) => (r.id === data.raceId ? { ...r, ...data } : r))
+          );
+          break;
+        case "race:result_updated":
+          console.log(`Results updated for race ${data.raceId}`);
+          setRaces((prev) =>
+            prev.map((r) => (r.id === data.raceId ? { ...r, ...data } : r))
+          );
+          break;
+      }
+    }, []),
+    { token }
   );
 
   return { races, loading, loadRacesByMonth };
@@ -190,6 +189,7 @@ export function useRaceDetail(raceId: string | null) {
 
   useEffect(() => {
     if (!raceId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDetail(null);
       setError(null);
       return;
@@ -207,7 +207,7 @@ export function useRaceDetail(raceId: string | null) {
           const horsesResponse = await RaceService.getRaceHorses(raceId);
           entries = Array.isArray(horsesResponse)
             ? horsesResponse
-            : horsesResponse?.data ?? [];
+            : (horsesResponse?.data ?? []);
         } catch {
           entries = undefined;
         }
@@ -232,29 +232,31 @@ export function useRaceDetail(raceId: string | null) {
   const detailToken = localStorage.getItem("token");
 
   useRaceSocket(
-      raceId ? [`race:${raceId}`] : null,
-      useCallback((type, data) => {
-        switch (type) {
-          case "connection:ack":
-            console.log(`%c👤 Detail panel connected as ${data.userId} (${data.role})`, 'color:#2563eb');
-            break;
-          case "race:status_changed":
-            console.log(`%c🏁 Race ${data.raceId} status: ${data.previousStatus} → ${data.status}`, 'color:#2563eb');
-            setDetail((prev) =>
-                prev ? { ...prev, status: data.status } : prev
-            );
-            break;
-          case "race:result_published":
-            console.log(`%c📋 Results published for race ${data.raceId}`, 'color:#2563eb');
-            setDetail((prev) => (prev ? { ...prev, ...data } : prev));
-            break;
-          case "race:result_updated":
-            console.log(`%c✏️ Results updated for race ${data.raceId}`, 'color:#2563eb');
-            setDetail((prev) => (prev ? { ...prev, ...data } : prev));
-            break;
-        }
-      }, []),
-      { token: detailToken }
+    raceId ? [`race:${raceId}`] : null,
+    useCallback((type, data) => {
+      switch (type) {
+        case "connection:ack":
+          console.log(
+            `Detail panel connected as ${data.userId} (${data.role})`
+          );
+          break;
+        case "race:status_changed":
+          console.log(
+            `Race ${data.raceId} status: ${data.previousStatus} → ${data.status}`
+          );
+          setDetail((prev) => (prev ? { ...prev, status: data.status } : prev));
+          break;
+        case "race:result_published":
+          console.log(`Results published for race ${data.raceId}`);
+          setDetail((prev) => (prev ? { ...prev, ...data } : prev));
+          break;
+        case "race:result_updated":
+          console.log(`Results updated for race ${data.raceId}`);
+          setDetail((prev) => (prev ? { ...prev, ...data } : prev));
+          break;
+      }
+    }, []),
+    { token: detailToken }
   );
 
   return { detail, loading, error };
