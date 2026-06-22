@@ -189,6 +189,10 @@ export function useRaceDetail(raceId: string | null) {
   const [refetchIndex, setRefetchIndex] = useState(0);
 
   const refetch = useCallback(() => setRefetchIndex((i) => i + 1), []);
+  const clearDetail = useCallback(() => {
+    setDetail(null);
+    setError(null);
+  }, []);
 
   useEffect(() => {
     if (!raceId) {
@@ -262,5 +266,5 @@ export function useRaceDetail(raceId: string | null) {
     { token: detailToken }
   );
 
-  return { detail, loading, error, refetch };
+  return { detail, loading, error, refetch, clearDetail };
 }

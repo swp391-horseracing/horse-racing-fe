@@ -15,13 +15,6 @@ import type { PredictionStatus } from "../../types/prediction";
 import type { RaceListItem } from "../../types/race";
 import { cn } from "../../lib/utils";
 
-interface PredictionsHubProps {
-  addToast: (
-    message: string,
-    type: "success" | "error" | "info" | "warning"
-  ) => void;
-}
-
 type SubTab = "my-predictions" | "open-races";
 
 const FILTER_TABS: { key: PredictionStatus | "all"; label: string }[] = [
@@ -380,7 +373,7 @@ function MyPredictionsTab() {
   );
 }
 
-export function PredictionsHub({ addToast: _addToast }: PredictionsHubProps) {
+export function PredictionsHub() {
   const [activeSubTab, setActiveSubTab] = useState<SubTab>("my-predictions");
 
   return (
