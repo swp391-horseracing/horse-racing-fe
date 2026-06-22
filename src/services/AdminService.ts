@@ -49,7 +49,7 @@ export const AdminService = {
   async updateTournament(
     id: string,
     tournament: Tournament
-  ): Promise<UserResponse> {
+  ): Promise<TournamentResponse> {
     const response = await api.patch(`/admin/tournaments/${id}`, tournament);
     return response.data;
   },
@@ -58,7 +58,7 @@ export const AdminService = {
   async updateTournamentStatus(
     id: string,
     status: string
-  ): Promise<UserResponse> {
+  ): Promise<TournamentResponse> {
     const response = await api.patch(`/admin/tournaments/${id}/status`, {
       status,
     });

@@ -116,7 +116,7 @@ export function InvitationsView({
     return data.filter((item) => {
       const matchesFilter = filter === "All" || item.status === filter;
       const matchesSearch =
-        item.horse?.toLowerCase().includes(search.toLowerCase()) ||
+        item.horse?.name?.toLowerCase().includes(search.toLowerCase()) ||
         item.tournament?.toLowerCase().includes(search.toLowerCase()) ||
         item.owner?.toLowerCase().includes(search.toLowerCase());
       return matchesFilter && matchesSearch;
@@ -199,7 +199,7 @@ export function InvitationsView({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                       <p className="font-bold font-headline text-[#064E3B] truncate text-sm">
-                        {inv.horse}
+                        {inv.horse.name}
                       </p>
                       <span
                         className={cn(
@@ -272,7 +272,7 @@ function InvitationDetail({
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-[#064E3B]/10 pb-5">
         <div>
           <h2 className="text-2xl font-black font-headline text-[#064E3B] tracking-tight">
-            {inv.horse}
+            {inv.horse.name}
           </h2>
           <p className="text-xs font-semibold text-slate-500">
             {inv.tournament}

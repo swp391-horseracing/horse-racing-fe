@@ -37,7 +37,7 @@ export default function JockeyPage() {
     const target = invitations.find((inv) => inv.id === id);
     updateInvitationStatus(id, "accepted");
     addToast(
-      `Response recorded successfully! Tentatively registered to ride ${target?.horse ?? target?.horseId}. Awaiting final Owner confirmation.`,
+      `Response recorded successfully! Tentatively registered to ride ${target?.horse?.name ?? target?.horse?.id}. Awaiting final Owner confirmation.`,
       "success"
     );
   };
@@ -46,7 +46,7 @@ export default function JockeyPage() {
     const target = invitations.find((inv) => inv.id === id);
     updateInvitationStatus(id, "declined");
     addToast(
-      `You declined the invitation to ride ${target?.horse ?? target?.horseId}. Deep access revoked.`,
+      `You declined the invitation to ride ${target?.horse?.name ?? target?.horse?.id}. Deep access revoked.`,
       "info"
     );
   };

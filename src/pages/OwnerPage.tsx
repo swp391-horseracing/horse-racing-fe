@@ -43,6 +43,9 @@ export default function OwnerPage() {
     registerTournament,
     confirmPairing,
     cancelInvite,
+    inviteJockey,
+    jockeysPagination,
+    loadAllInvitations,
   } = useOwner();
 
   const { rides: ownerRides, loading: ridesLoading } = useJockey();
@@ -164,7 +167,7 @@ export default function OwnerPage() {
       );
       return;
     }
-    const age = calculateAge(horse.dob);
+    const age = calculateAge(horse.birthDate);
     if (age < (t.minAge as number) || age > (t.maxAge as number)) {
       addToast(
         `Eligibility Failure: Age must be ${t.minAge}-${t.maxAge} years.`,
@@ -237,15 +240,11 @@ export default function OwnerPage() {
       case "/owner/jockeys":
         return (
           <JockeyRosterManagement
-            horses={horses}
             registrations={registrations}
-            tournaments={tournaments}
             jockeys={jockeys}
             invitations={invitations}
-            onOpenInviteModal={(horseId, tournamentId) => {
-              setSelectedHorseId(horseId);
-              setSelectedTournamentId(Number(tournamentId));
-              addToast("Jockey invite modal coming soon", "info");
+            onInviteJockey={(raceId, jockeyId, horseId) => {
+              inviteJockey(raceId, jockeyId, horseId);
             }}
             onConfirmPairing={(invId) => {
               const inv = invitations.find((i) => i.id === invId);
@@ -259,6 +258,8 @@ export default function OwnerPage() {
                 cancelInvite(inv.raceId, invId);
               }
             }}
+            jockeysPagination={jockeysPagination}
+            loadAllInvitations={loadAllInvitations}
           />
         );
       case "/owner/schedule":

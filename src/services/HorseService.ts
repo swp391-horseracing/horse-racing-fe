@@ -40,7 +40,7 @@ export const HorseService = {
     params?: {
       search?: string;
       breed?: string;
-      isRetired?: string;
+      isRetired?: boolean;
       page?: number;
       limit?: number;
     }

@@ -6,15 +6,14 @@ export interface Invitation {
   id: string;
   invitationId: string;
   raceId: string;
-  horseId: string;
   ownerId: string;
-  jockeyId: string;
   tournamentId?: string;
   status: "pending" | "accepted" | "declined" | "confirmed" | "superseded";
   invitedAt: string;
   respondedAt: string;
   additionalProp1?: Record<string, unknown>;
-  horse?: string;
+  horse: { id: string; name: string; breed: string };
+  jockey: { id: string; fullName: string };
   tournament?: string;
   owner?: string;
   raceTime?: string;

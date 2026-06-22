@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import * as React from "react";
 import { cva } from "class-variance-authority";
-import { NavigationMenu as NavigationMenuPrimitive } from "radix-ui";
+import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 
 import { cn } from "../../lib/utils";
 import { CaretDownIcon } from "@phosphor-icons/react";
