@@ -1,5 +1,9 @@
 import { Clock, Activity, Trophy, Flag, Calendar } from "lucide-react";
-import { type MockRace, phaseBadgeStyle, phaseLabel } from "../../types/referee";
+import {
+  type MockRace,
+  phaseBadgeStyle,
+  phaseLabel,
+} from "../../types/referee";
 import { cn } from "../../lib/utils";
 
 interface RefereeDashboardProps {
