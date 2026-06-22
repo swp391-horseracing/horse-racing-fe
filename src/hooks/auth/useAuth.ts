@@ -37,7 +37,11 @@ export default function useAuth() {
         sessionStorage.setItem("userId", userId);
         sessionStorage.setItem(
           "user",
-          JSON.stringify({ id: user.user.id, role: user.user.role, fullName: user.user.fullName })
+          JSON.stringify({
+            id: user.user.id,
+            role: user.user.role,
+            fullName: user.user.fullName,
+          })
         );
         setToken(jwt);
       }
