@@ -8,7 +8,7 @@ export interface Invitation {
   raceId: string;
   ownerId: string;
   tournamentId?: string;
-  status: "pending" | "accepted" | "declined" | "confirmed" | "superseded";
+  status: "pending" | "accepted" | "declined" | "confirmed" | "cancelled" | "superseded";
   invitedAt: string;
   respondedAt: string;
   additionalProp1?: Record<string, unknown>;

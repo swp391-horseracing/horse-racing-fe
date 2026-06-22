@@ -21,7 +21,14 @@ export default function JockeyPage() {
 
   const { rides, loading: ridesLoading } = useJockey();
   const { horses } = useHorse();
-  const { invitations, updateInvitationStatus } = useInvitations();
+  const {
+    invitations,
+    loading: invitesLoading,
+    acceptInvitation,
+    updateInvitationStatus,
+    loadAllInvitation,
+    cancelInvitation,
+  } = useInvitations();
 
   const [selectedInvId, setSelectedInvId] = useState<string | null>("1");
 
@@ -33,13 +40,17 @@ export default function JockeyPage() {
     }, 4000);
   };
 
-  const handleAcceptInvitation = (id: string) => {
+  const handleAcceptInvitation = async (id: string) => {
     const target = invitations.find((inv) => inv.id === id);
-    updateInvitationStatus(id, "accepted");
-    addToast(
-      `Response recorded successfully! Tentatively registered to ride ${target?.horse?.name ?? target?.horse?.id}. Awaiting final Owner confirmation.`,
-      "success"
-    );
+    try {
+      await acceptInvitation(id);
+      addToast(
+        `Response recorded successfully! Tentatively registered to ride ${target?.horse?.name ?? target?.horse?.id}. Awaiting final Owner confirmation.`,
+        "success"
+      );
+    } catch {
+      addToast("Failed to accept invitation. Please try again.", "error");
+    }
   };
 
   const handleDeclineInvitation = (id: string) => {
@@ -49,6 +60,19 @@ export default function JockeyPage() {
       `You declined the invitation to ride ${target?.horse?.name ?? target?.horse?.id}. Deep access revoked.`,
       "info"
     );
+  };
+
+  const handleCancelInvitation = async (id: string) => {
+    const target = invitations.find((inv) => inv.id === id);
+    try {
+      await cancelInvitation(id);
+      addToast(
+        `Invitation to ride ${target?.horse?.name ?? target?.horse?.id} has been cancelled.`,
+        "warning"
+      );
+    } catch {
+      addToast("Failed to cancel invitation. Please try again.", "error");
+    }
   };
 
   const handleAcceptRide = (id: string) => {
@@ -91,6 +115,9 @@ export default function JockeyPage() {
             setSelectedId={setSelectedInvId}
             onAccept={handleAcceptInvitation}
             onDecline={handleDeclineInvitation}
+            onCancel={handleCancelInvitation}
+            loadAllInvitation={loadAllInvitation}
+            loading={invitesLoading}
           />
         );
       default:

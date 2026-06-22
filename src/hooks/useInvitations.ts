@@ -58,12 +58,44 @@ export function useInvitations() {
     []
   );
 
+  const loadAllInvitation = useCallback(
+    async (status?: string, page: number = 1, limit: number = 10) => {
+      try {
+        setLoading(true);
+        const response = await UserService.getMyInvitations(
+          status,
+          page,
+          limit
+        );
+        setInvitations(response.data ?? []);
+        return response;
+      } catch (error) {
+        console.error("Error loading all invitations:", error);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const cancelInvitation = useCallback(async (id: string) => {
+    await UserService.cancelMyInvitation(id);
+    setInvitations((prev) =>
+      prev.map((inv) =>
+        inv.id === id ? { ...inv, status: "cancelled" as const } : inv
+      )
+    );
+  }, []);
+
   return {
     invitations,
     loading,
     getInvitationsList,
     acceptInvitation,
     updateInvitationStatus,
+    loadAllInvitation,
+    cancelInvitation,
     setInvitations,
   };
 }

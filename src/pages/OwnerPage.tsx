@@ -246,10 +246,17 @@ export default function OwnerPage() {
             onInviteJockey={(raceId, jockeyId, horseId) => {
               inviteJockey(raceId, jockeyId, horseId);
             }}
-            onConfirmPairing={(invId) => {
+            onConfirmPairing={async (invId) => {
               const inv = invitations.find((i) => i.id === invId);
-              if (inv) {
-                confirmPairing(inv.raceId, invId);
+              if (!inv) return;
+              try {
+                await confirmPairing(inv.raceId, invId);
+                addToast(
+                  `Pairing confirmed for ${inv.horse?.name ?? inv.horse?.id} with jockey ${inv.jockey?.fullName ?? inv.jockey?.id}.`,
+                  "success"
+                );
+              } catch {
+                addToast("Failed to confirm pairing. Please try again.", "error");
               }
             }}
             onCancelInvite={(invId) => {

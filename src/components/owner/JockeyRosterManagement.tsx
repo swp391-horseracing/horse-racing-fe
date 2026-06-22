@@ -475,7 +475,7 @@ export function JockeyRosterManagement({
                         onClick={() => onConfirmPairing(inv.id)}
                         className="rounded bg-emerald-600 text-white px-2.5 py-1 text-[10px] font-bold hover:bg-emerald-700"
                       >
-                        Lock
+                        Confirm
                       </button>
                     )}
                     {inv.status === "pending" && (

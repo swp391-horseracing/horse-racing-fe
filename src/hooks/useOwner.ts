@@ -94,9 +94,11 @@ export function useOwner() {
     async (raceId: string, status?: "pending" | "approved" | "rejected") => {
       try {
         const response = await UserService.getRaceInvitations(raceId, status);
-        console.log("your invitation:",response);
-
-        setInvitations(response.data ?? []);
+        const data = (response.data ?? []).map((inv: Invitation) => ({
+          ...inv,
+          raceId: inv.raceId || raceId,
+        }));
+        setInvitations(data);
       } catch (error) {
         console.error("Failed to load invitations:", error);
       }
@@ -121,7 +123,12 @@ export function useOwner() {
           for (const race of races) {
             try {
               const invRes = await UserService.getRaceInvitations(race.id);
-              const raceInvitations = invRes.data ?? [];
+              const raceInvitations = (invRes.data ?? []).map(
+                (inv: Invitation) => ({
+                  ...inv,
+                  raceId: inv.raceId || race.id,
+                })
+              );
               for (const inv of raceInvitations) {
                 if (!allInvitations.some((i) => i.id === inv.id)) {
                   allInvitations.push(inv);

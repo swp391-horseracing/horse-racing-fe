@@ -43,6 +43,24 @@ export const UserService = {
     return response.data;
   },
 
+  //get all invitations for current user
+  getMyInvitations: async (
+    status?: string,
+    page: number = 1,
+    limit: number = 10
+  ) => {
+    const response = await api.get("/me/invitations", {
+      params: { status, page, limit },
+    });
+    return response.data;
+  },
+
+  //cancel my own invitation (jockey withdraws)
+  cancelMyInvitation: async (id: string) => {
+    const response = await api.delete(`/me/invitations/${id}`);
+    return response.data;
+  },
+
   //get current user invitations
   getRaceInvitations: async (
     raceId: string,
