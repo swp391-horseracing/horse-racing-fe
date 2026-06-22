@@ -40,7 +40,7 @@ export default function useAuth() {
           JSON.stringify({
             id: user.user.id,
             role: user.user.role,
-            fullName: user.user.fullName,
+            full_name: user.user.full_name,
           })
         );
         setToken(jwt);

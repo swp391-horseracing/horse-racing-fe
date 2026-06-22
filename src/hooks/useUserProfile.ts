@@ -42,7 +42,7 @@ export function useUserProfile() {
       setUser(u);
       sessionStorage.setItem(
         "user",
-        JSON.stringify({ id: u.id, role: u.role, fullName: u.fullName })
+        JSON.stringify({ id: u.id, role: u.role, full_name: u.full_name })
       );
     } catch (err: unknown) {
       const error = err as ApiError;
