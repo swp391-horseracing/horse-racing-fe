@@ -10,9 +10,9 @@ import {
   Flag,
   Users,
   Search,
+  MapPin,
 } from "lucide-react";
 
-// Import Shared Abstracted Components
 import { ScheduleLayout } from "../schedule/ScheduleLayout";
 import { ScheduleCalendar } from "../schedule/ScheduleCalendar";
 import { ScheduleStatCard } from "../schedule/ScheduleStatCard";
@@ -27,8 +27,9 @@ type RideDetailTab = "info" | "runners";
 interface RidingScheduleProps {
   rides: MyRide[];
   loading?: boolean;
-  onAcceptRide: (id: string) => void;
-  onDeclineRide: (id: string) => void;
+  userRole: "jockey" | "owner";
+  onAcceptRide?: (id: string) => void;
+  onDeclineRide?: (id: string) => void;
 }
 
 const getComputedRideStatus = (ride: MyRide): ComputedRideStatus => {
@@ -42,18 +43,91 @@ const formatOrdinal = (num: number) => {
   return num + (suffixes[(val - 20) % 10] || suffixes[val] || suffixes[0]);
 };
 
+const getStatusBadgeStyles = (status: ComputedRideStatus) => {
+  switch (status) {
+    case "pending":
+      return "bg-[#D97706]/10 text-[#D97706] border-[#D97706]/30";
+    case "accepted":
+      return "bg-[#064E3B]/10 text-[#064E3B] border-[#064E3B]/30";
+    case "declined":
+      return "bg-rose-500/10 text-rose-700 border-rose-500/30";
+    case "finished":
+      return "bg-slate-500/10 text-slate-600 border-slate-500/30";
+    default:
+      return "bg-slate-100 text-slate-650 border-slate-200";
+  }
+};
+
+function RideStatusBadge({
+  status,
+  onDark,
+}: {
+  status: ComputedRideStatus;
+  onDark?: boolean;
+}) {
+  if (onDark) {
+    const styles = {
+      pending: "bg-[#D97706] !text-white border-transparent",
+      accepted: "bg-emerald-600 !text-white border-transparent",
+      declined: "bg-rose-600 !text-white border-transparent",
+      finished: "bg-slate-600 !text-white border-transparent",
+    };
+    return (
+      <span
+        className={cn(
+          "px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm !text-white",
+          styles[status]
+        )}
+      >
+        {status}
+      </span>
+    );
+  }
+  return (
+    <span
+      className={cn(
+        "px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm",
+        getStatusBadgeStyles(status)
+      )}
+    >
+      {status}
+    </span>
+  );
+}
+
+const buildMockRunnersForJockey = (selectedRide: MyRide) => {
+  const sampleRunners = [
+    { cloth: 1, horseName: "Northern Star", jockeyName: "D. Patel" },
+    { cloth: 2, horseName: "Silver Drift", jockeyName: "M. Larsson" },
+    { cloth: 3, horseName: "Iron Cascade", jockeyName: "C. Nguyen" },
+    { cloth: 4, horseName: "Desert Wind", jockeyName: "R. Santos" },
+    { cloth: 5, horseName: "Dark Current", jockeyName: "T. Evans" },
+    { cloth: 6, horseName: "Golden Shore", jockeyName: "A. Kim" },
+  ];
+  const ours = {
+    cloth: selectedRide.laneNumber,
+    horseName: selectedRide.ride,
+    jockeyName: "You (Pro Jockey)",
+  };
+  return [
+    ...sampleRunners.filter((r) => r.cloth !== selectedRide.laneNumber),
+    ours,
+  ].sort((a, b) => a.cloth - b.cloth);
+};
+
 export function RidingSchedule({
   rides,
   loading = false,
+  userRole,
   onAcceptRide,
   onDeclineRide,
 }: RidingScheduleProps) {
-  const [statusFilter, setStatusFilter] = useState<"All" | ComputedRideStatus>(
-    "All"
-  );
+  const isJockey = userRole === "jockey";
+
   const [search, setSearch] = useState("");
   const [selectedRide, setSelectedRide] = useState<MyRide | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [statusFilter, setStatusFilter] = useState<string>("All");
 
   const counts = useMemo(
     () => ({
@@ -74,20 +148,22 @@ export function RidingSchedule({
     const lower = search.toLowerCase();
     return rides
       .filter((r) => {
-        const matchStatus =
-          statusFilter === "All" || getComputedRideStatus(r) === statusFilter;
-        const matchSearch =
-          !lower ||
-          r.name.toLowerCase().includes(lower) ||
-          r.ride.toLowerCase().includes(lower) ||
-          r.venue.toLowerCase().includes(lower);
-        return matchStatus && matchSearch;
+        if (statusFilter === "All") return true;
+        if (isJockey) return getComputedRideStatus(r) === statusFilter;
+        return r.status === statusFilter;
+      })
+      .filter((r) => {
+        if (!lower) return true;
+        const searchable = isJockey
+          ? [r.name, r.ride, r.venue]
+          : [r.name, r.ride];
+        return searchable.some((s) => s.toLowerCase().includes(lower));
       })
       .sort(
         (a, b) =>
           new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
       );
-  }, [rides, statusFilter, search]);
+  }, [rides, statusFilter, search, isJockey]);
 
   const formattedSelectedDate = useMemo(() => {
     if (!selectedDate) return "";
@@ -132,10 +208,12 @@ export function RidingSchedule({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
             <h2 className="text-xl font-bold font-headline text-[#064E3B]">
-              My Rides
+              {isJockey ? "My Rides" : "Owner Schedule"}
             </h2>
             <p className="text-xs text-slate-500 font-semibold mt-1">
-              Your confirmed race assignments and schedule overview
+              {isJockey
+                ? "Your confirmed race assignments and schedule overview"
+                : "Upcoming races for your horses."}
             </p>
           </div>
           <div className="relative w-full sm:w-72 shadow-sm rounded-xl border border-slate-200 bg-white">
@@ -144,35 +222,63 @@ export function RidingSchedule({
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search races, horses..."
+              placeholder={
+                isJockey
+                  ? "Search races, horses..."
+                  : "Search horses, tournaments..."
+              }
               className="w-full h-10 rounded-xl bg-transparent pl-10 pr-4 text-xs font-medium outline-none transition focus:border-[#064E3B] placeholder:text-slate-400"
             />
           </div>
         </div>
 
-        <div className="mb-6 grid grid-cols-2 md:grid-cols-5 gap-3">
-          {(
-            ["All", "pending", "accepted", "declined", "finished"] as const
-          ).map((key) => {
-            const labels = {
-              All: "Total",
-              pending: "Pending",
-              accepted: "Accepted",
-              declined: "Declined",
-              finished: "Finished",
-            };
-            return (
-              <ScheduleStatCard
-                key={key}
-                label={labels[key]}
-                value={counts[key]}
-                active={statusFilter === key}
-                onClick={() => setStatusFilter(key)}
-                liveDot={key === "pending"}
-              />
-            );
-          })}
-        </div>
+        {isJockey ? (
+          <div className="mb-6 grid grid-cols-2 md:grid-cols-5 gap-3">
+            {(
+              ["All", "pending", "accepted", "declined", "finished"] as const
+            ).map((key) => {
+              const labels = {
+                All: "Total",
+                pending: "Pending",
+                accepted: "Accepted",
+                declined: "Declined",
+                finished: "Finished",
+              };
+              return (
+                <ScheduleStatCard
+                  key={key}
+                  label={labels[key]}
+                  value={counts[key]}
+                  active={statusFilter === key}
+                  onClick={() => setStatusFilter(key)}
+                  liveDot={key === "pending"}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { key: "All", label: "All Races" },
+              { key: "scheduled", label: "Scheduled" },
+              { key: "live", label: "Live" },
+              { key: "completed", label: "Completed" },
+            ].map((item) => (
+              <button
+                key={item.key}
+                onClick={() => setStatusFilter(item.key)}
+                className={cn(
+                  "px-4 py-2.5 rounded-xl border text-xs font-bold transition shadow-xs",
+                  statusFilter === item.key
+                    ? "bg-[#064E3B] text-white border-[#064E3B]"
+                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                )}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -198,18 +304,97 @@ export function RidingSchedule({
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
                   {selectedDate
                     ? `Schedule for ${selectedDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
-                    : "All Scheduled Assignments"}
+                    : isJockey
+                      ? "All Scheduled Assignments"
+                      : "All Races"}
                 </span>
               </div>
               <div className="divide-y divide-slate-100 flex-1">
                 {calendarFilteredRides.length > 0 ? (
                   calendarFilteredRides.map((ride) => (
-                    <RideRow
+                    <button
                       key={ride.id}
-                      ride={ride}
-                      selected={activeSelectedRide?.id === ride.id}
                       onClick={() => handleSelectRide(ride)}
-                    />
+                      className={cn(
+                        "group w-full flex flex-col px-4 py-3.5 text-left transition-all border-l-4",
+                        activeSelectedRide?.id === ride.id &&
+                          "bg-[#064E3B]/5 border-l-[#064E3B]",
+                        isJockey &&
+                          activeSelectedRide?.id !== ride.id &&
+                          getComputedRideStatus(ride) === "pending" &&
+                          "bg-[#EAB308]/5 border-l-[#EAB308] hover:bg-[#EAB308]/10",
+                        !activeSelectedRide &&
+                          !isJockey &&
+                          "border-l-transparent hover:bg-slate-50"
+                      )}
+                    >
+                      {isJockey ? (
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span
+                              className={cn(
+                                "font-mono text-sm tracking-tight font-black shrink-0",
+                                activeSelectedRide?.id === ride.id
+                                  ? "text-[#064E3B]"
+                                  : "text-slate-400"
+                              )}
+                            >
+                              {new Date(ride.scheduledAt).toLocaleTimeString(
+                                "en-US",
+                                { hour: "2-digit", minute: "2-digit" }
+                              )}
+                            </span>
+                            <div className="truncate">
+                              <p
+                                className={cn(
+                                  "font-bold font-headline text-sm truncate",
+                                  activeSelectedRide?.id === ride.id
+                                    ? "text-[#064E3B]"
+                                    : "text-slate-800"
+                                )}
+                              >
+                                {ride.name}
+                              </p>
+                              <p className="text-[10px] text-slate-555 mt-0.5 truncate font-medium">
+                                Ride:{" "}
+                                <span className="text-slate-700 font-bold">
+                                  {ride.ride}
+                                </span>{" "}
+                                • Gate {ride.laneNumber}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0 pl-3">
+                            <RideStatusBadge
+                              status={getComputedRideStatus(ride)}
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between w-full">
+                          <div>
+                            <p className="font-bold text-sm text-[#064E3B]">
+                              {ride.name}
+                            </p>
+                            <p className="text-[10px] text-slate-500">
+                              {ride.distanceMeters}m • Lane {ride.laneNumber}
+                            </p>
+                          </div>
+                          <span
+                            className={cn(
+                              "text-[10px] font-bold px-2 py-0.5 rounded uppercase",
+                              ride.status === "live"
+                                ? "bg-rose-100 text-rose-700"
+                                : ride.status === "completed"
+                                  ? "bg-slate-100 text-slate-600"
+                                  : "bg-emerald-100 text-emerald-700"
+                            )}
+                          >
+                            {ride.status}
+                          </span>
+                        </div>
+                      )}
+                    </button>
                   ))
                 ) : (
                   <div className="p-8 text-center text-xs text-slate-400 font-medium">
@@ -222,14 +407,20 @@ export function RidingSchedule({
             </div>
           }
           detailSlot={
-            activeSelectedRide && (
-              <RidingScheduleDetailPanel
+            activeSelectedRide &&
+            (isJockey ? (
+              <JockeyDetailPanel
                 ride={activeSelectedRide}
                 onClose={() => setSelectedRide(null)}
-                onAccept={onAcceptRide}
-                onDecline={onDeclineRide}
+                onAccept={onAcceptRide!}
+                onDecline={onDeclineRide!}
               />
-            )
+            ) : (
+              <OwnerDetailPanel
+                ride={activeSelectedRide}
+                onClose={() => setSelectedRide(null)}
+              />
+            ))
           }
         />
       )}
@@ -237,9 +428,7 @@ export function RidingSchedule({
   );
 }
 
-// ─── Component: RidingScheduleDetailPanel ──────────────────
-
-function RidingScheduleDetailPanel({
+function JockeyDetailPanel({
   ride,
   onClose,
   onAccept,
@@ -530,128 +719,135 @@ function RidingScheduleDetailPanel({
   );
 }
 
-// ─── Helpers & Row Renderers ──────────────────────────────────────────
-
-const getStatusBadgeStyles = (status: ComputedRideStatus) => {
-  switch (status) {
-    case "pending":
-      return "bg-[#D97706]/10 text-[#D97706] border-[#D97706]/30";
-    case "accepted":
-      return "bg-[#064E3B]/10 text-[#064E3B] border-[#064E3B]/30";
-    case "declined":
-      return "bg-rose-500/10 text-rose-700 border-rose-500/30";
-    case "finished":
-      return "bg-slate-500/10 text-slate-600 border-slate-500/30";
-    default:
-      return "bg-slate-100 text-slate-650 border-slate-200";
-  }
-};
-
-function RideStatusBadge({
-  status,
-  onDark,
-}: {
-  status: ComputedRideStatus;
-  onDark?: boolean;
-}) {
-  if (onDark) {
-    const styles = {
-      pending: "bg-[#D97706] !text-white border-transparent",
-      accepted: "bg-emerald-600 !text-white border-transparent",
-      declined: "bg-rose-600 !text-white border-transparent",
-      finished: "bg-slate-600 !text-white border-transparent",
-    };
-    return (
-      <span
-        className={cn(
-          "px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm !text-white",
-          styles[status]
-        )}
-      >
-        {status}
-      </span>
-    );
-  }
-  return (
-    <span
-      className={cn(
-        "px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm",
-        getStatusBadgeStyles(status)
-      )}
-    >
-      {status}
-    </span>
-  );
-}
-
-function RideRow({
+function OwnerDetailPanel({
   ride,
-  selected,
-  onClick,
+  onClose,
 }: {
   ride: MyRide;
-  selected: boolean;
-  onClick: () => void;
+  onClose: () => void;
 }) {
-  const computedStatus = getComputedRideStatus(ride);
   return (
-    <button
-      onClick={onClick}
-      className={`group w-full flex flex-col px-4 py-3.5 text-left transition-all border-l-4 ${
-        selected
-          ? "bg-[#064E3B]/5 border-l-[#064E3B]"
-          : computedStatus === "pending"
-            ? "bg-[#EAB308]/5 border-l-[#EAB308] hover:bg-[#EAB308]/10"
-            : "border-l-transparent hover:bg-slate-50"
-      }`}
-    >
-      <div className="flex items-center justify-between w-full">
-        <div className="flex items-center gap-3 min-w-0">
-          <span
-            className={`font-mono text-sm tracking-tight font-black shrink-0 ${selected ? "text-[#064E3B]" : "text-slate-400"}`}
-          >
-            {new Date(ride.scheduledAt).toLocaleTimeString("en-US", {
+    <ScheduleDetailFrame
+      title={
+        <h2 className="text-2xl font-black font-headline tracking-tight leading-tight text-white">
+          {ride.name}
+        </h2>
+      }
+      subtitle={
+        <div className="flex flex-wrap items-center gap-2 mt-4 font-semibold text-xs text-white/95">
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold text-white">
+            <CalendarDays className="w-3.5 h-3.5" />
+            {new Date(ride.scheduledAt).toLocaleDateString(navigator.language, {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+            })}{" "}
+            ·{" "}
+            {new Date(ride.scheduledAt).toLocaleTimeString(navigator.language, {
               hour: "2-digit",
               minute: "2-digit",
             })}
           </span>
-          <div className="truncate">
-            <p
-              className={`font-bold font-headline text-sm truncate ${selected ? "text-[#064E3B]" : "text-slate-800"}`}
-            >
-              {ride.name}
-            </p>
-            <p className="text-[10px] text-slate-555 mt-0.5 truncate font-medium">
-              Ride:{" "}
-              <span className="text-slate-700 font-bold">{ride.ride}</span> •
-              Gate {ride.laneNumber}
-            </p>
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold text-white">
+            <Clock className="w-3.5 h-3.5" />
+            Owner view
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold text-white">
+            <Compass className="w-3.5 h-3.5" />
+            {ride.distanceMeters}m · {ride.trackCondition}
+          </span>
+        </div>
+      }
+      headerRight={
+        <span className="px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm bg-secondary !text-secondary-foreground border-transparent">
+          {ride.status}
+        </span>
+      }
+      onClose={onClose}
+    >
+      <div>
+        <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3 block">
+          Your Horse Entry
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+              Horse
+            </span>
+            <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
+              {ride.ride}
+            </span>
+            <span className="text-xs text-slate-500 mt-0.5 block">
+              Your registered runner
+            </span>
+          </div>
+          <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+              Jockey
+            </span>
+            <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
+              {ride.horseOwner}
+            </span>
+            <span className="text-xs text-slate-500 mt-0.5 block">
+              Assigned rider
+            </span>
+          </div>
+          <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+              Lane Draw
+            </span>
+            <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
+              Lane {ride.laneNumber}
+            </span>
+            <span className="text-xs text-slate-500 mt-0.5 block">
+              of {ride.laneCount} runners
+            </span>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0 pl-3">
-          <RideStatusBadge status={computedStatus} />
+      </div>
+      <div>
+        <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3 block">
+          Race Conditions
+        </h3>
+        <div className="bg-white border border-[#064E3B]/10 rounded-xl overflow-hidden shadow-sm divide-y divide-slate-100 text-sm">
+          <div className="flex items-center justify-between px-5 py-3">
+            <span className="text-slate-555 flex items-center gap-2 font-medium">
+              <MapPin className="w-4 h-4 text-slate-400" />
+              Venue
+            </span>
+            <span className="font-bold text-slate-800">
+              {ride.venue}
+            </span>
+          </div>
+          <div className="flex items-center justify-between px-5 py-3">
+            <span className="text-slate-555 flex items-center gap-2 font-medium">
+              <Flag className="w-4 h-4 text-slate-400" />
+              Distance
+            </span>
+            <span className="font-bold text-slate-800">
+              {ride.distanceMeters}m
+            </span>
+          </div>
+          <div className="flex items-center justify-between px-5 py-3">
+            <span className="text-slate-555 flex items-center gap-2 font-medium">
+              <Activity className="w-4 h-4 text-slate-400" />
+              Going
+            </span>
+            <span className="font-bold text-slate-800 capitalize">
+              {ride.trackCondition}
+            </span>
+          </div>
+          <div className="flex items-center justify-between px-5 py-3">
+            <span className="text-slate-555 flex items-center gap-2 font-medium">
+              <Users className="w-4 h-4 text-slate-400" />
+              Field Size
+            </span>
+            <span className="font-bold text-slate-800">
+              {ride.laneCount} runners
+            </span>
+          </div>
         </div>
       </div>
-    </button>
+    </ScheduleDetailFrame>
   );
 }
-
-const buildMockRunnersForJockey = (selectedRide: MyRide) => {
-  const sampleRunners = [
-    { cloth: 1, horseName: "Northern Star", jockeyName: "D. Patel" },
-    { cloth: 2, horseName: "Silver Drift", jockeyName: "M. Larsson" },
-    { cloth: 3, horseName: "Iron Cascade", jockeyName: "C. Nguyen" },
-    { cloth: 4, horseName: "Desert Wind", jockeyName: "R. Santos" },
-    { cloth: 5, horseName: "Dark Current", jockeyName: "T. Evans" },
-    { cloth: 6, horseName: "Golden Shore", jockeyName: "A. Kim" },
-  ];
-  const ours = {
-    cloth: selectedRide.laneNumber,
-    horseName: selectedRide.ride,
-    jockeyName: "You (Pro Jockey)",
-  };
-  return [
-    ...sampleRunners.filter((r) => r.cloth !== selectedRide.laneNumber),
-    ours,
-  ].sort((a, b) => a.cloth - b.cloth);
-};

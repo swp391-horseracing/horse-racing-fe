@@ -79,6 +79,7 @@ export default function JockeyPage() {
           <RidingSchedule
             rides={rides}
             loading={ridesLoading}
+            userRole="jockey"
             onAcceptRide={handleAcceptRide}
             onDeclineRide={handleDeclineRide}
           />

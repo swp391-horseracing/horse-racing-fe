@@ -101,11 +101,26 @@ export type UserRace = {
   id: string;
   tournamentId: string;
   name: string;
-  roundName: string;
   distanceMeters: number;
   scheduledAt: string;
   venue: string;
   status: string;
+  laneCount: number;
+  trackCondition?: string;
+
+  ride?: string;
+  horseOwner?: string;
+  entryStatus?: string;
+  confirmedAt?: string | null;
+  laneNumber?: number;
+  horsesId?: string;
+  ownerId?: string;
+  ranking?: number;
+  roundName?: string;
+
+  horse?: string;
+  jockey?: string;
+  races?: string;
 };
 
 export type UserRaceListResponse = {
