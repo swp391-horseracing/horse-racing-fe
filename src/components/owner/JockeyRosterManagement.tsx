@@ -30,7 +30,6 @@ export function JockeyRosterManagement({
   jockeys,
   invitations,
   onInviteJockey,
-  onConfirmPairing,
   onCancelInvite,
   jockeysPagination,
   loadAllInvitations,
@@ -572,14 +571,6 @@ export function JockeyRosterManagement({
                         className="text-[10px] font-bold text-rose-600 hover:text-rose-800"
                       >
                         Cancel
-                      </button>
-                    )}
-                    {inv.status === "accepted" && (
-                      <button
-                        onClick={() => onConfirmPairing(inv.id)}
-                        className="rounded-md bg-emerald-600 px-3 py-1 text-[10px] font-bold text-white hover:bg-emerald-700"
-                      >
-                        Confirm
                       </button>
                     )}
                   </div>
