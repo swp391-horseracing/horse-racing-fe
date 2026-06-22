@@ -80,6 +80,18 @@ export function useOwner() {
     }
   }, [jockeyPage]);
 
+  const loadTournamentsList = useCallback(async () => {
+    try {
+      const response = await TournamentService.getTournaments({
+        limit: 100,
+      });
+
+      setTournaments(response.data ?? []);
+    } catch (error) {
+      console.error("Failed to load tournaments:", error);
+    }
+  }, []);
+
   const loadRegistrations = useCallback(async () => {
     try {
       const response = await UserService.getMyRegistrations();
@@ -286,14 +298,19 @@ export function useOwner() {
       try {
         setLoading(true);
 
-        await Promise.all([loadHorses(), loadRegistrations(), loadJockeys()]);
+        await Promise.all([
+          loadHorses(),
+          loadRegistrations(),
+          loadJockeys(),
+          loadTournamentsList(),
+        ]);
       } finally {
         setLoading(false);
       }
     };
 
     initialize();
-  }, [loadHorses, loadRegistrations, loadJockeys]);
+  }, [loadHorses, loadRegistrations, loadJockeys, loadTournamentsList]);
 
   return {
     page,
@@ -317,6 +334,7 @@ export function useOwner() {
     loadHorses,
     loadJockeys,
     loadRegistrations,
+    loadTournamentsList,
     loadRegistration,
     loadInvitations,
     loadAllInvitations,
