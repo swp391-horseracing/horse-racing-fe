@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
-import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   Search,
@@ -168,6 +168,7 @@ export default function RacesPage() {
   const [searchParams] = useSearchParams();
   const tournamentIdParam = searchParams.get("tournamentId");
   const tournamentId = tournamentIdParam ?? null;
+  const { id: urlRaceId } = useParams<{ id: string }>();
 
   const routeState = location.state as {
     raceId?: string;
@@ -195,7 +196,7 @@ export default function RacesPage() {
     routeState?.date ? parseLocalDate(routeState.date) : new Date()
   );
   const [selectedRaceId, setSelectedRaceId] = useState<string | null>(
-    routeState?.raceId ?? null
+    urlRaceId ?? routeState?.raceId ?? null
   );
 
   const [viewMonth, setViewMonth] = useState<Date>(selectedDate || new Date());
@@ -254,6 +255,18 @@ export default function RacesPage() {
       clearDetail();
     }
   }, [selectedRaceId, loadDetail, clearDetail]);
+
+  useEffect(() => {
+    if (urlRaceId && urlRaceId !== selectedRaceId) {
+      setSelectedRaceId(urlRaceId);
+    }
+  }, [urlRaceId]);
+
+  useEffect(() => {
+    if (urlRaceId && searchParams.get("predict") === "true") {
+      setPredictModalOpen(true);
+    }
+  }, []);
 
   const allRaces = useMemo(() => apiRaces.map(mapRaceToUi), [apiRaces]);
 
@@ -326,7 +339,10 @@ export default function RacesPage() {
 
   const handleCloseDetail = useCallback(() => {
     setSelectedRaceId(null);
-  }, []);
+    if (urlRaceId) {
+      navigate(ROUTES.RACES);
+    }
+  }, [urlRaceId, navigate]);
 
   const panelOpen = selectedRaceId !== null;
   const isCalendarMode = !tournamentId;
@@ -625,7 +641,7 @@ export default function RacesPage() {
                           </p>
                         </div>
                         <button
-                          onClick={() => navigate("/spectator/predictions")}
+                          onClick={() => navigate(ROUTES.ME_PREDICTIONS)}
                           className="text-xs font-bold text-[#064E3B] hover:underline cursor-pointer"
                         >
                           View all predictions →

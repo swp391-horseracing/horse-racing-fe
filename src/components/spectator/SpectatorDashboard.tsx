@@ -5,14 +5,11 @@ import {
   ArrowRight,
   CheckCircle2,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../../router/routes.tsx";
 
-interface SpectatorDashboardProps {
-  setActiveTab: (tab: string) => void;
-}
-
-export function SpectatorDashboard({ setActiveTab }: SpectatorDashboardProps) {
+export function SpectatorDashboard() {
+  const navigate = useNavigate();
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-8 max-w-7xl w-full mx-auto font-body">
       {/* Header Section */}
@@ -59,7 +56,7 @@ export function SpectatorDashboard({ setActiveTab }: SpectatorDashboardProps) {
           </div>
           <div
             className="font-headline text-4xl font-black text-[#064E3B] hover:underline cursor-pointer"
-            onClick={() => setActiveTab("/spectator/predictions")}
+            onClick={() => navigate(ROUTES.SPECTATOR_PREDICTIONS)}
           >
             2
           </div>
