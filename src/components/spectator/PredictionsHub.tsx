@@ -96,8 +96,18 @@ function OpenRacesTab() {
     setLoadingRaceId(raceId);
     setSelectedRace({ id: raceId, name: raceName });
     try {
-      const raceEntries = await RaceService.getRaceHorses(raceId);
-      setEntries(raceEntries);
+      const entriesData = await RaceService.getRaceEntries(raceId);
+      const mapped = (entriesData as any[]).map((e: any) => ({
+        id: e.entryId,
+        horseId: e.horse?.id || "",
+        name: e.horse?.name || "",
+        laneNumber: String(e.laneNumber),
+        weightKg: "",
+        entryStatus: e.entryStatus,
+        jockeyName: e.jockey?.name || "",
+        clothNumber: 0,
+      }));
+      setEntries(mapped);
       setModalOpen(true);
     } catch {
       addToast("Failed to load race entries", "error");
@@ -209,9 +219,7 @@ function OpenRacesTab() {
             setSelectedRace(null);
             setEntries([]);
           }}
-          onSuccess={() => {
-            addToast("Prediction placed successfully!", "success");
-          }}
+          onSuccess={() => {}}
           addToast={addToast}
         />
       )}
