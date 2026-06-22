@@ -1,5 +1,10 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
-import { useNavigate, useSearchParams, useLocation, useParams } from "react-router-dom";
+import {
+  useNavigate,
+  useSearchParams,
+  useLocation,
+  useParams,
+} from "react-router-dom";
 import {
   ArrowLeft,
   Search,
@@ -43,8 +48,7 @@ const mapApiStatusToUi = (status: RaceApiStatus): RaceStatus => {
   if (status === "ongoing") return "Live";
   if (status === "completed" || status === "result_confirmed")
     return "Completed";
-  if (status === "scheduled" || status === "pre_race")
-    return "Upcoming";
+  if (status === "scheduled" || status === "pre_race") return "Upcoming";
   return "Upcoming";
 };
 
@@ -65,7 +69,8 @@ const mapRaceToUi = (race: RaceListItem): RaceUI => {
     surface: race.venue,
     className: "Standard",
     status: mapApiStatusToUi(race.status),
-    isOpenForPrediction: race.status === "scheduled" || race.status === "pre_race",
+    isOpenForPrediction:
+      race.status === "scheduled" || race.status === "pre_race",
   };
 };
 
@@ -190,24 +195,23 @@ export default function RacesPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     routeState?.date ? parseLocalDate(routeState.date) : new Date()
   );
-  const [selectedRaceId, setSelectedRaceId] = useState<string | null>(
-    urlRaceId ?? routeState?.raceId ?? null
-  );
+  const raceId = urlRaceId ?? routeState?.raceId ?? null;
 
   const [viewMonth, setViewMonth] = useState<Date>(selectedDate || new Date());
 
-  const [userSession, setUserSession] = useState<{ role?: string } | null>(
-    () => {
-      try {
-        const raw = sessionStorage.getItem("user");
-        return raw ? JSON.parse(raw) : null;
-      } catch {
-        return null;
-      }
+  const [userSession] = useState<{ role?: string } | null>(() => {
+    try {
+      const raw = sessionStorage.getItem("user");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
     }
-  );
+  });
   const isSpectator = userSession?.role === "spectator";
-  const [predictModalOpen, setPredictModalOpen] = useState(false);
+  const [predictModalOpen, setPredictModalOpen] = useState(
+    () => !!(urlRaceId && searchParams.get("predict") === "true")
+  );
+  const [modalKey, setModalKey] = useState(0);
   type ToastType = "success" | "error" | "warning" | "info";
   type Toast = { id: number; message: string; type: ToastType };
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -219,17 +223,11 @@ export default function RacesPage() {
     }, 4000);
   };
 
-  useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem("user");
-      setUserSession(raw ? JSON.parse(raw) : null);
-    } catch {
-      setUserSession(null);
-    }
-  }, []);
-
   const [myPredictions, setMyPredictions] = useState<
-    Map<string, { entryId: string; horseName: string; predictedPosition: number }>
+    Map<
+      string,
+      { entryId: string; horseName: string; predictedPosition: number }
+    >
   >(new Map());
 
   const viewYear = viewMonth.getFullYear();
@@ -285,8 +283,7 @@ export default function RacesPage() {
     const lower = search.toLowerCase();
     return allRaces
       .filter((r) => {
-        const matchStatus =
-          statusFilter === "All" || r.status === statusFilter;
+        const matchStatus = statusFilter === "All" || r.status === statusFilter;
         const matchSearch =
           !lower ||
           r.title.toLowerCase().includes(lower) ||
@@ -325,18 +322,18 @@ export default function RacesPage() {
     return allRaces.map((r) => parseLocalDate(r.date));
   }, [allRaces]);
 
-  const handleSelectRace = useCallback((raceId: string) => {
-    setSelectedRaceId(raceId);
-  }, []);
+  const handleSelectRace = useCallback(
+    (id: string) => {
+      navigate(`/races/${id}`);
+    },
+    [navigate]
+  );
 
   const handleCloseDetail = useCallback(() => {
-    setSelectedRaceId(null);
-    if (urlRaceId) {
-      navigate(ROUTES.RACES);
-    }
-  }, [urlRaceId, navigate]);
+    navigate(ROUTES.RACES);
+  }, [navigate]);
 
-  const panelOpen = selectedRaceId !== null;
+  const panelOpen = raceId !== null;
   const isCalendarMode = !tournamentId;
 
   const visibleRaces = isCalendarMode ? calendarFilteredRaces : filteredRaces;
@@ -471,7 +468,7 @@ export default function RacesPage() {
                           <RaceRow
                             key={race.id}
                             race={race}
-                            selected={selectedRaceId === race.id}
+                            selected={raceId === race.id}
                             onClick={() => handleSelectRace(race.id)}
                             showPredictBadge={isSpectator}
                           />
@@ -501,7 +498,7 @@ export default function RacesPage() {
                           <RaceRow
                             key={race.id}
                             race={race}
-                            selected={selectedRaceId === race.id}
+                            selected={raceId === race.id}
                             onClick={() => handleSelectRace(race.id)}
                             showPredictBadge={isSpectator}
                           />
@@ -572,9 +569,15 @@ export default function RacesPage() {
                     </div>
                   }
                   headerRight={
-                    isSpectator && (raceDetail?.status === "scheduled" || raceDetail?.status === "pre_race" || currentPrediction) ? (
+                    isSpectator &&
+                    (raceDetail?.status === "scheduled" ||
+                      raceDetail?.status === "pre_race" ||
+                      currentPrediction) ? (
                       <button
-                        onClick={() => setPredictModalOpen(true)}
+                        onClick={() => {
+                          setModalKey((k) => k + 1);
+                          setPredictModalOpen(true);
+                        }}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EAB308] text-[#064E3B] font-bold text-[11px] hover:bg-[#D9A207] hover:shadow-md transition-all cursor-pointer"
                       >
                         <Target className="w-3.5 h-3.5" />
@@ -637,8 +640,9 @@ export default function RacesPage() {
                             Your Prediction
                           </p>
                           <p className="font-bold text-[#064E3B] text-sm">
-                            {currentPrediction.horseName} → {
-                              {1: "1st", 2: "2nd", 3: "3rd"}[
+                            {currentPrediction.horseName} →{" "}
+                            {
+                              { 1: "1st", 2: "2nd", 3: "3rd" }[
                                 currentPrediction.predictedPosition
                               ]
                             }
@@ -771,13 +775,14 @@ export default function RacesPage() {
           {/* Place Prediction Modal */}
           {raceDetail && (
             <PlacePredictionModal
+              key={modalKey}
               raceId={raceDetail.id}
               raceName={raceDetail.name}
               entries={raceDetail.entries || []}
               open={predictModalOpen}
               onClose={() => setPredictModalOpen(false)}
               onSuccess={() => {
-                if (selectedRaceId) loadDetail(selectedRaceId);
+                if (raceId) loadDetail(raceId);
               }}
               addToast={addToast}
               existingPrediction={currentPrediction}

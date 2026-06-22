@@ -67,7 +67,10 @@ const formatDateTime = (dateString: string | undefined) => {
 function OpenRacesTab() {
   const navigate = useNavigate();
   const { races, loading, loadRacesByMonth } = useRaces();
-  const [selectedRace, setSelectedRace] = useState<{ id: string; name: string } | null>(null);
+  const [selectedRace, setSelectedRace] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [entries, setEntries] = useState<RaceEntry[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [loadingRaceId, setLoadingRaceId] = useState<string | null>(null);
@@ -83,10 +86,10 @@ function OpenRacesTab() {
     }, 4000);
   };
 
-  const now = new Date();
   useEffect(() => {
+    const now = new Date();
     loadRacesByMonth(now.getFullYear(), now.getMonth() + 1);
-  }, []);
+  }, [loadRacesByMonth]);
 
   const openRaces = races.filter(
     (r: RaceListItem) => r.status === "scheduled" || r.status === "pre_race"
@@ -120,9 +123,7 @@ function OpenRacesTab() {
   if (loading) {
     return (
       <div className="py-20 text-center">
-        <p className="text-sm font-semibold text-slate-400">
-          Loading races...
-        </p>
+        <p className="text-sm font-semibold text-slate-400">Loading races...</p>
       </div>
     );
   }
@@ -196,9 +197,11 @@ function OpenRacesTab() {
             key={t.id}
             className={cn(
               "p-3 rounded-lg border shadow-lg backdrop-blur-md flex items-center gap-2 pointer-events-auto text-xs font-semibold",
-              t.type === "success" && "bg-emerald-50 border-emerald-200 text-emerald-800",
+              t.type === "success" &&
+                "bg-emerald-50 border-emerald-200 text-emerald-800",
               t.type === "error" && "bg-rose-50 border-rose-200 text-rose-800",
-              t.type === "warning" && "bg-amber-50 border-amber-200 text-amber-800",
+              t.type === "warning" &&
+                "bg-amber-50 border-amber-200 text-amber-800",
               t.type === "info" && "bg-white border-slate-200 text-slate-800"
             )}
           >
@@ -248,7 +251,7 @@ function MyPredictionsTab() {
 
   useEffect(() => {
     loadPredictions();
-  }, [page, statusFilter]);
+  }, [page, statusFilter, loadPredictions]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -257,13 +260,7 @@ function MyPredictionsTab() {
       }
     }, 400);
     return () => clearTimeout(timer);
-  }, [localSearch]);
-
-  useEffect(() => {
-    if (search !== localSearch) {
-      loadPredictions({ search: localSearch });
-    }
-  }, [page]);
+  }, [localSearch, handleSearchChange, search]);
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
