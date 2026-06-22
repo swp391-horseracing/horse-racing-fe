@@ -9,10 +9,15 @@ export interface Invitation {
   horseId: string;
   ownerId: string;
   jockeyId: string;
+  tournamentId?: string;
   status: "pending" | "accepted" | "declined" | "confirmed" | "superseded";
   invitedAt: string;
   respondedAt: string;
   additionalProp1?: Record<string, unknown>;
+  horse?: string;
+  tournament?: string;
+  owner?: string;
+  raceTime?: string;
 }
 
 export type SidebarTab = "inbox" | "sent" | "accepted" | "declined";

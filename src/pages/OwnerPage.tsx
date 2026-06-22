@@ -21,7 +21,7 @@ import { OwnerDashBoardOverview } from "../components/owner/OwnerDashBoardOvervi
 import { HorseManagement } from "../components/owner/HorseManagement";
 import { RaceRegister } from "../components/owner/RaceRegister";
 import { OwnerScheduleView } from "../components/owner/OwnerScheduleView";
-import JockeyRosterManagement from "../components/owner/jockey-roster/JockeyRosterManagement.tsx";
+import { JockeyRosterManagement } from "../components/owner/JockeyRosterManagement";
 
 type ToastType = "success" | "error" | "warning" | "info";
 type Toast = { id: number; message: string; type: ToastType };
@@ -41,7 +41,8 @@ export default function OwnerPage() {
     addHorse,
     retireHorse,
     registerTournament,
-
+    confirmPairing,
+    cancelInvite,
   } = useOwner();
 
   const { rides: ownerRides, loading: ridesLoading } = useJockey();
@@ -80,8 +81,8 @@ export default function OwnerPage() {
   const isHorseLocked = (horseId: string): boolean =>
     registrations.some(
       (r) =>
-        r.horseId === horseId &&
-        ["Pending Approval", "Approved", "Waitlisted"].includes(r.status)
+        r.horse.id === horseId &&
+        ["pending", "approved"].includes(r.status)
     );
 
   const handleAddHorse = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -235,7 +236,32 @@ export default function OwnerPage() {
           />
         );
       case "/owner/jockeys":
-        return <JockeyRosterManagement />;
+        return (
+          <JockeyRosterManagement
+            horses={horses}
+            registrations={registrations}
+            tournaments={tournaments}
+            jockeys={jockeys}
+            invitations={invitations}
+            onOpenInviteModal={(horseId, tournamentId) => {
+              setSelectedHorseId(horseId);
+              setSelectedTournamentId(Number(tournamentId));
+              addToast("Jockey invite modal coming soon", "info");
+            }}
+            onConfirmPairing={(invId) => {
+              const inv = invitations.find((i) => i.id === invId);
+              if (inv) {
+                confirmPairing(inv.raceId, invId);
+              }
+            }}
+            onCancelInvite={(invId) => {
+              const inv = invitations.find((i) => i.id === invId);
+              if (inv) {
+                cancelInvite(inv.raceId, invId);
+              }
+            }}
+          />
+        );
       case "/owner/schedule":
         return <OwnerScheduleView rides={ownerRides} loading={ridesLoading} />;
       default:

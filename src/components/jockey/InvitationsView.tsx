@@ -19,10 +19,10 @@ type FilterType = "All" | InvStatus;
 
 interface InvitationsViewProps {
   data: Invitation[];
-  selectedId: number | null;
-  setSelectedId: (id: number | null) => void;
-  onAccept: (id: number) => void;
-  onDecline: (id: number) => void;
+  selectedId: string | null;
+  setSelectedId: (id: string | null) => void;
+  onAccept: (id: string) => void;
+  onDecline: (id: string) => void;
 }
 
 const Icons = {
@@ -36,7 +36,7 @@ const Icons = {
 };
 
 const statusConfig: Record<
-  InvStatus | "Confirmed",
+  InvStatus,
   {
     color: string;
     bg: string;
@@ -45,49 +45,49 @@ const statusConfig: Record<
     label: string;
   }
 > = {
-  Pending: {
+  pending: {
     color: "text-[#D97706]",
     bg: "bg-[#D97706]/10",
     border: "border-[#D97706]/20",
     Icon: Icons.Clock,
     label: "Pending",
   },
-  Accepted: {
+  accepted: {
     color: "text-[#064E3B]",
     bg: "bg-[#064E3B]/10",
     border: "border-[#064E3B]/20",
     Icon: Icons.CheckCircle,
     label: "Accepted",
   },
-  Confirmed: {
-    color: "text-[#064E3B]",
-    bg: "bg-[#064E3B]/10",
-    border: "border-[#064E3B]/20",
-    Icon: Icons.CheckCircle,
-    label: "Confirmed",
-  },
-  Declined: {
+  declined: {
     color: "text-rose-700",
     bg: "bg-rose-500/10",
     border: "border-rose-500/20",
     Icon: Icons.XCircle,
     label: "Declined",
   },
-  Expired: {
+  confirmed: {
+    color: "text-[#064E3B]",
+    bg: "bg-[#064E3B]/10",
+    border: "border-[#064E3B]/20",
+    Icon: Icons.CheckCircle,
+    label: "Confirmed",
+  },
+  expired: {
     color: "text-slate-500",
     bg: "bg-slate-500/10",
     border: "border-slate-500/20",
     Icon: Icons.Clock,
     label: "Expired",
   },
-  Cancelled: {
+  cancelled: {
     color: "text-slate-500",
     bg: "bg-slate-500/10",
     border: "border-slate-500/20",
     Icon: Icons.XCircle,
     label: "Cancelled",
   },
-  Superseded: {
+  superseded: {
     color: "text-slate-500",
     bg: "bg-slate-500/10",
     border: "border-slate-500/20",
@@ -108,25 +108,25 @@ export function InvitationsView({
 
   const filters: FilterType[] = [
     "All",
-    "Pending",
-    "Accepted",
-    "Declined",
-    "Expired",
+    "pending",
+    "accepted",
+    "declined",
+    "expired",
   ];
 
   const filtered = useMemo(() => {
     return data.filter((item) => {
       const matchesFilter = filter === "All" || item.status === filter;
       const matchesSearch =
-        item.horse.toLowerCase().includes(search.toLowerCase()) ||
-        item.tournament.toLowerCase().includes(search.toLowerCase()) ||
-        item.owner.toLowerCase().includes(search.toLowerCase());
+        item.horse?.toLowerCase().includes(search.toLowerCase()) ||
+        item.tournament?.toLowerCase().includes(search.toLowerCase()) ||
+        item.owner?.toLowerCase().includes(search.toLowerCase());
       return matchesFilter && matchesSearch;
     });
   }, [data, filter, search]);
 
-  const selectedInv = data.find((i) => i.id === String(selectedId)) ?? null;
-  const pendingInvites = data.filter((i) => i.status === "Pending");
+  const selectedInv = data.find((i) => i.id === selectedId) ?? null;
+  const pendingInvites = data.filter((i) => i.status === "pending");
 
   return (
     <div className="flex-1 flex h-full w-full overflow-hidden font-body">
@@ -186,14 +186,14 @@ export function InvitationsView({
             filtered.map((inv) => {
               const cfg = statusConfig[inv.status];
               const StatusIcon = cfg.Icon;
-              const isPending = inv.status === "Pending";
+              const isPending = inv.status === "pending";
               return (
                 <div
                   key={inv.id}
-                  onClick={() => setSelectedId(Number(inv.id))}
+                  onClick={() => setSelectedId(inv.id)}
                   className={cn(
                     "relative group flex items-start gap-3 rounded-2xl border p-4 cursor-pointer",
-                    selectedId === Number(inv.id)
+                    selectedId === inv.id
                       ? "border-[#064E3B] bg-[#064E3B]/5"
                       : "border-slate-200 bg-white"
                   )}
@@ -220,7 +220,7 @@ export function InvitationsView({
                     {isPending && (
                       <div className="mt-1.5">
                         <span className="text-[8px] text-[#D97706] font-black bg-[#EAB308]/10 px-2 py-0.5 rounded border border-[#EAB308]/20 uppercase">
-                          🔓 DEEP ACCESS ACTIVE
+                          DEEP ACCESS ACTIVE
                         </span>
                       </div>
                     )}
@@ -251,8 +251,8 @@ function InvitationDetail({
   onDecline,
 }: {
   inv: Invitation | null;
-  onAccept: (id: number) => void;
-  onDecline: (id: number) => void;
+  onAccept: (id: string) => void;
+  onDecline: (id: string) => void;
 }) {
   if (!inv) {
     return (
@@ -267,7 +267,7 @@ function InvitationDetail({
 
   const cfg = statusConfig[inv.status];
   const StatusIcon = cfg.Icon;
-  const isPending = inv.status === "Pending";
+  const isPending = inv.status === "pending";
 
   return (
     <div className="p-6 h-full overflow-y-auto space-y-6 font-body">
@@ -314,11 +314,11 @@ function InvitationDetail({
       {isPending ? (
         <div className="bg-gradient-to-tr from-[#064E3B]/5 to-[#EAB308]/5 border border-[#064E3B]/20 rounded-2xl p-5 shadow-sm">
           <h3 className="text-xs font-bold font-headline uppercase text-[#064E3B]">
-            🔓 Private Health Metrics (Deep Access)
+            Private Health Metrics (Deep Access)
           </h3>
           <p className="text-xs text-slate-555 italic mt-3">
             "
-            {(inv as unknown as { medicalLogs?: { trainerNotes?: string } })
+            {(inv as Invitation & { medicalLogs?: { trainerNotes?: string } })
               .medicalLogs?.trainerNotes ||
               "Horse is looking strong in the final furlong. Responds well."}
             "
@@ -330,7 +330,7 @@ function InvitationDetail({
             <Lock className="w-5 h-5 text-current" />
           </div>
           <h3 className="font-bold text-md text-[#064E3B] mt-2">
-            🔒 Private Records Locked
+            Private Records Locked
           </h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed mt-1">
             Deep Access is revoked for completed or non-pending offers.
@@ -342,13 +342,13 @@ function InvitationDetail({
         <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 space-y-4 shadow-sm">
           <div className="flex gap-4">
             <button
-              onClick={() => onAccept(Number(inv.id))}
+              onClick={() => onAccept(inv.id)}
               className="flex-1 rounded-xl bg-[#064E3B] text-white hover:bg-[#043E2F] py-3.5 text-xs font-bold transition"
             >
               Accept Invitation
             </button>
             <button
-              onClick={() => onDecline(Number(inv.id))}
+              onClick={() => onDecline(inv.id)}
               className="flex-1 border border-slate-200 bg-[#F4F6F5] text-slate-655 hover:bg-slate-100 py-3.5 text-xs font-bold transition"
             >
               Decline

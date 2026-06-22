@@ -26,14 +26,7 @@ export interface RaceRegisterProps {
   ) => void;
 }
 
-const activeFilterOptions = [
-  "All",
-  "On going",
-  "Registration open",
-  "Completed",
-] as const;
-
-type ActiveFilterType = (typeof activeFilterOptions)[number];
+type ActiveFilterType = "All" | "On going" | "Registration open" | "Completed";
 
 function formatDate(value?: string) {
   if (!value) return "Not specified";

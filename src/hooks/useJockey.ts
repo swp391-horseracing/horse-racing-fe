@@ -67,9 +67,10 @@ export function useJockey() {
     } catch (error) {
       console.error("Failed to load horses:", error);
     }
-  }, []);
+  }, [page]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadJockey();
   }, [loadJockey]);
 

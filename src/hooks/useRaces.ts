@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
-import { ScheduleService } from "../services/ScheduleService";
-import { RaceService } from "../services/raceService";
+import { ScheduleService } from "../services/ScheduleService.ts";
+import { RaceService } from "../services/RaceService";
 import type { RaceListItem, RaceDetail } from "../types/race";
 
 export function useRaces() {

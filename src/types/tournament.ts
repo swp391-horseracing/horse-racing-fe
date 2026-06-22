@@ -2,6 +2,7 @@ import type {Horse} from "./horse.ts";
 
 export type TournamentApiStatus =
   | "upcoming"
+  | "live_now"
   | "registration_open"
   | "registration_closed"
   | "ongoing"

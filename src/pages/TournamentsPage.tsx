@@ -160,13 +160,13 @@ export default function TournamentsPage() {
 
   const isHorseRegistered = (horseId: string) =>
     ownerRegistrations.some(
-      (r) => r.tournamentId === selectedTournament?.id && r.horseId === horseId
+      (r) => r.tournament.id === selectedTournament?.id && r.horse.id === horseId
     );
 
   const activeHorses = ownerHorses.filter((h) => h.status !== "Retired");
   const availableHorses = activeHorses.filter((h) => !isHorseRegistered(h.id));
   const tournamentRegistrations = ownerRegistrations.filter(
-    (r) => r.tournamentId === selectedTournament?.id
+    (r) => r.tournament.id === selectedTournament?.id
   );
 
   const handleRegister = async () => {
@@ -706,7 +706,7 @@ export default function TournamentsPage() {
                         <div className="space-y-2">
                           {tournamentRegistrations.map((r) => {
                             const horse = ownerHorses.find(
-                              (h) => h.id === r.horseId
+                              (h) => h.id === r.horse.id
                             );
                             return (
                               <div
