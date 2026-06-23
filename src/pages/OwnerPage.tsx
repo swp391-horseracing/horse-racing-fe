@@ -302,8 +302,16 @@ export default function OwnerPage() {
             registrations={registrations}
             jockeys={jockeys}
             invitations={invitations}
-            onInviteJockey={(raceId, jockeyId, horseId) => {
-              inviteJockey(raceId, jockeyId, horseId);
+            onInviteJockey={async (raceId, jockeyId, horseId) => {
+              try {
+                await inviteJockey(raceId, jockeyId, horseId);
+                addToast("Invitation sent to jockey successfully.", "success");
+              } catch {
+                addToast(
+                  "Failed to send invitation. Please try again.",
+                  "error"
+                );
+              }
             }}
             onConfirmPairing={async (invId) => {
               const inv = invitations.find((i) => i.id === invId);
@@ -321,10 +329,20 @@ export default function OwnerPage() {
                 );
               }
             }}
-            onCancelInvite={(invId) => {
+            onCancelInvite={async (invId) => {
               const inv = invitations.find((i) => i.id === invId);
-              if (inv) {
-                cancelInvite(inv.raceId, invId);
+              if (!inv) return;
+              try {
+                await cancelInvite(inv.raceId, invId);
+                addToast(
+                  `Invitation cancelled for ${inv.horse?.name ?? inv.horse?.id} with jockey ${inv.jockey?.fullName ?? inv.jockey?.id}.`,
+                  "success"
+                );
+              } catch {
+                addToast(
+                  "Failed to cancel invitation. Please try again.",
+                  "error"
+                );
               }
             }}
             jockeysPagination={jockeysPagination}
