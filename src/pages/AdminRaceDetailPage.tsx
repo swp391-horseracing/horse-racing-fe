@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
 import useAdminRace from "../hooks/admin/useAdminRace";
 import RaceForm, { type RaceFormData } from "../components/admin/race/RaceForm";
-import RaceStatusButton from "../components/admin/race/RaceStatusButton";
+import RaceStatusButton, { STATUS_LABELS } from "../components/admin/race/RaceStatusButton";
 
 export default function AdminRaceDetailPage() {
   const { id, tournamentId } = useParams<{
@@ -147,7 +147,7 @@ export default function AdminRaceDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
                 <strong>Status:</strong>{" "}
-                {selectedRace.status.replaceAll("_", " ")}
+                {STATUS_LABELS[selectedRace.status] ?? selectedRace.status.replaceAll("_", " ")}
               </div>
               <div>
                 <strong>Round:</strong> {selectedRace.roundName ?? "-"}

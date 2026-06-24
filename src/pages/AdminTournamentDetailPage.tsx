@@ -5,6 +5,7 @@ import UserLayout from "../layouts/UserLayout";
 import useAdminTournament from "../hooks/admin/useAdminTournament";
 import TournamentDetail from "../components/admin/tournament/TournamentDetail";
 import { TournamentService } from "../services/TournamentService";
+import { STATUS_LABELS } from "../components/admin/race/RaceStatusButton";
 import type { RaceItem } from "../types/tournament";
 import { ROUTES } from "../router/routes";
 
@@ -128,8 +129,8 @@ export default function AdminTournamentDetailPage() {
                         {race.venue ?? "-"}
                       </td>
                       <td className="p-3">
-                        <span className="capitalize">
-                          {race.status.replaceAll("_", " ")}
+                        <span>
+                          {STATUS_LABELS[race.status] ?? race.status.replaceAll("_", " ")}
                         </span>
                       </td>
                       <td className="p-3 text-right">

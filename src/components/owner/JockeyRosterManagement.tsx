@@ -562,7 +562,7 @@ export function JockeyRosterManagement({
 
                   <div className="flex shrink-0 items-center gap-2">
                     <span className={statusBadgeClass(inv.status)}>
-                      {inv.status}
+                      {inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}
                     </span>
 
                     {inv.status === "pending" && (

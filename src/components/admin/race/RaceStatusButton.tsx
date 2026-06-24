@@ -13,7 +13,7 @@ const RACE_STATUS_FLOW: Record<string, string[]> = {
   cancelled: [],
 };
 
-const STATUS_LABELS: Record<string, string> = {
+export const STATUS_LABELS: Record<string, string> = {
   draft: "Draft",
   scheduled: "Scheduled",
   pre_race: "Pre-Race",

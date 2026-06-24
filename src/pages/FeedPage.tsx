@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useRaces } from "../hooks/useRaces";
 import useTournament from "../hooks/useTournament";
 import { ROUTES } from "../router/routes";
+import { formatTournamentStatus } from "../styles/schema/tournamentStatusFlow";
 import {
   Trophy,
   Calendar,
@@ -199,7 +200,7 @@ export default function FeedPage() {
                                   : "bg-blue-50 text-blue-700 border-blue-200"
                             }`}
                           >
-                            {tournament.status.replace("_", " ")}
+                            {formatTournamentStatus(tournament.status)}
                           </span>
                           <span className="text-[10px] font-bold text-slate-400 font-label">
                             ID: {tournament.id.substring(0, 6)}...

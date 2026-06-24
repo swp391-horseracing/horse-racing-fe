@@ -13,6 +13,7 @@ import {
   Flag,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { formatTournamentStatus } from "../../styles/schema/tournamentStatusFlow";
 import type {
   Tournament,
   TournamentRegistrationResponse,
@@ -55,7 +56,7 @@ function formatDateFull(value?: string) {
 
 function formatStatus(status?: string) {
   if (!status) return "Unknown";
-  return status.replace(/_/g, " ");
+  return status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, " ");
 }
 
 function TournamentStatusBadge({ status }: { status: string }) {
@@ -81,7 +82,7 @@ function TournamentStatusBadge({ status }: { status: string }) {
       {status === "ongoing" && (
         <span className="h-1.5 w-1.5 rounded-full bg-secondary animate-pulse" />
       )}
-      {formatStatus(status)}
+      {formatTournamentStatus(status)}
     </span>
   );
 }
