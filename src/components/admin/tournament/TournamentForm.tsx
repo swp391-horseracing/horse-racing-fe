@@ -1,36 +1,20 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
+import { useFormik } from "formik";
+import { toFormikValidationSchema } from "zod-formik-adapter";
 import { X } from "lucide-react";
+import {
+  type TournamentFormValues,
+  tournamentSchema,
+} from "../../../styles/schema/tournamentSchema";
 
-type TournamentFormData = {
-  name: string;
-  startDate: string;
-  endDate: string;
-  description: string;
-  rules: string;
-  location: string;
-  registrationOpenDate: string;
-  registrationCloseDate: string;
-  maximumParticipants: number;
-  minimumParticipants: number;
-  prizePool: number;
-};
+function toISO(value: string) {
+  if (!value) return "";
+  return new Date(value).toISOString();
+}
 
-const initialForm: TournamentFormData = {
-  name: "",
-  startDate: "",
-  endDate: "",
-  description: "",
-  rules: "",
-  location: "",
-  registrationOpenDate: "",
-  registrationCloseDate: "",
-  maximumParticipants: 10,
-  minimumParticipants: 2,
-  prizePool: 1000,
-};
-
-function toISODateTime(value: string) {
-  return value ? new Date(value).toISOString() : "";
+function ErrorText({ text }: { text?: string }) {
+  if (!text) return null;
+  return <p className="mt-1 text-xs text-rose-600">{text}</p>;
 }
 
 export function TournamentForm({
@@ -39,37 +23,45 @@ export function TournamentForm({
   actionLoading,
 }: {
   onClose: () => void;
-  createTournament: (tournament: TournamentFormData) => Promise<unknown>;
+  createTournament: (tournament: TournamentFormValues) => Promise<unknown>;
   actionLoading: boolean;
 }) {
-  const [form, setForm] = useState<TournamentFormData>(initialForm);
-  const [error, setError] = useState<string | null>(null);
+  const [serverError, setServerError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
+  const formik = useFormik<TournamentFormValues>({
+    initialValues: {
+      name: "",
+      startDate: "",
+      endDate: "",
+      description: "",
+      rules: "",
+      location: "",
+      registrationOpenDate: "",
+      registrationCloseDate: "",
+      prizePool: 1000,
+      maximumParticipants: 10,
+      minimumParticipants: 2,
+    },
+    validationSchema: toFormikValidationSchema(tournamentSchema),
+    onSubmit: async (values) => {
+      setServerError(null);
 
-    if (form.prizePool <= 0) {
-      setError("Prize pool must be greater than 0.");
-      return;
-    }
+      const payload: TournamentFormValues = {
+        ...values,
+        startDate: toISO(values.startDate),
+        endDate: toISO(values.endDate),
+        registrationOpenDate: toISO(values.registrationOpenDate),
+        registrationCloseDate: toISO(values.registrationCloseDate),
+      };
 
-    const payload: TournamentFormData = {
-      ...form,
-      startDate: toISODateTime(form.startDate),
-      endDate: toISODateTime(form.endDate),
-      registrationOpenDate: toISODateTime(form.registrationOpenDate),
-      registrationCloseDate: toISODateTime(form.registrationCloseDate),
-    };
+      const result = await createTournament(payload);
 
-    const result = await createTournament(payload);
-
-    if (result) {
-      alert("Tournament created successfully");
-      setForm(initialForm);
-      onClose();
-    }
-  };
+      if (result) {
+        formik.resetForm();
+        onClose();
+      }
+    },
+  });
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
@@ -88,28 +80,27 @@ export function TournamentForm({
           </button>
         </div>
 
-        {error && (
+        {serverError && (
           <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            {error}
+            {serverError}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={formik.handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-semibold mb-2">
               Tournament Name
             </label>
             <input
               type="text"
-              value={form.name}
-              onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  name: e.target.value,
-                }))
-              }
+              name="name"
+              value={formik.values.name}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               className="w-full border rounded-xl px-4 py-3"
-              required
+            />
+            <ErrorText
+              text={formik.touched.name ? formik.errors.name : undefined}
             />
           </div>
 
@@ -120,15 +111,16 @@ export function TournamentForm({
               </label>
               <input
                 type="datetime-local"
-                value={form.startDate}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    startDate: e.target.value,
-                  }))
-                }
+                name="startDate"
+                value={formik.values.startDate}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 className="w-full border rounded-xl px-4 py-3"
-                required
+              />
+              <ErrorText
+                text={
+                  formik.touched.startDate ? formik.errors.startDate : undefined
+                }
               />
             </div>
 
@@ -138,15 +130,16 @@ export function TournamentForm({
               </label>
               <input
                 type="datetime-local"
-                value={form.endDate}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    endDate: e.target.value,
-                  }))
-                }
+                name="endDate"
+                value={formik.values.endDate}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 className="w-full border rounded-xl px-4 py-3"
-                required
+              />
+              <ErrorText
+                text={
+                  formik.touched.endDate ? formik.errors.endDate : undefined
+                }
               />
             </div>
           </div>
@@ -156,30 +149,34 @@ export function TournamentForm({
               Description
             </label>
             <textarea
+              name="description"
               rows={4}
-              value={form.description}
-              onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  description: e.target.value,
-                }))
-              }
+              value={formik.values.description}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               className="w-full border rounded-xl px-4 py-3"
+            />
+            <ErrorText
+              text={
+                formik.touched.description
+                  ? formik.errors.description
+                  : undefined
+              }
             />
           </div>
 
           <div>
             <label className="block text-sm font-semibold mb-2">Rules</label>
             <textarea
+              name="rules"
               rows={4}
-              value={form.rules}
-              onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  rules: e.target.value,
-                }))
-              }
+              value={formik.values.rules}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               className="w-full border rounded-xl px-4 py-3"
+            />
+            <ErrorText
+              text={formik.touched.rules ? formik.errors.rules : undefined}
             />
           </div>
 
@@ -187,14 +184,16 @@ export function TournamentForm({
             <label className="block text-sm font-semibold mb-2">Location</label>
             <input
               type="text"
-              value={form.location}
-              onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  location: e.target.value,
-                }))
-              }
+              name="location"
+              value={formik.values.location}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               className="w-full border rounded-xl px-4 py-3"
+            />
+            <ErrorText
+              text={
+                formik.touched.location ? formik.errors.location : undefined
+              }
             />
           </div>
 
@@ -205,14 +204,18 @@ export function TournamentForm({
               </label>
               <input
                 type="datetime-local"
-                value={form.registrationOpenDate}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    registrationOpenDate: e.target.value,
-                  }))
-                }
+                name="registrationOpenDate"
+                value={formik.values.registrationOpenDate}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 className="w-full border rounded-xl px-4 py-3"
+              />
+              <ErrorText
+                text={
+                  formik.touched.registrationOpenDate
+                    ? formik.errors.registrationOpenDate
+                    : undefined
+                }
               />
             </div>
 
@@ -222,14 +225,18 @@ export function TournamentForm({
               </label>
               <input
                 type="datetime-local"
-                value={form.registrationCloseDate}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    registrationCloseDate: e.target.value,
-                  }))
-                }
+                name="registrationCloseDate"
+                value={formik.values.registrationCloseDate}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 className="w-full border rounded-xl px-4 py-3"
+              />
+              <ErrorText
+                text={
+                  formik.touched.registrationCloseDate
+                    ? formik.errors.registrationCloseDate
+                    : undefined
+                }
               />
             </div>
           </div>
@@ -241,15 +248,24 @@ export function TournamentForm({
               </label>
               <input
                 type="number"
+                name="maximumParticipants"
                 min={1}
-                value={form.maximumParticipants}
+                value={formik.values.maximumParticipants}
                 onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    maximumParticipants: Number(e.target.value),
-                  }))
+                  formik.setFieldValue(
+                    "maximumParticipants",
+                    Number(e.target.value)
+                  )
                 }
+                onBlur={formik.handleBlur}
                 className="w-full border rounded-xl px-4 py-3"
+              />
+              <ErrorText
+                text={
+                  formik.touched.maximumParticipants
+                    ? formik.errors.maximumParticipants
+                    : undefined
+                }
               />
             </div>
 
@@ -259,15 +275,24 @@ export function TournamentForm({
               </label>
               <input
                 type="number"
+                name="minimumParticipants"
                 min={1}
-                value={form.minimumParticipants}
+                value={formik.values.minimumParticipants}
                 onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    minimumParticipants: Number(e.target.value),
-                  }))
+                  formik.setFieldValue(
+                    "minimumParticipants",
+                    Number(e.target.value)
+                  )
                 }
+                onBlur={formik.handleBlur}
                 className="w-full border rounded-xl px-4 py-3"
+              />
+              <ErrorText
+                text={
+                  formik.touched.minimumParticipants
+                    ? formik.errors.minimumParticipants
+                    : undefined
+                }
               />
             </div>
 
@@ -277,15 +302,21 @@ export function TournamentForm({
               </label>
               <input
                 type="number"
+                name="prizePool"
                 min={1}
-                value={form.prizePool}
+                value={formik.values.prizePool}
                 onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    prizePool: Number(e.target.value),
-                  }))
+                  formik.setFieldValue("prizePool", Number(e.target.value))
                 }
+                onBlur={formik.handleBlur}
                 className="w-full border rounded-xl px-4 py-3"
+              />
+              <ErrorText
+                text={
+                  formik.touched.prizePool
+                    ? formik.errors.prizePool
+                    : undefined
+                }
               />
             </div>
           </div>
@@ -293,7 +324,7 @@ export function TournamentForm({
           <div className="pt-2 flex gap-3">
             <button
               type="submit"
-              disabled={actionLoading}
+              disabled={formik.isSubmitting || actionLoading}
               className="bg-[#064E3B] text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 disabled:opacity-50"
             >
               {actionLoading ? "Creating..." : "Create Tournament"}

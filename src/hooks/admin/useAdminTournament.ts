@@ -65,7 +65,7 @@ export default function useAdminTournament() {
 
         await loadTournaments();
 
-        return res.tournament;
+        return true;
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Create tournament failed"
