@@ -18,6 +18,7 @@ export interface Invitation {
   invitedAt: string;
   respondedAt: string;
   additionalProp1?: Record<string, unknown>;
+  raceName?: string;
   horse: { id: string; name: string; breed: string };
   jockey: { id: string; fullName: string };
   tournament?: string;

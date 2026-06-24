@@ -102,10 +102,8 @@ export function JockeyRosterManagement({
   }, [selectedReg]);
 
   useEffect(() => {
-    if (activeTab === "invitations") {
-      loadAllInvitations();
-    }
-  }, [activeTab, loadAllInvitations]);
+    loadAllInvitations();
+  }, [loadAllInvitations]);
 
   const handleJockeyPageChange = (newPage: number) => {
     setJockeyLoading(true);
@@ -246,19 +244,64 @@ export function JockeyRosterManagement({
             )}
 
             <div className="flex items-center gap-2 text-sm font-bold text-slate-400">
-              <span className={cn(step === "select-horse" && "text-[#064E3B]")}>
+              <button
+                onClick={() => {
+                  setSelectedReg(null);
+                  dispatchRace({ type: "SELECT_RACE", race: null });
+                  dispatchRace({ type: "LOADED", races: [] });
+                  setSelectedJockeyIds([]);
+                  setStep("select-horse");
+                }}
+                className={cn(
+                  "transition-all",
+                  step === "select-horse"
+                    ? "text-[#064E3B]"
+                    : "text-slate-400 hover:text-slate-700"
+                )}
+                disabled={step === "select-horse"}
+              >
                 1. Horse
-              </span>
+              </button>
               <span>/</span>
-              <span className={cn(step === "select-race" && "text-[#064E3B]")}>
+              <button
+                onClick={() => {
+                  if (!selectedReg) return;
+                  dispatchRace({ type: "SELECT_RACE", race: null });
+                  setStep("select-race");
+                }}
+                className={cn(
+                  "transition-all",
+                  !selectedReg && "cursor-not-allowed opacity-50",
+                  step === "select-race"
+                    ? "text-[#064E3B]"
+                    : "text-slate-400 hover:text-slate-700"
+                )}
+                disabled={step === "select-race" || !selectedReg}
+              >
                 2. Race
-              </span>
+              </button>
               <span>/</span>
-              <span
-                className={cn(step === "select-jockey" && "text-[#064E3B]")}
+              <button
+                onClick={() => {
+                  if (!selectedReg || !raceState.selectedRace) return;
+                  setStep("select-jockey");
+                }}
+                className={cn(
+                  "transition-all",
+                  (!selectedReg || !raceState.selectedRace) &&
+                    "cursor-not-allowed opacity-50",
+                  step === "select-jockey"
+                    ? "text-[#064E3B]"
+                    : "text-slate-400 hover:text-slate-700"
+                )}
+                disabled={
+                  step === "select-jockey" ||
+                  !selectedReg ||
+                  !raceState.selectedRace
+                }
               >
                 3. Jockey
-              </span>
+              </button>
             </div>
           </div>
 
@@ -546,6 +589,14 @@ export function JockeyRosterManagement({
                     </div>
 
                     <div className="mt-1 flex items-center gap-2">
+                      {inv.raceName && (
+                        <>
+                          <span className="text-[9px] font-medium text-slate-500">
+                            {inv.raceName}
+                          </span>
+                          <span className="text-slate-200">·</span>
+                        </>
+                      )}
                       <span className="text-[9px] text-slate-400">
                         {inv.tournament ?? ""}
                       </span>
