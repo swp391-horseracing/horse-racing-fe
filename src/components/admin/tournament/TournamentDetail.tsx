@@ -61,8 +61,8 @@ export default function TournamentDetail({
   }, [tournament.id, tournament.status]);
 
   const availableStatuses = useMemo(
-    () => getAvailableStatuses(status),
-    [status]
+    () => getAvailableStatuses(tournament.status),
+    [tournament.status]
   );
 
   const formik = useFormik<TournamentFormValues>({
