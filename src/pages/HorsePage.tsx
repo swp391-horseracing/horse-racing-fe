@@ -58,7 +58,16 @@ function HorseRow({ horse, selected }: { horse: Horse; selected: boolean }) {
 
   return (
     <div
-      className={`group flex items-center justify-between px-5 py-4 transition-all border-l-4 ${
+      onClick={() => navigate(`/horses/${horse.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          navigate(`/horses/${horse.id}`);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      className={`group flex items-center justify-between px-5 py-4 transition-all border-l-4 cursor-pointer ${
         selected
           ? "bg-primary/5 border-l-primary"
           : "border-l-transparent hover:bg-slate-50/50"
@@ -73,18 +82,13 @@ function HorseRow({ horse, selected }: { horse: Horse; selected: boolean }) {
           />
         </div>
         <div className="truncate">
-          <button
-            onClick={() => navigate(`/horses/${horse.id}`)}
-            className="text-left"
+          <p
+            className={`font-bold font-headline text-base truncate ${
+              selected ? "text-primary" : "text-foreground"
+            }`}
           >
-            <p
-              className={`font-bold font-headline text-base truncate ${
-                selected ? "text-primary" : "text-foreground"
-              }`}
-            >
-              {horse.name}
-            </p>
-          </button>
+            {horse.name}
+          </p>
           <p className="text-xs text-muted-foreground mt-1">
             {horse.breed} · {getAge(horse.birthDate)} · {horse.weightKg}kg
           </p>
@@ -95,12 +99,6 @@ function HorseRow({ horse, selected }: { horse: Horse; selected: boolean }) {
         <span className="text-xs font-medium text-muted-foreground hidden sm:inline">
           {getDisplayStatus(horse)}
         </span>
-        <button
-          onClick={() => navigate(`/horses/${horse.id}`)}
-          className="px-3 py-1.5 text-xs font-bold rounded-lg border border-border bg-card hover:bg-muted/40 transition-colors shrink-0"
-        >
-          Horse Detail
-        </button>
       </div>
     </div>
   );
