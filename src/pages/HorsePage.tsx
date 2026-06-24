@@ -73,13 +73,18 @@ function HorseRow({ horse, selected }: { horse: Horse; selected: boolean }) {
           />
         </div>
         <div className="truncate">
-          <p
-            className={`font-bold font-headline text-base truncate ${
-              selected ? "text-primary" : "text-foreground"
-            }`}
+          <button
+            onClick={() => navigate(`/horses/${horse.id}`)}
+            className="text-left"
           >
-            {horse.name}
-          </p>
+            <p
+              className={`font-bold font-headline text-base truncate ${
+                selected ? "text-primary" : "text-foreground"
+              }`}
+            >
+              {horse.name}
+            </p>
+          </button>
           <p className="text-xs text-muted-foreground mt-1">
             {horse.breed} · {getAge(horse.birthDate)} · {horse.weightKg}kg
           </p>
