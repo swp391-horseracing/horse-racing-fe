@@ -134,16 +134,16 @@ export function useOwner() {
           );
           const races = racesRes.data ?? [];
 
-              for (const race of races) {
-                try {
-                  const invRes = await UserService.getRaceInvitations(race.id);
-                  const raceInvitations = (invRes.data ?? []).map(
-                    (inv: Invitation) => ({
-                      ...inv,
-                      raceId: inv.raceId || race.id,
-                      raceName: race.name,
-                    })
-                  );
+          for (const race of races) {
+            try {
+              const invRes = await UserService.getRaceInvitations(race.id);
+              const raceInvitations = (invRes.data ?? []).map(
+                (inv: Invitation) => ({
+                  ...inv,
+                  raceId: inv.raceId || race.id,
+                  raceName: race.name,
+                })
+              );
               for (const inv of raceInvitations) {
                 if (!allInvitations.some((i) => i.id === inv.id)) {
                   allInvitations.push(inv);

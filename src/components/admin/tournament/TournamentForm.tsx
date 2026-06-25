@@ -313,9 +313,7 @@ export function TournamentForm({
               />
               <ErrorText
                 text={
-                  formik.touched.prizePool
-                    ? formik.errors.prizePool
-                    : undefined
+                  formik.touched.prizePool ? formik.errors.prizePool : undefined
                 }
               />
             </div>

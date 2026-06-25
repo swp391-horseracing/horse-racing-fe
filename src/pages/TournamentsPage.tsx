@@ -722,7 +722,8 @@ export default function TournamentsPage() {
                                   {horse?.name || "Unknown Horse"}
                                 </span>
                                 <span className="text-[10px] font-bold tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                                  {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
+                                  {r.status.charAt(0).toUpperCase() +
+                                    r.status.slice(1)}
                                 </span>
                               </div>
                             );

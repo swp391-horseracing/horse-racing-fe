@@ -61,7 +61,7 @@ export default function useAdminTournament() {
         setActionLoading(true);
         setError(null);
 
-        const res = await AdminService.createTournament(data);
+        await AdminService.createTournament(data);
 
         await loadTournaments();
 
