@@ -16,6 +16,8 @@ import { PlacePredictionModal } from "./PlacePredictionModal";
 import type { PredictionStatus } from "../../types/prediction";
 import type { RaceEntry, RaceListItem } from "../../types/race";
 import { cn } from "../../lib/utils";
+import { useToast } from "../../hooks/useToast";
+import { ToastContainer } from "../../components/ui/toast";
 
 type SubTab = "my-predictions" | "open-races";
 
@@ -76,16 +78,7 @@ function OpenRacesTab() {
   const [loadingRaceId, setLoadingRaceId] = useState<string | null>(null);
   const [entriesCache, setEntriesCache] = useState<Record<string, RaceEntry[]>>({});
 
-  type ToastType = "success" | "error" | "info" | "warning";
-  type Toast = { id: number; message: string; type: ToastType };
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  const addToast = (message: string, type: ToastType = "success") => {
-    const id = Date.now() + Math.random();
-    setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 4000);
-  };
+  const { toasts, addToast } = useToast();
 
   useEffect(() => {
     const now = new Date();
@@ -224,25 +217,7 @@ function OpenRacesTab() {
         ))}
       </div>
 
-      {/* Toasts */}
-      <div className="fixed top-4 right-4 z-[60] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
-        {toasts.map((t) => (
-          <div
-            key={t.id}
-            className={cn(
-              "p-3 rounded-lg border shadow-lg backdrop-blur-md flex items-center gap-2 pointer-events-auto text-xs font-semibold",
-              t.type === "success" &&
-                "bg-emerald-50 border-emerald-200 text-emerald-800",
-              t.type === "error" && "bg-rose-50 border-rose-200 text-rose-800",
-              t.type === "warning" &&
-                "bg-amber-50 border-amber-200 text-amber-800",
-              t.type === "info" && "bg-white border-slate-200 text-slate-800"
-            )}
-          >
-            <span>{t.message}</span>
-          </div>
-        ))}
-      </div>
+      <ToastContainer toasts={toasts} />
 
       {/* Prediction Modal */}
       {selectedRace && (

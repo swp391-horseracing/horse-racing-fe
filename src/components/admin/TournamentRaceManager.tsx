@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Calendar, Flag, Loader2 } from "lucide-react";
-import type { ToastType } from "../../pages/AdminPage";
+import type { ToastType } from "../../types/referee";
 import { TournamentForm } from "./tournament/TournamentForm";
 import TournamentList from "./tournament/TournamentList";
 import TournamentDetailModal from "./tournament/TournamentDetailModal";

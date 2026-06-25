@@ -1,4 +1,4 @@
-import type { ToastType } from "../../pages/AdminPage";
+import type { ToastType } from "../../types/referee";
 
 export default function RegistryApprovals({
   addToast,
