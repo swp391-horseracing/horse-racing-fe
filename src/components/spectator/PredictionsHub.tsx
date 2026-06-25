@@ -74,6 +74,7 @@ function OpenRacesTab() {
   const [entries, setEntries] = useState<RaceEntry[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [loadingRaceId, setLoadingRaceId] = useState<string | null>(null);
+  const [entriesCache, setEntriesCache] = useState<Record<string, RaceEntry[]>>({});
 
   type ToastType = "success" | "error" | "info" | "warning";
   type Toast = { id: number; message: string; type: ToastType };
@@ -91,25 +92,58 @@ function OpenRacesTab() {
     loadRacesByMonth(now.getFullYear(), now.getMonth() + 1);
   }, [loadRacesByMonth]);
 
+  const mapEntries = (entriesData: any[]): RaceEntry[] =>
+    (entriesData as any[]).map((e: any) => ({
+      id: e.entryId,
+      horseId: e.horse?.id || "",
+      name: e.horse?.name || "",
+      laneNumber: String(e.laneNumber),
+      weightKg: "",
+      entryStatus: e.entryStatus,
+      jockeyName: e.jockey?.name || "",
+      clothNumber: 0,
+    }));
+
   const openRaces = races.filter(
     (r: RaceListItem) => r.status === "scheduled" || r.status === "pre_race"
   );
 
+  useEffect(() => {
+    if (openRaces.length === 0) return;
+    let cancelled = false;
+
+    const prefetch = async () => {
+      const cache: Record<string, RaceEntry[]> = {};
+      await Promise.all(
+        openRaces.map(async (race: RaceListItem) => {
+          try {
+            const entriesData = await RaceService.getRaceEntries(race.id);
+            if (!cancelled) cache[race.id] = mapEntries(entriesData);
+          } catch {
+            // skip
+          }
+        })
+      );
+      if (!cancelled) setEntriesCache(cache);
+    };
+
+    prefetch();
+    return () => { cancelled = true; };
+  }, [races]);
+
   const handlePredict = async (raceId: string, raceName: string) => {
     setLoadingRaceId(raceId);
     setSelectedRace({ id: raceId, name: raceName });
+    const cached = entriesCache[raceId];
+    if (cached) {
+      setEntries(cached);
+      setModalOpen(true);
+      setLoadingRaceId(null);
+      return;
+    }
     try {
       const entriesData = await RaceService.getRaceEntries(raceId);
-      const mapped = (entriesData as any[]).map((e: any) => ({
-        id: e.entryId,
-        horseId: e.horse?.id || "",
-        name: e.horse?.name || "",
-        laneNumber: String(e.laneNumber),
-        weightKg: "",
-        entryStatus: e.entryStatus,
-        jockeyName: e.jockey?.name || "",
-        clothNumber: 0,
-      }));
+      const mapped = mapEntries(entriesData);
       setEntries(mapped);
       setModalOpen(true);
     } catch {

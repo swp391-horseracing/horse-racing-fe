@@ -66,6 +66,9 @@ export default function OwnerPage() {
     number | null
   >(null);
 
+  // Data is already loaded at page start by useOwner's initial effect.
+  // Tab switching only changes the rendered view; no re-fetch needed.
+
   const addToast = (message: string, type: ToastType = "success") => {
     const id = ++toastIdRef.current;
     setToasts((prev) => [...prev, { id, message, type }]);
@@ -127,6 +130,7 @@ export default function OwnerPage() {
     try {
       await addHorse(payload);
       setShowAddHorse(false);
+      setActive("/owner/horseManagement");
       addToast(`Horse "${name}" registered successfully!`, "success");
     } catch (err: unknown) {
       const axiosError = err as {

@@ -311,7 +311,18 @@ export function useOwner() {
     };
 
     initialize();
-  }, [loadHorses, loadRegistrations, loadJockeys, loadTournamentsList]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    loadHorses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
+
+  useEffect(() => {
+    loadJockeys();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jockeyPage]);
 
   return {
     page,
