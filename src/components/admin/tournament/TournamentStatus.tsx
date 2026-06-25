@@ -1,3 +1,5 @@
+import { formatTournamentStatus } from "../../../styles/schema/tournamentStatusFlow";
+
 type Props = {
   status: string;
 };
@@ -21,7 +23,7 @@ export default function TournamentStatus({ status }: Props) {
         "bg-slate-50 text-slate-600 border-slate-200"
       }`}
     >
-      {status.replaceAll("_", " ")}
+      {formatTournamentStatus(status)}
     </span>
   );
 }

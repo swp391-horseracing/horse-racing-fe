@@ -1,5 +1,5 @@
 import { Settings, ShieldCheck } from "lucide-react";
-import type { ToastType } from "../../pages/AdminPage";
+import type { ToastType } from "../../types/referee";
 
 export default function VirtualEconomy({
   addToast,

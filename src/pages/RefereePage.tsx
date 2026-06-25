@@ -2,17 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
+import { ChevronLeft, Timer } from "lucide-react";
 import {
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  Activity,
-  ChevronLeft,
-  Timer,
-} from "lucide-react";
-import {
-  type Toast,
-  type ToastType,
   type RacePhase,
   type ViolationCategory,
   type LaneEntry,
@@ -22,6 +13,8 @@ import {
   phaseLabel,
   phaseBadgeStyle,
 } from "../types/referee";
+import { useToast } from "../hooks/useToast";
+import { ToastContainer } from "../components/ui/toast";
 import RefereeDashboard from "../components/referee/RefereeDashboard";
 import RefereeRaceList from "../components/referee/RefereeRaceList";
 import PreRaceInspectionPanel from "../components/referee/PreRaceInspectionPanel";
@@ -198,22 +191,10 @@ const createMockRaces = (): MockRace[] => [
 
 export default function RefereePage() {
   const [active, setActive] = useState<string>(ROUTES.REFEREE_DASHBOARD);
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  const { toasts, addToast } = useToast();
   const [races, setRaces] = useState<MockRace[]>(createMockRaces);
   const [selectedRaceId, setSelectedRaceId] = useState<string | null>(null);
   const [filterPhase, setFilterPhase] = useState<RacePhase | "all">("all");
-
-  const addToast = useCallback(
-    (message: string, type: ToastType = "success") => {
-      const id = Date.now() + Math.random();
-      setToasts((prev) => [...prev, { id, message, type }]);
-      setTimeout(
-        () => setToasts((prev) => prev.filter((t) => t.id !== id)),
-        4000
-      );
-    },
-    []
-  );
 
   const selectedRace = races.find((r) => r.id === selectedRaceId) ?? null;
 
@@ -604,39 +585,7 @@ export default function RefereePage() {
     >
       <div className="h-full w-full relative flex flex-col overflow-hidden">
         {/* Floating Toasts */}
-        <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
-          {toasts.map((t) => (
-            <div
-              key={t.id}
-              className={cn(
-                "p-3.5 rounded-xl border shadow-xl backdrop-blur-md flex items-start gap-2.5 pointer-events-auto transform animate-in slide-in-from-top duration-200 text-xs font-semibold",
-                t.type === "success" &&
-                  "bg-emerald-50 border-emerald-300 text-emerald-900",
-                t.type === "error" && "bg-red-50 border-red-200 text-red-900",
-                t.type === "warning" &&
-                  "bg-orange-50/95 border-orange-200 text-orange-950",
-                t.type === "info" &&
-                  "bg-indigo-50 border-indigo-300 text-indigo-900"
-              )}
-            >
-              <span className="shrink-0 mt-0.5">
-                {t.type === "success" && (
-                  <CheckCircle className="w-4 h-4 text-emerald-600" />
-                )}
-                {t.type === "error" && (
-                  <XCircle className="w-4 h-4 text-red-700" />
-                )}
-                {t.type === "warning" && (
-                  <AlertTriangle className="w-4 h-4 text-orange-600" />
-                )}
-                {t.type === "info" && (
-                  <Activity className="w-4 h-4 text-indigo-600" />
-                )}
-              </span>
-              <span>{t.message}</span>
-            </div>
-          ))}
-        </div>
+        <ToastContainer toasts={toasts} />
 
         <div className="flex-1 overflow-y-auto min-h-0">{renderContent()}</div>
       </div>

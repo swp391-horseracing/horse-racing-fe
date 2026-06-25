@@ -9,7 +9,7 @@ export const TOURNAMENT_STATUS_FLOW = {
 } as const;
 
 export const TOURNAMENT_STATUS_LABELS: Record<string, string> = {
-  draft: "draft",
+  draft: "Draft",
   upcoming: "Upcoming",
   registration_open: "Registration Open",
   registration_closed: "Registration Closed",

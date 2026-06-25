@@ -13,22 +13,19 @@ import {
   MapPin,
   Trophy,
   Target,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
-  Info,
 } from "lucide-react";
 import { ROUTES } from "../router/routes.tsx";
 
 import { useEvent } from "../hooks/useEvent";
 import { useRaces, useRaceDetail } from "../hooks/useRaces";
 import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
+import { useToast } from "../hooks/useToast";
+import { ToastContainer } from "../components/ui/toast";
 
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
 import { ScheduleStatCard } from "../components/schedule/ScheduleStatCard";
 import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
 import { PlacePredictionModal } from "../components/spectator/PlacePredictionModal";
-import { cn } from "../lib/utils";
 
 type RaceStatus = "Live" | "Upcoming" | "Completed";
 type StatusFilter = "All" | RaceStatus;
@@ -216,16 +213,7 @@ export default function RacesPage() {
     () => !!(urlRaceId && searchParams.get("predict") === "true")
   );
   const [modalKey, setModalKey] = useState(0);
-  type ToastType = "success" | "error" | "warning" | "info";
-  type Toast = { id: number; message: string; type: ToastType };
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  const addToast = (message: string, type: ToastType = "success") => {
-    const toastId = Date.now() + Math.random();
-    setToasts((prev) => [...prev, { id: toastId, message, type }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== toastId));
-    }, 4000);
-  };
+  const { toasts, addToast } = useToast();
 
   const [myPredictions, setMyPredictions] = useState<
     Map<
@@ -720,39 +708,7 @@ export default function RacesPage() {
             </div>
           )}
 
-          {/* Toast notifications */}
-          <div className="fixed top-4 right-4 z-[60] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
-            {toasts.map((t) => (
-              <div
-                key={t.id}
-                className={cn(
-                  "p-3 rounded-lg border shadow-lg backdrop-blur-md flex items-center gap-2 pointer-events-auto text-xs font-semibold",
-                  t.type === "success" &&
-                    "bg-emerald-50 border-emerald-200 text-emerald-800",
-                  t.type === "error" &&
-                    "bg-rose-50 border-rose-200 text-rose-800",
-                  t.type === "warning" &&
-                    "bg-amber-50 border-amber-200 text-amber-800",
-                  t.type === "info" &&
-                    "bg-white border-slate-200 text-slate-800"
-                )}
-              >
-                {t.type === "success" && (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                )}
-                {t.type === "error" && (
-                  <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                )}
-                {t.type === "warning" && (
-                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-                )}
-                {t.type === "info" && (
-                  <Info className="w-4 h-4 text-[#064E3B] shrink-0" />
-                )}
-                <span>{t.message}</span>
-              </div>
-            ))}
-          </div>
+          <ToastContainer toasts={toasts} />
 
           {/* Place Prediction Modal */}
           {raceDetail && (

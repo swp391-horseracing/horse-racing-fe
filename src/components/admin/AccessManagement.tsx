@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "../../lib/utils";
-import type { ToastType } from "../../pages/AdminPage";
+import type { ToastType } from "../../types/referee";
 import useAdmin from "../../hooks/admin/useAdmin.ts";
 import UserSearch from "./user/UserSearch.tsx";
 

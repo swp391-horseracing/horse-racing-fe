@@ -141,6 +141,7 @@ export function useOwner() {
                 (inv: Invitation) => ({
                   ...inv,
                   raceId: inv.raceId || race.id,
+                  raceName: race.name,
                 })
               );
               for (const inv of raceInvitations) {
@@ -310,7 +311,20 @@ export function useOwner() {
     };
 
     initialize();
-  }, [loadHorses, loadRegistrations, loadJockeys, loadTournamentsList]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => loadHorses(), 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => loadJockeys(), 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jockeyPage]);
 
   return {
     page,

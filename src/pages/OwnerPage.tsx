@@ -1,17 +1,12 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { useOwner } from "../hooks/useOwner.ts";
 import { useJockey } from "../hooks/useJockey.ts";
 import type { Horse } from "../types/horse";
-import { cn } from "../lib/utils";
-import {
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  Activity,
-} from "lucide-react";
+import { Clock } from "lucide-react";
+import { useToast } from "../hooks/useToast";
+import { ToastContainer } from "../components/ui/toast";
 
 // Modals
 import { AddHorseModal } from "../components/owner/AddHorseModal";
@@ -24,9 +19,6 @@ import { HorseManagement } from "../components/owner/HorseManagement";
 import { RaceRegister } from "../components/owner/RaceRegister";
 import { RidingSchedule } from "../components/jockey/RidingSchedule";
 import { JockeyRosterManagement } from "../components/owner/JockeyRosterManagement";
-
-type ToastType = "success" | "error" | "warning" | "info";
-type Toast = { id: number; message: string; type: ToastType };
 
 export default function OwnerPage() {
   const [active, setActive] = useState<string>(ROUTES.OWNER_DASHBOARD);
@@ -53,27 +45,19 @@ export default function OwnerPage() {
 
   const { rides: ownerRides, loading: ridesLoading } = useJockey();
 
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  const { toasts, addToast } = useToast(3000);
   const [showAddHorse, setShowAddHorse] = useState(false);
   const [editingHorse, setEditingHorse] = useState<Horse | null>(null);
   const [showEditHorse, setShowEditHorse] = useState(false);
   const [showRegisterTournament, setShowRegisterTournament] = useState(false);
-
-  const toastIdRef = useRef(0);
 
   const [selectedHorseId, setSelectedHorseId] = useState<string | null>(null);
   const [selectedTournamentId, setSelectedTournamentId] = useState<
     number | null
   >(null);
 
-  const addToast = (message: string, type: ToastType = "success") => {
-    const id = ++toastIdRef.current;
-    setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(
-      () => setToasts((prev) => prev.filter((t) => t.id !== id)),
-      3000
-    );
-  };
+  // Data is already loaded at page start by useOwner's initial effect.
+  // Tab switching only changes the rendered view; no re-fetch needed.
 
   const calculateAge = (dobString: string): number => {
     const birthDate = new Date(dobString);
@@ -127,6 +111,7 @@ export default function OwnerPage() {
     try {
       await addHorse(payload);
       setShowAddHorse(false);
+      setActive("/owner/horseManagement");
       addToast(`Horse "${name}" registered successfully!`, "success");
     } catch (err: unknown) {
       const axiosError = err as {
@@ -365,39 +350,7 @@ export default function OwnerPage() {
   return (
     <UserLayout activeKey={active} onActiveKeyChange={setActive}>
       <div className="h-full w-full relative flex flex-col overflow-hidden bg-[#F4F6F5]">
-        {/* Toasts */}
-        <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
-          {toasts.map((t) => (
-            <div
-              key={t.id}
-              className={cn(
-                "p-3 rounded-lg border shadow-lg backdrop-blur-md flex items-center gap-2 pointer-events-auto animate-in slide-in-from-top duration-200 text-xs font-semibold",
-                t.type === "success" &&
-                  "bg-emerald-50 border-emerald-200 text-emerald-950",
-                t.type === "error" &&
-                  "bg-rose-50 border-rose-200 text-rose-950",
-                t.type === "warning" &&
-                  "bg-amber-50 border-amber-200 text-amber-955",
-                t.type === "info" &&
-                  "bg-indigo-50 border-indigo-200 text-indigo-950"
-              )}
-            >
-              {t.type === "success" && (
-                <CheckCircle className="w-4 h-4 text-emerald-600" />
-              )}
-              {t.type === "error" && (
-                <XCircle className="w-4 h-4 text-rose-600" />
-              )}
-              {t.type === "warning" && (
-                <AlertTriangle className="w-4 h-4 text-amber-600" />
-              )}
-              {t.type === "info" && (
-                <Activity className="w-4 h-4 text-indigo-600" />
-              )}
-              <span>{t.message}</span>
-            </div>
-          ))}
-        </div>
+        <ToastContainer toasts={toasts} />
 
         <div className="flex-1 overflow-y-auto min-h-0">{renderContent()}</div>
 

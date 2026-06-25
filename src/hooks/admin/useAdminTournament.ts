@@ -61,11 +61,11 @@ export default function useAdminTournament() {
         setActionLoading(true);
         setError(null);
 
-        const res = await AdminService.createTournament(data);
+        await AdminService.createTournament(data);
 
         await loadTournaments();
 
-        return res.tournament;
+        return true;
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Create tournament failed"

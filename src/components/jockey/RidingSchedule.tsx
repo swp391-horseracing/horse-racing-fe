@@ -81,7 +81,7 @@ function RideStatusBadge({
           styles[status]
         )}
       >
-        {status}
+        {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
   }
@@ -92,7 +92,7 @@ function RideStatusBadge({
         getStatusBadgeStyles(status)
       )}
     >
-      {status}
+      {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   );
 }

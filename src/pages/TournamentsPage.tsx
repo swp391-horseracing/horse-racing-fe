@@ -45,7 +45,7 @@ function StatFilterCard({
       }`}
     >
       <p
-        className={`text-[9px] font-bold uppercase tracking-wider mb-0.5 ${
+        className={`text-[9px] font-bold tracking-wider mb-0.5 ${
           active ? "text-primary font-black" : "text-muted-foreground"
         }`}
       >
@@ -65,6 +65,7 @@ function StatFilterCard({
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
+    draft: "bg-slate-100 text-slate-600 border-slate-200",
     upcoming: "bg-muted text-muted-foreground border-border",
     registration_open: "bg-secondary/10 text-secondary border-secondary/30",
     registration_closed: "bg-muted text-muted-foreground border-border",
@@ -74,6 +75,7 @@ function StatusBadge({ status }: { status: string }) {
   };
 
   const labelMap: Record<string, string> = {
+    draft: "Draft",
     upcoming: "Upcoming",
     registration_open: "Registration Open",
     registration_closed: "Registration Closed",
@@ -84,7 +86,7 @@ function StatusBadge({ status }: { status: string }) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-black tracking-wider ${
         styles[status] ?? "bg-muted text-muted-foreground border-border"
       }`}
     >
@@ -719,8 +721,9 @@ export default function TournamentsPage() {
                                 <span className="text-sm font-bold text-foreground">
                                   {horse?.name || "Unknown Horse"}
                                 </span>
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                                  {r.status}
+                                <span className="text-[10px] font-bold tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                                  {r.status.charAt(0).toUpperCase() +
+                                    r.status.slice(1)}
                                 </span>
                               </div>
                             );
