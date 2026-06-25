@@ -315,12 +315,14 @@ export function useOwner() {
   }, []);
 
   useEffect(() => {
-    loadHorses();
+    const timer = setTimeout(() => loadHorses(), 0);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
   useEffect(() => {
-    loadJockeys();
+    const timer = setTimeout(() => loadJockeys(), 0);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jockeyPage]);
 
