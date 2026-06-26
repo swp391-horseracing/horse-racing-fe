@@ -37,7 +37,6 @@ export default function AccessManagement({
   const {
     users,
     loading,
-    error,
     pagination,
     setPagination,
     updateUserRole,
@@ -109,12 +108,6 @@ export default function AccessManagement({
             <option value="pending">Pending</option>
           </select>
         </div>
-
-        {error && (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700">
-            {error}
-          </div>
-        )}
 
         <div className="border rounded-xl overflow-hidden">
           <table className="w-full text-left text-xs">
@@ -197,11 +190,26 @@ export default function AccessManagement({
                                     type="button"
                                     disabled={actionLoading}
                                     onClick={async () => {
-                                      await updateUserRole(u.id, role.role);
-                                      addToast(
-                                        `Role updated to ${role.label}.`,
-                                        "info"
-                                      );
+                                      if (u.role === role.role) {
+                                        addToast(
+                                          `User already has the ${role.label} role.`,
+                                          "warning"
+                                        );
+                                        setOpenMenu(null);
+                                        return;
+                                      }
+                                      try {
+                                        await updateUserRole(u.id, role.role);
+                                        addToast(
+                                          `Role updated to ${role.label}.`,
+                                          "success"
+                                        );
+                                      } catch {
+                                        addToast(
+                                          `Failed to update role to ${role.label}.`,
+                                          "error"
+                                        );
+                                      }
                                       setOpenMenu(null);
                                     }}
                                     className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 disabled:opacity-50"
@@ -247,11 +255,18 @@ export default function AccessManagement({
                                     type="button"
                                     disabled={actionLoading}
                                     onClick={async () => {
-                                      await updateUserStatus(u.id, "locked");
-                                      addToast(
-                                        "Account suspended. Active tokens destroyed.",
-                                        "warning"
-                                      );
+                                      try {
+                                        await updateUserStatus(u.id, "locked");
+                                        addToast(
+                                          "Account suspended. Active tokens destroyed.",
+                                          "warning"
+                                        );
+                                      } catch {
+                                        addToast(
+                                          "Failed to suspend account.",
+                                          "error"
+                                        );
+                                      }
                                       setOpenMenu(null);
                                     }}
                                     className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 disabled:opacity-50"
@@ -263,11 +278,18 @@ export default function AccessManagement({
                                     type="button"
                                     disabled={actionLoading}
                                     onClick={async () => {
-                                      await updateUserStatus(u.id, "active");
-                                      addToast(
-                                        "Account restored to Active.",
-                                        "success"
-                                      );
+                                      try {
+                                        await updateUserStatus(u.id, "active");
+                                        addToast(
+                                          "Account restored to Active.",
+                                          "success"
+                                        );
+                                      } catch {
+                                        addToast(
+                                          "Failed to restore account.",
+                                          "error"
+                                        );
+                                      }
                                       setOpenMenu(null);
                                     }}
                                     className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 disabled:opacity-50"
