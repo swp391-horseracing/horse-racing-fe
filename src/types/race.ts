@@ -1,3 +1,10 @@
+import type {
+  AssignedReferee,
+  Placement,
+  RaceReport,
+  TournamentSummary,
+} from "./referee.ts";
+
 export type RaceApiStatus =
   | "draft"
   | "scheduled"
@@ -59,3 +66,34 @@ export type Ride = {
   laneCount: number;
   ranking?: number;
 };
+
+export interface Race {
+  id: string;
+  name: string;
+
+  raceNumber: number;
+
+  distanceMeters: number;
+
+  trackCondition: "dry" | "wet" | "muddy" | "heavy";
+
+  scheduledAt: string;
+
+  venue: string;
+
+  laneCount: number;
+
+  status: "draft" | "scheduled" | "ongoing" | "completed" | "cancelled";
+
+  tournament: TournamentSummary;
+}
+
+export interface RaceResultDetailResponse {
+  race: Race;
+
+  referees: AssignedReferee[];
+
+  report: RaceReport;
+
+  placements: Placement[];
+}

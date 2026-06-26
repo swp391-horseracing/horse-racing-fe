@@ -29,13 +29,6 @@ export interface LaneEntry {
   flag: "dnf" | "dsq" | null;
 }
 
-export interface Violation {
-  id: string;
-  category: ViolationCategory;
-  notes: string;
-  timestamp: string;
-}
-
 export interface MockRace {
   id: string;
   name: string;
@@ -93,3 +86,94 @@ export const PRE_RACE_DISQUALIFY_REASONS = [
   "Weight / Equipment Compliance Failure",
   "Steward Disqualification / Other",
 ];
+
+import type { Race } from "./race.ts";
+
+export interface TournamentSummary {
+  id: string;
+  name: string;
+}
+
+export interface HorseSummary {
+  id: string;
+  name: string;
+  breed: string;
+}
+
+export interface Violation {
+  id: string;
+  entryId: string;
+  refereeId: string;
+
+  occurredAt: string;
+
+  violationType: string;
+  description: string;
+
+  severity: "warning" | "minor" | "major" | "critical";
+
+  note: string;
+}
+
+export interface Placement {
+  entryId: string;
+
+  laneNumber: number;
+
+  horse: HorseSummary;
+
+  jockey: {
+    id: string;
+    fullName: string;
+  };
+
+  finishedPosition: number;
+
+  finishTime: string;
+
+  finishStatus: "finished" | "dnf" | "dns" | "dq";
+
+  points: number;
+
+  violation: Violation | null;
+}
+
+export interface JockeySummary {
+  id: string;
+  fullName: string;
+}
+
+export interface Referee {
+  id: string;
+  fullName: string;
+}
+
+export interface AssignedReferee extends Referee {
+  assignedAt: string;
+}
+
+export interface RaceReport {
+  id: string;
+
+  status: "draft" | "submitted" | "confirmed" | "published";
+
+  notes: string;
+
+  refereeConfirmedBy: string;
+  refereeConfirmedAt: string;
+
+  publishedBy: string;
+  publishedAt: string;
+
+  createdAt: string;
+  updatedAt: string;
+
+  referee: Referee;
+}
+
+export interface RefereeReport {
+  race: Race;
+  referee: Referee;
+  report: RaceReport;
+  placements: Placement[];
+}

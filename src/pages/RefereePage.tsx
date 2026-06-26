@@ -304,12 +304,7 @@ export default function RefereePage() {
     const currentId = `v-${Date.now()}`;
     const currentTimestamp = new Date().toISOString();
 
-    const violation: Violation = {
-      id: currentId,
-      category,
-      notes,
-      timestamp: currentTimestamp,
-    };
+    const violation: Violation = {};
     updateLane(raceId, laneId, (l) => ({
       ...l,
       violations: [...l.violations, violation],
