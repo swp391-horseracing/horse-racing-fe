@@ -353,27 +353,28 @@ export default function TournamentsPage() {
                 </p>
               </div>
             )}
-
             {pagination.totalPages > 1 && (
-              <div className="flex items-center gap-2 pt-2">
-                <button
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs disabled:opacity-50"
-                >
-                  Prev
-                </button>
-                <span className="text-xs text-muted-foreground">
-                  Page {pagination.page} / {pagination.totalPages}
-                </span>
-                <button
-                  disabled={page >= pagination.totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
+                <div className="flex items-center gap-2 pt-3">
+                  <button
+                      disabled={page <= 1}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      className="border rounded-lg px-3 py-1 disabled:opacity-50"
+                  >
+                    Prev
+                  </button>
+
+                  <span className="text-sm text-muted-foreground">
+                {pagination.page} / {pagination.totalPages}
+              </span>
+
+                  <button
+                      disabled={page >= pagination.totalPages}
+                      onClick={() => setPage((p) => p + 1)}
+                      className="border rounded-lg px-3 py-1 disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
             )}
           </div>
 

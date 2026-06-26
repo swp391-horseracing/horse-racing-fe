@@ -5,20 +5,12 @@ import { useLeaderboard } from "../hooks/useLeaderboard";
 export default function LeaderBoardPage() {
   const {
     activeTab,
-    page,
-    setPage,
-    pageSize,
-    setPageSize,
-    totalPages,
-    totalItems,
-    horseRows,
-    loading,
     error,
     handleTabChange,
   } = useLeaderboard();
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
         <div>
           <h1 className="text-3xl font-black tracking-tight text-slate-900">
@@ -66,24 +58,9 @@ export default function LeaderBoardPage() {
             {error}
           </div>
         ) : activeTab === "horses" ? (
-          <HorseLeaderboardView
-            sortedRows={horseRows}
-            page={page}
-            setPage={setPage}
-            pageSize={pageSize}
-            setPageSize={setPageSize}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            isLoading={loading}
-          />
+          <HorseLeaderboardView/>
         ) : (
-          <JockeyLeaderboardView
-            data={[]}
-            page={page}
-            setPage={setPage}
-            pageSize={pageSize}
-            setPageSize={setPageSize}
-          />
+          <JockeyLeaderboardView/>
         )}
       </div>
     </div>
