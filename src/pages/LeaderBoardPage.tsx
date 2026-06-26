@@ -3,11 +3,7 @@ import { JockeyLeaderboardView } from "../components/leaderboard/JockeyLeaderboa
 import { useLeaderboard } from "../hooks/useLeaderboard";
 
 export default function LeaderBoardPage() {
-  const {
-    activeTab,
-    error,
-    handleTabChange,
-  } = useLeaderboard();
+  const { activeTab, error, handleTabChange } = useLeaderboard();
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
@@ -58,9 +54,9 @@ export default function LeaderBoardPage() {
             {error}
           </div>
         ) : activeTab === "horses" ? (
-          <HorseLeaderboardView/>
+          <HorseLeaderboardView />
         ) : (
-          <JockeyLeaderboardView/>
+          <JockeyLeaderboardView />
         )}
       </div>
     </div>
