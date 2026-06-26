@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { ToastType } from "../../types/referee";
@@ -6,8 +7,8 @@ import useAdmin from "../../hooks/admin/useAdmin.ts";
 import UserSearch from "./user/UserSearch.tsx";
 
 type OpenMenuState =
-  | { id: string; type: "role" }
-  | { id: string; type: "status" }
+  | { id: string; type: "role"; buttonTop: number; buttonBottom: number; buttonRight: number; dropUp: boolean }
+  | { id: string; type: "status"; buttonTop: number; buttonBottom: number; buttonRight: number; dropUp: boolean }
   | null;
 
 const ROLE_OPTIONS = [
@@ -167,14 +168,25 @@ export default function AccessManagement({
                           <button
                             type="button"
                             disabled={actionLoading}
-                            onClick={() =>
+                            onClick={(e) => {
+                              const rect =
+                                e.currentTarget.getBoundingClientRect();
+                              const spaceBelow = window.innerHeight - rect.bottom;
+                              const dropUp = spaceBelow < 220;
                               setOpenMenu(
                                 openMenu?.id === u.id &&
                                   openMenu?.type === "role"
                                   ? null
-                                  : { id: u.id, type: "role" }
-                              )
-                            }
+                                  : {
+                                      id: u.id,
+                                      type: "role",
+                                      buttonTop: rect.top,
+                                      buttonBottom: rect.bottom,
+                                      buttonRight: rect.right,
+                                      dropUp,
+                                    }
+                              );
+                            }}
                             className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#064E3B]/10 text-[#064E3B] px-2.5 py-1.5 rounded hover:bg-[#064E3B]/20 transition disabled:opacity-50"
                           >
                             Edit Role
@@ -182,8 +194,16 @@ export default function AccessManagement({
                           </button>
 
                           {openMenu?.id === u.id &&
-                            openMenu?.type === "role" && (
-                              <div className="absolute right-0 mt-2 w-44 bg-white border rounded-xl shadow-lg z-20 overflow-hidden">
+                            openMenu?.type === "role" &&
+                            createPortal(
+                              <div
+                                className="fixed w-44 bg-white border rounded-xl shadow-lg z-50 overflow-hidden"
+                                style={
+                                  openMenu.dropUp
+                                    ? { bottom: window.innerHeight - openMenu.buttonTop + 8, left: openMenu.buttonRight - 176 }
+                                    : { top: openMenu.buttonBottom + 8, left: openMenu.buttonRight - 176 }
+                                }
+                              >
                                 {ROLE_OPTIONS.map((role) => (
                                   <button
                                     key={role.role}
@@ -225,7 +245,8 @@ export default function AccessManagement({
                                 >
                                   Cancel
                                 </button>
-                              </div>
+                              </div>,
+                              document.body
                             )}
                         </div>
 
@@ -233,14 +254,25 @@ export default function AccessManagement({
                           <button
                             type="button"
                             disabled={actionLoading}
-                            onClick={() =>
+                            onClick={(e) => {
+                              const rect =
+                                e.currentTarget.getBoundingClientRect();
+                              const spaceBelow = window.innerHeight - rect.bottom;
+                              const dropUp = spaceBelow < 220;
                               setOpenMenu(
                                 openMenu?.id === u.id &&
                                   openMenu?.type === "status"
                                   ? null
-                                  : { id: u.id, type: "status" }
-                              )
-                            }
+                                  : {
+                                      id: u.id,
+                                      type: "status",
+                                      buttonTop: rect.top,
+                                      buttonBottom: rect.bottom,
+                                      buttonRight: rect.right,
+                                      dropUp,
+                                    }
+                              );
+                            }}
                             className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#064E3B]/10 text-[#064E3B] px-2.5 py-1.5 rounded hover:bg-[#064E3B]/20 transition disabled:opacity-50"
                           >
                             Edit Status
@@ -248,8 +280,16 @@ export default function AccessManagement({
                           </button>
 
                           {openMenu?.id === u.id &&
-                            openMenu?.type === "status" && (
-                              <div className="absolute right-0 mt-2 w-44 bg-white border rounded-xl shadow-lg z-20 overflow-hidden">
+                            openMenu?.type === "status" &&
+                            createPortal(
+                              <div
+                                className="fixed w-44 bg-white border rounded-xl shadow-lg z-50 overflow-hidden"
+                                style={
+                                  openMenu.dropUp
+                                    ? { bottom: window.innerHeight - openMenu.buttonTop + 8, left: openMenu.buttonRight - 176 }
+                                    : { top: openMenu.buttonBottom + 8, left: openMenu.buttonRight - 176 }
+                                }
+                              >
                                 {u.status === "active" ? (
                                   <button
                                     type="button"
@@ -305,7 +345,8 @@ export default function AccessManagement({
                                 >
                                   Cancel
                                 </button>
-                              </div>
+                              </div>,
+                              document.body
                             )}
                         </div>
                       </div>
