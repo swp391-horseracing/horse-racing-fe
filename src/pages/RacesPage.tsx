@@ -8,6 +8,7 @@ import {
 import {
   ArrowLeft,
   Search,
+  CalendarDays,
   Clock,
   MapPin,
   Trophy,
@@ -17,7 +18,7 @@ import { ROUTES } from "../router/routes.tsx";
 
 import { useEvent } from "../hooks/useEvent";
 import { useRaces, useRaceDetail } from "../hooks/useRaces";
-import type { RaceListItem, RaceEntry } from "../types/race";
+import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
 import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "../components/ui/toast";
 
@@ -26,21 +27,48 @@ import { ScheduleStatCard } from "../components/schedule/ScheduleStatCard";
 import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
 import { PlacePredictionModal } from "../components/spectator/PlacePredictionModal";
 
-type StatusFilter = "All" | "Live" | "Upcoming" | "Completed";
+type RaceStatus = "Live" | "Upcoming" | "Completed";
+type StatusFilter = "All" | RaceStatus;
 
-const getDateStr = (scheduleAt: string) => {
-  const d = new Date(scheduleAt);
-  if (isNaN(d.getTime())) return "";
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
+interface RaceUI extends Omit<RaceListItem, "status"> {
+  title: string;
+  date: string;
+  time: string;
+  distance: string;
+  surface: string;
+  className: string;
+  status: RaceStatus;
+  isOpenForPrediction: boolean;
+}
+
+const mapApiStatusToUi = (status: RaceApiStatus): RaceStatus => {
+  if (status === "ongoing") return "Live";
+  if (status === "completed" || status === "result_confirmed")
+    return "Completed";
+  if (status === "scheduled" || status === "pre_race") return "Upcoming";
+  return "Upcoming";
 };
 
-const getTimeStr = (scheduleAt: string) => {
-  const d = new Date(scheduleAt);
-  if (isNaN(d.getTime())) return "";
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+const mapRaceToUi = (race: RaceListItem): RaceUI => {
+  const scheduled = new Date(race.scheduleAt);
+  const yyyy = scheduled.getFullYear();
+  const mm = String(scheduled.getMonth() + 1).padStart(2, "0");
+  const dd = String(scheduled.getDate()).padStart(2, "0");
+  const hh = String(scheduled.getHours()).padStart(2, "0");
+  const min = String(scheduled.getMinutes()).padStart(2, "0");
+
+  return {
+    ...race,
+    title: race.name,
+    date: `${yyyy}-${mm}-${dd}`,
+    time: `${hh}:${min}`,
+    distance: "TBC",
+    surface: race.venue,
+    className: "Standard",
+    status: mapApiStatusToUi(race.status),
+    isOpenForPrediction:
+      race.status === "scheduled" || race.status === "pre_race",
+  };
 };
 
 const fmtShort = (d: string) =>
@@ -55,12 +83,10 @@ const parseLocalDate = (dateStr: string) => {
   return new Date(year, month - 1, day);
 };
 
-const STATUS_SORT: Record<string, number> = {
-  ongoing: 0,
-  scheduled: 1,
-  pre_race: 1,
-  completed: 2,
-  result_confirmed: 2,
+const STATUS_ORDER: Record<RaceStatus, number> = {
+  Live: 0,
+  Upcoming: 1,
+  Completed: 2,
 };
 
 const formatDateTime = (dateString: string | undefined) => {
@@ -83,15 +109,12 @@ function RaceRow({
   onClick,
   showPredictBadge,
 }: {
-  race: RaceListItem;
+  race: RaceUI;
   selected: boolean;
   onClick: () => void;
   showPredictBadge?: boolean;
 }) {
-  const isLive = race.status === "ongoing";
-  const isCompleted = race.status === "completed" || race.status === "result_confirmed";
-  const isUpcoming = race.status === "scheduled" || race.status === "pre_race";
-  const isOpenForPrediction = race.status === "scheduled" || race.status === "pre_race";
+  const isLive = race.status === "Live";
   return (
     <button
       onClick={onClick}
@@ -107,35 +130,35 @@ function RaceRow({
         <span
           className={`font-mono text-base tracking-tight font-black ${selected ? "text-primary" : "text-muted-foreground"}`}
         >
-          {getTimeStr(race.scheduleAt)}
+          {race.time}
         </span>
         <div className="truncate">
           <p
             className={`font-bold font-headline text-base truncate ${selected ? "text-primary" : "text-foreground"}`}
           >
-            {race.name}
+            {race.title}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Standard · TBC · {race.venue ?? "TBD"} · {getDateStr(race.scheduleAt)}
+            {race.className} · {race.distance} · {race.surface} · {race.date}
           </p>
         </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0 pl-4">
-        {isOpenForPrediction && showPredictBadge && (
+        {race.isOpenForPrediction && showPredictBadge && (
           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#EAB308]/15 text-[#8A6D00] border border-[#EAB308]/30">
             Predict
           </span>
         )}
-        {isLive && (
+        {race.status === "Live" && (
           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
             Live
           </span>
         )}
-        {isCompleted && (
+        {race.status === "Completed" && (
           <span className="h-2 w-2 rounded-full bg-muted/80" />
         )}
-        {isUpcoming && (
+        {race.status === "Upcoming" && (
           <span className="h-2 w-2 rounded-full bg-primary" />
         )}
       </div>
@@ -217,7 +240,7 @@ export default function RacesPage() {
     loadRacesByMonth(viewYear, viewMonthIndex + 1);
   }, [viewYear, viewMonthIndex, loadRacesByMonth]);
 
-  const allRaces = apiRaces;
+  const allRaces = useMemo(() => apiRaces.map(mapRaceToUi), [apiRaces]);
 
   const tournamentName = useMemo(() => {
     if (!tournamentId) return null;
@@ -230,44 +253,45 @@ export default function RacesPage() {
 
   const filteredRaces = useMemo(() => {
     const lower = search.toLowerCase();
-    const matchesFilter = (r: RaceListItem): boolean => {
-      if (statusFilter === "All") return true;
-      if (statusFilter === "Live") return r.status === "ongoing";
-      if (statusFilter === "Completed")
-        return r.status === "completed" || r.status === "result_confirmed";
-      if (statusFilter === "Upcoming")
-        return r.status === "scheduled" || r.status === "pre_race";
-      return false;
-    };
     return allRaces
       .filter((r) => {
-        const matchStatus = matchesFilter(r);
+        const matchStatus = statusFilter === "All" || r.status === statusFilter;
         const matchSearch =
-          !lower || r.name.toLowerCase().includes(lower);
+          !lower ||
+          r.title.toLowerCase().includes(lower) ||
+          r.className.toLowerCase().includes(lower);
         return matchStatus && matchSearch;
       })
       .sort(
         (a, b) =>
-          (STATUS_SORT[a.status] ?? 9) - (STATUS_SORT[b.status] ?? 9) ||
-          new Date(a.scheduleAt).getTime() - new Date(b.scheduleAt).getTime()
+          STATUS_ORDER[a.status] - STATUS_ORDER[b.status] ||
+          a.time.localeCompare(b.time)
       );
   }, [allRaces, statusFilter, search]);
 
   const grouped = useMemo(() => {
-    const map = new Map<string, typeof filteredRaces>();
+    const map = new Map<string, RaceUI[]>();
     filteredRaces.forEach((r) => {
-      const key = getDateStr(r.scheduleAt);
-      const existing = map.get(key) ?? [];
-      map.set(key, [...existing, r]);
+      const existing = map.get(r.date) ?? [];
+      map.set(r.date, [...existing, r]);
     });
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [filteredRaces]);
 
+  const formattedSelectedDate = useMemo(() => {
+    if (!selectedDate) return "";
+    const yyyy = selectedDate.getFullYear();
+    const mm = String(selectedDate.getMonth() + 1).padStart(2, "0");
+    const dd = String(selectedDate.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }, [selectedDate]);
+
+  const calendarFilteredRaces = useMemo(() => {
+    return filteredRaces.filter((r) => r.date === formattedSelectedDate);
+  }, [filteredRaces, formattedSelectedDate]);
+
   const raceDays = useMemo(() => {
-    return allRaces.map((r) => {
-      const d = new Date(r.scheduleAt);
-      return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    });
+    return allRaces.map((r) => parseLocalDate(r.date));
   }, [allRaces]);
 
   const handleSelectRace = useCallback(
@@ -287,13 +311,9 @@ export default function RacesPage() {
   const counts = useMemo(
     () => ({
       All: allRaces.length,
-      Live: allRaces.filter((r) => r.status === "ongoing").length,
-      Upcoming: allRaces.filter(
-        (r) => r.status === "scheduled" || r.status === "pre_race"
-      ).length,
-      Completed: allRaces.filter(
-        (r) => r.status === "completed" || r.status === "result_confirmed"
-      ).length,
+      Live: allRaces.filter((r) => r.status === "Live").length,
+      Upcoming: allRaces.filter((r) => r.status === "Upcoming").length,
+      Completed: allRaces.filter((r) => r.status === "Completed").length,
     }),
     [allRaces]
   );
@@ -403,6 +423,34 @@ export default function RacesPage() {
                     Loading races...
                   </p>
                 </div>
+              ) : isCalendarMode ? (
+                selectedDate && (
+                  <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
+                    <div className="border-b border-border bg-muted/20 px-6 py-4 flex items-center gap-2">
+                      <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
+                        {fmtShort(formattedSelectedDate)}
+                      </span>
+                    </div>
+                    <div className="divide-y divide-border flex-1">
+                      {calendarFilteredRaces.length > 0 ? (
+                        calendarFilteredRaces.map((race) => (
+                          <RaceRow
+                            key={race.id}
+                            race={race}
+                            selected={raceId === race.id}
+                            onClick={() => handleSelectRace(race.id)}
+                            showPredictBadge={isSpectator}
+                          />
+                        ))
+                      ) : (
+                        <div className="p-12 text-center text-sm text-muted-foreground font-medium">
+                          No official races slated for this calendar day.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
               ) : grouped.length > 0 ? (
                 <div className="space-y-6">
                   {grouped.map(([date, races]) => (
@@ -476,7 +524,7 @@ export default function RacesPage() {
                         </span>
                         <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
                           <MapPin className="h-3.5 w-3.5" />
-                          {raceDetail.venue ?? "TBD"}
+                          {raceDetail.venue}
                         </span>
                         <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-[#EAB308]/45 text-[#EAB308] px-3 py-1.5 font-bold">
                           <Trophy className="h-3.5 w-3.5" />
@@ -535,7 +583,7 @@ export default function RacesPage() {
                           Venue
                         </span>
                         <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
-                          {raceDetail.venue ?? "TBD"}
+                          {raceDetail.venue}
                         </span>
                         <span className="text-xs text-slate-500 mt-0.5 block">
                           Race location
