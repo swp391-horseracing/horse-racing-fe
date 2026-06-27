@@ -29,30 +29,45 @@ export function useJockey() {
     return {
       id: race.id,
       tournamentId: race.tournamentId,
+
       name: race.name,
       roundName: race.roundName ?? "",
-      distanceMeters: race.distanceMeters,
-      scheduledAt: race.scheduledAt,
-      venue: race.venue,
+
+      distanceMeters: race.course.distanceMeters,
+
+      scheduledAt: race.scheduleAt ?? "",
+
+      venue: `${race.course.city}, ${race.course.country}`,
+
       status:
         race.status === "completed" || race.status === "result_confirmed"
           ? "completed"
           : race.status === "ongoing"
             ? "live"
             : "scheduled",
-      ride: race.horse ?? race.ride ?? "",
+
+      ride: race.horse ?? "",
+
       laneNumber: race.laneNumber ?? 0,
+      laneCount: race.laneCount ?? 0,
+
       entryStatus: (race.entryStatus ?? "pending") as
         | "pending"
         | "accepted"
         | "declined",
+
       confirmedAt: race.confirmedAt ?? null,
-      horseOwner: race.jockey ?? race.horseOwner ?? "",
+
+      horseOwner: race.horseOwner ?? "",
+
       horsesId: race.horsesId ?? "",
       ownerId: race.ownerId ?? "",
+
       trackCondition: race.trackCondition ?? "good",
-      laneCount: race.laneCount ?? 8,
-      ranking: race.ranking ?? undefined,
+
+      ranking: race.ranking,
+
+      course: race.course,
     };
   };
 

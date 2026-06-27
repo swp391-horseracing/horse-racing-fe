@@ -49,7 +49,7 @@ export default function FeedPage() {
       )
       .sort(
         (a, b) =>
-          new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
+          new Date(a.scheduleAt).getTime() - new Date(b.scheduleAt).getTime()
       )
       .slice(0, 5);
   }, [apiRaces]);
@@ -283,17 +283,17 @@ export default function FeedPage() {
                       key={race.id}
                       onClick={() =>
                         navigate(`${ROUTES.RACES}`, {
-                          state: { raceId: race.id, date: race.date },
+                          state: { raceId: race.id, date: race.scheduleAt },
                         })
                       }
                       className="group flex items-start gap-3 p-3 rounded-xl border border-slate-50 hover:border-[#064E3B]/20 hover:bg-slate-50/50 transition-all duration-200 cursor-pointer"
                     >
                       <div className="flex flex-col items-center justify-center bg-[#064E3B]/5 group-hover:bg-[#064E3B]/10 text-[#064E3B] rounded-lg p-2 shrink-0 w-12 text-center transition-colors">
                         <span className="text-[10px] font-bold uppercase tracking-wider font-label">
-                          {formatDate(race.scheduledAt).split(" ")[0]}
+                          {formatDate(race.scheduleAt).split(" ")[0]}
                         </span>
                         <span className="text-base font-black font-headline leading-none">
-                          {formatDate(race.scheduledAt).split(" ")[1]}
+                          {formatDate(race.scheduleAt).split(" ")[1]}
                         </span>
                       </div>
 
@@ -307,7 +307,7 @@ export default function FeedPage() {
                           )}
                         </div>
                         <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">
-                          {formatTime(race.scheduledAt)} · {race.venue}
+                          {formatTime(race.scheduleAt)} · {race.venue}
                         </p>
                       </div>
                     </div>

@@ -50,7 +50,7 @@ const mapApiStatusToUi = (status: RaceApiStatus): RaceStatus => {
 };
 
 const mapRaceToUi = (race: RaceListItem): RaceUI => {
-  const scheduled = new Date(race.scheduledAt);
+  const scheduled = new Date(race.scheduleAt);
   const yyyy = scheduled.getFullYear();
   const mm = String(scheduled.getMonth() + 1).padStart(2, "0");
   const dd = String(scheduled.getDate()).padStart(2, "0");
@@ -520,7 +520,7 @@ export default function RacesPage() {
                       <div className="flex flex-wrap items-center gap-2 font-semibold text-xs text-white">
                         <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
                           <Clock className="h-3.5 w-3.5" />
-                          {formatDateTime(raceDetail.scheduledAt)}
+                          {formatDateTime(raceDetail.scheduleAt)}
                         </span>
                         <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
                           <MapPin className="h-3.5 w-3.5" />
