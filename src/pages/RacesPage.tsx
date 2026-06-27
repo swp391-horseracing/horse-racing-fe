@@ -10,7 +10,9 @@ import {
   Search,
   CalendarDays,
   Clock,
-  MapPin,
+  Flag,
+  Hash,
+  Layers,
   Trophy,
   Target,
 } from "lucide-react";
@@ -51,7 +53,7 @@ const mapApiStatusToUi = (status: RaceApiStatus): RaceStatus => {
 
 const mapRaceToUi = (race: RaceListItem): RaceUI => {
   const scheduled = new Date(race.scheduledAt);
-  console.log(race.scheduledAt);
+  console.log(race.venue);
   console.log("mapRaceToUi", scheduled);
 
   const yyyy = scheduled.getUTCFullYear();
@@ -67,7 +69,7 @@ const mapRaceToUi = (race: RaceListItem): RaceUI => {
     title: race.name,
     date: `${yyyy}-${mm}-${dd}`,
     time: `${hh}:${min}`,
-    distance: "TBC",
+    distance: "",
     surface: race.venue,
     className: "Standard",
     status: mapApiStatusToUi(race.status),
@@ -246,6 +248,7 @@ export default function RacesPage() {
   }, [viewYear, viewMonthIndex, loadRacesByMonth]);
 
   const allRaces = useMemo(() => apiRaces.map(mapRaceToUi), [apiRaces]);
+  console.log("all race",allRaces);
 
   const tournamentName = useMemo(() => {
     if (!tournamentId) return null;
@@ -522,23 +525,37 @@ export default function RacesPage() {
                           {tournamentName}
                         </p>
                       )}
-                      <div className="flex flex-wrap items-center gap-2 font-semibold text-xs text-white">
+                      <div className="flex flex-wrap w-full items-center gap-2 font-semibold text-xs text-white">
                         <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
                           <Clock className="h-3.5 w-3.5" />
                           {formatDateTime(raceDetail.scheduledAt)}
                         </span>
                         <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
-                          <MapPin className="h-3.5 w-3.5" />
-                          {raceDetail.venue}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-[#EAB308]/45 text-[#EAB308] px-3 py-1.5 font-bold">
-                          <Trophy className="h-3.5 w-3.5" />
-                          {raceDetail.distanceMeters
-                            ? `${raceDetail.distanceMeters}m`
-                            : "Distance TBC"}
+                          <Flag className="h-3.5 w-3.5" />
+                          {raceDetail.course?.name || "Venue"}
                         </span>
                         <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
-                          {raceDetail.roundName || "Standard"}
+                          <Hash className="h-3.5 w-3.5" />
+                          {raceDetail.raceNumber != null
+                            ? `Race #${raceDetail.raceNumber}`
+                            : "Race TBC"}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
+                          <Trophy className="h-3.5 w-3.5" />
+                          {raceDetail.course?.distanceMeters
+                            ? `${raceDetail.course.distanceMeters}m`
+                            : raceDetail.distanceMeters
+                              ? `${raceDetail.distanceMeters}m`
+                              : "Distance TBC"}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold capitalize">
+                          {raceDetail.course?.surfaceType || "Standard"}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
+                          <Layers className="h-3.5 w-3.5" />
+                          {raceDetail.laneCount
+                            ? `${raceDetail.laneCount} Lanes`
+                            : "Lanes TBC"}
                         </span>
                       </div>
                     </div>
@@ -574,24 +591,65 @@ export default function RacesPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                          Round
+                          Course
                         </span>
-                        <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
-                          {raceDetail.roundName || "Standard"}
+                        <span className="text-base font-black font-headline text-[#064E3B] block mt-1 capitalize">
+                          {raceDetail.course?.name || "TBC"}
                         </span>
-                        <span className="text-xs text-slate-500 mt-0.5 block">
-                          Competition stage
+                        <span className="text-xs text-slate-500 mt-0.5 block capitalize">
+                          {raceDetail.course?.surfaceType || "Unknown"} surface
                         </span>
                       </div>
                       <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                          Venue
+                          Distance
                         </span>
                         <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
-                          {raceDetail.venue}
+                          {raceDetail.course?.distanceMeters
+                            ? `${raceDetail.course.distanceMeters}m`
+                            : raceDetail.distanceMeters
+                              ? `${raceDetail.distanceMeters}m`
+                              : "TBC"}
                         </span>
                         <span className="text-xs text-slate-500 mt-0.5 block">
-                          Race location
+                          Course distance
+                        </span>
+                      </div>
+                      <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Race
+                        </span>
+                        <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
+                          {raceDetail.raceNumber != null
+                            ? `Race #${raceDetail.raceNumber}`
+                            : "TBC"}
+                        </span>
+                        <span className="text-xs text-slate-500 mt-0.5 block">
+                          {raceDetail.roundName || "Standard"} round
+                        </span>
+                      </div>
+                      <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Location
+                        </span>
+                        <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
+                          {raceDetail.course?.city || "TBC"}
+                        </span>
+                        <span className="text-xs text-slate-500 mt-0.5 block">
+                          {raceDetail.course?.country || "Unknown"}
+                        </span>
+                      </div>
+                      <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Lanes
+                        </span>
+                        <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
+                          {raceDetail.laneCount
+                            ? `${raceDetail.laneCount} Lanes`
+                            : "TBC"}
+                        </span>
+                        <span className="text-xs text-slate-500 mt-0.5 block capitalize">
+                          Track: {raceDetail.trackCondition || "Standard"}
                         </span>
                       </div>
                       <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
