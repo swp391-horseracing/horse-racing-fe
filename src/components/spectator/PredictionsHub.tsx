@@ -199,7 +199,7 @@ function OpenRacesTab() {
                 <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-500 font-medium">
                   <span className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
-                    {formatDateTime(race.scheduleAt)}
+                    {formatDateTime(race.scheduledAt)}
                   </span>
                   <span className="flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5" />

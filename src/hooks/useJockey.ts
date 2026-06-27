@@ -35,7 +35,7 @@ export function useJockey() {
 
       distanceMeters: race.course.distanceMeters,
 
-      scheduledAt: race.scheduleAt ?? "",
+      scheduledAt: race.scheduledAt ?? "",
 
       venue: `${race.course.city}, ${race.course.country}`,
 

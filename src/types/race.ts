@@ -60,7 +60,7 @@ export interface RaceListItem {
 
   name: string;
   raceNumber: number | null;
-  scheduleAt: string;
+  scheduledAt: string;
   venue: string;
   laneCount?: number;
 

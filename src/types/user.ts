@@ -105,7 +105,7 @@ export interface UserRace {
   name: string;
   raceNumber: number | null;
 
-  scheduleAt: string;
+  scheduledAt: string;
   laneCount: number | null;
 
   status: RaceApiStatus;

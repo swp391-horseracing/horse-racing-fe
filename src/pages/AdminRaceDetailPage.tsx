@@ -136,7 +136,7 @@ export default function AdminRaceDetailPage() {
                 roundName: selectedRace.roundName ?? "",
                 distanceMeters: selectedRace.distanceMeters ?? 1200,
                 trackCondition: selectedRace.trackCondition ?? "good",
-                scheduledAt: selectedRace.scheduleAt ?? "",
+                scheduledAt: selectedRace.scheduledAt ?? "",
                 venue: selectedRace.venue ?? "",
                 laneCount: selectedRace.laneCount ?? 8,
               }}
@@ -172,8 +172,8 @@ export default function AdminRaceDetailPage() {
               </div>
               <div>
                 <strong>Scheduled:</strong>{" "}
-                {selectedRace.scheduleAt
-                  ? new Date(selectedRace.scheduleAt).toLocaleString()
+                {selectedRace.scheduledAt
+                  ? new Date(selectedRace.scheduledAt).toLocaleString()
                   : "-"}
               </div>
             </div>
