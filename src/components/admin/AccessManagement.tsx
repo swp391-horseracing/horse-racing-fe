@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { ToastType } from "../../types/referee";
@@ -6,8 +7,22 @@ import useAdmin from "../../hooks/admin/useAdmin.ts";
 import UserSearch from "./user/UserSearch.tsx";
 
 type OpenMenuState =
-  | { id: string; type: "role" }
-  | { id: string; type: "status" }
+  | {
+      id: string;
+      type: "role";
+      buttonTop: number;
+      buttonBottom: number;
+      buttonRight: number;
+      dropUp: boolean;
+    }
+  | {
+      id: string;
+      type: "status";
+      buttonTop: number;
+      buttonBottom: number;
+      buttonRight: number;
+      dropUp: boolean;
+    }
   | null;
 
 const ROLE_OPTIONS = [
@@ -37,7 +52,6 @@ export default function AccessManagement({
   const {
     users,
     loading,
-    error,
     pagination,
     setPagination,
     updateUserRole,
@@ -110,12 +124,6 @@ export default function AccessManagement({
           </select>
         </div>
 
-        {error && (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700">
-            {error}
-          </div>
-        )}
-
         <div className="border rounded-xl overflow-hidden">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 border-b text-slate-500 font-bold uppercase text-[9px] tracking-wider">
@@ -174,14 +182,26 @@ export default function AccessManagement({
                           <button
                             type="button"
                             disabled={actionLoading}
-                            onClick={() =>
+                            onClick={(e) => {
+                              const rect =
+                                e.currentTarget.getBoundingClientRect();
+                              const spaceBelow =
+                                window.innerHeight - rect.bottom;
+                              const dropUp = spaceBelow < 220;
                               setOpenMenu(
                                 openMenu?.id === u.id &&
                                   openMenu?.type === "role"
                                   ? null
-                                  : { id: u.id, type: "role" }
-                              )
-                            }
+                                  : {
+                                      id: u.id,
+                                      type: "role",
+                                      buttonTop: rect.top,
+                                      buttonBottom: rect.bottom,
+                                      buttonRight: rect.right,
+                                      dropUp,
+                                    }
+                              );
+                            }}
                             className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#064E3B]/10 text-[#064E3B] px-2.5 py-1.5 rounded hover:bg-[#064E3B]/20 transition disabled:opacity-50"
                           >
                             Edit Role
@@ -189,19 +209,51 @@ export default function AccessManagement({
                           </button>
 
                           {openMenu?.id === u.id &&
-                            openMenu?.type === "role" && (
-                              <div className="absolute right-0 mt-2 w-44 bg-white border rounded-xl shadow-lg z-20 overflow-hidden">
+                            openMenu?.type === "role" &&
+                            createPortal(
+                              <div
+                                className="fixed w-44 bg-white border rounded-xl shadow-lg z-50 overflow-hidden"
+                                style={
+                                  openMenu.dropUp
+                                    ? {
+                                        bottom:
+                                          window.innerHeight -
+                                          openMenu.buttonTop +
+                                          8,
+                                        left: openMenu.buttonRight - 176,
+                                      }
+                                    : {
+                                        top: openMenu.buttonBottom + 8,
+                                        left: openMenu.buttonRight - 176,
+                                      }
+                                }
+                              >
                                 {ROLE_OPTIONS.map((role) => (
                                   <button
                                     key={role.role}
                                     type="button"
                                     disabled={actionLoading}
                                     onClick={async () => {
-                                      await updateUserRole(u.id, role.role);
-                                      addToast(
-                                        `Role updated to ${role.label}.`,
-                                        "info"
-                                      );
+                                      if (u.role === role.role) {
+                                        addToast(
+                                          `User already has the ${role.label} role.`,
+                                          "warning"
+                                        );
+                                        setOpenMenu(null);
+                                        return;
+                                      }
+                                      try {
+                                        await updateUserRole(u.id, role.role);
+                                        addToast(
+                                          `Role updated to ${role.label}.`,
+                                          "success"
+                                        );
+                                      } catch {
+                                        addToast(
+                                          `Failed to update role to ${role.label}.`,
+                                          "error"
+                                        );
+                                      }
                                       setOpenMenu(null);
                                     }}
                                     className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 disabled:opacity-50"
@@ -217,7 +269,8 @@ export default function AccessManagement({
                                 >
                                   Cancel
                                 </button>
-                              </div>
+                              </div>,
+                              document.body
                             )}
                         </div>
 
@@ -225,14 +278,26 @@ export default function AccessManagement({
                           <button
                             type="button"
                             disabled={actionLoading}
-                            onClick={() =>
+                            onClick={(e) => {
+                              const rect =
+                                e.currentTarget.getBoundingClientRect();
+                              const spaceBelow =
+                                window.innerHeight - rect.bottom;
+                              const dropUp = spaceBelow < 220;
                               setOpenMenu(
                                 openMenu?.id === u.id &&
                                   openMenu?.type === "status"
                                   ? null
-                                  : { id: u.id, type: "status" }
-                              )
-                            }
+                                  : {
+                                      id: u.id,
+                                      type: "status",
+                                      buttonTop: rect.top,
+                                      buttonBottom: rect.bottom,
+                                      buttonRight: rect.right,
+                                      dropUp,
+                                    }
+                              );
+                            }}
                             className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#064E3B]/10 text-[#064E3B] px-2.5 py-1.5 rounded hover:bg-[#064E3B]/20 transition disabled:opacity-50"
                           >
                             Edit Status
@@ -240,18 +305,42 @@ export default function AccessManagement({
                           </button>
 
                           {openMenu?.id === u.id &&
-                            openMenu?.type === "status" && (
-                              <div className="absolute right-0 mt-2 w-44 bg-white border rounded-xl shadow-lg z-20 overflow-hidden">
+                            openMenu?.type === "status" &&
+                            createPortal(
+                              <div
+                                className="fixed w-44 bg-white border rounded-xl shadow-lg z-50 overflow-hidden"
+                                style={
+                                  openMenu.dropUp
+                                    ? {
+                                        bottom:
+                                          window.innerHeight -
+                                          openMenu.buttonTop +
+                                          8,
+                                        left: openMenu.buttonRight - 176,
+                                      }
+                                    : {
+                                        top: openMenu.buttonBottom + 8,
+                                        left: openMenu.buttonRight - 176,
+                                      }
+                                }
+                              >
                                 {u.status === "active" ? (
                                   <button
                                     type="button"
                                     disabled={actionLoading}
                                     onClick={async () => {
-                                      await updateUserStatus(u.id, "locked");
-                                      addToast(
-                                        "Account suspended. Active tokens destroyed.",
-                                        "warning"
-                                      );
+                                      try {
+                                        await updateUserStatus(u.id, "locked");
+                                        addToast(
+                                          "Account suspended. Active tokens destroyed.",
+                                          "warning"
+                                        );
+                                      } catch {
+                                        addToast(
+                                          "Failed to suspend account.",
+                                          "error"
+                                        );
+                                      }
                                       setOpenMenu(null);
                                     }}
                                     className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 disabled:opacity-50"
@@ -263,11 +352,18 @@ export default function AccessManagement({
                                     type="button"
                                     disabled={actionLoading}
                                     onClick={async () => {
-                                      await updateUserStatus(u.id, "active");
-                                      addToast(
-                                        "Account restored to Active.",
-                                        "success"
-                                      );
+                                      try {
+                                        await updateUserStatus(u.id, "active");
+                                        addToast(
+                                          "Account restored to Active.",
+                                          "success"
+                                        );
+                                      } catch {
+                                        addToast(
+                                          "Failed to restore account.",
+                                          "error"
+                                        );
+                                      }
                                       setOpenMenu(null);
                                     }}
                                     className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 disabled:opacity-50"
@@ -283,7 +379,8 @@ export default function AccessManagement({
                                 >
                                   Cancel
                                 </button>
-                              </div>
+                              </div>,
+                              document.body
                             )}
                         </div>
                       </div>

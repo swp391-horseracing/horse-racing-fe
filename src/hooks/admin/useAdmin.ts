@@ -90,7 +90,9 @@ export default function useAdmin() {
         await openUser(id);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Update role failed");
+      const message = err instanceof Error ? err.message : "Update role failed";
+      setError(message);
+      throw new Error(message, { cause: err });
     } finally {
       setActionLoading(false);
     }
@@ -108,7 +110,10 @@ export default function useAdmin() {
         await openUser(id);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Update status failed");
+      const message =
+        err instanceof Error ? err.message : "Update status failed";
+      setError(message);
+      throw new Error(message, { cause: err });
     } finally {
       setActionLoading(false);
     }
