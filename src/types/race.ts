@@ -27,7 +27,7 @@ export type Ride = {
   roundName: string;
   distanceMeters: number;
   scheduledAt: string;
-  venue: string;
+  venue: string | null;
   status: "scheduled" | "live" | "completed";
   ride: string;
   laneNumber: number;
@@ -61,7 +61,7 @@ export interface RaceListItem {
   name: string;
   raceNumber: number | null;
   scheduleAt: string;
-  venue: string;
+  venue: string | null;
   laneCount?: number;
 
   status: RaceApiStatus;
