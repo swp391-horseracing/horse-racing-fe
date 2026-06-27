@@ -18,7 +18,6 @@ export interface RaceEntry {
   entryStatus: string;
   jockeyName: string;
   clothNumber: number;
-  trainerName?: string;
 }
 
 export type Ride = {
