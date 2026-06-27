@@ -44,12 +44,8 @@ export function useRaceSocket(
     const connect = () => {
       const ws = new WebSocket(url.toString());
       wsRef.current = ws;
-      console.log("WS", wsRef.current);
 
       ws.onopen = () => {
-        console.log(
-          `WS connected (after ${reconnectCountRef.current} attempt(s))`
-        );
         reconnectCountRef.current = 0;
         try {
           ws.send(
@@ -68,8 +64,6 @@ export function useRaceSocket(
           const message = JSON.parse(event.data);
           if (message?.type) {
             console.group(`WS event: ${message.type}`);
-            console.log("payload:", message);
-            if (message.data) console.log("data:", message.data);
             console.groupEnd();
             onEventRef.current(message.type, message.data);
           }
@@ -143,6 +137,7 @@ export function useRaces() {
     setLoading(true);
     try {
       const data = await ScheduleService.getRacesByMonth(year, month);
+      console.log("scheduled:",data);
       setRaces(Array.isArray(data) ? data : []);
     } catch {
       setRaces([]);
@@ -158,24 +153,18 @@ export function useRaces() {
     useCallback((type, data) => {
       switch (type) {
         case "connection:ack":
-          console.log(`Dashboard connected as ${data.userId} (${data.role})`);
           break;
         case "race:status_changed":
-          console.log(
-            `Race ${data.raceId} status: ${data.previousStatus} → ${data.status}`
-          );
           setRaces((prev) =>
             prev.map((r) => (r.id === data.raceId ? { ...r, ...data } : r))
           );
           break;
         case "race:result_published":
-          console.log(`Results published for race ${data.raceId}`);
           setRaces((prev) =>
             prev.map((r) => (r.id === data.raceId ? { ...r, ...data } : r))
           );
           break;
         case "race:result_updated":
-          console.log(`Results updated for race ${data.raceId}`);
           setRaces((prev) =>
             prev.map((r) => (r.id === data.raceId ? { ...r, ...data } : r))
           );
@@ -249,22 +238,14 @@ export function useRaceDetail(raceId: string | null) {
     useCallback((type, data) => {
       switch (type) {
         case "connection:ack":
-          console.log(
-            `Detail panel connected as ${data.userId} (${data.role})`
-          );
           break;
         case "race:status_changed":
-          console.log(
-            `Race ${data.raceId} status: ${data.previousStatus} → ${data.status}`
-          );
           setDetail((prev) => (prev ? { ...prev, status: data.status } : prev));
           break;
         case "race:result_published":
-          console.log(`Results published for race ${data.raceId}`);
           setDetail((prev) => (prev ? { ...prev, ...data } : prev));
           break;
         case "race:result_updated":
-          console.log(`Results updated for race ${data.raceId}`);
           setDetail((prev) => (prev ? { ...prev, ...data } : prev));
           break;
       }
