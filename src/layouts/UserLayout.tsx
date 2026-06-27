@@ -88,10 +88,7 @@ export default function UserLayout({
     | "Referee" = "Jockey";
   let sidebarGroupLabel = "Jockey Operations";
 
-  if (path === ROUTES.ME_PREDICTIONS) {
-    currentRole = "Spectator";
-    sidebarGroupLabel = "Spectator Arena";
-  } else if (path.includes("/owner")) {
+  if (path.includes("/owner")) {
     currentRole = "Owner";
     sidebarGroupLabel = "Owner Operations";
   } else if (path.includes("/spectator")) {
@@ -190,12 +187,7 @@ export default function UserLayout({
 
   const currentNav = navConfigurations[currentRole];
 
-  // Safely handles exact matching, or falls back to 'Dashboard' as the default label
-  const activePath =
-    activeKey ||
-    (location.pathname === ROUTES.ME_PREDICTIONS
-      ? "/spectator/predictions"
-      : location.pathname);
+  const activePath = activeKey || location.pathname;
   const activeLabel =
     currentNav.find(
       (n) => activePath === n.key || activePath.startsWith(n.key + "/")
