@@ -7,8 +7,22 @@ import useAdmin from "../../hooks/admin/useAdmin.ts";
 import UserSearch from "./user/UserSearch.tsx";
 
 type OpenMenuState =
-  | { id: string; type: "role"; buttonTop: number; buttonBottom: number; buttonRight: number; dropUp: boolean }
-  | { id: string; type: "status"; buttonTop: number; buttonBottom: number; buttonRight: number; dropUp: boolean }
+  | {
+      id: string;
+      type: "role";
+      buttonTop: number;
+      buttonBottom: number;
+      buttonRight: number;
+      dropUp: boolean;
+    }
+  | {
+      id: string;
+      type: "status";
+      buttonTop: number;
+      buttonBottom: number;
+      buttonRight: number;
+      dropUp: boolean;
+    }
   | null;
 
 const ROLE_OPTIONS = [
@@ -171,7 +185,8 @@ export default function AccessManagement({
                             onClick={(e) => {
                               const rect =
                                 e.currentTarget.getBoundingClientRect();
-                              const spaceBelow = window.innerHeight - rect.bottom;
+                              const spaceBelow =
+                                window.innerHeight - rect.bottom;
                               const dropUp = spaceBelow < 220;
                               setOpenMenu(
                                 openMenu?.id === u.id &&
@@ -200,8 +215,17 @@ export default function AccessManagement({
                                 className="fixed w-44 bg-white border rounded-xl shadow-lg z-50 overflow-hidden"
                                 style={
                                   openMenu.dropUp
-                                    ? { bottom: window.innerHeight - openMenu.buttonTop + 8, left: openMenu.buttonRight - 176 }
-                                    : { top: openMenu.buttonBottom + 8, left: openMenu.buttonRight - 176 }
+                                    ? {
+                                        bottom:
+                                          window.innerHeight -
+                                          openMenu.buttonTop +
+                                          8,
+                                        left: openMenu.buttonRight - 176,
+                                      }
+                                    : {
+                                        top: openMenu.buttonBottom + 8,
+                                        left: openMenu.buttonRight - 176,
+                                      }
                                 }
                               >
                                 {ROLE_OPTIONS.map((role) => (
@@ -257,7 +281,8 @@ export default function AccessManagement({
                             onClick={(e) => {
                               const rect =
                                 e.currentTarget.getBoundingClientRect();
-                              const spaceBelow = window.innerHeight - rect.bottom;
+                              const spaceBelow =
+                                window.innerHeight - rect.bottom;
                               const dropUp = spaceBelow < 220;
                               setOpenMenu(
                                 openMenu?.id === u.id &&
@@ -286,8 +311,17 @@ export default function AccessManagement({
                                 className="fixed w-44 bg-white border rounded-xl shadow-lg z-50 overflow-hidden"
                                 style={
                                   openMenu.dropUp
-                                    ? { bottom: window.innerHeight - openMenu.buttonTop + 8, left: openMenu.buttonRight - 176 }
-                                    : { top: openMenu.buttonBottom + 8, left: openMenu.buttonRight - 176 }
+                                    ? {
+                                        bottom:
+                                          window.innerHeight -
+                                          openMenu.buttonTop +
+                                          8,
+                                        left: openMenu.buttonRight - 176,
+                                      }
+                                    : {
+                                        top: openMenu.buttonBottom + 8,
+                                        left: openMenu.buttonRight - 176,
+                                      }
                                 }
                               >
                                 {u.status === "active" ? (

@@ -619,7 +619,11 @@ export default function RacesPage() {
                           </p>
                         </div>
                         <button
-                          onClick={() => navigate(ROUTES.SPECTATOR_DASHBOARD, { state: { tab: "predictions" } })}
+                          onClick={() =>
+                            navigate(ROUTES.SPECTATOR_DASHBOARD, {
+                              state: { tab: "predictions" },
+                            })
+                          }
                           className="text-xs font-bold text-[#064E3B] hover:underline cursor-pointer"
                         >
                           View all predictions →
