@@ -131,6 +131,7 @@ export function useRaceSocket(
 
 export function useRaces() {
   const [races, setRaces] = useState<RaceListItem[]>([]);
+  const [rangeRaces, setRangeRaces] = useState<RaceListItem[]>([]);
   const [loading, setLoading] = useState(false);
 
   const loadRacesByMonth = useCallback(async (year: number, month: number) => {
@@ -146,35 +147,64 @@ export function useRaces() {
     }
   }, []);
 
+  const loadRacesForRange = useCallback(async (from: Date, to: Date) => {
+    setLoading(true);
+    try {
+      const months: { year: number; month: number }[] = [];
+      const current = new Date(from.getFullYear(), from.getMonth(), 1);
+      const end = new Date(to.getFullYear(), to.getMonth(), 1);
+      while (current <= end) {
+        months.push({ year: current.getFullYear(), month: current.getMonth() + 1 });
+        current.setMonth(current.getMonth() + 1);
+      }
+      const results = await Promise.all(
+        months.map((m) => ScheduleService.getRacesByMonth(m.year, m.month))
+      );
+      const merged: RaceListItem[] = results.flat().filter(Boolean);
+      const seen = new Set<string>();
+      const deduped: RaceListItem[] = [];
+      for (const r of merged) {
+        if (!seen.has(r.id)) {
+          seen.add(r.id);
+          deduped.push(r);
+        }
+      }
+      setRangeRaces(deduped);
+    } catch {
+      setRangeRaces([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const token = localStorage.getItem("token");
 
   useRaceSocket(
     ["race:*"],
     useCallback((type, data) => {
+      const updater = (prev: RaceListItem[]) =>
+        prev.map((r) => (r.id === data.raceId ? { ...r, ...data } : r));
       switch (type) {
         case "connection:ack":
           break;
         case "race:status_changed":
-          setRaces((prev) =>
-            prev.map((r) => (r.id === data.raceId ? { ...r, ...data } : r))
-          );
+          setRaces(updater);
+          setRangeRaces(updater);
           break;
         case "race:result_published":
-          setRaces((prev) =>
-            prev.map((r) => (r.id === data.raceId ? { ...r, ...data } : r))
-          );
+          setRaces(updater);
+          setRangeRaces(updater);
           break;
         case "race:result_updated":
-          setRaces((prev) =>
-            prev.map((r) => (r.id === data.raceId ? { ...r, ...data } : r))
-          );
+          setRaces(updater);
+          setRangeRaces(updater);
           break;
       }
     }, []),
     { token }
   );
 
-  return { races, loading, loadRacesByMonth };
+  return { races, rangeRaces, loading, loadRacesByMonth, loadRacesForRange };
 }
 
 export function useRaceDetail(raceId: string | null) {

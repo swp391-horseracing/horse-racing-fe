@@ -188,8 +188,10 @@ export default function RacesPage() {
   const { eventList } = useEvent();
   const {
     races: apiRaces,
+    rangeRaces,
     loading: racesLoading,
     loadRacesByMonth,
+    loadRacesForRange,
   } = useRaces();
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
@@ -251,7 +253,18 @@ export default function RacesPage() {
     loadRacesByMonth(viewYear, viewMonthIndex + 1);
   }, [viewYear, viewMonthIndex, loadRacesByMonth]);
 
-  const allRaces = useMemo(() => apiRaces.map(mapRaceToUi), [apiRaces]);
+  useEffect(() => {
+    if (selectedRange?.from && selectedRange?.to) {
+      loadRacesForRange(selectedRange.from, selectedRange.to);
+    }
+  }, [selectedRange?.from, selectedRange?.to, loadRacesForRange]);
+
+  const effectiveRaces = useMemo(() => {
+    if (selectedRange?.from && selectedRange?.to) return rangeRaces;
+    return apiRaces;
+  }, [selectedRange?.from, selectedRange?.to, rangeRaces, apiRaces]);
+
+  const allRaces = useMemo(() => effectiveRaces.map(mapRaceToUi), [effectiveRaces]);
 
   const tournamentName = useMemo(() => {
     if (!tournamentId) return null;
@@ -316,6 +329,16 @@ export default function RacesPage() {
     return allRaces.map((r) => parseLocalDate(r.date));
   }, [allRaces]);
 
+  const racesInRange = useMemo(() => {
+    if (!dateRangeStr) return allRaces;
+    if (typeof dateRangeStr === "string") {
+      return allRaces.filter((r) => r.date === dateRangeStr);
+    }
+    return allRaces.filter(
+      (r) => r.date >= dateRangeStr.from && r.date <= dateRangeStr.to
+    );
+  }, [allRaces, dateRangeStr]);
+
   const handleSelectRace = useCallback(
     (id: string) => {
       navigate(`/races/${id}`);
@@ -332,12 +355,12 @@ export default function RacesPage() {
 
   const counts = useMemo(
     () => ({
-      All: allRaces.length,
-      Live: allRaces.filter((r) => r.status === "Live").length,
-      Upcoming: allRaces.filter((r) => r.status === "Upcoming").length,
-      Completed: allRaces.filter((r) => r.status === "Completed").length,
+      All: racesInRange.length,
+      Live: racesInRange.filter((r) => r.status === "Live").length,
+      Upcoming: racesInRange.filter((r) => r.status === "Upcoming").length,
+      Completed: racesInRange.filter((r) => r.status === "Completed").length,
     }),
-    [allRaces]
+    [racesInRange]
   );
 
   return (

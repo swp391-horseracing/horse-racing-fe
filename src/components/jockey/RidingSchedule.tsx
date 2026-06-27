@@ -112,19 +112,37 @@ export function RidingSchedule({
   const [selectedRange, setSelectedRange] = useState<DateRange | undefined>(undefined);
   const [statusFilter, setStatusFilter] = useState<string>("All");
 
+  const ridesInRange = useMemo(() => {
+    if (!selectedRange?.from) return rides;
+    const from = new Date(selectedRange.from);
+    from.setHours(0, 0, 0, 0);
+    const to = selectedRange.to
+      ? new Date(selectedRange.to)
+      : new Date(from);
+    to.setHours(23, 59, 59, 999);
+    return rides.filter((r) => {
+      const d = new Date(r.scheduledAt);
+      return d >= from && d <= to;
+    });
+  }, [rides, selectedRange]);
+
   const counts = useMemo(
     () => ({
-      All: rides.length,
-      pending: rides.filter((r) => getComputedRideStatus(r) === "pending")
-        .length,
-      accepted: rides.filter((r) => getComputedRideStatus(r) === "accepted")
-        .length,
-      declined: rides.filter((r) => getComputedRideStatus(r) === "declined")
-        .length,
-      finished: rides.filter((r) => getComputedRideStatus(r) === "finished")
-        .length,
+      All: ridesInRange.length,
+      pending: ridesInRange.filter(
+        (r) => getComputedRideStatus(r) === "pending"
+      ).length,
+      accepted: ridesInRange.filter(
+        (r) => getComputedRideStatus(r) === "accepted"
+      ).length,
+      declined: ridesInRange.filter(
+        (r) => getComputedRideStatus(r) === "declined"
+      ).length,
+      finished: ridesInRange.filter(
+        (r) => getComputedRideStatus(r) === "finished"
+      ).length,
     }),
-    [rides]
+    [ridesInRange]
   );
 
   const filteredRides = useMemo(() => {
