@@ -154,7 +154,10 @@ export function useRaces() {
       const current = new Date(from.getFullYear(), from.getMonth(), 1);
       const end = new Date(to.getFullYear(), to.getMonth(), 1);
       while (current <= end) {
-        months.push({ year: current.getFullYear(), month: current.getMonth() + 1 });
+        months.push({
+          year: current.getFullYear(),
+          month: current.getMonth() + 1,
+        });
         current.setMonth(current.getMonth() + 1);
       }
       const results = await Promise.all(

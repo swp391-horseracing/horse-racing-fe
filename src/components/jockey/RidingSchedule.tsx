@@ -109,16 +109,16 @@ export function RidingSchedule({
 
   const [search, setSearch] = useState("");
   const [selectedRide, setSelectedRide] = useState<MyRide | null>(null);
-  const [selectedRange, setSelectedRange] = useState<DateRange | undefined>(undefined);
+  const [selectedRange, setSelectedRange] = useState<DateRange | undefined>(
+    undefined
+  );
   const [statusFilter, setStatusFilter] = useState<string>("All");
 
   const ridesInRange = useMemo(() => {
     if (!selectedRange?.from) return rides;
     const from = new Date(selectedRange.from);
     from.setHours(0, 0, 0, 0);
-    const to = selectedRange.to
-      ? new Date(selectedRange.to)
-      : new Date(from);
+    const to = selectedRange.to ? new Date(selectedRange.to) : new Date(from);
     to.setHours(23, 59, 59, 999);
     return rides.filter((r) => {
       const d = new Date(r.scheduledAt);
@@ -170,9 +170,7 @@ export function RidingSchedule({
     if (!selectedRange?.from) return filteredRides;
     const from = new Date(selectedRange.from);
     from.setHours(0, 0, 0, 0);
-    const to = selectedRange.to
-      ? new Date(selectedRange.to)
-      : new Date(from);
+    const to = selectedRange.to ? new Date(selectedRange.to) : new Date(from);
     to.setHours(23, 59, 59, 999);
     return filteredRides.filter((r) => {
       const d = new Date(r.scheduledAt);

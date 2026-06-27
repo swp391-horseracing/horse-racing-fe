@@ -264,7 +264,10 @@ export default function RacesPage() {
     return apiRaces;
   }, [selectedRange?.from, selectedRange?.to, rangeRaces, apiRaces]);
 
-  const allRaces = useMemo(() => effectiveRaces.map(mapRaceToUi), [effectiveRaces]);
+  const allRaces = useMemo(
+    () => effectiveRaces.map(mapRaceToUi),
+    [effectiveRaces]
+  );
 
   const tournamentName = useMemo(() => {
     if (!tournamentId) return null;

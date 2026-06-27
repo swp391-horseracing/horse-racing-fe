@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { Calendar as CalendarUI } from "../ui/calendar";
 import { cn } from "../../lib/utils";
-import type { DateRange } from "react-day-picker";
+import type { DateRange, Matcher } from "react-day-picker";
 import { CalendarDays, PenLine, ArrowLeft, ArrowRight } from "lucide-react";
 
 interface ScheduleCalendarProps {
@@ -71,7 +71,9 @@ export function ScheduleCalendar({
   onMonthChange,
   highlightClass = "font-black text-[#064E3B] bg-[#064E3B]/10 border border-[#064E3B]/20 rounded-md",
 }: ScheduleCalendarProps) {
-  const [displayMode, setDisplayMode] = useState<"calendar" | "input">("calendar");
+  const [displayMode, setDisplayMode] = useState<"calendar" | "input">(
+    "calendar"
+  );
   const [phase, setPhase] = useState<"from" | "to">(
     selectedRange?.from && !selectedRange?.to ? "to" : "from"
   );
@@ -110,7 +112,6 @@ export function ScheduleCalendar({
     ];
   }, [today]);
 
-  const hasRange = selectedRange?.from != null;
   const rangeComplete = selectedRange?.from && selectedRange?.to;
 
   // ── click handler for single-date calendar ──────────────────────
@@ -203,10 +204,12 @@ export function ScheduleCalendar({
 
   // ── custom modifiers for range visual ──────────────────────────
   const modifiers = useMemo(() => {
-    const m: Record<string, unknown> = { hasRace: raceDays };
+    const m: Record<string, Matcher | Matcher[] | undefined> = {
+      hasRace: raceDays,
+      range_middle: isInRangeMiddle,
+    };
     if (selectedRange?.from) m.range_start = [selectedRange.from];
     if (selectedRange?.to) m.range_end = [selectedRange.to];
-    m.range_middle = isInRangeMiddle;
     return m;
   }, [raceDays, selectedRange, isInRangeMiddle]);
 
@@ -325,7 +328,9 @@ export function ScheduleCalendar({
                 <ArrowRight className="h-3 w-3" />
               </button>
               <span className="text-[9px] text-slate-400 ml-auto font-semibold">
-                {phase === "from" ? "Click to change start" : "Click to change end"}
+                {phase === "from"
+                  ? "Click to change start"
+                  : "Click to change end"}
               </span>
             </div>
           )}

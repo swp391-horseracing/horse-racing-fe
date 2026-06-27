@@ -130,8 +130,8 @@ export function useOwner() {
           TournamentService.getTournamentRaces(reg.tournament.id)
         )
       );
-      const allRaces = raceResults.flatMap(
-        (r) => (r.status === "fulfilled" ? r.value.data ?? [] : [])
+      const allRaces = raceResults.flatMap((r) =>
+        r.status === "fulfilled" ? (r.value.data ?? []) : []
       );
       if (allRaces.length === 0) return;
 
