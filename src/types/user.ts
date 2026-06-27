@@ -1,3 +1,5 @@
+import type { RaceApiStatus, RaceCourse } from "./race.ts";
+
 export interface LoginResponse {
   email: string;
   password: string;
@@ -95,31 +97,43 @@ export type UserProfile = {
   updatedAt: string;
 };
 
-export type UserRace = {
+export interface UserRace {
   id: string;
   tournamentId: string;
+  courseDistanceId: string;
+
   name: string;
-  distanceMeters: number;
+  raceNumber: number | null;
+
   scheduledAt: string;
-  venue: string;
-  status: string;
-  laneCount: number;
+  laneCount: number | null;
+
+  status: RaceApiStatus;
+
+  createdAt: string;
+  updatedAt: string;
+
+  course: RaceCourse;
+
+  // optional nếu backend trả thêm
+  roundName?: string;
   trackCondition?: string;
 
-  ride?: string;
+  horse?: string;
   horseOwner?: string;
-  entryStatus?: string;
-  confirmedAt?: string | null;
+  jockey?: string;
+
   laneNumber?: number;
+
+  entryStatus?: "pending" | "accepted" | "declined";
+
+  confirmedAt?: string | null;
+
   horsesId?: string;
   ownerId?: string;
-  ranking?: number;
-  roundName?: string;
 
-  horse?: string;
-  jockey?: string;
-  races?: string;
-};
+  ranking?: number;
+}
 
 export type UserRaceListResponse = {
   data: UserRace[];

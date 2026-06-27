@@ -9,16 +9,6 @@ export type RaceApiStatus =
   | "postponed"
   | "cancelled";
 
-export interface RaceListItem {
-  id: string;
-  tournamentId: string;
-  date: string;
-  name: string;
-  scheduledAt: string;
-  venue: string;
-  status: RaceApiStatus;
-}
-
 export interface RaceEntry {
   id: string;
   horseId: string;
@@ -28,15 +18,6 @@ export interface RaceEntry {
   entryStatus: string;
   jockeyName: string;
   clothNumber: number;
-  trainerName?: string;
-}
-
-export interface RaceDetail extends RaceListItem {
-  roundName?: string;
-  distanceMeters?: number;
-  trackCondition?: string;
-  laneCount?: number;
-  entries?: RaceEntry[];
 }
 
 export type Ride = {
@@ -58,4 +39,43 @@ export type Ride = {
   trackCondition: string;
   laneCount: number;
   ranking?: number;
+  course: RaceCourse;
 };
+
+export type RaceSurface = "turf" | "dirt" | "synthetic";
+
+export interface RaceCourse {
+  id: string;
+  name: string;
+  country: string;
+  city: string;
+  surfaceType: RaceSurface;
+  distanceMeters: number;
+}
+
+export interface RaceListItem {
+  id: string;
+  tournamentId: string;
+  courseDistanceId: string;
+
+  name: string;
+  raceNumber: number | null;
+  scheduledAt: string;
+  venue: string;
+  laneCount?: number;
+
+  status: RaceApiStatus;
+
+  createdAt: string;
+  updatedAt: string;
+
+  course: RaceCourse;
+}
+
+export interface RaceDetail extends RaceListItem {
+  roundName?: string;
+  distanceMeters?: number;
+  trackCondition?: string;
+  laneCount?: number;
+  entries?: RaceEntry[];
+}
