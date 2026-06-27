@@ -141,8 +141,9 @@ export function useOwner() {
       const seen = new Set<string>();
       const allInvitations: Invitation[] = [];
       for (let i = 0; i < allRaces.length; i++) {
-        if (invResults[i].status !== "fulfilled") continue;
-        const raceInvitations = (invResults[i].value.data ?? []).map(
+        const result = invResults[i];
+        if (result.status !== "fulfilled") continue;
+        const raceInvitations = (result.value.data ?? []).map(
           (inv: Invitation) => ({
             ...inv,
             raceId: inv.raceId || allRaces[i].id,
