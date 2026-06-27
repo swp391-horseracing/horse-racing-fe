@@ -72,7 +72,7 @@ const mapRaceToUi = (race: RaceListItem): RaceUI => {
     className: "Standard",
     status: mapApiStatusToUi(race.status),
     isOpenForPrediction:
-        race.status === "scheduled" || race.status === "pre_race",
+      race.status === "scheduled" || race.status === "pre_race",
   };
 };
 

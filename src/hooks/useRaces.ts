@@ -137,7 +137,7 @@ export function useRaces() {
     setLoading(true);
     try {
       const data = await ScheduleService.getRacesByMonth(year, month);
-      console.log("scheduled:",data);
+      console.log("scheduled:", data);
       setRaces(Array.isArray(data) ? data : []);
     } catch {
       setRaces([]);
