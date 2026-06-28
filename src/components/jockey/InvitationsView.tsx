@@ -197,7 +197,7 @@ export function InvitationsView({
                 key={f}
                 onClick={() => setFilter(f)}
                 className={cn(
-                  "rounded-xl px-3 py-2 text-xs font-bold whitespace-nowrap",
+                  "rounded-xl px-3 py-2 text-xs font-bold whitespace-nowrap capitalize",
                   filter === f
                     ? "bg-[#064E3B] text-white"
                     : "bg-[#F4F6F5] text-slate-500"

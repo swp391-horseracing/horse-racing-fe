@@ -51,11 +51,16 @@ const mapApiStatusToUi = (status: RaceApiStatus): RaceStatus => {
 
 const mapRaceToUi = (race: RaceListItem): RaceUI => {
   const scheduled = new Date(race.scheduledAt);
-  const yyyy = scheduled.getFullYear();
-  const mm = String(scheduled.getMonth() + 1).padStart(2, "0");
-  const dd = String(scheduled.getDate()).padStart(2, "0");
-  const hh = String(scheduled.getHours()).padStart(2, "0");
-  const min = String(scheduled.getMinutes()).padStart(2, "0");
+  console.log(race.scheduledAt);
+  console.log("mapRaceToUi", scheduled);
+
+  const yyyy = scheduled.getUTCFullYear();
+  const mm = String(scheduled.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(scheduled.getUTCDate()).padStart(2, "0");
+  const hh = String(scheduled.getUTCHours()).padStart(2, "0");
+  const min = String(scheduled.getUTCMinutes()).padStart(2, "0");
+
+  console.log(yyyy + "-" + mm + "-" + dd);
 
   return {
     ...race,
@@ -619,7 +624,11 @@ export default function RacesPage() {
                           </p>
                         </div>
                         <button
-                          onClick={() => navigate(ROUTES.ME_PREDICTIONS)}
+                          onClick={() =>
+                            navigate(ROUTES.SPECTATOR_DASHBOARD, {
+                              state: { tab: "predictions" },
+                            })
+                          }
                           className="text-xs font-bold text-[#064E3B] hover:underline cursor-pointer"
                         >
                           View all predictions →

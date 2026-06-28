@@ -33,7 +33,7 @@ export function ToastContainer({ toasts }: ToastContainerProps) {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+    <div className="fixed top-4 right-4 z-[200] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
       {toasts.map((t) => {
         const styles = typeStyles[t.type];
         const Icon = styles.Icon;

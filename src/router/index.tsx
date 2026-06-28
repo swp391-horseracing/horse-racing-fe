@@ -19,8 +19,6 @@ import AdminRaceDetailPage from "../pages/AdminRaceDetailPage.tsx";
 import UserPage from "../pages/UserPage.tsx";
 import OwnerPage from "../pages/OwnerPage.tsx";
 import SpectatorPage from "../pages/SpectatorPage.tsx";
-import { SpectatorDashboard } from "../components/spectator/SpectatorDashboard.tsx";
-import { PredictionsHub } from "../components/spectator/PredictionsHub.tsx";
 import RefereePage from "../pages/RefereePage.tsx";
 import LeaderBoardPage from "../pages/LeaderBoardPage.tsx";
 import NotFoundPage from "../pages/NotFoundPage.tsx";
@@ -110,15 +108,6 @@ export const router = createBrowserRouter([
           {
             path: ROUTES.SPECTATOR_DASHBOARD,
             element: <SpectatorPage />,
-            children: [
-              { index: true, element: <SpectatorDashboard /> },
-              { path: "predictions", element: <PredictionsHub /> },
-            ],
-          },
-          {
-            path: ROUTES.ME_PREDICTIONS,
-            element: <SpectatorPage />,
-            children: [{ index: true, element: <PredictionsHub /> }],
           },
         ],
       },
