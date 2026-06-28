@@ -33,11 +33,13 @@ export function useJockey() {
       name: race.name,
       roundName: race.roundName ?? "",
 
-      distanceMeters: race.course.distanceMeters,
+      distanceMeters: race.course?.distanceMeters ?? race.distanceMeters ?? 0,
 
       scheduledAt: race.scheduledAt ?? "",
 
-      venue: `${race.course.city}, ${race.course.country}`,
+      venue: race.course
+        ? `${race.course.city}, ${race.course.country}`
+        : (race.venue ?? ""),
 
       status:
         race.status === "completed" || race.status === "result_confirmed"
