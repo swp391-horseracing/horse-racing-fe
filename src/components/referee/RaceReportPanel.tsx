@@ -64,6 +64,8 @@ export default function RaceReportPanel({
     violationCategories[0]
   );
   const [editNote, setEditNote] = useState("");
+  const [isViolationMutationPending, setIsViolationMutationPending] =
+    useState(false);
 
   const openEditModal = (
     v: Violation & { laneId: string; horseName: string; laneNumber: number }
@@ -80,8 +82,9 @@ export default function RaceReportPanel({
   };
 
   const handleSaveEdit = async () => {
-    if (!editingViolation) return;
+    if (!editingViolation || isViolationMutationPending) return;
     try {
+      setIsViolationMutationPending(true);
       await onUpdateViolation(
         editingViolation.laneId,
         editingViolation.id,
@@ -91,18 +94,23 @@ export default function RaceReportPanel({
       setEditingViolation(null);
     } catch {
       // Keep modal open so user doesn't lose input on failure
+    } finally {
+      setIsViolationMutationPending(false);
     }
   };
 
   const handleDeleteFromModal = async () => {
-    if (!editingViolation) return;
+    if (!editingViolation || isViolationMutationPending) return;
     if (!confirm("Are you sure you want to delete this violation record?"))
       return;
     try {
+      setIsViolationMutationPending(true);
       await onDeleteViolation(editingViolation.laneId, editingViolation.id);
       setEditingViolation(null);
     } catch {
       // Keep modal open on deletion failure
+    } finally {
+      setIsViolationMutationPending(false);
     }
   };
 
@@ -334,7 +342,9 @@ export default function RaceReportPanel({
       {editingViolation && (
         <div
           className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center"
-          onClick={() => setEditingViolation(null)}
+          onClick={() =>
+            !isViolationMutationPending && setEditingViolation(null)
+          }
         >
           <div
             className="bg-white rounded-2xl p-6 shadow-2xl w-full max-w-sm space-y-4"
@@ -383,20 +393,25 @@ export default function RaceReportPanel({
             <div className="flex gap-2 pt-2">
               <button
                 onClick={handleDeleteFromModal}
-                className="text-xs font-bold px-3 py-2 rounded-lg border border-red-200 text-red-700 hover:bg-red-50 transition flex items-center gap-1"
+                disabled={isViolationMutationPending}
+                className="text-xs font-bold px-3 py-2 rounded-lg border border-red-200 text-red-700 hover:bg-red-50 transition flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Trash2 className="w-3 h-3" /> Delete
               </button>
               <div className="flex-1" />
               <button
-                onClick={() => setEditingViolation(null)}
-                className="text-xs font-bold px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
+                onClick={() =>
+                  !isViolationMutationPending && setEditingViolation(null)
+                }
+                disabled={isViolationMutationPending}
+                className="text-xs font-bold px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveEdit}
-                className="text-xs font-bold px-3 py-2 rounded-lg bg-[#064E3B] text-white hover:bg-[#043E2F] transition"
+                disabled={isViolationMutationPending}
+                className="text-xs font-bold px-3 py-2 rounded-lg bg-[#064E3B] text-white hover:bg-[#043E2F] transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Save
               </button>

@@ -168,7 +168,11 @@ export default function RefereePage() {
                   horseName: p.horse.name,
                   jockeyName: p.jockey?.fullName || "No Jockey",
                   inspectionStatus:
-                    backendPhase === "scheduled" ? "pending" : "cleared",
+                    p.finishStatus === "dns"
+                      ? "withdrawn"
+                      : backendPhase === "scheduled"
+                        ? "pending"
+                        : "cleared",
                   inspectedAt: null,
                   failReason: null,
                   violations: p.violation
@@ -188,9 +192,9 @@ export default function RefereePage() {
                   finishPosition: p.finishedPosition,
                   finishTime: formatSecondsToMSS(p.finishTime),
                   flag:
-                    p.finishStatus === "finished"
-                      ? null
-                      : (p.finishStatus as "dnf" | "dsq" | null),
+                    p.finishStatus === "dnf" || p.finishStatus === "dsq"
+                      ? p.finishStatus
+                      : null,
                 }));
 
                 const isSubmitted =
@@ -339,8 +343,12 @@ export default function RefereePage() {
         note,
       });
 
+      if (!(created as any).id) {
+        throw new Error("Violation was created but no id was returned");
+      }
+
       const violation: Violation = {
-        id: (created as any).id || `v-${Date.now()}`,
+        id: (created as any).id,
         entryId: laneId,
         refereeId: (created as any).refereeId || "me",
         violationType,
