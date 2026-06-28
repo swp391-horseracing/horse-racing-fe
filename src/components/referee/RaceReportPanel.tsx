@@ -90,7 +90,6 @@ export default function RaceReportPanel({
       );
       setEditingViolation(null);
     } catch {
-      // Keep modal open so the user doesn't lose their input on failure
     }
   };
 
@@ -102,7 +101,6 @@ export default function RaceReportPanel({
       await onDeleteViolation(editingViolation.laneId, editingViolation.id);
       setEditingViolation(null);
     } catch {
-      // Keep modal open on deletion failure
     }
   };
 
