@@ -89,8 +89,7 @@ export default function RaceReportPanel({
         editNote
       );
       setEditingViolation(null);
-    } catch {
-    }
+    } catch {}
   };
 
   const handleDeleteFromModal = async () => {
@@ -100,8 +99,7 @@ export default function RaceReportPanel({
     try {
       await onDeleteViolation(editingViolation.laneId, editingViolation.id);
       setEditingViolation(null);
-    } catch {
-    }
+    } catch {}
   };
 
   return (
