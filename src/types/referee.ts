@@ -66,39 +66,6 @@ export interface Violation {
 
   occurredAt: string;
 
-<<<<<<< Updated upstream
-export const PRE_RACE_DISQUALIFY_REASONS = [
-  "Identity Mismatch (Lip Tattoo/Microchip)",
-  "Medication Violation",
-  "Weight / Equipment Compliance Failure",
-  "Steward Disqualification / Other",
-];
-
-import type { Race } from "./race.ts";
-
-export interface TournamentSummary {
-  id: string;
-  name: string;
-}
-
-export interface HorseSummary {
-  id: string;
-  name: string;
-  breed: string;
-}
-
-export interface Violation {
-  id: string;
-  entryId: string;
-  refereeId: string;
-
-  occurredAt: string;
-
-  violationType: string;
-  description: string;
-
-  severity: "warning" | "minor" | "major" | "critical";
-=======
   violationType: string;
   description: string;
 
@@ -107,10 +74,16 @@ export interface Violation {
     | "disqualification"
     | "result_cancellation"
     | "point_deduction";
->>>>>>> Stashed changes
 
   note: string;
 }
+
+export const PRE_RACE_DISQUALIFY_REASONS = [
+  "Identity Mismatch (Lip Tattoo/Microchip)",
+  "Medication Violation",
+  "Weight / Equipment Compliance Failure",
+  "Steward Disqualification / Other",
+];
 
 export interface Placement {
   entryId: string;
@@ -128,11 +101,7 @@ export interface Placement {
 
   finishTime: string;
 
-<<<<<<< Updated upstream
-  finishStatus: "finished" | "dnf" | "dns" | "dq";
-=======
   finishStatus: "finished" | "dnf" | "dns" | "dsq";
->>>>>>> Stashed changes
 
   points: number;
 
@@ -156,11 +125,7 @@ export interface AssignedReferee extends Referee {
 export interface RaceReport {
   id: string;
 
-<<<<<<< Updated upstream
-  status: "draft" | "submitted" | "confirmed" | "published";
-=======
   status: "draft" | "referee_confirmed" | "published";
->>>>>>> Stashed changes
 
   notes: string;
 
@@ -177,11 +142,7 @@ export interface RaceReport {
 }
 
 export interface RefereeReport {
-<<<<<<< Updated upstream
-  race: Race;
-=======
   race: RaceDetail;
->>>>>>> Stashed changes
   referee: Referee;
   report: RaceReport;
   placements: Placement[];

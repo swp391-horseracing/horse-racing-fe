@@ -39,7 +39,7 @@ export default function LiveMonitorPanel({
 }: LiveMonitorPanelProps) {
   const [violationLaneId, setViolationLaneId] = useState<string | null>(null);
   const [violationType, setViolationType] = useState<ViolationCategory>(
-    "Whip Limit Exceeded"
+    violationCategories[0]
   );
   const [violationNote, setViolationNote] = useState("");
 
@@ -120,7 +120,7 @@ export default function LiveMonitorPanel({
               <button
                 onClick={() => {
                   setViolationLaneId(lane.id);
-                  setViolationType("Whip Limit Exceeded");
+                  setViolationType(violationCategories[0]);
                   setViolationNote("");
                 }}
                 className="mt-3 w-full text-[10px] font-bold bg-orange-600 text-white px-2 py-1.5 rounded-lg hover:bg-orange-700 transition flex items-center justify-center gap-1"

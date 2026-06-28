@@ -37,8 +37,8 @@ interface RaceReportPanelProps {
     violationId: string,
     violationType: ViolationCategory,
     note: string
-  ) => void;
-  onDeleteViolation: (laneId: string, violationId: string) => void;
+  ) => Promise<void>;
+  onDeleteViolation: (laneId: string, violationId: string) => Promise<void>;
   onToggleAdminLock: (unlocked: boolean) => void;
   violationCategories: ViolationCategory[];
 }
@@ -68,28 +68,42 @@ export default function RaceReportPanel({
   const openEditModal = (
     v: Violation & { laneId: string; horseName: string; laneNumber: number }
   ) => {
+    const matchedType = violationCategories.find(
+      (category) => category === v.violationType
+    );
+
     setEditingViolation(v);
-    setEditType(v.violationType as ViolationCategory);
+    if (matchedType) {
+      setEditType(matchedType);
+    }
     setEditNote(v.note);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editingViolation) return;
-    onUpdateViolation(
-      editingViolation.laneId,
-      editingViolation.id,
-      editType,
-      editNote
-    );
-    setEditingViolation(null);
+    try {
+      await onUpdateViolation(
+        editingViolation.laneId,
+        editingViolation.id,
+        editType,
+        editNote
+      );
+      setEditingViolation(null);
+    } catch (e) {
+      // Keep modal open so the user doesn't lose their input on failure
+    }
   };
 
-  const handleDeleteFromModal = () => {
+  const handleDeleteFromModal = async () => {
     if (!editingViolation) return;
     if (!confirm("Are you sure you want to delete this violation record?"))
       return;
-    onDeleteViolation(editingViolation.laneId, editingViolation.id);
-    setEditingViolation(null);
+    try {
+      await onDeleteViolation(editingViolation.laneId, editingViolation.id);
+      setEditingViolation(null);
+    } catch (e) {
+      // Keep modal open on deletion failure
+    }
   };
 
   return (

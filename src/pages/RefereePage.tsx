@@ -117,26 +117,33 @@ export default function RefereePage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    UserService.getMyRaces(1, 100).then((res) => {
-      const races: MockRace[] = res.data.map((r) => ({
-        id: r.id,
-        name: r.name,
-        venue: r.course?.name || "TBC",
-        scheduledAt: r.scheduledAt,
-        trackCondition: r.trackCondition || "dry",
-        distanceMeters: r.course?.distanceMeters || 0,
-        phase: mapBackendStatusToPhase(r.status),
-        elapsedSeconds: 0,
-        timerRunning: false,
-        reportNotes: "",
-        reportSubmitted: false,
-        refereeCheckedIn: false,
-        adminUnlocked: false,
-        lanes: [],
-      }));
-      setApiRaces(races);
-    });
-  }, []);
+    UserService.getMyRaces(1, 100)
+      .then((res) => {
+        const races: MockRace[] = res.data.map((r) => ({
+          id: r.id,
+          name: r.name,
+          venue: r.venue || "TBC",
+          scheduledAt: r.scheduledAt,
+          trackCondition: r.trackCondition || "dry",
+          distanceMeters: r.distanceMeters || 0,
+          phase: mapBackendStatusToPhase(r.status),
+          elapsedSeconds: 0,
+          timerRunning: false,
+          reportNotes: "",
+          reportSubmitted: false,
+          refereeCheckedIn: false,
+          adminUnlocked: false,
+          lanes: [],
+        }));
+        setApiRaces(races);
+      })
+      .catch((e: any) => {
+        addToast(
+          e.response?.data?.message || "Failed to load assigned races",
+          "error"
+        );
+      });
+  }, [addToast]);
 
   const handleSelectRace = useCallback(
     (id: string) => {
@@ -200,12 +207,18 @@ export default function RefereePage() {
               })
             );
           })
+          .catch((e: any) => {
+            addToast(
+              e.response?.data?.message || "Failed to load race report details",
+              "error"
+            );
+          })
           .finally(() => {
             setLoading(false);
           });
       }
     },
-    [apiRaces, loading]
+    [apiRaces, loading, addToast]
   );
 
   const selectedRace = apiRaces.find((r) => r.id === selectedRaceId) ?? null;
@@ -326,14 +339,6 @@ export default function RefereePage() {
         note,
       });
 
-<<<<<<< Updated upstream
-    const violation: Violation = {};
-    updateLane(raceId, laneId, (l) => ({
-      ...l,
-      violations: [...l.violations, violation],
-    }));
-    addToast(`Violation logged: ${category}`, "warning");
-=======
       const violation: Violation = {
         id: (created as any).id || `v-${Date.now()}`,
         entryId: laneId,
@@ -352,7 +357,6 @@ export default function RefereePage() {
     } catch (e: any) {
       addToast(e.response?.data?.message || "Failed to log violation", "error");
     }
->>>>>>> Stashed changes
   };
 
   const handleEndRace = (raceId: string) => {
@@ -421,11 +425,11 @@ export default function RefereePage() {
           entryId: l.id,
           finishedPosition: l.finishPosition || 999,
           finishTime: parseMSSToSecondsString(l.finishTime) || undefined,
-          finishStatus: (l.flag || "finished") as
-            | "finished"
-            | "dnf"
-            | "dsq"
-            | "dns",
+          finishStatus: (l.inspectionStatus === "withdrawn"
+            ? "dns"
+            : l.inspectionStatus === "disqualified"
+              ? "dsq"
+              : l.flag || "finished") as "finished" | "dnf" | "dsq" | "dns",
           points: 0,
         })),
       };
@@ -477,11 +481,11 @@ export default function RefereePage() {
           entryId: l.id,
           finishedPosition: l.finishPosition || 999,
           finishTime: parseMSSToSecondsString(l.finishTime) || undefined,
-          finishStatus: (l.flag || "finished") as
-            | "finished"
-            | "dnf"
-            | "dsq"
-            | "dns",
+          finishStatus: (l.inspectionStatus === "withdrawn"
+            ? "dns"
+            : l.inspectionStatus === "disqualified"
+              ? "dsq"
+              : l.flag || "finished") as "finished" | "dnf" | "dsq" | "dns",
           points: 0,
         })),
       };
@@ -506,6 +510,8 @@ export default function RefereePage() {
     }
   };
 
+  // NOTE: This toggle emulates administrative lock/unlock overrides locally.
+  // It is intentionally kept client-side for testing and QA flows (e.g. testing report re-submission).
   const handleToggleAdminLock = (raceId: string, unlocked: boolean) => {
     updateRace(raceId, (r) => ({ ...r, adminUnlocked: unlocked }));
     addToast(
@@ -523,9 +529,10 @@ export default function RefereePage() {
     violationType: ViolationCategory,
     note: string
   ) => {
+    let created: any = null;
     try {
-      await RefereeService.deleteViolation(raceId, violationId);
-      const created = await RefereeService.createViolation(raceId, {
+      // 1. Create replacement violation first
+      created = await RefereeService.createViolation(raceId, {
         entryId: laneId,
         occurredAt: new Date().toISOString(),
         violationType,
@@ -534,11 +541,22 @@ export default function RefereePage() {
         note,
       });
 
+      // 2. Delete the old violation
+      try {
+        await RefereeService.deleteViolation(raceId, violationId);
+      } catch (deleteError) {
+        // Rollback created violation if deletion fails
+        if (created && created.id) {
+          await RefereeService.deleteViolation(raceId, created.id);
+        }
+        throw deleteError;
+      }
+
       updateLane(raceId, laneId, (l) => ({
         ...l,
         violations: l.violations.map((v) =>
           v.id === violationId
-            ? { ...v, id: (created as any).id, violationType, note }
+            ? { ...v, id: created.id, violationType, note }
             : v
         ),
       }));
@@ -548,6 +566,7 @@ export default function RefereePage() {
         e.response?.data?.message || "Failed to update violation",
         "error"
       );
+      throw e;
     }
   };
 
@@ -568,6 +587,7 @@ export default function RefereePage() {
         e.response?.data?.message || "Failed to delete violation",
         "error"
       );
+      throw e;
     }
   };
 

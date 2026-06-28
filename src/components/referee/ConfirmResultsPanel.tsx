@@ -198,23 +198,19 @@ function validateResults(lanes: LaneEntry[]): {
     for (let i = 0; i < sortedGroups.length - 1; i++) {
       const [posA, groupA] = sortedGroups[i];
       const [posB, groupB] = sortedGroups[i + 1];
-      const bestTimeA = Math.min(
+      const worstTimeA = Math.max(
         ...groupA.map((l) => timeToSeconds(l.finishTime))
       );
-      const worstTimeB = Math.max(
+      const bestTimeB = Math.min(
         ...groupB.map((l) => timeToSeconds(l.finishTime))
       );
-      if (bestTimeA > worstTimeB) {
+      if (worstTimeA > bestTimeB) {
         errors.push({
           field: "time",
           laneId: "",
           message: `Time inconsistency: #${posA} finishers must have a faster time than #${posB} finishers.`,
         });
-      } else if (
-        bestTimeA ===
-          Math.min(...groupB.map((l) => timeToSeconds(l.finishTime))) &&
-        posA !== posB
-      ) {
+      } else if (worstTimeA === bestTimeB) {
         errors.push({
           field: "time",
           laneId: "",
@@ -264,9 +260,7 @@ export default function ConfirmResultsPanel({
   };
 
   const hasFieldError = (field: string, laneId: string) =>
-    validationErrors.some(
-      (e) => e.field === field && (e.laneId === laneId || e.laneId === "")
-    );
+    validationErrors.some((e) => e.field === field && e.laneId === laneId);
 
   return (
     <>

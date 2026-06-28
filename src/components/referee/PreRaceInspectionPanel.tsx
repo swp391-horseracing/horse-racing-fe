@@ -38,7 +38,7 @@ export default function PreRaceInspectionPanel({
     "withdrawn"
   );
   const [failCategory, setFailCategory] = useState<string>(
-    preRaceWithdrawReasons[0]
+    preRaceWithdrawReasons[0] || "Other"
   );
   const [failNotes, setFailNotes] = useState<string>("");
   const [showCheckInConfirm, setShowCheckInConfirm] = useState(false);
@@ -206,7 +206,7 @@ export default function PreRaceInspectionPanel({
                     onClick={() => {
                       setInspectingLaneId(lane.id);
                       setFailReason("withdrawn");
-                      setFailCategory(preRaceWithdrawReasons[0]);
+                      setFailCategory(preRaceWithdrawReasons[0] || "Other");
                       setFailNotes("");
                     }}
                     disabled={!isCheckedIn}
@@ -313,8 +313,8 @@ export default function PreRaceInspectionPanel({
                         setFailReason(status);
                         setFailCategory(
                           status === "withdrawn"
-                            ? preRaceWithdrawReasons[0]
-                            : preRaceDisqualifyReasons[0]
+                            ? preRaceWithdrawReasons[0] || "Other"
+                            : preRaceDisqualifyReasons[0] || "Other"
                         );
                       }}
                       className={cn(
@@ -340,9 +340,14 @@ export default function PreRaceInspectionPanel({
                   onChange={(e) => setFailCategory(e.target.value)}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
                 >
-                  {(failReason === "withdrawn"
+                  {((failReason === "withdrawn"
                     ? preRaceWithdrawReasons
                     : preRaceDisqualifyReasons
+                  ).length > 0
+                    ? failReason === "withdrawn"
+                      ? preRaceWithdrawReasons
+                      : preRaceDisqualifyReasons
+                    : ["Other"]
                   ).map((reason: string) => (
                     <option key={reason} value={reason}>
                       {reason}

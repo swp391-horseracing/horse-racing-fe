@@ -1,10 +1,6 @@
 import api from "../lib/api.ts";
 import type { RefereeReport } from "../types/referee.ts";
 
-<<<<<<< Updated upstream
-export const RefereeService = {
-  async getRefereeRaceReport(raceId: string): Promise<RefereeReport> {
-=======
 export interface UpdatePlacementsPayload {
   placements: {
     entryId: string;
@@ -34,16 +30,10 @@ export interface SubmitReportPayload {
 
 export const RefereeService = {
   getRefereeRaceReport: async (raceId: string): Promise<RefereeReport> => {
->>>>>>> Stashed changes
     const response = await api.get(`/referee/races/${raceId}/report`);
     return response.data;
   },
 
-<<<<<<< Updated upstream
-  async getRefereeRacePlacements(raceId: string) {
-    const response = await api.put(
-      `/referee/races/${raceId}/report/placements`
-=======
   updatePlacements: async (
     raceId: string,
     payload: UpdatePlacementsPayload
@@ -51,16 +41,10 @@ export const RefereeService = {
     const response = await api.put(
       `/referee/races/${raceId}/report/placements`,
       payload
->>>>>>> Stashed changes
     );
     return response.data;
   },
 
-<<<<<<< Updated upstream
-  async getRefereeRaceViolations(raceId: string) {
-    const response = await api.post(
-      `/referee/races/${raceId}/report/violations`
-=======
   createViolation: async (
     raceId: string,
     payload: CreateViolationPayload
@@ -68,29 +52,20 @@ export const RefereeService = {
     const response = await api.post(
       `/referee/races/${raceId}/report/violations`,
       payload
->>>>>>> Stashed changes
     );
     return response.data;
   },
 
-<<<<<<< Updated upstream
-  async deleteRaceViolation(raceId: string, violationId: string) {
-=======
   deleteViolation: async (
     raceId: string,
     violationId: string
   ): Promise<any> => {
->>>>>>> Stashed changes
     const response = await api.delete(
       `/referee/races/${raceId}/report/violations/${violationId}`
     );
     return response.data;
   },
 
-<<<<<<< Updated upstream
-  async submitReport(raceId: string) {
-    const response = await api.patch(`/referee/races/${raceId}/report/submit`);
-=======
   submitReport: async (
     raceId: string,
     payload: SubmitReportPayload
@@ -99,7 +74,6 @@ export const RefereeService = {
       `/referee/races/${raceId}/report/submit`,
       payload
     );
->>>>>>> Stashed changes
     return response.data;
   },
 };
