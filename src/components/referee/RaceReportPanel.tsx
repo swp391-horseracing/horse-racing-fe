@@ -89,7 +89,9 @@ export default function RaceReportPanel({
         editNote
       );
       setEditingViolation(null);
-    } catch {}
+    } catch {
+      // Keep modal open so user doesn't lose input on failure
+    }
   };
 
   const handleDeleteFromModal = async () => {
@@ -99,7 +101,9 @@ export default function RaceReportPanel({
     try {
       await onDeleteViolation(editingViolation.laneId, editingViolation.id);
       setEditingViolation(null);
-    } catch {}
+    } catch {
+      // Keep modal open on deletion failure
+    }
   };
 
   return (
