@@ -283,7 +283,7 @@ export default function FeedPage() {
                       key={race.id}
                       onClick={() =>
                         navigate(`${ROUTES.RACES}`, {
-                          state: { raceId: race.id, date: race.date },
+                          state: { raceId: race.id, date: race.scheduledAt },
                         })
                       }
                       className="group flex items-start gap-3 p-3 rounded-xl border border-slate-50 hover:border-[#064E3B]/20 hover:bg-slate-50/50 transition-all duration-200 cursor-pointer"

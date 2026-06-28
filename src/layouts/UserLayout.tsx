@@ -8,7 +8,6 @@ import {
   Activity,
   UserCheck,
   ClipboardList,
-  Radio,
 } from "lucide-react";
 import {
   Sidebar,
@@ -89,10 +88,7 @@ export default function UserLayout({
     | "Referee" = "Jockey";
   let sidebarGroupLabel = "Jockey Operations";
 
-  if (path === ROUTES.ME_PREDICTIONS) {
-    currentRole = "Spectator";
-    sidebarGroupLabel = "Spectator Arena";
-  } else if (path.includes("/owner")) {
+  if (path.includes("/owner")) {
     currentRole = "Owner";
     sidebarGroupLabel = "Owner Operations";
   } else if (path.includes("/spectator")) {
@@ -127,11 +123,6 @@ export default function UserLayout({
         key: ROUTES.JOCKEY_INVITATIONS,
         badge: pendingCount,
       },
-      {
-        label: "Live Feed",
-        icon: Radio,
-        key: ROUTES.FEED,
-      },
     ],
     Owner: [
       {
@@ -151,11 +142,6 @@ export default function UserLayout({
       },
       { label: "Jockey Roster", icon: UserCheck, key: "/owner/jockeys" },
       { label: "Horse Schedule", icon: Calendar, key: "/owner/schedule" },
-      {
-        label: "Live Feed",
-        icon: Radio,
-        key: ROUTES.FEED,
-      },
     ],
     Spectator: [
       {
@@ -183,12 +169,6 @@ export default function UserLayout({
         key: "/admin/tournaments",
       },
       { label: "Virtual Economy", icon: TrendingUp, key: "/admin/economy" },
-
-      {
-        label: "Live Feed",
-        icon: Radio,
-        key: ROUTES.FEED,
-      },
     ],
     Referee: [
       {
@@ -207,12 +187,7 @@ export default function UserLayout({
 
   const currentNav = navConfigurations[currentRole];
 
-  // Safely handles exact matching, or falls back to 'Dashboard' as the default label
-  const activePath =
-    activeKey ||
-    (location.pathname === ROUTES.ME_PREDICTIONS
-      ? "/spectator/predictions"
-      : location.pathname);
+  const activePath = activeKey || location.pathname;
   const activeLabel =
     currentNav.find(
       (n) => activePath === n.key || activePath.startsWith(n.key + "/")
