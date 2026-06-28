@@ -11,7 +11,6 @@ import {
   type MockRace,
   type Violation,
   type ViolationCategory,
-  VIOLATION_CATEGORIES,
 } from "../../types/referee";
 import { cn } from "../../lib/utils";
 
@@ -23,9 +22,10 @@ interface LiveMonitorPanelProps {
   onEndRace: () => void;
   onLogViolation: (
     laneId: string,
-    category: ViolationCategory,
-    notes: string
+    violationType: ViolationCategory,
+    note: string
   ) => void;
+  violationCategories: ViolationCategory[];
 }
 
 export default function LiveMonitorPanel({
@@ -35,12 +35,13 @@ export default function LiveMonitorPanel({
   onResumeRace,
   onEndRace,
   onLogViolation,
+  violationCategories,
 }: LiveMonitorPanelProps) {
   const [violationLaneId, setViolationLaneId] = useState<string | null>(null);
-  const [violationCategory, setViolationCategory] = useState<ViolationCategory>(
+  const [violationType, setViolationType] = useState<ViolationCategory>(
     "Whip Limit Exceeded"
   );
-  const [violationNotes, setViolationNotes] = useState("");
+  const [violationNote, setViolationNote] = useState("");
 
   const activeLanes = race.lanes.filter(
     (l) => l.inspectionStatus === "cleared"
@@ -48,9 +49,9 @@ export default function LiveMonitorPanel({
 
   const handleConfirmViolation = () => {
     if (!violationLaneId) return;
-    onLogViolation(violationLaneId, violationCategory, violationNotes);
+    onLogViolation(violationLaneId, violationType, violationNote);
     setViolationLaneId(null);
-    setViolationNotes("");
+    setViolationNote("");
   };
 
   return (
@@ -119,8 +120,8 @@ export default function LiveMonitorPanel({
               <button
                 onClick={() => {
                   setViolationLaneId(lane.id);
-                  setViolationCategory("Whip Limit Exceeded");
-                  setViolationNotes("");
+                  setViolationType("Whip Limit Exceeded");
+                  setViolationNote("");
                 }}
                 className="mt-3 w-full text-[10px] font-bold bg-orange-600 text-white px-2 py-1.5 rounded-lg hover:bg-orange-700 transition flex items-center justify-center gap-1"
               >
@@ -149,12 +150,12 @@ export default function LiveMonitorPanel({
                     Lane {v.laneNumber} — {v.horseName}
                   </p>
                   <p className="text-[10px] text-orange-900 mt-0.5">
-                    {v.category}
-                    {v.notes ? ` • ${v.notes}` : ""}
+                    {v.violationType}
+                    {v.note ? ` • ${v.note}` : ""}
                   </p>
                 </div>
                 <span className="text-[9px] font-label font-bold text-orange-700">
-                  {new Date(v.timestamp).toLocaleTimeString()}
+                  {new Date(v.occurredAt).toLocaleTimeString()}
                 </span>
               </div>
             ))}
@@ -181,13 +182,13 @@ export default function LiveMonitorPanel({
                   Category
                 </label>
                 <select
-                  value={violationCategory}
+                  value={violationType}
                   onChange={(e) =>
-                    setViolationCategory(e.target.value as ViolationCategory)
+                    setViolationType(e.target.value as ViolationCategory)
                   }
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
                 >
-                  {VIOLATION_CATEGORIES.map((c) => (
+                  {violationCategories.map((c: ViolationCategory) => (
                     <option key={c} value={c}>
                       {c}
                     </option>
@@ -199,8 +200,8 @@ export default function LiveMonitorPanel({
                   Notes (optional)
                 </label>
                 <textarea
-                  value={violationNotes}
-                  onChange={(e) => setViolationNotes(e.target.value)}
+                  value={violationNote}
+                  onChange={(e) => setViolationNote(e.target.value)}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold h-20 resize-none focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
                   placeholder="Additional details..."
                 />

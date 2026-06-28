@@ -1,21 +1,21 @@
 import { Clock, Activity, Trophy, Flag, Calendar } from "lucide-react";
-import {
-  type MockRace,
-  phaseBadgeStyle,
-  phaseLabel,
-} from "../../types/referee";
+import { type MockRace } from "../../types/referee";
 import { cn } from "../../lib/utils";
 
 interface RefereeDashboardProps {
   races: MockRace[];
   onViewAll: () => void;
   onSelectRace: (id: string) => void;
+  phaseBadgeStyle: Record<string, string>;
+  phaseLabel: Record<string, string>;
 }
 
 export default function RefereeDashboard({
   races,
   onViewAll,
   onSelectRace,
+  phaseBadgeStyle,
+  phaseLabel,
 }: RefereeDashboardProps) {
   const scheduledCount = races.filter((r) => r.phase === "scheduled").length;
   const liveCount = races.filter((r) => r.phase === "live").length;

@@ -42,44 +42,31 @@ export interface MockRace {
   timerRunning: boolean;
   reportNotes: string;
   reportSubmitted: boolean;
+  refereeCheckedIn: boolean;
+  adminUnlocked: boolean;
 }
 
-export const formatTime = (seconds: number) => {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-};
+import type { RaceDetail } from "./race.ts";
 
-export const phaseLabel: Record<RacePhase, string> = {
-  scheduled: "Scheduled",
-  live: "Live",
-  concluded: "Concluded",
-  report: "Report Pending",
-};
+export interface TournamentSummary {
+  id: string;
+  name: string;
+}
 
-export const phaseBadgeStyle: Record<RacePhase, string> = {
-  scheduled: "bg-amber-50 text-amber-900 border-amber-300 font-bold",
-  live: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  concluded: "bg-indigo-100 text-indigo-800 border-indigo-200",
-  report: "bg-violet-100 text-violet-800 border-violet-200",
-};
+export interface HorseSummary {
+  id: string;
+  name: string;
+  breed: string;
+}
 
-export const VIOLATION_CATEGORIES: ViolationCategory[] = [
-  "Whip Limit Exceeded",
-  "Lane Interference",
-  "Unsafe Riding",
-  "Refusal to Race / Bolting",
-];
+export interface Violation {
+  id: string;
+  entryId: string;
+  refereeId: string;
 
-export const PRE_RACE_WITHDRAW_REASONS = [
-  "Veterinary Scratch (Paddock / Gate Lameness)",
-  "Gate Behavior / Refusal to Load",
-  "Gate Injury / Breakthrough",
-  "Trainer Scratch (Track Surface Concern)",
-  "Jockey Injury (No Rider Available)",
-  "Other",
-];
+  occurredAt: string;
 
+<<<<<<< Updated upstream
 export const PRE_RACE_DISQUALIFY_REASONS = [
   "Identity Mismatch (Lip Tattoo/Microchip)",
   "Medication Violation",
@@ -111,6 +98,16 @@ export interface Violation {
   description: string;
 
   severity: "warning" | "minor" | "major" | "critical";
+=======
+  violationType: string;
+  description: string;
+
+  severity:
+    | "warning"
+    | "disqualification"
+    | "result_cancellation"
+    | "point_deduction";
+>>>>>>> Stashed changes
 
   note: string;
 }
@@ -131,7 +128,11 @@ export interface Placement {
 
   finishTime: string;
 
+<<<<<<< Updated upstream
   finishStatus: "finished" | "dnf" | "dns" | "dq";
+=======
+  finishStatus: "finished" | "dnf" | "dns" | "dsq";
+>>>>>>> Stashed changes
 
   points: number;
 
@@ -155,7 +156,11 @@ export interface AssignedReferee extends Referee {
 export interface RaceReport {
   id: string;
 
+<<<<<<< Updated upstream
   status: "draft" | "submitted" | "confirmed" | "published";
+=======
+  status: "draft" | "referee_confirmed" | "published";
+>>>>>>> Stashed changes
 
   notes: string;
 
@@ -172,7 +177,11 @@ export interface RaceReport {
 }
 
 export interface RefereeReport {
+<<<<<<< Updated upstream
   race: Race;
+=======
+  race: RaceDetail;
+>>>>>>> Stashed changes
   referee: Referee;
   report: RaceReport;
   placements: Placement[];
