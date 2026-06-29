@@ -153,6 +153,7 @@ export const router = createBrowserRouter([
             element: <AdminTournamentDetailPage />,
           },
           { path: "/admin/economy", element: <AdminPage /> },
+          { path: ROUTES.ADMIN_REPORTS, element: <AdminPage /> },
           {
             path: ROUTES.ADMIN_TOURNAMENT_RACE_NEW,
             element: <AdminRaceDetailPage />,

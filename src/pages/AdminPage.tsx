@@ -10,6 +10,7 @@ import RegistryApprovals from "../components/admin/RegistryApprovals";
 import TournamentRaceManager from "../components/admin/TournamentRaceManager";
 import VirtualEconomy from "../components/admin/VirtualEconomy";
 import ControlCenterOverview from "../components/admin/controlCenterOverview.tsx";
+import RaceReportsManager from "../components/admin/RaceReportsManager";
 
 const TAB_ROUTE_MAP: Record<string, string> = {
   [ROUTES.ADMIN_DASHBOARD]: ROUTES.ADMIN_DASHBOARD,
@@ -17,6 +18,7 @@ const TAB_ROUTE_MAP: Record<string, string> = {
   "/admin/registry": "/admin/registry",
   [ROUTES.ADMIN_TOURNAMENT_LIST]: "/admin/tournaments",
   "/admin/economy": "/admin/economy",
+  [ROUTES.ADMIN_REPORTS]: ROUTES.ADMIN_REPORTS,
 };
 
 function getTabKey(pathname: string): string {
@@ -55,6 +57,8 @@ export default function AdminPage() {
         return <TournamentRaceManager addToast={addToast} />;
       case "/admin/economy":
         return <VirtualEconomy addToast={addToast} />;
+      case ROUTES.ADMIN_REPORTS:
+        return <RaceReportsManager addToast={addToast} />;
       default:
         return <ControlCenterOverview setActiveTab={handleActiveChange} />;
     }
