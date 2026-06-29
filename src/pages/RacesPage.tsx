@@ -248,7 +248,7 @@ export default function RacesPage() {
   }, [viewYear, viewMonthIndex, loadRacesByMonth]);
 
   const allRaces = useMemo(() => apiRaces.map(mapRaceToUi), [apiRaces]);
-  console.log("all race",allRaces);
+  console.log("all race", allRaces);
 
   const tournamentName = useMemo(() => {
     if (!tournamentId) return null;
