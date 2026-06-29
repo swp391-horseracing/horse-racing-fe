@@ -237,6 +237,7 @@ export function useRaceDetail(raceId: string | null) {
       setError(null);
       try {
         const data = await RaceService.getRaceById(raceId);
+        console.log("RaceDetail API:", data);
         let entries: RaceEntry[] | undefined;
         try {
           const horsesResponse = await RaceService.getRaceHorses(raceId);
