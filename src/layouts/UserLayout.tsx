@@ -169,6 +169,7 @@ export default function UserLayout({
         key: "/admin/tournaments",
       },
       { label: "Virtual Economy", icon: TrendingUp, key: "/admin/economy" },
+      { label: "Race Reports", icon: ClipboardList, key: ROUTES.ADMIN_REPORTS },
     ],
     Referee: [
       {
