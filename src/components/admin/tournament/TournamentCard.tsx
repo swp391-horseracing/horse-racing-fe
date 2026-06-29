@@ -4,9 +4,10 @@ import TournamentStatus from "./TournamentStatus";
 type Props = {
   tournament: any;
   onView: (id: string) => void;
+  onManageRaces?: (id: string) => void;
 };
 
-export default function TournamentCard({ tournament, onView }: Props) {
+export default function TournamentCard({ tournament, onView, onManageRaces }: Props) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-4 flex justify-between items-center hover:shadow-md transition">
       <div className="flex gap-3">
@@ -37,12 +38,20 @@ export default function TournamentCard({ tournament, onView }: Props) {
         </div>
       </div>
 
-      <button
-        onClick={() => onView(tournament.id)}
-        className="px-3 py-1.5 bg-[#064E3B] text-white rounded-xl text-xs font-semibold hover:bg-[#043d2d]"
-      >
-        View Detail
-      </button>
+      <div className="flex gap-2">
+        <button
+          onClick={() => onView(tournament.id)}
+          className="px-3 py-1.5 bg-[#064E3B] text-white rounded-xl text-xs font-semibold hover:bg-[#043d2d]"
+        >
+          View Detail
+        </button>
+        <button
+          onClick={() => onManageRaces?.(tournament.id)}
+          className="px-3 py-1.5 bg-amber-600 text-white rounded-xl text-xs font-semibold hover:bg-amber-700"
+        >
+          Manage Races
+        </button>
+      </div>
     </div>
   );
 }
