@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { X, Calendar } from "lucide-react";
 import TournamentDetail from "./TournamentDetail";
 import type { TournamentFormValues } from "../../../styles/schema/tournamentSchema";
 import type { Tournament } from "../../../types/tournament.ts";
@@ -9,6 +9,7 @@ type Props = {
   tournament: Tournament;
   onUpdate?: (id: string, data: TournamentFormValues) => Promise<boolean>;
   onStatusChange?: (id: string, status: string) => Promise<boolean>;
+  onManageRaces?: (id: string) => void;
 };
 
 export default function TournamentDetailModal({
@@ -17,6 +18,7 @@ export default function TournamentDetailModal({
   tournament,
   onUpdate,
   onStatusChange,
+  onManageRaces,
 }: Props) {
   if (!isOpen) return null;
 
@@ -47,6 +49,15 @@ export default function TournamentDetailModal({
             onUpdate={onUpdate}
             onStatusChange={onStatusChange}
           />
+
+          <div className="mt-6 pt-4 border-t">
+            <button
+              onClick={() => onManageRaces?.(tournament.id)}
+              className="w-full bg-amber-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-amber-700 flex items-center justify-center gap-2"
+            >
+              <Calendar className="w-4 h-4" /> Manage Races
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -4,7 +4,20 @@ import type { UserResponse } from "../types/user.ts";
 
 export const AdminService = {
   // ── Users ──
-
+  getCourses: async () => {
+    const response = await api.get(`/courses`);
+    return response.data;
+  },
+  getCourseDistances: async (id: string) => {
+    const response = await api.get(`/courses/${id}/distances`);
+    return response.data;
+  },
+  createCourseDistance: async (courseId: string, distanceMeters: number) => {
+    const response = await api.post(`/courses/${courseId}/distances`, {
+      distanceMeters: Number(distanceMeters),
+    });
+    return response.data;
+  },
   async getUsers(
     search?: string,
     status?: string,
