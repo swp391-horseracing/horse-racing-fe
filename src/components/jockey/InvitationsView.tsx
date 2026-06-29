@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { Invitation } from "../../types/invitation.ts";
 import type { InvStatus } from "../../services/InvitationService.ts";
+import { useInvitations } from "../../hooks/useInvitations.ts";
 
 type FilterType = "All" | InvStatus;
 
@@ -21,21 +22,6 @@ const safeStr = (v: unknown, altKey = "name"): string => {
   if (typeof v === "string") return v;
   return ((v as Record<string, unknown>)[altKey] as string) ?? String(v);
 };
-
-interface InvitationsViewProps {
-  data: Invitation[];
-  selectedId: string | null;
-  setSelectedId: (id: string | null) => void;
-  onAccept: (id: string) => void;
-  onDecline: (id: string) => void;
-  onCancel: (id: string) => void;
-  loadAllInvitation: (
-    status?: string,
-    page?: number,
-    limit?: number
-  ) => Promise<unknown>;
-  loading?: boolean;
-}
 
 const Icons = {
   Clock: () => <Clock className="w-4 h-4 text-current" />,
@@ -49,14 +35,14 @@ const Icons = {
 };
 
 const statusConfig: Record<
-  InvStatus,
-  {
-    color: string;
-    bg: string;
-    border: string;
-    Icon: React.ElementType;
-    label: string;
-  }
+    InvStatus,
+    {
+      color: string;
+      bg: string;
+      border: string;
+      Icon: React.ElementType;
+      label: string;
+    }
 > = {
   pending: {
     color: "text-[#D97706]",
@@ -109,19 +95,21 @@ const statusConfig: Record<
   },
 };
 
-export function InvitationsView({
-  data,
-  selectedId,
-  setSelectedId,
-  onAccept,
-  onDecline,
-  onCancel,
-  loadAllInvitation,
-  loading = false,
-}: InvitationsViewProps) {
+export function InvitationsView() {
+  const {
+    invitations,
+    loading: invitesLoading,
+    acceptInvitation,
+    updateInvitationStatus,
+    loadAllInvitation,
+    cancelInvitation,
+  } = useInvitations();
+
+  const [selectedInvId, setSelectedInvId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>("All");
   const [search, setSearch] = useState("");
 
+  // Load invitations on mount
   useEffect(() => {
     loadAllInvitation();
   }, [loadAllInvitation]);
@@ -135,158 +123,198 @@ export function InvitationsView({
   ];
 
   const filtered = useMemo(() => {
-    return data.filter((item) => {
+    return invitations.filter((item) => {
       const matchesFilter = filter === "All" || item.status === filter;
       const matchesSearch =
-        safeStr(item.horse?.name)
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        safeStr(item.tournament).toLowerCase().includes(search.toLowerCase()) ||
-        safeStr(item.owner, "fullName")
-          .toLowerCase()
-          .includes(search.toLowerCase());
+          safeStr(item.horse?.name)
+              .toLowerCase()
+              .includes(search.toLowerCase()) ||
+          safeStr(item.tournament).toLowerCase().includes(search.toLowerCase()) ||
+          safeStr(item.owner, "fullName")
+              .toLowerCase()
+              .includes(search.toLowerCase());
       return matchesFilter && matchesSearch;
     });
-  }, [data, filter, search]);
+  }, [invitations, filter, search]);
 
-  const selectedInv = data.find((i) => i.id === selectedId) ?? null;
-  const pendingInvites = data.filter((i) => i.status === "pending");
+  const selectedInv = invitations.find((i) => i.id === selectedInvId) ?? null;
+  const pendingInvites = invitations.filter((i) => i.status === "pending");
+
+  const handleAcceptInvitation = async (id: string) => {
+    const target = invitations.find((inv) => inv.id === id);
+    try {
+      await acceptInvitation(id);
+      // TODO: Replace with your actual toast implementation
+      console.log(
+          `Response recorded successfully! Tentatively registered to ride ${
+              target?.horse?.name ?? target?.horse?.id
+          }.`
+      );
+    } catch {
+      console.error("Failed to accept invitation.");
+    }
+  };
+
+  const handleDeclineInvitation = (id: string) => {
+    const target = invitations.find((inv) => inv.id === id);
+    updateInvitationStatus(id, "declined");
+    console.log(
+        `You declined the invitation to ride ${
+            target?.horse?.name ?? target?.horse?.id
+        }.`
+    );
+  };
+
+  const handleCancelInvitation = async (id: string) => {
+    const target = invitations.find((inv) => inv.id === id);
+    try {
+      await cancelInvitation(id);
+      console.log(
+          `Invitation to ride ${
+              target?.horse?.name ?? target?.horse?.id
+          } has been cancelled.`
+      );
+    } catch {
+      console.error("Failed to cancel invitation.");
+    }
+  };
 
   return (
-    <div className="flex-1 flex h-full w-full overflow-hidden font-body">
-      <div className="w-96 shrink-0 border-r border-[#064E3B]/10 bg-white flex flex-col h-full overflow-hidden">
-        <div className="p-4 border-b border-slate-100 space-y-3.5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <h2 className="font-bold font-headline text-[#064E3B] text-lg">
-              Inbound Offers
-            </h2>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => loadAllInvitation()}
-                disabled={loading}
-                className="rounded bg-[#F4F6F5] border border-slate-200 p-1.5 text-slate-500 hover:text-[#064E3B] disabled:opacity-40"
-              >
-                <RotateCw
-                  className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
-                />
-              </button>
-              {pendingInvites.length > 0 && (
-                <span className="rounded bg-[#EAB308]/20 text-[#D97706] font-bold px-2.5 py-0.5 text-[9px] uppercase border border-[#EAB308]/30">
+      <div className="flex-1 flex h-full w-full overflow-hidden font-body">
+        {/* Sidebar - List */}
+        <div className="w-96 shrink-0 border-r border-[#064E3B]/10 bg-white flex flex-col h-full overflow-hidden">
+          <div className="p-4 border-b border-slate-100 space-y-3.5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold font-headline text-[#064E3B] text-lg">
+                Inbound Offers
+              </h2>
+              <div className="flex items-center gap-2">
+                <button
+                    onClick={() => loadAllInvitation()}
+                    disabled={invitesLoading}
+                    className="rounded bg-[#F4F6F5] border border-slate-200 p-1.5 text-slate-500 hover:text-[#064E3B] disabled:opacity-40"
+                >
+                  <RotateCw
+                      className={`w-3.5 h-3.5 ${invitesLoading ? "animate-spin" : ""}`}
+                  />
+                </button>
+                {pendingInvites.length > 0 && (
+                    <span className="rounded bg-[#EAB308]/20 text-[#D97706] font-bold px-2.5 py-0.5 text-[9px] uppercase border border-[#EAB308]/30">
                   {pendingInvites.length} Pending
                 </span>
-              )}
+                )}
+              </div>
             </div>
-          </div>
 
-          <div className="relative">
+            <div className="relative">
             <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
               <Search className="w-4 h-4 text-current" />
             </span>
-            <input
-              type="text"
-              placeholder="Search horse..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#F4F6F5]/50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-800 outline-none"
-            />
-          </div>
-
-          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-            {filters.map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={cn(
-                  "rounded-xl px-3 py-2 text-xs font-bold whitespace-nowrap capitalize",
-                  filter === f
-                    ? "bg-[#064E3B] text-white"
-                    : "bg-[#F4F6F5] text-slate-500"
-                )}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
-          {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-48 text-slate-400 text-sm gap-2">
-              <span className="h-10 w-10 opacity-30 text-[#064E3B]">
-                <Mail className="w-10 h-10 text-current" />
-              </span>
-              <p className="font-bold">No invitations found</p>
+              <input
+                  type="text"
+                  placeholder="Search horse..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full bg-[#F4F6F5]/50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-800 outline-none"
+              />
             </div>
-          ) : (
-            filtered.map((inv) => {
-              const cfg = statusConfig[inv.status];
-              const StatusIcon = cfg.Icon;
-              const isPending = inv.status === "pending";
-              return (
-                <div
-                  key={inv.id}
-                  onClick={() => setSelectedId(inv.id)}
-                  className={cn(
-                    "relative group flex items-start gap-3 rounded-2xl border p-4 cursor-pointer",
-                    selectedId === inv.id
-                      ? "border-[#064E3B] bg-[#064E3B]/5"
-                      : "border-slate-200 bg-white"
-                  )}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <p className="font-bold font-headline text-[#064E3B] truncate text-sm">
-                        {inv.horse.name}
-                      </p>
-                      <span
-                        className={cn(
-                          "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[8px] font-black uppercase shrink-0",
-                          cfg.color,
-                          cfg.bg,
-                          cfg.border
-                        )}
+
+            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              {filters.map((f) => (
+                  <button
+                      key={f}
+                      onClick={() => setFilter(f)}
+                      className={cn(
+                          "rounded-xl px-3 py-2 text-xs font-bold whitespace-nowrap capitalize",
+                          filter === f
+                              ? "bg-[#064E3B] text-white"
+                              : "bg-[#F4F6F5] text-slate-500"
+                      )}
+                  >
+                    {f}
+                  </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
+            {filtered.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-48 text-slate-400 text-sm gap-2">
+                  <Mail className="w-10 h-10 text-current opacity-30" />
+                  <p className="font-bold">No invitations found</p>
+                </div>
+            ) : (
+                filtered.map((inv) => {
+                  const cfg = statusConfig[inv.status];
+                  const StatusIcon = cfg.Icon;
+                  const isPending = inv.status === "pending";
+
+                  return (
+                      <div
+                          key={inv.id}
+                          onClick={() => setSelectedInvId(inv.id)}
+                          className={cn(
+                              "relative group flex items-start gap-3 rounded-2xl border p-4 cursor-pointer transition-colors",
+                              selectedInvId === inv.id
+                                  ? "border-[#064E3B] bg-[#064E3B]/5"
+                                  : "border-slate-200 bg-white hover:bg-slate-50"
+                          )}
                       >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-1.5">
+                            <p className="font-bold font-headline text-[#064E3B] truncate text-sm">
+                              {inv.horse?.name ?? "Unknown Horse"}
+                            </p>
+                            <span
+                                className={cn(
+                                    "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[8px] font-black uppercase shrink-0",
+                                    cfg.color,
+                                    cfg.bg,
+                                    cfg.border
+                                )}
+                            >
                         <StatusIcon /> {cfg.label}
                       </span>
-                    </div>
-                    <p className="text-xs text-slate-555 font-semibold truncate">
-                      {safeStr(inv.tournament)}
-                    </p>
-                    {isPending && (
-                      <div className="mt-1.5">
+                          </div>
+                          <p className="text-xs text-slate-600 font-semibold truncate">
+                            {safeStr(inv.tournament)}
+                          </p>
+                          {isPending && (
+                              <div className="mt-1.5">
                         <span className="text-[8px] text-[#D97706] font-black bg-[#EAB308]/10 px-2 py-0.5 rounded border border-[#EAB308]/20 uppercase">
                           DEEP ACCESS ACTIVE
                         </span>
+                              </div>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          )}
+                  );
+                })
+            )}
+          </div>
+        </div>
+
+        {/* Detail View */}
+        <div className="flex-1 h-full overflow-hidden bg-[#F4F6F5]/30">
+          <InvitationDetail
+              inv={selectedInv}
+              onAccept={handleAcceptInvitation}
+              onDecline={handleDeclineInvitation}
+              onCancel={handleCancelInvitation}
+          />
         </div>
       </div>
-
-      <div className="flex-1 h-full overflow-hidden bg-[#F4F6F5]/30">
-        <InvitationDetail
-          inv={selectedInv}
-          onAccept={onAccept}
-          onDecline={onDecline}
-          onCancel={onCancel}
-        />
-      </div>
-    </div>
   );
 }
 
 // ─── Component: InvitationDetail ───────────────────────────────────────────────
 
 function InvitationDetail({
-  inv,
-  onAccept,
-  onDecline,
-  onCancel,
-}: {
+                            inv,
+                            onAccept,
+                            onDecline,
+                            onCancel,
+                          }: {
   inv: Invitation | null;
   onAccept: (id: string) => void;
   onDecline: (id: string) => void;
@@ -294,12 +322,10 @@ function InvitationDetail({
 }) {
   if (!inv) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center text-slate-400 gap-4 p-8">
-        <span className="h-16 w-16 opacity-30 text-[#064E3B]">
-          <Mail className="w-16 h-16 text-current" />
-        </span>
-        <h3 className="font-bold">No Offer Selected</h3>
-      </div>
+        <div className="flex flex-col items-center justify-center h-full text-center text-slate-400 gap-4 p-8">
+          <Mail className="w-16 h-16 text-current opacity-30" />
+          <h3 className="font-bold">No Offer Selected</h3>
+        </div>
     );
   }
 
@@ -308,107 +334,107 @@ function InvitationDetail({
   const isPending = inv.status === "pending";
 
   return (
-    <div className="p-6 h-full overflow-y-auto space-y-6 font-body">
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-[#064E3B]/10 pb-5">
-        <div>
-          <h2 className="text-2xl font-black font-headline text-[#064E3B] tracking-tight">
-            {inv.horse.name}
-          </h2>
-          <p className="text-xs font-semibold text-slate-500">
-            {safeStr(inv.tournament)}
-          </p>
-        </div>
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[10px] font-black uppercase",
-            cfg.color,
-            cfg.bg,
-            cfg.border
-          )}
-        >
+      <div className="p-6 h-full overflow-y-auto space-y-6 font-body">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-[#064E3B]/10 pb-5">
+          <div>
+            <h2 className="text-2xl font-black font-headline text-[#064E3B] tracking-tight">
+              {inv.horse?.name ?? "Unknown Horse"}
+            </h2>
+            <p className="text-xs font-semibold text-slate-500">
+              {safeStr(inv.tournament)}
+            </p>
+          </div>
+          <span
+              className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[10px] font-black uppercase",
+                  cfg.color,
+                  cfg.bg,
+                  cfg.border
+              )}
+          >
           <StatusIcon /> {cfg.label}
         </span>
-      </div>
-
-      <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 space-y-4 shadow-sm">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-[9px] text-slate-400 font-bold uppercase">
-              Owner
-            </p>
-            <p className="text-sm font-semibold text-slate-800">
-              {safeStr(inv.owner, "fullName")}
-            </p>
-          </div>
-          <div>
-            <p className="text-[9px] text-slate-400 font-bold uppercase">
-              Race Time
-            </p>
-            <p className="text-sm font-semibold text-slate-800">
-              {safeStr(inv.raceTime)}
-            </p>
-          </div>
         </div>
-      </div>
 
-      {isPending ? (
-        <div className="bg-gradient-to-tr from-[#064E3B]/5 to-[#EAB308]/5 border border-[#064E3B]/20 rounded-2xl p-5 shadow-sm">
-          <h3 className="text-xs font-bold font-headline uppercase text-[#064E3B]">
-            Private Health Metrics (Deep Access)
-          </h3>
-          <p className="text-xs text-slate-555 italic mt-3">
-            "
-            {(inv as Invitation & { medicalLogs?: { trainerNotes?: string } })
-              .medicalLogs?.trainerNotes ||
-              "Horse is looking strong in the final furlong. Responds well."}
-            "
-          </p>
-        </div>
-      ) : (
-        <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 text-center shadow-sm">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 border border-slate-100 text-slate-455 mx-auto">
-            <Lock className="w-5 h-5 text-current" />
-          </div>
-          <h3 className="font-bold text-md text-[#064E3B] mt-2">
-            Private Records Locked
-          </h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed mt-1">
-            Deep Access is revoked for completed or non-pending offers.
-          </p>
-        </div>
-      )}
-
-      {isPending && (
         <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 space-y-4 shadow-sm">
-          <div className="flex gap-4">
-            <button
-              onClick={() => onAccept(inv.id)}
-              className="flex-1 rounded-xl bg-[#064E3B] text-white hover:bg-[#043E2F] py-3.5 text-xs font-bold transition"
-            >
-              Accept Invitation
-            </button>
-            <button
-              onClick={() => onDecline(inv.id)}
-              className="flex-1 border border-slate-200 bg-[#F4F6F5] text-slate-655 hover:bg-slate-100 py-3.5 text-xs font-bold transition"
-            >
-              Decline
-            </button>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-[9px] text-slate-400 font-bold uppercase">
+                Owner
+              </p>
+              <p className="text-sm font-semibold text-slate-800">
+                {safeStr(inv.owner, "fullName")}
+              </p>
+            </div>
+            <div>
+              <p className="text-[9px] text-slate-400 font-bold uppercase">
+                Race Time
+              </p>
+              <p className="text-sm font-semibold text-slate-800">
+                {safeStr(inv.raceTime)}
+              </p>
+            </div>
           </div>
         </div>
-      )}
 
-      {(inv.status === "accepted" || inv.status === "confirmed") && (
-        <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 space-y-4 shadow-sm">
-          <div className="flex gap-4">
-            <button
-              onClick={() => onCancel(inv.id)}
-              className="flex-1 rounded-xl border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 py-3.5 text-xs font-bold transition"
-            >
-              Cancel Invitation
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+        {isPending ? (
+            <div className="bg-gradient-to-tr from-[#064E3B]/5 to-[#EAB308]/5 border border-[#064E3B]/20 rounded-2xl p-5 shadow-sm">
+              <h3 className="text-xs font-bold font-headline uppercase text-[#064E3B]">
+                Private Health Metrics (Deep Access)
+              </h3>
+              <p className="text-xs text-slate-600 italic mt-3">
+                "
+                {(inv as Invitation & { medicalLogs?: { trainerNotes?: string } })
+                        .medicalLogs?.trainerNotes ||
+                    "Horse is looking strong in the final furlong. Responds well."}
+                "
+              </p>
+            </div>
+        ) : (
+            <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 text-center shadow-sm">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 border border-slate-100 text-slate-400 mx-auto">
+                <Lock className="w-5 h-5 text-current" />
+              </div>
+              <h3 className="font-bold text-md text-[#064E3B] mt-2">
+                Private Records Locked
+              </h3>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed mt-1">
+                Deep Access is revoked for completed or non-pending offers.
+              </p>
+            </div>
+        )}
+
+        {isPending && (
+            <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 space-y-4 shadow-sm">
+              <div className="flex gap-4">
+                <button
+                    onClick={() => onAccept(inv.id)}
+                    className="flex-1 rounded-xl bg-[#064E3B] text-white hover:bg-[#043E2F] py-3.5 text-xs font-bold transition"
+                >
+                  Accept Invitation
+                </button>
+                <button
+                    onClick={() => onDecline(inv.id)}
+                    className="flex-1 border border-slate-200 bg-[#F4F6F5] text-slate-700 hover:bg-slate-100 py-3.5 text-xs font-bold transition"
+                >
+                  Decline
+                </button>
+              </div>
+            </div>
+        )}
+
+        {(inv.status === "accepted" || inv.status === "confirmed") && (
+            <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 space-y-4 shadow-sm">
+              <div className="flex gap-4">
+                <button
+                    onClick={() => onCancel(inv.id)}
+                    className="flex-1 rounded-xl border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 py-3.5 text-xs font-bold transition"
+                >
+                  Cancel Invitation
+                </button>
+              </div>
+            </div>
+        )}
+      </div>
   );
 }

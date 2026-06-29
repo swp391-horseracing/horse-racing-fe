@@ -20,49 +20,7 @@ export default function JockeyPage() {
   const { horses } = useHorse();
   const {
     invitations,
-    loading: invitesLoading,
-    acceptInvitation,
-    updateInvitationStatus,
-    loadAllInvitation,
-    cancelInvitation,
   } = useInvitations();
-
-  const [selectedInvId, setSelectedInvId] = useState<string | null>("1");
-
-  const handleAcceptInvitation = async (id: string) => {
-    const target = invitations.find((inv) => inv.id === id);
-    try {
-      await acceptInvitation(id);
-      addToast(
-        `Response recorded successfully! Tentatively registered to ride ${target?.horse?.name ?? target?.horse?.id}. Awaiting final Owner confirmation.`,
-        "success"
-      );
-    } catch {
-      addToast("Failed to accept invitation. Please try again.", "error");
-    }
-  };
-
-  const handleDeclineInvitation = (id: string) => {
-    const target = invitations.find((inv) => inv.id === id);
-    updateInvitationStatus(id, "declined");
-    addToast(
-      `You declined the invitation to ride ${target?.horse?.name ?? target?.horse?.id}. Deep access revoked.`,
-      "info"
-    );
-  };
-
-  const handleCancelInvitation = async (id: string) => {
-    const target = invitations.find((inv) => inv.id === id);
-    try {
-      await cancelInvitation(id);
-      addToast(
-        `Invitation to ride ${target?.horse?.name ?? target?.horse?.id} has been cancelled.`,
-        "warning"
-      );
-    } catch {
-      addToast("Failed to cancel invitation. Please try again.", "error");
-    }
-  };
 
   const handleAcceptRide = (id: string) => {
     const target = rides.find((r) => r.id === id);
@@ -99,16 +57,7 @@ export default function JockeyPage() {
         );
       case ROUTES.JOCKEY_INVITATIONS:
         return (
-          <InvitationsView
-            data={invitations}
-            selectedId={selectedInvId}
-            setSelectedId={setSelectedInvId}
-            onAccept={handleAcceptInvitation}
-            onDecline={handleDeclineInvitation}
-            onCancel={handleCancelInvitation}
-            loadAllInvitation={loadAllInvitation}
-            loading={invitesLoading}
-          />
+          <InvitationsView/>
         );
       default:
         return null;
