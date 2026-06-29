@@ -21,6 +21,7 @@ import { ROUTES } from "../router/routes.tsx";
 import { useEvent } from "../hooks/useEvent";
 import { useRaces, useRaceDetail } from "../hooks/useRaces";
 import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
+import type { DateRange } from "react-day-picker";
 import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "../components/ui/toast";
 
@@ -189,19 +190,26 @@ export default function RacesPage() {
   const { eventList } = useEvent();
   const {
     races: apiRaces,
+    rangeRaces,
     loading: racesLoading,
     loadRacesByMonth,
+    loadRacesForRange,
   } = useRaces();
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
   const [search, setSearch] = useState("");
 
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    routeState?.date ? parseLocalDate(routeState.date) : new Date()
+  const [selectedRange, setSelectedRange] = useState<DateRange | undefined>(
+    routeState?.date
+      ? (() => {
+          const d = parseLocalDate(routeState.date);
+          return { from: d, to: d };
+        })()
+      : undefined
   );
   const raceId = urlRaceId ?? routeState?.raceId ?? null;
 
-  const [viewMonth, setViewMonth] = useState<Date>(selectedDate || new Date());
+  const [viewMonth, setViewMonth] = useState<Date>(new Date());
 
   const [userSession] = useState<{
     id: string;
@@ -247,8 +255,21 @@ export default function RacesPage() {
     loadRacesByMonth(viewYear, viewMonthIndex + 1);
   }, [viewYear, viewMonthIndex, loadRacesByMonth]);
 
-  const allRaces = useMemo(() => apiRaces.map(mapRaceToUi), [apiRaces]);
-  console.log("all race", allRaces);
+  useEffect(() => {
+    if (selectedRange?.from && selectedRange?.to) {
+      loadRacesForRange(selectedRange.from, selectedRange.to);
+    }
+  }, [selectedRange?.from, selectedRange?.to, loadRacesForRange]);
+
+  const effectiveRaces = useMemo(() => {
+    if (selectedRange?.from && selectedRange?.to) return rangeRaces;
+    return apiRaces;
+  }, [selectedRange?.from, selectedRange?.to, rangeRaces, apiRaces]);
+
+  const allRaces = useMemo(
+    () => effectiveRaces.map(mapRaceToUi),
+    [effectiveRaces]
+  );
 
   const tournamentName = useMemo(() => {
     if (!tournamentId) return null;
@@ -286,21 +307,42 @@ export default function RacesPage() {
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [filteredRaces]);
 
-  const formattedSelectedDate = useMemo(() => {
-    if (!selectedDate) return "";
-    const yyyy = selectedDate.getFullYear();
-    const mm = String(selectedDate.getMonth() + 1).padStart(2, "0");
-    const dd = String(selectedDate.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  }, [selectedDate]);
+  const dateRangeStr = useMemo(() => {
+    if (!selectedRange?.from) return undefined;
+    const yyyy = selectedRange.from.getFullYear();
+    const mm = String(selectedRange.from.getMonth() + 1).padStart(2, "0");
+    const dd = String(selectedRange.from.getDate()).padStart(2, "0");
+    const from = `${yyyy}-${mm}-${dd}`;
+    if (!selectedRange.to) return from;
+    const y2 = selectedRange.to.getFullYear();
+    const m2 = String(selectedRange.to.getMonth() + 1).padStart(2, "0");
+    const d2 = String(selectedRange.to.getDate()).padStart(2, "0");
+    return { from, to: `${y2}-${m2}-${d2}` };
+  }, [selectedRange]);
 
   const calendarFilteredRaces = useMemo(() => {
-    return filteredRaces.filter((r) => r.date === formattedSelectedDate);
-  }, [filteredRaces, formattedSelectedDate]);
+    if (!dateRangeStr) return filteredRaces;
+    if (typeof dateRangeStr === "string") {
+      return filteredRaces.filter((r) => r.date === dateRangeStr);
+    }
+    return filteredRaces.filter(
+      (r) => r.date >= dateRangeStr.from && r.date <= dateRangeStr.to
+    );
+  }, [filteredRaces, dateRangeStr]);
 
   const raceDays = useMemo(() => {
     return allRaces.map((r) => parseLocalDate(r.date));
   }, [allRaces]);
+
+  const racesInRange = useMemo(() => {
+    if (!dateRangeStr) return allRaces;
+    if (typeof dateRangeStr === "string") {
+      return allRaces.filter((r) => r.date === dateRangeStr);
+    }
+    return allRaces.filter(
+      (r) => r.date >= dateRangeStr.from && r.date <= dateRangeStr.to
+    );
+  }, [allRaces, dateRangeStr]);
 
   const handleSelectRace = useCallback(
     (id: string) => {
@@ -318,12 +360,12 @@ export default function RacesPage() {
 
   const counts = useMemo(
     () => ({
-      All: allRaces.length,
-      Live: allRaces.filter((r) => r.status === "Live").length,
-      Upcoming: allRaces.filter((r) => r.status === "Upcoming").length,
-      Completed: allRaces.filter((r) => r.status === "Completed").length,
+      All: racesInRange.length,
+      Live: racesInRange.filter((r) => r.status === "Live").length,
+      Upcoming: racesInRange.filter((r) => r.status === "Upcoming").length,
+      Completed: racesInRange.filter((r) => r.status === "Completed").length,
     }),
-    [allRaces]
+    [racesInRange]
   );
 
   return (
@@ -407,11 +449,11 @@ export default function RacesPage() {
                 className={`${!panelOpen ? "lg:col-span-5 flex lg:justify-center mb-8 lg:mb-0" : "w-full mb-6"}`}
               >
                 <ScheduleCalendar
-                  selectedDate={selectedDate}
-                  onSelect={(date) => {
-                    setSelectedDate(date);
-                    if (date) {
-                      setViewMonth(date);
+                  selectedRange={selectedRange}
+                  onSelect={(range) => {
+                    setSelectedRange(range);
+                    if (range?.from) {
+                      setViewMonth(range.from);
                     }
                   }}
                   defaultMonth={viewMonth}
@@ -432,12 +474,16 @@ export default function RacesPage() {
                   </p>
                 </div>
               ) : isCalendarMode ? (
-                selectedDate && (
+                selectedRange?.from && (
                   <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
                     <div className="border-b border-border bg-muted/20 px-6 py-4 flex items-center gap-2">
                       <CalendarDays className="h-4 w-4 text-muted-foreground" />
                       <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
-                        {fmtShort(formattedSelectedDate)}
+                        {dateRangeStr
+                          ? typeof dateRangeStr === "string"
+                            ? fmtShort(dateRangeStr)
+                            : `${fmtShort(dateRangeStr.from)} – ${fmtShort(dateRangeStr.to)}`
+                          : "All Races"}
                       </span>
                     </div>
                     <div className="divide-y divide-border flex-1">
@@ -453,7 +499,7 @@ export default function RacesPage() {
                         ))
                       ) : (
                         <div className="p-12 text-center text-sm text-muted-foreground font-medium">
-                          No official races slated for this calendar day.
+                          No races found in this date range.
                         </div>
                       )}
                     </div>
@@ -682,7 +728,11 @@ export default function RacesPage() {
                           </p>
                         </div>
                         <button
-                          onClick={() => navigate(ROUTES.ME_PREDICTIONS)}
+                          onClick={() =>
+                            navigate(ROUTES.SPECTATOR_DASHBOARD, {
+                              state: { tab: "predictions" },
+                            })
+                          }
                           className="text-xs font-bold text-[#064E3B] hover:underline cursor-pointer"
                         >
                           View all predictions →
