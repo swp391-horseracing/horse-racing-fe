@@ -27,26 +27,28 @@ export default function useAuth() {
     captchaToken: string
   ) => {
     try {
-      const user = await AuthService.login(email, password, captchaToken);
+      const data = await AuthService.login(email, password, captchaToken);
 
-      const jwt = user.token;
-      const userId = user.user.id;
+      const jwt = data.token;
+      const userId = data.user.id;
+      const role = data.user.role;
 
       if (jwt) {
         localStorage.setItem("token", jwt);
         sessionStorage.setItem("userId", userId);
+        sessionStorage.setItem("userRole", role);
         sessionStorage.setItem(
           "user",
           JSON.stringify({
-            id: user.user.id,
-            role: user.user.role,
-            full_name: user.user.full_name,
+            id: data.user.id,
+            role: data.user.role,
+            full_name: data.user.full_name,
           })
         );
         setToken(jwt);
       }
 
-      return user;
+      return data;
     } catch (error) {
       resetCaptcha();
       throw error;
