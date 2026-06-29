@@ -113,4 +113,24 @@ export const AdminService = {
     const response = await api.patch(`/admin/races/${raceId}/publish`);
     return response.data;
   },
+
+  // ── Registrations ──
+
+  async getRegistrations(params?: {
+    search?: string;
+    status?: string;
+    raceId?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const response = await api.get("/admin/registrations", {
+      params,
+    });
+    return response.data;
+  },
+
+  async updateRegistration(regId: string, data: any) {
+    const response = await api.patch(`/admin/registrations/${regId}`, data);
+    return response.data;
+  },
 };
