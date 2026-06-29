@@ -11,13 +11,16 @@ import {
   Construction,
 } from "lucide-react";
 import { cn } from "../../../lib/utils";
-import type { ReportDetailData } from "../../../../types/report";
+import type {
+  ReportDetailData,
+  ReportDetailPlacement,
+} from "../../../types/report";
 import {
   STATUS_LABELS,
   STATUS_STYLES,
   formatDate,
   formatFinishTime,
-} from "../../../../types/report";
+} from "../../../types/report";
 import RejectInfoModal from "./RejectInfoModal";
 import PublishConfirmModal from "./PublishConfirmModal";
 
@@ -264,7 +267,7 @@ export default function ReportDetailView({
                 </tr>
               </thead>
               <tbody>
-                {placements.map((p) => (
+                {placements.map((p: ReportDetailPlacement) => (
                   <tr
                     key={p.entryId}
                     className={cn(
@@ -332,7 +335,7 @@ export default function ReportDetailView({
             {violations.length})
           </h3>
           <div className="space-y-2">
-            {violations.map((p) => {
+            {violations.map((p: ReportDetailPlacement) => {
               const v = p.violation!;
               return (
                 <div

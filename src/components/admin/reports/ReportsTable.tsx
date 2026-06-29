@@ -13,7 +13,7 @@ import {
   STATUS_LABELS,
   STATUS_STYLES,
   formatDate,
-} from "../../../../types/report";
+} from "../../../types/report";
 
 interface ReportsTableProps {
   reports: RaceReportListItem[];
