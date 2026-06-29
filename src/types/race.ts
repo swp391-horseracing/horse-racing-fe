@@ -58,6 +58,32 @@ export interface RaceListItem {
   course?: RaceCourse;
 }
 
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface RaceReportListItem {
+  raceId: string;
+  raceName: string;
+  raceStatus: string;
+  tournamentId: string;
+  tournamentName: string;
+  reportId: string;
+  reportStatus: string;
+  refereeConfirmedBy: string;
+  refereeName: string;
+  refereeConfirmedAt: string;
+  publishedAt: string;
+}
+
+export interface RaceReportListResponse {
+  data: RaceReportListItem[];
+  pagination: Pagination;
+}
+
 export interface RaceDetail extends RaceListItem {
   roundName?: string;
   distanceMeters?: number;
@@ -91,30 +117,43 @@ export type Ride = {
 export interface Race {
   id: string;
   name: string;
-
   raceNumber: number;
-
   distanceMeters: number;
-
   trackCondition: "dry" | "wet" | "muddy" | "heavy";
-
   scheduledAt: string;
-
   venue: string;
-
   laneCount: number;
-
   status: RaceApiStatus;
-
   tournament: TournamentSummary;
 }
 
 export interface RaceResultDetailResponse {
   race: Race;
-
   referees: AssignedReferee[];
-
   report: RaceReport;
-
   placements: Placement[];
+}
+
+/* ---------- Admin ---------- */
+
+export interface AdminRace {
+  id: string;
+  tournamentId: string;
+  name: string;
+  raceNumber: number;
+  roundNumber: number;
+  roundName: string;
+  distanceMeters: number;
+  trackCondition: "dry" | "wet" | "muddy" | "heavy";
+  scheduledAt: string;
+  scheduleAt: string;
+  venue: string;
+  laneCount: number;
+  status: RaceApiStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PublishRaceResponse {
+  message: string;
 }

@@ -1,6 +1,12 @@
 import api from "../lib/api";
 import type { Tournament, TournamentResponse } from "../types/tournament.ts";
 import type { UserResponse } from "../types/user.ts";
+import type {
+  Race,
+  RaceReportListResponse,
+  PublishRaceResponse,
+} from "../types/race.ts";
+import type { RaceReport } from "../types/referee.ts";
 
 export const AdminService = {
   // ── Users ──
@@ -77,7 +83,7 @@ export const AdminService = {
 
   // ── Races ──
 
-  async createRace(tournamentId: string, data: Record<string, unknown>) {
+  async createRace(tournamentId: string, data: Partial<Race>): Promise<Race> {
     const response = await api.post(
       `/admin/tournaments/${tournamentId}/races`,
       data
@@ -85,15 +91,59 @@ export const AdminService = {
     return response.data;
   },
 
-  async updateRace(raceId: string, data: Record<string, unknown>) {
+  async updateRace(raceId: string, data: Partial<Race>): Promise<Race> {
     const response = await api.patch(`/admin/races/${raceId}`, data);
     return response.data;
   },
 
-  async updateRaceStatus(raceId: string, status: string) {
+  async updateRaceStatus(raceId: string, status: string): Promise<Race> {
     const response = await api.patch(`/admin/races/${raceId}/status`, {
       status,
     });
+    return response.data;
+  },
+
+  async getReports(params?: {
+    resultStatus?: string;
+    search?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<RaceReportListResponse> {
+    const response = await api.get("/admin/reports", {
+      params,
+    });
+    return response.data;
+  },
+
+  async getRaceReport(raceId: string): Promise<RaceReport> {
+    const response = await api.get(`/admin/races/${raceId}/report`);
+    return response.data;
+  },
+
+  async publishRace(raceId: string): Promise<PublishRaceResponse> {
+    const response = await api.patch(`/admin/races/${raceId}/publish`);
+    return response.data;
+  },
+
+  // ── Registrations ──
+
+  async getRegistrations(params?: {
+    search?: string;
+    status?: string;
+    raceId?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const response = await api.get("/admin/registrations", {
+      params,
+    });
+    return response.data;
+  },
+
+  async updateRegistration(regId: string, data: any) {
+    const response = await api.patch(`/admin/registrations/${regId}`, data);
     return response.data;
   },
 };
