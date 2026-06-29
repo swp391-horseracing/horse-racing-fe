@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { cn } from "../../lib/utils";
+import type { DateRange } from "react-day-picker";
 import type { MyRide } from "../../hooks/useJockey";
 import {
   Clock,
@@ -108,22 +109,40 @@ export function RidingSchedule({
 
   const [search, setSearch] = useState("");
   const [selectedRide, setSelectedRide] = useState<MyRide | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedRange, setSelectedRange] = useState<DateRange | undefined>(
+    undefined
+  );
   const [statusFilter, setStatusFilter] = useState<string>("All");
+
+  const ridesInRange = useMemo(() => {
+    if (!selectedRange?.from) return rides;
+    const from = new Date(selectedRange.from);
+    from.setHours(0, 0, 0, 0);
+    const to = selectedRange.to ? new Date(selectedRange.to) : new Date(from);
+    to.setHours(23, 59, 59, 999);
+    return rides.filter((r) => {
+      const d = new Date(r.scheduledAt);
+      return d >= from && d <= to;
+    });
+  }, [rides, selectedRange]);
 
   const counts = useMemo(
     () => ({
-      All: rides.length,
-      pending: rides.filter((r) => getComputedRideStatus(r) === "pending")
-        .length,
-      accepted: rides.filter((r) => getComputedRideStatus(r) === "accepted")
-        .length,
-      declined: rides.filter((r) => getComputedRideStatus(r) === "declined")
-        .length,
-      finished: rides.filter((r) => getComputedRideStatus(r) === "finished")
-        .length,
+      All: ridesInRange.length,
+      pending: ridesInRange.filter(
+        (r) => getComputedRideStatus(r) === "pending"
+      ).length,
+      accepted: ridesInRange.filter(
+        (r) => getComputedRideStatus(r) === "accepted"
+      ).length,
+      declined: ridesInRange.filter(
+        (r) => getComputedRideStatus(r) === "declined"
+      ).length,
+      finished: ridesInRange.filter(
+        (r) => getComputedRideStatus(r) === "finished"
+      ).length,
     }),
-    [rides]
+    [ridesInRange]
   );
 
   const filteredRides = useMemo(() => {
@@ -147,24 +166,17 @@ export function RidingSchedule({
       );
   }, [rides, statusFilter, search, isJockey]);
 
-  const formattedSelectedDate = useMemo(() => {
-    if (!selectedDate) return "";
-    const yyyy = selectedDate.getFullYear();
-    const mm = String(selectedDate.getMonth() + 1).padStart(2, "0");
-    const dd = String(selectedDate.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  }, [selectedDate]);
-
   const calendarFilteredRides = useMemo(() => {
-    if (!selectedDate) return filteredRides;
+    if (!selectedRange?.from) return filteredRides;
+    const from = new Date(selectedRange.from);
+    from.setHours(0, 0, 0, 0);
+    const to = selectedRange.to ? new Date(selectedRange.to) : new Date(from);
+    to.setHours(23, 59, 59, 999);
     return filteredRides.filter((r) => {
       const d = new Date(r.scheduledAt);
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      const dd = String(d.getDate()).padStart(2, "0");
-      return `${yyyy}-${mm}-${dd}` === formattedSelectedDate;
+      return d >= from && d <= to;
     });
-  }, [filteredRides, formattedSelectedDate, selectedDate]);
+  }, [filteredRides, selectedRange]);
 
   const raceDays = useMemo(() => {
     return rides.map((r) => {
@@ -274,8 +286,8 @@ export function RidingSchedule({
           panelOpen={panelOpen}
           calendarSlot={
             <ScheduleCalendar
-              selectedDate={selectedDate}
-              onSelect={setSelectedDate}
+              selectedRange={selectedRange}
+              onSelect={setSelectedRange}
               raceDays={raceDays}
             />
           }
@@ -284,8 +296,8 @@ export function RidingSchedule({
               <div className="border-b border-slate-100 bg-[#F4F6F5] px-5 py-3 flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-slate-400" />
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-                  {selectedDate
-                    ? `Schedule for ${selectedDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+                  {selectedRange?.from
+                    ? `Schedule: ${selectedRange.from.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}${selectedRange.to ? ` – ${selectedRange.to.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` : ""}`
                     : isJockey
                       ? "All Scheduled Assignments"
                       : "All Races"}
@@ -380,8 +392,8 @@ export function RidingSchedule({
                   ))
                 ) : (
                   <div className="p-8 text-center text-xs text-slate-400 font-medium">
-                    {selectedDate
-                      ? "No assigned races for this day."
+                    {selectedRange?.from
+                      ? "No assigned races in this date range."
                       : "No assigned races found."}
                   </div>
                 )}

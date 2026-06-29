@@ -145,14 +145,13 @@ export function JockeyRosterManagement({
 
   const handleSendInvites = async () => {
     if (!raceState.selectedRace || !selectedReg) return;
+    const race = raceState.selectedRace;
 
-    for (const jockeyId of selectedJockeyIds) {
-      await onInviteJockey(
-        raceState.selectedRace.id,
-        String(jockeyId),
-        selectedReg.horse.id
-      );
-    }
+    await Promise.all(
+      selectedJockeyIds.map((jockeyId) =>
+        onInviteJockey(race.id, String(jockeyId), selectedReg.horse.id)
+      )
+    );
 
     setSelectedJockeyIds([]);
     dispatchRace({ type: "LOADED", races: [] });

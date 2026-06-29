@@ -125,41 +125,40 @@ export function useOwner() {
       );
       if (approved.length === 0) return;
 
+      const raceResults = await Promise.allSettled(
+        approved.map((reg) =>
+          TournamentService.getTournamentRaces(reg.tournament.id)
+        )
+      );
+      const allRaces = raceResults.flatMap((r) =>
+        r.status === "fulfilled" ? (r.value.data ?? []) : []
+      );
+      if (allRaces.length === 0) return;
+
+      const invResults = await Promise.allSettled(
+        allRaces.map((race) => UserService.getRaceInvitations(race.id))
+      );
+      const seen = new Set<string>();
       const allInvitations: Invitation[] = [];
-
-      for (const reg of approved) {
-        try {
-          const racesRes = await TournamentService.getTournamentRaces(
-            reg.tournament.id
-          );
-          const races = racesRes.data ?? [];
-
-          for (const race of races) {
-            try {
-              const invRes = await UserService.getRaceInvitations(race.id);
-              const raceInvitations = (invRes.data ?? []).map(
-                (inv: Invitation) => ({
-                  ...inv,
-                  raceId: inv.raceId || race.id,
-                  raceName: race.name,
-                })
-              );
-              for (const inv of raceInvitations) {
-                if (!allInvitations.some((i) => i.id === inv.id)) {
-                  allInvitations.push(inv);
-                }
-              }
-            } catch {
-              // skip race if failed
-            }
+      for (let i = 0; i < allRaces.length; i++) {
+        const result = invResults[i];
+        if (result.status !== "fulfilled") continue;
+        const raceInvitations = (result.value.data ?? []).map(
+          (inv: Invitation) => ({
+            ...inv,
+            raceId: inv.raceId || allRaces[i].id,
+            raceName: allRaces[i].name,
+          })
+        );
+        for (const inv of raceInvitations) {
+          if (!seen.has(inv.id)) {
+            seen.add(inv.id);
+            allInvitations.push(inv);
           }
-        } catch {
-          // skip tournament if failed
         }
       }
 
       setInvitations(allInvitations);
-      console.log("all invitations:", allInvitations);
     } catch (error) {
       console.error("Failed to load all invitations:", error);
     }
