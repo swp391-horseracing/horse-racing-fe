@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { cn } from "../../lib/utils";
 import type { DateRange } from "react-day-picker";
-import type { MyRide } from "../../hooks/useJockey";
+import {type MyRide, useJockey} from "../../hooks/useJockey";
 import {
   Clock,
   Trophy,
@@ -23,17 +23,10 @@ import {
 } from "../schedule/ScheduleDetailFrame";
 import { RaceService } from "../../services/RaceService";
 import type { RaceEntry } from "../../types/race";
+import {useToast} from "../../hooks/useToast.ts";
 
 type ComputedRideStatus = "pending" | "accepted" | "declined" | "finished";
 type RideDetailTab = "info" | "runners";
-
-interface RidingScheduleProps {
-  rides: MyRide[];
-  loading?: boolean;
-  userRole: "jockey" | "owner";
-  onAcceptRide?: (id: string) => void;
-  onDeclineRide?: (id: string) => void;
-}
 
 const getComputedRideStatus = (ride: MyRide): ComputedRideStatus => {
   if (ride.status === "completed") return "finished";
@@ -98,13 +91,23 @@ function RideStatusBadge({
   );
 }
 
-export function RidingSchedule({
-  rides,
-  loading = false,
-  userRole,
-  onAcceptRide,
-  onDeclineRide,
-}: RidingScheduleProps) {
+export function RidingSchedule() {
+  const { addToast } = useToast();
+  const onAcceptRide = (id: string) => {
+    const target = rides.find((r) => r.id === id);
+    addToast(
+        `Response recorded! Tentatively registered to ride ${target?.ride}. Awaiting final Owner confirmation.`,
+        "success"
+    );
+  };
+
+  const onDeclineRide = (id: string) => {
+    const target = rides.find((r) => r.id === id);
+    addToast(`You declined the invitation to ride ${target?.ride}.`, "info");
+  };
+
+  const { rides, loading} = useJockey();
+  const userRole = sessionStorage.getItem("userRole");
   const isJockey = userRole === "jockey";
 
   const [search, setSearch] = useState("");
@@ -496,6 +499,24 @@ function JockeyDetailPanel({
             <Compass className="w-3.5 h-3.5" />
             {ride.distanceMeters}m · {ride.trackCondition}
           </span>
+          {ride.venue && (
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
+              <MapPin className="w-3.5 h-3.5" />
+              {ride.venue}
+            </span>
+          )}
+          {ride.confirmedAt && (
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 px-3 py-1.5 font-bold">
+              <Clock className="w-3.5 h-3.5" />
+              Confirmed {new Date(ride.confirmedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+            </span>
+          )}
+          {ride.roundName && (
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
+              <Flag className="w-3.5 h-3.5" />
+              {ride.roundName}
+            </span>
+          )}
         </div>
       }
       headerRight={
@@ -533,7 +554,7 @@ function JockeyDetailPanel({
             <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3 block">
               Your Assignment
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
                   Horse
@@ -542,7 +563,7 @@ function JockeyDetailPanel({
                   {ride.ride}
                 </span>
                 <span className="text-xs text-slate-500 mt-0.5 block">
-                  Grey · 5yo · Male
+                  {ride.horsesId ? `ID: ${ride.horsesId.slice(0, 8)}...` : "Registered runner"}
                 </span>
               </div>
               <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
@@ -564,7 +585,20 @@ function JockeyDetailPanel({
                   {ride.horseOwner}
                 </span>
                 <span className="text-xs text-slate-500 mt-0.5 block">
-                  Juddmonte Farms
+                  {ride.course?.country ?? "Registered owner"}
+                </span>
+              </div>
+              <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Venue
+                </span>
+                <span className="text-base font-black font-headline text-[#064E3B] block mt-1 truncate">
+                  {ride.venue}
+                </span>
+                <span className="text-xs text-slate-500 mt-0.5 block">
+                  {ride.course
+                    ? `${ride.course.city}, ${ride.course.country}`
+                    : ride.roundName || "Racecourse"}
                 </span>
               </div>
             </div>
@@ -600,6 +634,16 @@ function JockeyDetailPanel({
                     {ride.laneCount} runners
                   </span>
                 </div>
+                {ride.roundName && (
+                  <div className="flex items-center justify-between px-5 py-3">
+                    <span className="text-slate-555 flex items-center gap-2 font-medium">
+                      <Flag className="w-4 h-4 text-slate-400" /> Round
+                    </span>
+                    <span className="font-bold text-slate-800">
+                      {ride.roundName}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -780,6 +824,12 @@ function OwnerDetailPanel({
             <Compass className="w-3.5 h-3.5" />
             {ride.distanceMeters}m · {ride.trackCondition}
           </span>
+          {ride.roundName && (
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold text-white">
+              <Flag className="w-3.5 h-3.5" />
+              {ride.roundName}
+            </span>
+          )}
         </div>
       }
       headerRight={
@@ -810,7 +860,7 @@ function OwnerDetailPanel({
               Jockey
             </span>
             <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
-              {ride.horseOwner}
+              {ride.horsesId}
             </span>
             <span className="text-xs text-slate-500 mt-0.5 block">
               Assigned rider
@@ -839,7 +889,9 @@ function OwnerDetailPanel({
               <MapPin className="w-4 h-4 text-slate-400" />
               Venue
             </span>
-            <span className="font-bold text-slate-800">{ride.venue}</span>
+            <span className="font-bold text-slate-800 text-right">
+              {ride.course ? `${ride.course.name}, ${ride.course.city}` : ride.venue}
+            </span>
           </div>
           <div className="flex items-center justify-between px-5 py-3">
             <span className="text-slate-555 flex items-center gap-2 font-medium">
@@ -868,6 +920,15 @@ function OwnerDetailPanel({
               {ride.laneCount} runners
             </span>
           </div>
+          {ride.roundName && (
+            <div className="flex items-center justify-between px-5 py-3">
+              <span className="text-slate-555 flex items-center gap-2 font-medium">
+                <Flag className="w-4 h-4 text-slate-400" />
+                Round
+              </span>
+              <span className="font-bold text-slate-800">{ride.roundName}</span>
+            </div>
+          )}
         </div>
       </div>
     </ScheduleDetailFrame>

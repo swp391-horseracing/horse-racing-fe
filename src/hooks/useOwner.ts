@@ -51,6 +51,7 @@ export function useOwner() {
   const loadHorses = useCallback(async () => {
     const ownerId = sessionStorage.getItem("userId");
 
+
     if (!ownerId) return;
 
     try {
@@ -58,6 +59,7 @@ export function useOwner() {
         page,
         limit: 10,
       });
+      console.log("load horse:",response);
 
       setHorses(response.data ?? []);
       setPagination(response.pagination);
@@ -95,6 +97,7 @@ export function useOwner() {
   const loadRegistrations = useCallback(async () => {
     try {
       const response = await UserService.getMyRegistrations();
+      console.log("registration:",response);
 
       setRegistrations(response.data ?? []);
     } catch (error) {

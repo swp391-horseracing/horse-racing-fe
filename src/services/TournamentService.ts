@@ -51,6 +51,8 @@ export const TournamentService = {
   },
 
   registerHorseForTournament: async (id: string, horseId: string) => {
+    console.log("horseId(ecad60d3-e83b-425a-8bbf-5274570475b9)", horseId);
+    horseId = "ecad60d3-e83b-425a-8bbf-5274570475b9";
     const response = await api.post(`/tournaments/${id}/registrations`, {
       horseId,
     });

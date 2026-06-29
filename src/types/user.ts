@@ -109,6 +109,7 @@ export interface UserRace {
   laneCount: number | null;
 
   status: RaceApiStatus;
+  ride: string;
 
   createdAt: string;
   updatedAt: string;

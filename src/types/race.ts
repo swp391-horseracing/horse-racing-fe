@@ -74,7 +74,7 @@ export type Ride = {
   distanceMeters: number;
   scheduledAt: string;
   venue: string;
-  status: "scheduled" | "live" | "completed";
+  status: "scheduled" | "live" | "completed" | "under_review" | "result_confirmed";
   ride: string;
   laneNumber: number;
   entryStatus: "pending" | "accepted" | "declined";

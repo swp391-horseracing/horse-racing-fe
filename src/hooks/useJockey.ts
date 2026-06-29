@@ -48,7 +48,7 @@ export function useJockey() {
             ? "live"
             : "scheduled",
 
-      ride: race.horse ?? "",
+      ride: race.horse ?? race.ride ?? "",
 
       laneNumber: race.laneNumber ?? 0,
       laneCount: race.laneCount ?? 0,
