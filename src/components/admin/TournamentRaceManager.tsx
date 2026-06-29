@@ -202,6 +202,7 @@ export default function TournamentRaceManager({
           onClick={() => {
             setView("list");
             setActiveTournamentId(null);
+            clearSelectedTournament();
           }}
           className="inline-flex items-center gap-2 text-sm font-semibold text-[#064E3B] mb-2 w-fit hover:underline"
         >
@@ -339,6 +340,7 @@ export default function TournamentRaceManager({
           onClick={() => {
             setView("tournament-detail");
             setActiveRaceId(null);
+            clearSelectedRace();
             if (activeTournamentId) {
               void loadRaces(activeTournamentId);
             }
