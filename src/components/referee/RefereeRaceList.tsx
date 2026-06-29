@@ -1,10 +1,5 @@
 import { Flag, Clock, ShieldCheck } from "lucide-react";
-import {
-  type MockRace,
-  type RacePhase,
-  phaseBadgeStyle,
-  phaseLabel,
-} from "../../types/referee";
+import { type MockRace, type RacePhase } from "../../types/referee";
 import { cn } from "../../lib/utils";
 
 interface RefereeRaceListProps {
@@ -12,6 +7,8 @@ interface RefereeRaceListProps {
   filterPhase: RacePhase | "all";
   onFilterChange: (phase: RacePhase | "all") => void;
   onSelectRace: (id: string) => void;
+  phaseBadgeStyle: Record<string, string>;
+  phaseLabel: Record<string, string>;
 }
 
 export default function RefereeRaceList({
@@ -19,6 +16,8 @@ export default function RefereeRaceList({
   filterPhase,
   onFilterChange,
   onSelectRace,
+  phaseBadgeStyle,
+  phaseLabel,
 }: RefereeRaceListProps) {
   const filtered =
     filterPhase === "all"

@@ -1,3 +1,10 @@
+import type {
+  AssignedReferee,
+  Placement,
+  RaceReport,
+  TournamentSummary,
+} from "./referee.ts";
+
 export type RaceApiStatus =
   | "draft"
   | "scheduled"
@@ -18,29 +25,8 @@ export interface RaceEntry {
   entryStatus: string;
   jockeyName: string;
   clothNumber: number;
+  trainerName?: string;
 }
-
-export type Ride = {
-  id: string;
-  tournamentId: string;
-  name: string;
-  roundName: string;
-  distanceMeters: number;
-  scheduledAt: string;
-  venue: string;
-  status: "scheduled" | "live" | "completed";
-  ride: string;
-  laneNumber: number;
-  entryStatus: "pending" | "accepted" | "declined";
-  confirmedAt: string | null;
-  horseOwner: string;
-  horsesId: string;
-  ownerId: string;
-  trackCondition: string;
-  laneCount: number;
-  ranking?: number;
-  course: RaceCourse;
-};
 
 export type RaceSurface = "turf" | "dirt" | "synthetic";
 
@@ -69,7 +55,7 @@ export interface RaceListItem {
   createdAt: string;
   updatedAt: string;
 
-  course: RaceCourse;
+  course?: RaceCourse;
 }
 
 export interface RaceDetail extends RaceListItem {
@@ -78,4 +64,57 @@ export interface RaceDetail extends RaceListItem {
   trackCondition?: string;
   laneCount?: number;
   entries?: RaceEntry[];
+}
+
+export type Ride = {
+  id: string;
+  tournamentId: string;
+  name: string;
+  roundName: string;
+  distanceMeters: number;
+  scheduledAt: string;
+  venue: string;
+  status: "scheduled" | "live" | "completed";
+  ride: string;
+  laneNumber: number;
+  entryStatus: "pending" | "accepted" | "declined";
+  confirmedAt: string | null;
+  horseOwner: string;
+  horsesId: string;
+  ownerId: string;
+  trackCondition: string;
+  laneCount: number;
+  ranking?: number;
+  course?: RaceCourse;
+};
+
+export interface Race {
+  id: string;
+  name: string;
+
+  raceNumber: number;
+
+  distanceMeters: number;
+
+  trackCondition: "dry" | "wet" | "muddy" | "heavy";
+
+  scheduledAt: string;
+
+  venue: string;
+
+  laneCount: number;
+
+  status: RaceApiStatus;
+
+  tournament: TournamentSummary;
+}
+
+export interface RaceResultDetailResponse {
+  race: Race;
+
+  referees: AssignedReferee[];
+
+  report: RaceReport;
+
+  placements: Placement[];
 }

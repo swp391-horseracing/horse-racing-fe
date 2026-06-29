@@ -9,9 +9,6 @@ import {
   type LaneEntry,
   type Violation,
   type MockRace,
-  formatTime,
-  phaseLabel,
-  phaseBadgeStyle,
 } from "../types/referee";
 import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "../components/ui/toast";
@@ -21,188 +18,219 @@ import PreRaceInspectionPanel from "../components/referee/PreRaceInspectionPanel
 import LiveMonitorPanel from "../components/referee/LiveMonitorPanel";
 import ConfirmResultsPanel from "../components/referee/ConfirmResultsPanel";
 import RaceReportPanel from "../components/referee/RaceReportPanel";
+import { UserService } from "../services/UserService.ts";
+import { RefereeService } from "../services/RefereeService.ts";
 
-// ─── Mock Data ──────────────────────────────────────────────────────────────
+const formatTime = (seconds: number) => {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+};
 
-const createMockRaces = (): MockRace[] => [
-  {
-    id: "race-001",
-    name: "Summer Stakes — Heat 1",
-    venue: "Royal Meadow Circuit",
-    scheduledAt: "2026-06-22T14:00:00",
-    trackCondition: "dry",
-    distanceMeters: 1600,
-    phase: "scheduled",
-    elapsedSeconds: 0,
-    timerRunning: false,
-    reportNotes: "",
-    reportSubmitted: false,
-    lanes: [
-      {
-        id: "e1",
-        laneNumber: 1,
-        horseName: "Thunderbolt",
-        jockeyName: "J. Smith",
-        inspectionStatus: "pending",
-        inspectedAt: null,
-        failReason: null,
-        violations: [],
-        finishPosition: null,
-        finishTime: "",
-        flag: null,
-      },
-      {
-        id: "e2",
-        laneNumber: 2,
-        horseName: "Silver Arrow",
-        jockeyName: "M. Chen",
-        inspectionStatus: "pending",
-        inspectedAt: null,
-        failReason: null,
-        violations: [],
-        finishPosition: null,
-        finishTime: "",
-        flag: null,
-      },
-      {
-        id: "e3",
-        laneNumber: 3,
-        horseName: "Golden Storm",
-        jockeyName: "R. Garcia",
-        inspectionStatus: "pending",
-        inspectedAt: null,
-        failReason: null,
-        violations: [],
-        finishPosition: null,
-        finishTime: "",
-        flag: null,
-      },
-      {
-        id: "e4",
-        laneNumber: 4,
-        horseName: "Night Fury",
-        jockeyName: "K. Tanaka",
-        inspectionStatus: "pending",
-        inspectedAt: null,
-        failReason: null,
-        violations: [],
-        finishPosition: null,
-        finishTime: "",
-        flag: null,
-      },
-      {
-        id: "e5",
-        laneNumber: 5,
-        horseName: "Emerald Wind",
-        jockeyName: "L. Dubois",
-        inspectionStatus: "pending",
-        inspectedAt: null,
-        failReason: null,
-        violations: [],
-        finishPosition: null,
-        finishTime: "",
-        flag: null,
-      },
-      {
-        id: "e6",
-        laneNumber: 6,
-        horseName: "Crimson Blaze",
-        jockeyName: "A. Volkov",
-        inspectionStatus: "pending",
-        inspectedAt: null,
-        failReason: null,
-        violations: [],
-        finishPosition: null,
-        finishTime: "",
-        flag: null,
-      },
-    ],
-  },
-  {
-    id: "race-002",
-    name: "Summer Stakes — Heat 2",
-    venue: "Royal Meadow Circuit",
-    scheduledAt: "2026-06-22T15:30:00",
-    trackCondition: "wet",
-    distanceMeters: 2000,
-    phase: "scheduled",
-    elapsedSeconds: 0,
-    timerRunning: false,
-    reportNotes: "",
-    reportSubmitted: false,
-    lanes: [
-      {
-        id: "e7",
-        laneNumber: 1,
-        horseName: "Ocean Breeze",
-        jockeyName: "P. Kim",
-        inspectionStatus: "pending",
-        inspectedAt: null,
-        failReason: null,
-        violations: [],
-        finishPosition: null,
-        finishTime: "",
-        flag: null,
-      },
-      {
-        id: "e8",
-        laneNumber: 2,
-        horseName: "Desert Mirage",
-        jockeyName: "S. Okafor",
-        inspectionStatus: "pending",
-        inspectedAt: null,
-        failReason: null,
-        violations: [],
-        finishPosition: null,
-        finishTime: "",
-        flag: null,
-      },
-      {
-        id: "e9",
-        laneNumber: 3,
-        horseName: "Arctic Fox",
-        jockeyName: "D. Mueller",
-        inspectionStatus: "pending",
-        inspectedAt: null,
-        failReason: null,
-        violations: [],
-        finishPosition: null,
-        finishTime: "",
-        flag: null,
-      },
-      {
-        id: "e10",
-        laneNumber: 4,
-        horseName: "Shadow Dancer",
-        jockeyName: "T. Nguyen",
-        inspectionStatus: "pending",
-        inspectedAt: null,
-        failReason: null,
-        violations: [],
-        finishPosition: null,
-        finishTime: "",
-        flag: null,
-      },
-    ],
-  },
+const phaseLabel: Record<RacePhase, string> = {
+  scheduled: "Scheduled",
+  live: "Live",
+  concluded: "Concluded",
+  report: "Report Pending",
+};
+
+const phaseBadgeStyle: Record<RacePhase, string> = {
+  scheduled: "bg-amber-50 text-amber-900 border-amber-300 font-bold",
+  live: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  concluded: "bg-indigo-100 text-indigo-800 border-indigo-200",
+  report: "bg-violet-100 text-violet-800 border-violet-200",
+};
+
+const VIOLATION_CATEGORIES: ViolationCategory[] = [
+  "Whip Limit Exceeded",
+  "Lane Interference",
+  "Unsafe Riding",
+  "Refusal to Race / Bolting",
 ];
 
-// ─── Component ──────────────────────────────────────────────────────────────
+const PRE_RACE_WITHDRAW_REASONS = [
+  "Veterinary Scratch (Paddock / Gate Lameness)",
+  "Gate Behavior / Refusal to Load",
+  "Gate Injury / Breakthrough",
+  "Trainer Scratch (Track Surface Concern)",
+  "Jockey Injury (No Rider Available)",
+  "Other",
+];
+
+const PRE_RACE_DISQUALIFY_REASONS = [
+  "Identity Mismatch (Lip Tattoo/Microchip)",
+  "Medication Violation",
+  "Weight / Equipment Compliance Failure",
+  "Steward Disqualification / Other",
+];
+
+const mapBackendStatusToPhase = (
+  raceStatus: string,
+  reportStatus?: string
+): RacePhase => {
+  if (reportStatus === "referee_confirmed" || reportStatus === "published")
+    return "report";
+  if (
+    raceStatus === "completed" ||
+    raceStatus === "under_review" ||
+    raceStatus === "result_confirmed"
+  )
+    return "report";
+  if (raceStatus === "ongoing") return "live";
+  return "scheduled";
+};
+
+function formatSecondsToMSS(secondsStr: string | null | undefined): string {
+  if (!secondsStr) return "";
+  const numVal = parseFloat(secondsStr);
+  if (isNaN(numVal) || numVal < 0) return secondsStr;
+  const totalSeconds = Math.floor(numVal);
+  const fraction = secondsStr.includes(".")
+    ? secondsStr.substring(secondsStr.indexOf("."))
+    : "";
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  const formattedSec = String(seconds).padStart(2, "0");
+  return `${minutes}:${formattedSec}${fraction}`;
+}
+
+function parseMSSToSecondsString(
+  timeStr: string | undefined
+): string | undefined {
+  if (!timeStr) return undefined;
+  const match = timeStr.match(/^(\d+):(\d{2})(\.\d+)?$/);
+  if (!match) return timeStr;
+  const minutes = parseInt(match[1], 10);
+  const seconds = parseInt(match[2], 10);
+  const fractionStr = match[3] || "";
+  const totalSeconds = minutes * 60 + seconds;
+  return `${totalSeconds}${fractionStr}`;
+}
 
 export default function RefereePage() {
   const [active, setActive] = useState<string>(ROUTES.REFEREE_DASHBOARD);
   const { toasts, addToast } = useToast();
-  const [races, setRaces] = useState<MockRace[]>(createMockRaces);
+
+  const [apiRaces, setApiRaces] = useState<MockRace[]>([]);
   const [selectedRaceId, setSelectedRaceId] = useState<string | null>(null);
   const [filterPhase, setFilterPhase] = useState<RacePhase | "all">("all");
+  const [loading, setLoading] = useState(false);
 
-  const selectedRace = races.find((r) => r.id === selectedRaceId) ?? null;
+  useEffect(() => {
+    UserService.getMyRaces(1, 100)
+      .then((res) => {
+        const races: MockRace[] = res.data.map((r) => ({
+          id: r.id,
+          name: r.name,
+          venue: r.venue || "TBC",
+          scheduledAt: r.scheduledAt,
+          trackCondition: r.trackCondition || "dry",
+          distanceMeters: r.distanceMeters || 0,
+          phase: mapBackendStatusToPhase(r.status),
+          elapsedSeconds: 0,
+          timerRunning: false,
+          reportNotes: "",
+          reportSubmitted: false,
+          refereeCheckedIn: false,
+          adminUnlocked: false,
+          lanes: [],
+        }));
+        setApiRaces(races);
+      })
+      .catch((e: any) => {
+        addToast(
+          e.response?.data?.message || "Failed to load assigned races",
+          "error"
+        );
+      });
+  }, [addToast]);
 
-  // Timer effect
+  const handleSelectRace = useCallback(
+    (id: string) => {
+      setSelectedRaceId(id);
+      const race = apiRaces.find((r) => r.id === id);
+      if (race && race.lanes.length === 0 && !loading) {
+        setLoading(true);
+        RefereeService.getRefereeRaceReport(id)
+          .then((data) => {
+            setApiRaces((prev) =>
+              prev.map((r) => {
+                if (r.id !== id) return r;
+
+                const backendPhase = mapBackendStatusToPhase(
+                  data.race.status,
+                  data.report?.status
+                );
+
+                const lanes: LaneEntry[] = data.placements.map((p) => ({
+                  id: p.entryId,
+                  laneNumber: p.laneNumber,
+                  horseName: p.horse.name,
+                  jockeyName: p.jockey?.fullName || "No Jockey",
+                  inspectionStatus:
+                    p.finishStatus === "dns"
+                      ? "withdrawn"
+                      : backendPhase === "scheduled"
+                        ? "pending"
+                        : "cleared",
+                  inspectedAt: null,
+                  failReason: null,
+                  violations: p.violation
+                    ? [
+                        {
+                          id: p.violation.id,
+                          entryId: p.entryId,
+                          refereeId: p.violation.refereeId,
+                          occurredAt: p.violation.occurredAt,
+                          violationType: p.violation.violationType,
+                          description: p.violation.description,
+                          severity: p.violation.severity as any,
+                          note: p.violation.note,
+                        },
+                      ]
+                    : [],
+                  finishPosition: p.finishedPosition,
+                  finishTime: formatSecondsToMSS(p.finishTime),
+                  flag:
+                    p.finishStatus === "dnf" || p.finishStatus === "dsq"
+                      ? p.finishStatus
+                      : null,
+                }));
+
+                const isSubmitted =
+                  data.report?.status !== "draft" &&
+                  data.report?.status !== undefined;
+
+                return {
+                  ...r,
+                  lanes,
+                  reportNotes: data.report?.notes || "",
+                  reportSubmitted: isSubmitted,
+                  phase: backendPhase,
+                };
+              })
+            );
+          })
+          .catch((e: any) => {
+            addToast(
+              e.response?.data?.message || "Failed to load race report details",
+              "error"
+            );
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      }
+    },
+    [apiRaces, loading, addToast]
+  );
+
+  const selectedRace = apiRaces.find((r) => r.id === selectedRaceId) ?? null;
+
   useEffect(() => {
     if (!selectedRace?.timerRunning) return;
     const interval = setInterval(() => {
-      setRaces((prev) =>
+      setApiRaces((prev) =>
         prev.map((r) =>
           r.id === selectedRaceId
             ? { ...r, elapsedSeconds: r.elapsedSeconds + 1 }
@@ -213,11 +241,11 @@ export default function RefereePage() {
     return () => clearInterval(interval);
   }, [selectedRace?.timerRunning, selectedRaceId]);
 
-  // ── Race mutation helpers ────────────────────────────────────────────────
-
   const updateRace = useCallback(
     (raceId: string, updater: (r: MockRace) => MockRace) => {
-      setRaces((prev) => prev.map((r) => (r.id === raceId ? updater(r) : r)));
+      setApiRaces((prev) =>
+        prev.map((r) => (r.id === raceId ? updater(r) : r))
+      );
     },
     []
   );
@@ -232,7 +260,15 @@ export default function RefereePage() {
     [updateRace]
   );
 
-  // ── UC-RR-01: Inspection actions ─────────────────────────────────────────
+  const handleToggleCheckIn = (raceId: string, checkedIn: boolean) => {
+    updateRace(raceId, (r) => ({ ...r, refereeCheckedIn: checkedIn }));
+    addToast(
+      checkedIn
+        ? "Referee checked in. Inspections are now enabled."
+        : "Referee check-in revoked. Inspections are locked.",
+      checkedIn ? "success" : "warning"
+    );
+  };
 
   const handleClearLane = (raceId: string, laneId: string) => {
     updateLane(raceId, laneId, (l) => ({
@@ -250,7 +286,7 @@ export default function RefereePage() {
     category: string,
     notes: string
   ) => {
-    const formattedReason = `${category}${notes.trim() ? ` — ${notes.trim()}` : ""}`;
+    const formattedReason = `${category}${notes.trim() ? " — " + notes.trim() : ""}`;
     updateLane(raceId, laneId, (l) => ({
       ...l,
       inspectionStatus: status,
@@ -263,10 +299,8 @@ export default function RefereePage() {
     );
   };
 
-  // ── UC-RR-02: Transition to Live ─────────────────────────────────────────
-
   const handleTransitionToLive = (raceId: string) => {
-    const race = races.find((r) => r.id === raceId);
+    const race = apiRaces.find((r) => r.id === raceId);
     if (!race) return;
     const pending = race.lanes.filter((l) => l.inspectionStatus === "pending");
     if (pending.length > 0) {
@@ -293,34 +327,48 @@ export default function RefereePage() {
     addToast("Race timer resumed.", "info");
   };
 
-  // ── UC-RR-03: Violations ─────────────────────────────────────────────────
-
-  const handleLogViolation = (
+  const handleLogViolation = async (
     raceId: string,
     laneId: string,
-    category: ViolationCategory,
-    notes: string
+    violationType: string,
+    note: string
   ) => {
-    const currentId = `v-${Date.now()}`;
-    const currentTimestamp = new Date().toISOString();
+    try {
+      const created = await RefereeService.createViolation(raceId, {
+        entryId: laneId,
+        occurredAt: new Date().toISOString(),
+        violationType,
+        description: violationType,
+        severity: "warning",
+        note,
+      });
 
-    const violation: Violation = {
-      id: currentId,
-      category,
-      notes,
-      timestamp: currentTimestamp,
-    };
-    updateLane(raceId, laneId, (l) => ({
-      ...l,
-      violations: [...l.violations, violation],
-    }));
-    addToast(`Violation logged: ${category}`, "warning");
+      if (!(created as any).id) {
+        throw new Error("Violation was created but no id was returned");
+      }
+
+      const violation: Violation = {
+        id: (created as any).id,
+        entryId: laneId,
+        refereeId: (created as any).refereeId || "me",
+        violationType,
+        description: violationType,
+        severity: "warning",
+        note,
+        occurredAt: new Date().toISOString(),
+      };
+      updateLane(raceId, laneId, (l) => ({
+        ...l,
+        violations: [...l.violations, violation],
+      }));
+      addToast(`Violation logged: ${violationType}`, "warning");
+    } catch (e: any) {
+      addToast(e.response?.data?.message || "Failed to log violation", "error");
+    }
   };
 
-  // ── UC-RR-04: End Race & Confirm Results ─────────────────────────────────
-
   const handleEndRace = (raceId: string) => {
-    const race = races.find((r) => r.id === raceId);
+    const race = apiRaces.find((r) => r.id === raceId);
     if (!race) return;
     if (race.elapsedSeconds < 10) {
       if (!confirm("Are you sure? Race duration is abnormally short.")) return;
@@ -362,8 +410,8 @@ export default function RefereePage() {
     }));
   };
 
-  const handleConfirmResults = (raceId: string) => {
-    const race = races.find((r) => r.id === raceId);
+  const handleConfirmResults = async (raceId: string) => {
+    const race = apiRaces.find((r) => r.id === raceId);
     if (!race) return;
     const activeLanes = race.lanes.filter(
       (l) => l.inspectionStatus === "cleared" && !l.flag
@@ -378,8 +426,34 @@ export default function RefereePage() {
       );
       return;
     }
-    updateRace(raceId, (r) => ({ ...r, phase: "report" }));
-    addToast("Results captured. Ready for final report generation.", "success");
+
+    try {
+      const payload = {
+        placements: race.lanes.map((l) => ({
+          entryId: l.id,
+          finishedPosition: l.finishPosition || 999,
+          finishTime: parseMSSToSecondsString(l.finishTime) || undefined,
+          finishStatus: (l.inspectionStatus === "withdrawn"
+            ? "dns"
+            : l.inspectionStatus === "disqualified"
+              ? "dsq"
+              : l.flag || "finished") as "finished" | "dnf" | "dsq" | "dns",
+          points: 0,
+        })),
+      };
+      await RefereeService.updatePlacements(raceId, payload);
+
+      updateRace(raceId, (r) => ({ ...r, phase: "report" }));
+      addToast(
+        "Results captured. Ready for final report generation.",
+        "success"
+      );
+    } catch (e: any) {
+      addToast(
+        e.response?.data?.message || "Failed to confirm results",
+        "error"
+      );
+    }
   };
 
   const handleEditResults = (raceId: string) => {
@@ -390,19 +464,17 @@ export default function RefereePage() {
     );
   };
 
-  // ── UC-RR-05: Report ─────────────────────────────────────────────────────
-
   const handleSaveReportDraft = (raceId: string, notes: string) => {
     updateRace(raceId, (r) => ({ ...r, reportNotes: notes }));
-    addToast("Draft saved.", "info");
+    addToast("Draft saved locally.", "info");
   };
 
-  const handleSubmitReport = (raceId: string) => {
-    const race = races.find((r) => r.id === raceId);
+  const handleSubmitReport = async (raceId: string) => {
+    const race = apiRaces.find((r) => r.id === raceId);
     if (!race) return;
     const unresolvedViolations = race.lanes
       .flatMap((l) => l.violations)
-      .filter((v) => !v.category);
+      .filter((v) => !v.violationType);
     if (unresolvedViolations.length > 0) {
       addToast(
         "All logged violations must be fully resolved before submission.",
@@ -410,14 +482,122 @@ export default function RefereePage() {
       );
       return;
     }
-    updateRace(raceId, (r) => ({ ...r, reportSubmitted: true }));
+
+    try {
+      const placementsPayload = {
+        placements: race.lanes.map((l) => ({
+          entryId: l.id,
+          finishedPosition: l.finishPosition || 999,
+          finishTime: parseMSSToSecondsString(l.finishTime) || undefined,
+          finishStatus: (l.inspectionStatus === "withdrawn"
+            ? "dns"
+            : l.inspectionStatus === "disqualified"
+              ? "dsq"
+              : l.flag || "finished") as "finished" | "dnf" | "dsq" | "dns",
+          points: 0,
+        })),
+      };
+      await RefereeService.updatePlacements(raceId, placementsPayload);
+
+      await RefereeService.submitReport(raceId, { notes: race.reportNotes });
+
+      const isResubmission = race.adminUnlocked;
+      updateRace(raceId, (r) => ({
+        ...r,
+        reportSubmitted: true,
+        adminUnlocked: false,
+      }));
+      addToast(
+        isResubmission
+          ? "Report re-submitted successfully. Corrections have been locked."
+          : "Report submitted successfully. Your track duties for this race are complete.",
+        "success"
+      );
+    } catch (e: any) {
+      addToast(e.response?.data?.message || "Failed to submit report", "error");
+    }
+  };
+
+  // NOTE: This toggle emulates administrative lock/unlock overrides locally.
+  // It is intentionally kept client-side for testing and QA flows (e.g. testing report re-submission).
+  const handleToggleAdminLock = (raceId: string, unlocked: boolean) => {
+    updateRace(raceId, (r) => ({ ...r, adminUnlocked: unlocked }));
     addToast(
-      "Report submitted successfully. Your track duties for this race are complete.",
-      "success"
+      unlocked
+        ? "[Admin] Report unlocked — referee may now edit and re-submit."
+        : "[Admin] Report locked — editing disabled.",
+      unlocked ? "warning" : "info"
     );
   };
 
-  // ── Content Switch ────────────────────────────────────────────────────────
+  const handleUpdateViolation = async (
+    raceId: string,
+    laneId: string,
+    violationId: string,
+    violationType: ViolationCategory,
+    note: string
+  ) => {
+    let created: any = null;
+    try {
+      // 1. Create replacement violation first
+      created = await RefereeService.createViolation(raceId, {
+        entryId: laneId,
+        occurredAt: new Date().toISOString(),
+        violationType,
+        description: violationType,
+        severity: "warning",
+        note,
+      });
+
+      // 2. Delete the old violation
+      try {
+        await RefereeService.deleteViolation(raceId, violationId);
+      } catch (deleteError) {
+        // Rollback created violation if deletion fails
+        if (created && created.id) {
+          await RefereeService.deleteViolation(raceId, created.id);
+        }
+        throw deleteError;
+      }
+
+      updateLane(raceId, laneId, (l) => ({
+        ...l,
+        violations: l.violations.map((v) =>
+          v.id === violationId
+            ? { ...v, id: created.id, violationType, note }
+            : v
+        ),
+      }));
+      addToast("Violation updated.", "info");
+    } catch (e: any) {
+      addToast(
+        e.response?.data?.message || "Failed to update violation",
+        "error"
+      );
+      throw e;
+    }
+  };
+
+  const handleDeleteViolation = async (
+    raceId: string,
+    laneId: string,
+    violationId: string
+  ) => {
+    try {
+      await RefereeService.deleteViolation(raceId, violationId);
+      updateLane(raceId, laneId, (l) => ({
+        ...l,
+        violations: l.violations.filter((v) => v.id !== violationId),
+      }));
+      addToast("Violation removed.", "warning");
+    } catch (e: any) {
+      addToast(
+        e.response?.data?.message || "Failed to delete violation",
+        "error"
+      );
+      throw e;
+    }
+  };
 
   const renderContent = () => {
     if (selectedRaceId) {
@@ -429,6 +609,7 @@ export default function RefereePage() {
       const allViolations = race.lanes.flatMap((l) =>
         l.violations.map((v) => ({
           ...v,
+          laneId: l.id,
           horseName: l.horseName,
           laneNumber: l.laneNumber,
         }))
@@ -436,7 +617,6 @@ export default function RefereePage() {
 
       return (
         <div className="p-6 space-y-6 max-w-7xl mx-auto">
-          {/* Back Button + Header */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSelectedRaceId(null)}
@@ -476,57 +656,93 @@ export default function RefereePage() {
             </div>
           </div>
 
-          {/* Phase-specific content */}
-          {race.phase === "scheduled" && (
-            <PreRaceInspectionPanel
-              race={race}
-              onClearLane={(laneId) => handleClearLane(race.id, laneId)}
-              onFailLane={(laneId, status, category, notes) =>
-                handleFailLane(race.id, laneId, status, category, notes)
-              }
-              onTransitionToLive={() => handleTransitionToLive(race.id)}
-            />
-          )}
-          {race.phase === "live" && (
-            <LiveMonitorPanel
-              race={race}
-              allViolations={allViolations}
-              onDelayRace={() => handleDelayRace(race.id)}
-              onResumeRace={() => handleResumeRace(race.id)}
-              onEndRace={() => handleEndRace(race.id)}
-              onLogViolation={(laneId, category, notes) =>
-                handleLogViolation(race.id, laneId, category, notes)
-              }
-            />
-          )}
-          {race.phase === "concluded" && (
-            <ConfirmResultsPanel
-              race={race}
-              activeLanes={activeLanes}
-              onSetPlacement={(laneId, pos) =>
-                handleSetPlacement(race.id, laneId, pos)
-              }
-              onSetFinishTime={(laneId, time) =>
-                handleSetFinishTime(race.id, laneId, time)
-              }
-              onSetFlag={(laneId, flag) => handleSetFlag(race.id, laneId, flag)}
-              onConfirmResults={() => handleConfirmResults(race.id)}
-            />
-          )}
-          {race.phase === "report" && (
-            <RaceReportPanel
-              race={race}
-              activeLanes={activeLanes}
-              allViolations={allViolations}
-              onEditResults={() => handleEditResults(race.id)}
-              onUpdateReportNotes={(notes) =>
-                updateRace(race.id, (r) => ({ ...r, reportNotes: notes }))
-              }
-              onSaveReportDraft={() =>
-                handleSaveReportDraft(race.id, race.reportNotes)
-              }
-              onSubmitReport={() => handleSubmitReport(race.id)}
-            />
+          {loading ? (
+            <div className="flex items-center justify-center p-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#064E3B]"></div>
+            </div>
+          ) : (
+            <>
+              {race.phase === "scheduled" && (
+                <PreRaceInspectionPanel
+                  race={race}
+                  onClearLane={(laneId) => handleClearLane(race.id, laneId)}
+                  onFailLane={(laneId, status, violationType, note) =>
+                    handleFailLane(race.id, laneId, status, violationType, note)
+                  }
+                  onTransitionToLive={() => handleTransitionToLive(race.id)}
+                  onToggleCheckIn={(checkedIn) =>
+                    handleToggleCheckIn(race.id, checkedIn)
+                  }
+                  preRaceWithdrawReasons={PRE_RACE_WITHDRAW_REASONS}
+                  preRaceDisqualifyReasons={PRE_RACE_DISQUALIFY_REASONS}
+                />
+              )}
+              {race.phase === "live" && (
+                <LiveMonitorPanel
+                  race={race}
+                  allViolations={allViolations}
+                  onDelayRace={() => handleDelayRace(race.id)}
+                  onResumeRace={() => handleResumeRace(race.id)}
+                  onEndRace={() => handleEndRace(race.id)}
+                  onLogViolation={(laneId, violationType, note) =>
+                    handleLogViolation(race.id, laneId, violationType, note)
+                  }
+                  violationCategories={VIOLATION_CATEGORIES}
+                />
+              )}
+              {race.phase === "concluded" && (
+                <ConfirmResultsPanel
+                  race={race}
+                  activeLanes={activeLanes}
+                  onSetPlacement={(laneId, pos) =>
+                    handleSetPlacement(race.id, laneId, pos)
+                  }
+                  onSetFinishTime={(laneId, time) =>
+                    handleSetFinishTime(race.id, laneId, time)
+                  }
+                  onSetFlag={(laneId, flag) =>
+                    handleSetFlag(race.id, laneId, flag)
+                  }
+                  onConfirmResults={() => handleConfirmResults(race.id)}
+                />
+              )}
+              {race.phase === "report" && (
+                <RaceReportPanel
+                  race={race}
+                  activeLanes={activeLanes}
+                  allViolations={allViolations}
+                  onEditResults={() => handleEditResults(race.id)}
+                  onUpdateReportNotes={(notes) =>
+                    updateRace(race.id, (r) => ({ ...r, reportNotes: notes }))
+                  }
+                  onSaveReportDraft={() =>
+                    handleSaveReportDraft(race.id, race.reportNotes)
+                  }
+                  onSubmitReport={() => handleSubmitReport(race.id)}
+                  onUpdateViolation={(
+                    laneId,
+                    violationId,
+                    violationType,
+                    note
+                  ) =>
+                    handleUpdateViolation(
+                      race.id,
+                      laneId,
+                      violationId,
+                      violationType,
+                      note
+                    )
+                  }
+                  onDeleteViolation={(laneId, violationId) =>
+                    handleDeleteViolation(race.id, laneId, violationId)
+                  }
+                  onToggleAdminLock={(unlocked) =>
+                    handleToggleAdminLock(race.id, unlocked)
+                  }
+                  violationCategories={VIOLATION_CATEGORIES}
+                />
+              )}
+            </>
           )}
         </div>
       );
@@ -536,44 +752,48 @@ export default function RefereePage() {
       case ROUTES.REFEREE_DASHBOARD:
         return (
           <RefereeDashboard
-            races={races}
+            races={apiRaces}
             onViewAll={() => {
               setActive(ROUTES.REFEREE_RACE_LIST);
               setFilterPhase("all");
             }}
             onSelectRace={(id) => {
-              setSelectedRaceId(id);
+              handleSelectRace(id);
               setActive(ROUTES.REFEREE_RACE_LIST);
             }}
+            phaseBadgeStyle={phaseBadgeStyle}
+            phaseLabel={phaseLabel}
           />
         );
       case ROUTES.REFEREE_RACE_LIST:
         return (
           <RefereeRaceList
-            races={races}
+            races={apiRaces}
             filterPhase={filterPhase}
             onFilterChange={setFilterPhase}
-            onSelectRace={(id) => setSelectedRaceId(id)}
+            onSelectRace={handleSelectRace}
+            phaseBadgeStyle={phaseBadgeStyle}
+            phaseLabel={phaseLabel}
           />
         );
       default:
         return (
           <RefereeDashboard
-            races={races}
+            races={apiRaces}
             onViewAll={() => {
               setActive(ROUTES.REFEREE_RACE_LIST);
               setFilterPhase("all");
             }}
             onSelectRace={(id) => {
-              setSelectedRaceId(id);
+              handleSelectRace(id);
               setActive(ROUTES.REFEREE_RACE_LIST);
             }}
+            phaseBadgeStyle={phaseBadgeStyle}
+            phaseLabel={phaseLabel}
           />
         );
     }
   };
-
-  // ── Main Render ───────────────────────────────────────────────────────────
 
   return (
     <UserLayout
@@ -584,9 +804,7 @@ export default function RefereePage() {
       }}
     >
       <div className="h-full w-full relative flex flex-col overflow-hidden">
-        {/* Floating Toasts */}
         <ToastContainer toasts={toasts} />
-
         <div className="flex-1 overflow-y-auto min-h-0">{renderContent()}</div>
       </div>
     </UserLayout>

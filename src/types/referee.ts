@@ -29,13 +29,6 @@ export interface LaneEntry {
   flag: "dnf" | "dsq" | null;
 }
 
-export interface Violation {
-  id: string;
-  category: ViolationCategory;
-  notes: string;
-  timestamp: string;
-}
-
 export interface MockRace {
   id: string;
   name: string;
@@ -49,43 +42,41 @@ export interface MockRace {
   timerRunning: boolean;
   reportNotes: string;
   reportSubmitted: boolean;
+  refereeCheckedIn: boolean;
+  adminUnlocked: boolean;
 }
 
-export const formatTime = (seconds: number) => {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-};
+import type { RaceDetail } from "./race.ts";
 
-export const phaseLabel: Record<RacePhase, string> = {
-  scheduled: "Scheduled",
-  live: "Live",
-  concluded: "Concluded",
-  report: "Report Pending",
-};
+export interface TournamentSummary {
+  id: string;
+  name: string;
+}
 
-export const phaseBadgeStyle: Record<RacePhase, string> = {
-  scheduled: "bg-amber-50 text-amber-900 border-amber-300 font-bold",
-  live: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  concluded: "bg-indigo-100 text-indigo-800 border-indigo-200",
-  report: "bg-violet-100 text-violet-800 border-violet-200",
-};
+export interface HorseSummary {
+  id: string;
+  name: string;
+  breed: string;
+}
 
-export const VIOLATION_CATEGORIES: ViolationCategory[] = [
-  "Whip Limit Exceeded",
-  "Lane Interference",
-  "Unsafe Riding",
-  "Refusal to Race / Bolting",
-];
+export interface Violation {
+  id: string;
+  entryId: string;
+  refereeId: string;
 
-export const PRE_RACE_WITHDRAW_REASONS = [
-  "Veterinary Scratch (Paddock / Gate Lameness)",
-  "Gate Behavior / Refusal to Load",
-  "Gate Injury / Breakthrough",
-  "Trainer Scratch (Track Surface Concern)",
-  "Jockey Injury (No Rider Available)",
-  "Other",
-];
+  occurredAt: string;
+
+  violationType: string;
+  description: string;
+
+  severity:
+    | "warning"
+    | "disqualification"
+    | "result_cancellation"
+    | "point_deduction";
+
+  note: string;
+}
 
 export const PRE_RACE_DISQUALIFY_REASONS = [
   "Identity Mismatch (Lip Tattoo/Microchip)",
@@ -93,3 +84,66 @@ export const PRE_RACE_DISQUALIFY_REASONS = [
   "Weight / Equipment Compliance Failure",
   "Steward Disqualification / Other",
 ];
+
+export interface Placement {
+  entryId: string;
+
+  laneNumber: number;
+
+  horse: HorseSummary;
+
+  jockey: {
+    id: string;
+    fullName: string;
+  };
+
+  finishedPosition: number;
+
+  finishTime: string;
+
+  finishStatus: "finished" | "dnf" | "dns" | "dsq";
+
+  points: number;
+
+  violation: Violation | null;
+}
+
+export interface JockeySummary {
+  id: string;
+  fullName: string;
+}
+
+export interface Referee {
+  id: string;
+  fullName: string;
+}
+
+export interface AssignedReferee extends Referee {
+  assignedAt: string;
+}
+
+export interface RaceReport {
+  id: string;
+
+  status: "draft" | "referee_confirmed" | "published";
+
+  notes: string;
+
+  refereeConfirmedBy: string;
+  refereeConfirmedAt: string;
+
+  publishedBy: string;
+  publishedAt: string;
+
+  createdAt: string;
+  updatedAt: string;
+
+  referee: Referee;
+}
+
+export interface RefereeReport {
+  race: RaceDetail;
+  referee: Referee;
+  report: RaceReport;
+  placements: Placement[];
+}

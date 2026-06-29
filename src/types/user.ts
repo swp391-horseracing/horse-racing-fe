@@ -113,7 +113,9 @@ export interface UserRace {
   createdAt: string;
   updatedAt: string;
 
-  course: RaceCourse;
+  course?: RaceCourse;
+  venue?: string;
+  distanceMeters?: number;
 
   // optional nếu backend trả thêm
   roundName?: string;
