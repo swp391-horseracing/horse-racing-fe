@@ -30,10 +30,7 @@ export default function AddCourseDistanceModal({
 
     setSaving(true);
     try {
-      const res = await AdminService.createCourseDistance(
-        courseId,
-        meters
-      );
+      const res = await AdminService.createCourseDistance(courseId, meters);
       const newId = res?.id ?? res?.data?.id;
       if (newId) {
         onCreated(newId, meters);

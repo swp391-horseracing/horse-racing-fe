@@ -6,7 +6,11 @@ type Props = {
   onManageRaces?: (id: string) => void;
 };
 
-export default function TournamentList({ tournaments, onView, onManageRaces }: Props) {
+export default function TournamentList({
+  tournaments,
+  onView,
+  onManageRaces,
+}: Props) {
   return (
     <div className="space-y-3">
       {tournaments.map((tournament) => (

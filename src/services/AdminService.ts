@@ -8,12 +8,14 @@ export const AdminService = {
     const response = await api.get(`/courses`);
     return response.data;
   },
-  getCourseDistances: async (id: string) =>{
+  getCourseDistances: async (id: string) => {
     const response = await api.get(`/courses/${id}/distances`);
     return response.data;
   },
   createCourseDistance: async (courseId: string, distanceMeters: number) => {
-    const response = await api.post(`/courses/${courseId}/distances`, { distanceMeters: Number(distanceMeters) });
+    const response = await api.post(`/courses/${courseId}/distances`, {
+      distanceMeters: Number(distanceMeters),
+    });
     return response.data;
   },
   async getUsers(

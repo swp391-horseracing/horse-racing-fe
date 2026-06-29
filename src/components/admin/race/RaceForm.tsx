@@ -46,7 +46,6 @@ type Props = {
   onClose: () => void;
   onSubmit: (data: RaceFormData) => Promise<boolean>;
   actionLoading: boolean;
-  tournamentLocation?: string;
 };
 
 export default function RaceForm({
@@ -54,7 +53,6 @@ export default function RaceForm({
   onClose,
   onSubmit,
   actionLoading,
-  tournamentLocation,
 }: Props) {
   const [form, setForm] = useState<RaceFormData>({
     ...initialForm,
@@ -75,7 +73,7 @@ export default function RaceForm({
       setCoursesLoading(true);
       try {
         const data = await AdminService.getCourses();
-        const list = Array.isArray(data) ? data : data?.data ?? [];
+        const list = Array.isArray(data) ? data : (data?.data ?? []);
         setCourses(Array.isArray(list) ? list : []);
       } catch {
         // silently fail
@@ -88,15 +86,12 @@ export default function RaceForm({
 
   // When course changes, fetch distances
   useEffect(() => {
-    if (!selectedCourseId) {
-      setDistances([]);
-      return;
-    }
+    if (!selectedCourseId) return;
     const load = async () => {
       setDistancesLoading(true);
       try {
         const data = await AdminService.getCourseDistances(selectedCourseId);
-        const list = Array.isArray(data) ? data : data?.data ?? [];
+        const list = Array.isArray(data) ? data : (data?.data ?? []);
         setDistances(Array.isArray(list) ? list : []);
       } catch {
         setDistances([]);
@@ -212,7 +207,9 @@ export default function RaceForm({
                 onChange={(e) =>
                   setForm((prev) => ({
                     ...prev,
-                    raceNumber: e.target.value ? Number(e.target.value) : undefined,
+                    raceNumber: e.target.value
+                      ? Number(e.target.value)
+                      : undefined,
                   }))
                 }
                 placeholder="e.g. 1"
@@ -240,9 +237,7 @@ export default function RaceForm({
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold mb-2">
-                Course
-              </label>
+              <label className="block text-sm font-semibold mb-2">Course</label>
               {coursesLoading ? (
                 <div className="flex items-center gap-2 text-sm text-slate-500 py-3">
                   <Loader2 className="w-4 h-4 animate-spin" />

@@ -7,7 +7,11 @@ type Props = {
   onManageRaces?: (id: string) => void;
 };
 
-export default function TournamentCard({ tournament, onView, onManageRaces }: Props) {
+export default function TournamentCard({
+  tournament,
+  onView,
+  onManageRaces,
+}: Props) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-4 flex justify-between items-center hover:shadow-md transition">
       <div className="flex gap-3">

@@ -18,8 +18,12 @@ export default function TournamentRaceManager({
 }: {
   addToast: (m: string, t?: ToastType) => void;
 }) {
-  const [view, setView] = useState<"list" | "tournament-detail" | "create-race" | "race-detail">("list");
-  const [activeTournamentId, setActiveTournamentId] = useState<string | null>(null);
+  const [view, setView] = useState<
+    "list" | "tournament-detail" | "create-race" | "race-detail"
+  >("list");
+  const [activeTournamentId, setActiveTournamentId] = useState<string | null>(
+    null
+  );
   const [activeRaceId, setActiveRaceId] = useState<string | null>(null);
   const [races, setRaces] = useState<RaceItem[]>([]);
   const [racesLoading, setRacesLoading] = useState(false);
@@ -68,11 +72,18 @@ export default function TournamentRaceManager({
   useEffect(() => {
     if (view === "tournament-detail" && activeTournamentId) {
       void getTournamentDetail(activeTournamentId);
-      void loadRaces(activeTournamentId);
+      Promise.resolve().then(() => loadRaces(activeTournamentId));
     } else if (view === "race-detail" && activeRaceId) {
       void getRaceDetail(activeRaceId);
     }
-  }, [view, activeTournamentId, activeRaceId, getTournamentDetail, loadRaces, getRaceDetail]);
+  }, [
+    view,
+    activeTournamentId,
+    activeRaceId,
+    getTournamentDetail,
+    loadRaces,
+    getRaceDetail,
+  ]);
 
   const handleOpenDetail = async (id: string) => {
     await getTournamentDetail(id);
@@ -307,7 +318,6 @@ export default function TournamentRaceManager({
             onClose={() => setView("tournament-detail")}
             onSubmit={handleCreateRace}
             actionLoading={raceActionLoading}
-            tournamentLocation={selectedTournament?.location}
           />
         </div>
       </div>
@@ -376,7 +386,6 @@ export default function TournamentRaceManager({
               onClose={() => setRaceEditing(false)}
               onSubmit={handleUpdateRace}
               actionLoading={raceActionLoading}
-              tournamentLocation={selectedTournament?.location}
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm pt-2">
@@ -398,7 +407,9 @@ export default function TournamentRaceManager({
               </div>
               <div>
                 <strong>Track Condition:</strong>{" "}
-                <span className="capitalize">{selectedRace.trackCondition ?? "-"}</span>
+                <span className="capitalize">
+                  {selectedRace.trackCondition ?? "-"}
+                </span>
               </div>
               <div>
                 <strong>Venue:</strong> {selectedRace.venue ?? "-"}
