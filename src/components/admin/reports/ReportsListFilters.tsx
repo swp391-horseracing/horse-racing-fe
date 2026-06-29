@@ -1,5 +1,5 @@
 import { Search } from "lucide-react";
-import type { StatusFilter } from "./types";
+import type { StatusFilter } from "../../../../types/report";
 
 interface ReportsListFiltersProps {
   search: string;

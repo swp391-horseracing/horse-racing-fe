@@ -11,13 +11,13 @@ import {
   Construction,
 } from "lucide-react";
 import { cn } from "../../../lib/utils";
-import type { ReportDetailData } from "./types";
+import type { ReportDetailData } from "../../../../types/report";
 import {
   STATUS_LABELS,
   STATUS_STYLES,
   formatDate,
   formatFinishTime,
-} from "./types";
+} from "../../../../types/report";
 import RejectInfoModal from "./RejectInfoModal";
 import PublishConfirmModal from "./PublishConfirmModal";
 

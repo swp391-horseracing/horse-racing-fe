@@ -9,7 +9,11 @@ import {
 } from "lucide-react";
 import { cn } from "../../../lib/utils";
 import type { RaceReportListItem, Pagination } from "../../../types/race";
-import { STATUS_LABELS, STATUS_STYLES, formatDate } from "./types";
+import {
+  STATUS_LABELS,
+  STATUS_STYLES,
+  formatDate,
+} from "../../../../types/report";
 
 interface ReportsTableProps {
   reports: RaceReportListItem[];
