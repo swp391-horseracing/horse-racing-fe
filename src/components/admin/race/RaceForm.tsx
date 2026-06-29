@@ -9,16 +9,20 @@ export type RaceFormData = {
   scheduledAt: string;
   venue: string;
   laneCount: number;
+  courseDistanceId: string;
+  raceNumber?: number;
 };
 
 const initialForm: RaceFormData = {
   name: "",
   roundName: "",
   distanceMeters: 1200,
-  trackCondition: "good",
+  trackCondition: "dry",
   scheduledAt: "",
   venue: "",
   laneCount: 8,
+  courseDistanceId: "",
+  raceNumber: undefined,
 };
 
 type Props = {
@@ -101,7 +105,25 @@ export default function RaceForm({
             />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-semibold mb-2">
+                Race Number
+              </label>
+              <input
+                type="number"
+                min={1}
+                value={form.raceNumber ?? ""}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    raceNumber: e.target.value ? Number(e.target.value) : undefined,
+                  }))
+                }
+                placeholder="e.g. 1"
+                className="w-full border rounded-xl px-4 py-3"
+              />
+            </div>
             <div>
               <label className="block text-sm font-semibold mb-2">
                 Round Name
@@ -154,9 +176,9 @@ export default function RaceForm({
                 }
                 className="w-full border rounded-xl px-4 py-3"
               >
-                <option value="firm">Firm</option>
-                <option value="good">Good</option>
-                <option value="soft">Soft</option>
+                <option value="dry">Dry</option>
+                <option value="wet">Wet</option>
+                <option value="muddy">Muddy</option>
                 <option value="heavy">Heavy</option>
               </select>
             </div>
@@ -191,6 +213,26 @@ export default function RaceForm({
               className="w-full border rounded-xl px-4 py-3"
             />
           </div>
+
+          {!form.courseDistanceId && (
+            <div>
+              <label className="block text-sm font-semibold mb-2">
+                Course Distance ID
+              </label>
+              <input
+                type="text"
+                value={form.courseDistanceId}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    courseDistanceId: e.target.value,
+                  }))
+                }
+                placeholder="UUID of the course distance"
+                className="w-full border rounded-xl px-4 py-3"
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-semibold mb-2">
