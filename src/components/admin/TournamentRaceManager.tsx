@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Calendar, Flag, Loader2, ArrowLeft, Plus } from "lucide-react";
 import type { ToastType } from "../../types/referee";
 import { TournamentForm } from "./tournament/TournamentForm";
@@ -150,7 +150,7 @@ export default function TournamentRaceManager({
     const payload: Record<string, unknown> = {
       name: data.name,
       raceNumber: data.raceNumber,
-      courseDistanceId: data.courseDistanceId || undefined,
+      courseDistanceId: data.courseDistanceId,
       distanceMeters: data.distanceMeters,
       trackCondition: data.trackCondition,
       scheduleAt: new Date(data.scheduledAt).toISOString(),
@@ -178,13 +178,6 @@ export default function TournamentRaceManager({
       addToast("Failed to update race status.", "error");
     }
   };
-
-  // Derive courseDistanceId from the first existing race in this tournament
-  const existingCourseDistanceId = useMemo(() => {
-    if (!Array.isArray(races)) return undefined;
-    const raceWithCourse = races.find((r) => (r as any).courseDistanceId);
-    return raceWithCourse ? (raceWithCourse as any).courseDistanceId : undefined;
-  }, [races]);
 
   // RENDER SUB-VIEWS
   if (view === "tournament-detail" && activeTournamentId) {
@@ -314,11 +307,7 @@ export default function TournamentRaceManager({
             onClose={() => setView("tournament-detail")}
             onSubmit={handleCreateRace}
             actionLoading={raceActionLoading}
-            initial={
-              existingCourseDistanceId
-                ? { courseDistanceId: existingCourseDistanceId }
-                : undefined
-            }
+            tournamentLocation={selectedTournament?.location}
           />
         </div>
       </div>
@@ -383,11 +372,11 @@ export default function TournamentRaceManager({
                 scheduledAt: selectedRace.scheduledAt ?? "",
                 venue: selectedRace.venue ?? "",
                 laneCount: selectedRace.laneCount ?? 8,
-                courseDistanceId: (selectedRace as any).courseDistanceId ?? "",
               }}
               onClose={() => setRaceEditing(false)}
               onSubmit={handleUpdateRace}
               actionLoading={raceActionLoading}
+              tournamentLocation={selectedTournament?.location}
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm pt-2">
