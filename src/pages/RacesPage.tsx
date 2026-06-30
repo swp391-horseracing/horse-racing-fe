@@ -586,6 +586,22 @@ export default function RacesPage() {
                             ? `${raceDetail.laneCount} Lanes`
                             : "Lanes TBC"}
                         </span>
+                        <span className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 font-bold ${
+                          raceDetail.status === "ongoing"
+                            ? "bg-rose-500/20 border-rose-400/50 text-rose-200"
+                            : raceDetail.status === "completed" || raceDetail.status === "result_confirmed"
+                              ? "bg-emerald-500/20 border-emerald-400/50 text-emerald-200"
+                              : raceDetail.status === "cancelled" || raceDetail.status === "postponed"
+                                ? "bg-amber-500/20 border-amber-400/50 text-amber-200"
+                                : "bg-white/15 border-white/30 text-white"
+                        }`}>
+                          {raceDetail.status === "ongoing" && (
+                            <span className="h-1.5 w-1.5 rounded-full bg-rose-300 animate-pulse" />
+                          )}
+                          {raceDetail.status === "ongoing"
+                            ? "Live"
+                            : formatStatus(raceDetail.status)}
+                        </span>
                       </div>
                     </div>
                   }
@@ -593,7 +609,7 @@ export default function RacesPage() {
                     isSpectator &&
                     (raceDetail?.status === "scheduled" ||
                       raceDetail?.status === "pre_race" ||
-                      currentPrediction) ? (
+                      currentPrediction) && (
                       <button
                         onClick={() => {
                           setModalKey((k) => k + 1);
@@ -604,10 +620,6 @@ export default function RacesPage() {
                         <Target className="w-3.5 h-3.5" />
                         {currentPrediction ? "Update Prediction" : "Predict"}
                       </button>
-                    ) : (
-                      <span className="px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm bg-secondary !text-secondary-foreground border-transparent">
-                        Race detail
-                      </span>
                     )
                   }
                   onClose={handleCloseDetail}

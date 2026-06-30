@@ -474,18 +474,12 @@ function JockeyDetailPanel({
               minute: "2-digit",
             })}
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-[#EAB308]/45 text-[#EAB308] px-3 py-1.5 font-bold">
-            <Clock className="w-3.5 h-3.5" />
-            {ride.status === "completed" ? "Finished" : "Starts in 40 min"}
-          </span>
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
             <Compass className="w-3.5 h-3.5" />
             {ride.distanceMeters}m · {ride.trackCondition}
           </span>
+          <RideStatusBadge status={ride.entryStatus} onDark />
         </div>
-      }
-      headerRight={
-        <RideStatusBadge status={ride.entryStatus} onDark />
       }
       onClose={onClose}
       tabs={tabs}
