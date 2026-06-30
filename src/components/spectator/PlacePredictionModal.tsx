@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { X, Trophy, ArrowRight } from "lucide-react";
 
 import { PredictionService } from "../../services/PredictionService";
+import { fetchRaceEntries } from "../../hooks/useRaces";
 import type { RaceEntry } from "../../types/race";
 
 export interface ExistingPrediction {
@@ -50,10 +51,29 @@ export function PlacePredictionModal({
   );
   const [submitting, setSubmitting] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [localEntries, setLocalEntries] = useState<RaceEntry[]>(() =>
+    open ? entries : []
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocalEntries(entries);
+    fetchRaceEntries(raceId)
+      .then((data) => {
+        if (!cancelled) setLocalEntries(data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [open, raceId, entries]);
 
   const entryMap = useMemo(
-    () => new Map(entries.map((e) => [e.id, e.name])),
-    [entries]
+    () => new Map(localEntries.map((e) => [e.id, e.name])),
+    [localEntries]
   );
 
   if (!open) return null;
@@ -149,7 +169,7 @@ export function PlacePredictionModal({
               Select Entry
             </label>
             <div className="space-y-2 max-h-60 overflow-y-auto">
-              {entries.map((entry) => (
+              {localEntries.map((entry) => (
                 <label
                   key={entry.id}
                   className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all ${
