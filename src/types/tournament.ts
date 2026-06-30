@@ -110,7 +110,7 @@ export interface RaceItem {
   scheduledAt: string;
   venue: string;
   laneCount: number;
-  status: RaceApiStatus;
+  status: string;
 }
 
 export interface Pagination {

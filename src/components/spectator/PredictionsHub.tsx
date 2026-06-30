@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Search,
   ChevronLeft,
@@ -7,14 +7,17 @@ import {
   Target,
   Clock,
   MapPin,
+  CalendarDays,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { usePredictions } from "../../hooks/usePredictions";
 import { useRaces } from "../../hooks/useRaces";
 import { RaceService } from "../../services/RaceService";
 import { PlacePredictionModal } from "./PlacePredictionModal";
+import { ScheduleCalendar } from "../schedule/ScheduleCalendar";
 import type { PredictionStatus } from "../../types/prediction";
 import type { RaceEntry, RaceListItem } from "../../types/race";
+import type { DateRange } from "react-day-picker";
 import { cn } from "../../lib/utils";
 import { useToast } from "../../hooks/useToast";
 import { ToastContainer } from "../../components/ui/toast";
@@ -68,7 +71,8 @@ const formatDateTime = (dateString: string | undefined) => {
 
 function OpenRacesTab() {
   const navigate = useNavigate();
-  const { races, loading, loadRacesByMonth } = useRaces();
+  const { races, rangeRaces, loading, loadRacesByMonth, loadRacesForRange } =
+    useRaces();
   const [selectedRace, setSelectedRace] = useState<{
     id: string;
     name: string;
@@ -79,17 +83,83 @@ function OpenRacesTab() {
   const [entriesCache, setEntriesCache] = useState<Record<string, RaceEntry[]>>(
     {}
   );
+  const [selectedRange, setSelectedRange] = useState<DateRange | undefined>();
+  const [viewMonth, setViewMonth] = useState<Date>(new Date());
 
   const { toasts, addToast } = useToast();
 
-  useEffect(() => {
-    const now = new Date();
-    loadRacesByMonth(now.getFullYear(), now.getMonth() + 1);
-  }, [loadRacesByMonth]);
+  const viewYear = viewMonth.getFullYear();
+  const viewMonthIndex = viewMonth.getMonth();
 
-  const openRaces = races.filter(
-    (r: RaceListItem) => r.status === "scheduled" || r.status === "pre_race"
+  useEffect(() => {
+    loadRacesByMonth(viewYear, viewMonthIndex + 1);
+  }, [viewYear, viewMonthIndex, loadRacesByMonth]);
+
+  useEffect(() => {
+    if (selectedRange?.from && selectedRange?.to) {
+      loadRacesForRange(selectedRange.from, selectedRange.to);
+    }
+  }, [selectedRange?.from, selectedRange?.to, loadRacesForRange]);
+
+  const effectiveRaces = useMemo(() => {
+    if (selectedRange?.from && selectedRange?.to) return rangeRaces;
+    return races;
+  }, [selectedRange?.from, selectedRange?.to, rangeRaces, races]);
+
+  const openRaces = useMemo(
+    () =>
+      effectiveRaces.filter(
+        (r: RaceListItem) => r.status === "scheduled" || r.status === "pre_race"
+      ),
+    [effectiveRaces]
   );
+
+  const raceDays = useMemo(
+    () =>
+      races
+        .map((r) => {
+          const d = new Date(r.scheduledAt);
+          return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        })
+        .filter(
+          (d, i, arr) => arr.findIndex((x) => x.getTime() === d.getTime()) === i
+        ),
+    [races]
+  );
+
+  const dateRangeStr = useMemo(() => {
+    if (!selectedRange?.from) return undefined;
+    const fmt = (d: Date) =>
+      d.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      });
+    if (!selectedRange.to) return fmt(selectedRange.from);
+    return `${fmt(selectedRange.from)} – ${fmt(selectedRange.to)}`;
+  }, [selectedRange]);
+
+  const filteredRaces = useMemo(() => {
+    if (!dateRangeStr) return openRaces;
+    if (!selectedRange?.from) return openRaces;
+    const from = new Date(
+      selectedRange.from.getFullYear(),
+      selectedRange.from.getMonth(),
+      selectedRange.from.getDate()
+    ).getTime();
+    const to = selectedRange.to
+      ? new Date(
+          selectedRange.to.getFullYear(),
+          selectedRange.to.getMonth(),
+          selectedRange.to.getDate()
+        ).getTime()
+      : from;
+    return openRaces.filter((r) => {
+      const d = new Date(r.scheduledAt);
+      const t = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      return t >= from && t <= to;
+    });
+  }, [openRaces, dateRangeStr, selectedRange]);
 
   useEffect(() => {
     if (openRaces.length === 0) return;
@@ -166,66 +236,90 @@ function OpenRacesTab() {
     );
   }
 
-  if (openRaces.length === 0) {
-    return (
-      <div className="py-20 text-center">
-        <Target className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-        <p className="text-sm font-semibold text-slate-400">
-          No races open for predictions right now.
-        </p>
-        <button
-          onClick={() => navigate("/races")}
-          className="mt-3 text-xs font-bold text-[#064E3B] hover:underline cursor-pointer"
-        >
-          Browse all races
-        </button>
-      </div>
-    );
-  }
+  const showEmpty = filteredRaces.length === 0;
 
   return (
-    <>
-      <div className="p-4 md:p-6 space-y-3">
-        {openRaces.map((race: RaceListItem) => (
-          <div
-            key={race.id}
-            className="bg-white border border-[#064E3B]/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1">
-                <h3 className="font-headline font-bold text-[#064E3B] text-base leading-tight">
-                  {race.name}
-                </h3>
-                <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-500 font-medium">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    {formatDateTime(race.scheduledAt)}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {race.venue}
-                  </span>
+    <div className="p-4 md:p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        <div className="lg:col-span-5 flex lg:justify-center">
+          <ScheduleCalendar
+            selectedRange={selectedRange}
+            onSelect={(range) => {
+              setSelectedRange(range);
+              if (range?.from) setViewMonth(range.from);
+            }}
+            defaultMonth={viewMonth}
+            onMonthChange={setViewMonth}
+            raceDays={raceDays}
+          />
+        </div>
+
+        <div className="lg:col-span-7 space-y-3">
+          {dateRangeStr && (
+            <div className="flex items-center gap-2 px-1">
+              <CalendarDays className="w-4 h-4 text-slate-400" />
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                {dateRangeStr}
+              </span>
+            </div>
+          )}
+
+          {showEmpty ? (
+            <div className="py-16 text-center">
+              <Target className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="text-sm font-semibold text-slate-400">
+                No races open for predictions in this date range.
+              </p>
+              <button
+                onClick={() => navigate("/races")}
+                className="mt-3 text-xs font-bold text-[#064E3B] hover:underline cursor-pointer"
+              >
+                Browse all races
+              </button>
+            </div>
+          ) : (
+            filteredRaces.map((race: RaceListItem) => (
+              <div
+                key={race.id}
+                className="bg-white border border-[#064E3B]/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-headline font-bold text-[#064E3B] text-base leading-tight">
+                      {race.name}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-500 font-medium">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        {formatDateTime(race.scheduledAt)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5" />
+                        {race.venue}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => navigate(`/races/${race.id}`)}
+                      className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 font-bold text-sm px-3 py-2.5 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer"
+                    >
+                      Detail
+                    </button>
+                    <button
+                      onClick={() => handlePredict(race.id, race.name)}
+                      disabled={loadingRaceId === race.id}
+                      className="flex items-center gap-1.5 bg-[#EAB308] text-[#064E3B] font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-[#D9A207] hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      <Target className="w-4 h-4" />
+                      {loadingRaceId === race.id ? "Loading..." : "Predict"}
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => navigate(`/races/${race.id}`)}
-                  className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 font-bold text-sm px-3 py-2.5 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer"
-                >
-                  Detail
-                </button>
-                <button
-                  onClick={() => handlePredict(race.id, race.name)}
-                  disabled={loadingRaceId === race.id}
-                  className="flex items-center gap-1.5 bg-[#EAB308] text-[#064E3B] font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-[#D9A207] hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  <Target className="w-4 h-4" />
-                  {loadingRaceId === race.id ? "Loading..." : "Predict"}
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+            ))
+          )}
+        </div>
       </div>
 
       <ToastContainer toasts={toasts} />
@@ -246,7 +340,7 @@ function OpenRacesTab() {
           addToast={addToast}
         />
       )}
-    </>
+    </div>
   );
 }
 

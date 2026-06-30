@@ -19,7 +19,7 @@ type RacePreview = {
   date: string;
   distance: string;
   surface: string;
-  status: "Live" | "Upcoming" | "Completed";
+  status: "Live" | "Upcoming" | "Completed" | string;
 };
 
 const DEFAULT_LIMIT = 10;
@@ -27,22 +27,37 @@ const DEFAULT_LIMIT = 10;
 const mapRaceToPreview = (race: RaceItem): RacePreview => {
   const scheduled = new Date(race.scheduledAt);
 
+  let status: RacePreview["status"];
+
+  switch (race.status) {
+    case "ongoing":
+      status = "Live";
+      break;
+
+    case "completed":
+    case "result_confirmed":
+      status = "Completed";
+      break;
+
+    default:
+      status = race.status;
+      break;
+  }
+
   return {
     id: race.id,
     title: race.name,
     time: scheduled.toLocaleTimeString("en-GB", {
       hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
     }),
-    date: `${scheduled.getFullYear()}-${String(scheduled.getMonth() + 1).padStart(2, "0")}-${String(scheduled.getDate()).padStart(2, "0")}`,
+    date: `${scheduled.getFullYear()}-${String(
+      scheduled.getMonth() + 1
+    ).padStart(2, "0")}-${String(scheduled.getDate()).padStart(2, "0")}`,
     distance: `${race.distanceMeters}m`,
     surface: race.trackCondition,
-    status:
-      race.status === "ongoing"
-        ? "Live"
-        : race.status === "completed" || race.status === "result_confirmed"
-          ? "Completed"
-          : "Upcoming",
+    status,
   };
 };
 
