@@ -745,13 +745,10 @@ export default function RacesPage() {
                           <thead className="bg-[#F4F6F5] border-b border-slate-100">
                             <tr>
                               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 w-20 text-center">
-                                #
+                                Lane
                               </th>
                               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
                                 Horse Name
-                              </th>
-                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">
-                                Lane
                               </th>
                               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
                                 Jockey Name
@@ -765,7 +762,7 @@ export default function RacesPage() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 text-sm bg-card">
-                            {raceDetail.entries.map(
+                            {[...raceDetail.entries].sort((a, b) => a.laneNumber - b.laneNumber).map(
                               (entry: RaceEntry, idx: number) => (
                                 <tr
                                   key={entry.id || idx}
@@ -773,7 +770,7 @@ export default function RacesPage() {
                                 >
                                   <td className="px-6 py-4.5 text-center">
                                     <span className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white shadow-sm text-xs font-black text-slate-800 mx-auto">
-                                      {entry.clothNumber || idx + 1}
+                                      {entry.laneNumber}
                                     </span>
                                   </td>
                                   <td className="px-6 py-4.5 font-bold font-headline text-[#064E3B] text-base leading-snug">
@@ -786,9 +783,6 @@ export default function RacesPage() {
                                     >
                                       {entry.name}
                                     </button>
-                                  </td>
-                                  <td className="px-6 py-4.5 text-xs text-slate-500 font-mono break-all text-center">
-                                    {entry.laneNumber}
                                   </td>
                                   <td className="px-6 py-4.5 font-medium text-slate-800">
                                     {entry.jockeyName}
