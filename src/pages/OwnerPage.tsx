@@ -16,7 +16,7 @@ import { RegisterTournamentModal } from "../components/owner/RegisterTournamentM
 // Newly Extracted Sub-Components
 import { OwnerDashBoardOverview } from "../components/owner/OwnerDashBoardOverview";
 import { HorseManagement } from "../components/owner/HorseManagement";
-import { RaceRegister } from "../components/owner/RaceRegister";
+import { TournamentRegister } from "../components/owner/TournamentRegister";
 import { RidingSchedule } from "../components/jockey/RidingSchedule";
 import { JockeyRosterManagement } from "../components/owner/JockeyRosterManagement";
 
@@ -268,9 +268,9 @@ export default function OwnerPage() {
             setPage={setPage}
           />
         );
-      case "/owner/raceRegister":
+      case "/owner/tournamentRegister":
         return (
-          <RaceRegister
+          <TournamentRegister
             horses={horses}
             tournaments={tournaments}
             registrations={registrations}
