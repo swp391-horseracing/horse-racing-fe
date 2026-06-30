@@ -21,6 +21,7 @@ import useTournament from "../hooks/useTournament";
 import { ROUTES } from "../router/routes";
 import { useOwner } from "../hooks/useOwner";
 import { useUserProfile } from "../hooks/useUserProfile";
+import { formatStatus } from "../utils/statusFormat";
 
 function StatFilterCard({
   label,
@@ -514,7 +515,7 @@ export default function TournamentsPage() {
                                   ) : (
                                     <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-[9px] font-bold text-primary">
                                       <Clock className="h-2.5 w-2.5 text-primary" />
-                                      {race.status}
+                                      {formatStatus(race.status)}
                                     </span>
                                   )}
 
@@ -723,8 +724,7 @@ export default function TournamentsPage() {
                                   {horse?.name || "Unknown Horse"}
                                 </span>
                                 <span className="text-[10px] font-bold tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                                  {r.status.charAt(0).toUpperCase() +
-                                    r.status.slice(1)}
+                                  {formatStatus(r.status)}
                                 </span>
                               </div>
                             );

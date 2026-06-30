@@ -23,6 +23,7 @@ import {
 } from "../schedule/ScheduleDetailFrame";
 import { RaceService } from "../../services/RaceService";
 import type { RaceEntry } from "../../types/race";
+import { formatStatus } from "../../utils/statusFormat";
 
 type ComputedRideStatus = "pending" | "accepted" | "declined" | "finished";
 type RideDetailTab = "info" | "runners";
@@ -82,7 +83,7 @@ function RideStatusBadge({
           styles[status]
         )}
       >
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {formatStatus(status)}
       </span>
     );
   }
@@ -384,7 +385,7 @@ export function RidingSchedule({
                                   : "bg-emerald-100 text-emerald-700"
                             )}
                           >
-                            {ride.status}
+                            {formatStatus(ride.status)}
                           </span>
                         </div>
                       )}
@@ -784,7 +785,7 @@ function OwnerDetailPanel({
       }
       headerRight={
         <span className="px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm bg-secondary !text-secondary-foreground border-transparent">
-          {ride.status}
+          {formatStatus(ride.status)}
         </span>
       }
       onClose={onClose}

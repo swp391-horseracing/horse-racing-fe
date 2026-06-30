@@ -23,6 +23,7 @@ import { useRaces, useRaceDetail } from "../hooks/useRaces";
 import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
 import type { DateRange } from "react-day-picker";
 import { useToast } from "../hooks/useToast";
+import { formatStatus } from "../utils/statusFormat";
 import { ToastContainer } from "../components/ui/toast";
 
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
@@ -30,8 +31,7 @@ import { ScheduleStatCard } from "../components/schedule/ScheduleStatCard";
 import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
 import { PlacePredictionModal } from "../components/spectator/PlacePredictionModal";
 
-type RaceStatus = "Live" | "Upcoming" | "Completed";
-type StatusFilter = "All" | RaceStatus;
+type StatusFilter = RaceApiStatus | "All";
 
 interface RaceUI extends Omit<RaceListItem, "status"> {
   title: string;
@@ -40,21 +40,13 @@ interface RaceUI extends Omit<RaceListItem, "status"> {
   distance: string;
   surface: string;
   className: string;
-  status: RaceStatus;
+  status: RaceApiStatus;
   isOpenForPrediction: boolean;
 }
 
-const mapApiStatusToUi = (status: RaceApiStatus): RaceStatus => {
-  if (status === "ongoing") return "Live";
-  if (status === "completed" || status === "result_confirmed")
-    return "Completed";
-  if (status === "scheduled" || status === "pre_race") return "Upcoming";
-  return "Upcoming";
-};
-
 const mapRaceToUi = (race: RaceListItem): RaceUI => {
   const scheduled = new Date(race.scheduledAt);
-  console.log(race.venue);
+  console.log(race.venue); 
   console.log("mapRaceToUi", scheduled);
 
   const yyyy = scheduled.getUTCFullYear();
@@ -73,7 +65,7 @@ const mapRaceToUi = (race: RaceListItem): RaceUI => {
     distance: "",
     surface: race.venue,
     className: "Standard",
-    status: mapApiStatusToUi(race.status),
+    status: race.status,
     isOpenForPrediction:
       race.status === "scheduled" || race.status === "pre_race",
   };
@@ -89,12 +81,6 @@ const fmtShort = (d: string) =>
 const parseLocalDate = (dateStr: string) => {
   const [year, month, day] = dateStr.split("-").map(Number);
   return new Date(year, month - 1, day);
-};
-
-const STATUS_ORDER: Record<RaceStatus, number> = {
-  Live: 0,
-  Upcoming: 1,
-  Completed: 2,
 };
 
 const formatDateTime = (dateString: string | undefined) => {
@@ -122,7 +108,9 @@ function RaceRow({
   onClick: () => void;
   showPredictBadge?: boolean;
 }) {
-  const isLive = race.status === "Live";
+  const isLive = race.status === "ongoing";
+  const isCompleted =
+    race.status === "completed" || race.status === "result_confirmed";
   return (
     <button
       onClick={onClick}
@@ -157,17 +145,17 @@ function RaceRow({
             Predict
           </span>
         )}
-        {race.status === "Live" && (
+        {isLive ? (
           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
             Live
           </span>
-        )}
-        {race.status === "Completed" && (
+        ) : isCompleted ? (
           <span className="h-2 w-2 rounded-full bg-muted/80" />
-        )}
-        {race.status === "Upcoming" && (
-          <span className="h-2 w-2 rounded-full bg-primary" />
+        ) : (
+          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+            {formatStatus(race.status)}
+          </span>
         )}
       </div>
     </button>
@@ -291,11 +279,7 @@ export default function RacesPage() {
           r.className.toLowerCase().includes(lower);
         return matchStatus && matchSearch;
       })
-      .sort(
-        (a, b) =>
-          STATUS_ORDER[a.status] - STATUS_ORDER[b.status] ||
-          a.time.localeCompare(b.time)
-      );
+      .sort((a, b) => a.time.localeCompare(b.time));
   }, [allRaces, statusFilter, search]);
 
   const grouped = useMemo(() => {
@@ -358,13 +342,16 @@ export default function RacesPage() {
   const panelOpen = raceId !== null;
   const isCalendarMode = !tournamentId;
 
-  const counts = useMemo(
-    () => ({
-      All: racesInRange.length,
-      Live: racesInRange.filter((r) => r.status === "Live").length,
-      Upcoming: racesInRange.filter((r) => r.status === "Upcoming").length,
-      Completed: racesInRange.filter((r) => r.status === "Completed").length,
-    }),
+  const statusCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    racesInRange.forEach((r) => {
+      map.set(r.status, (map.get(r.status) ?? 0) + 1);
+    });
+    return map;
+  }, [racesInRange]);
+
+  const uniqueStatuses = useMemo(
+    () => ["All", ...new Set(racesInRange.map((r) => r.status))],
     [racesInRange]
   );
 
@@ -407,21 +394,17 @@ export default function RacesPage() {
           </div>
 
           <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
-            {(["All", "Live", "Upcoming", "Completed"] as const).map((key) => {
-              const labels = {
-                All: "Total",
-                Live: "Live",
-                Upcoming: "Upcoming",
-                Completed: "Completed",
-              };
+            {uniqueStatuses.map((key) => {
+              const isAll = key === "All";
+              const isOngoing = key === "ongoing";
               return (
                 <ScheduleStatCard
                   key={key}
-                  label={labels[key]}
-                  value={counts[key]}
+                  label={isAll ? "Total" : formatStatus(key)}
+                  value={isAll ? racesInRange.length : (statusCounts.get(key) ?? 0)}
                   active={statusFilter === key}
-                  onClick={() => setStatusFilter(key)}
-                  liveDot={key === "Live"}
+                  onClick={() => setStatusFilter(key as StatusFilter)}
+                  liveDot={isOngoing}
                   activeClass="border-primary bg-card shadow-sm ring-[1.5px] ring-primary"
                   inactiveClass="border-border bg-card hover:border-slate-300 hover:bg-slate-50/50"
                 />
@@ -802,7 +785,7 @@ export default function RacesPage() {
                                     {entry.weightKg}
                                   </td>
                                   <td className="px-6 py-4.5 font-medium text-slate-800 hidden md:table-cell">
-                                    {entry.entryStatus}
+                                    {formatStatus(entry.entryStatus)}
                                   </td>
                                 </tr>
                               )

@@ -8,6 +8,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "../../../lib/utils";
+import { formatStatus } from "../../../utils/statusFormat";
 import type { RaceReportListItem, Pagination } from "../../../types/race";
 import {
   STATUS_LABELS,
@@ -100,7 +101,7 @@ export default function ReportsTable({
                       ) : r.reportStatus === "published" ? (
                         <CheckCircle className="w-2.5 h-2.5" />
                       ) : null}
-                      {STATUS_LABELS[r.reportStatus] || r.reportStatus}
+                      {STATUS_LABELS[r.reportStatus] || formatStatus(r.reportStatus)}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right">

@@ -1,5 +1,6 @@
 import { useState, useEffect, useReducer } from "react";
 import { cn } from "../../lib/utils";
+import { formatStatus } from "../../utils/statusFormat";
 import { TournamentService } from "../../services/TournamentService";
 import { JockeyService } from "../../services/JockeyService.ts";
 import type {
@@ -612,7 +613,7 @@ export function JockeyRosterManagement({
 
                   <div className="flex shrink-0 items-center gap-2">
                     <span className={statusBadgeClass(inv.status)}>
-                      {inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}
+                      {formatStatus(inv.status)}
                     </span>
 
                     {inv.status === "pending" && (

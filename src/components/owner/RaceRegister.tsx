@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { formatTournamentStatus } from "../../styles/schema/tournamentStatusFlow";
+import { formatStatus } from "../../utils/statusFormat";
 import type {
   Tournament,
   TournamentRegistrationResponse,
@@ -52,11 +53,6 @@ function formatDateFull(value?: string) {
     month: "long",
     day: "numeric",
   });
-}
-
-function formatStatus(status?: string) {
-  if (!status) return "Unknown";
-  return status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, " ");
 }
 
 function TournamentStatusBadge({ status }: { status: string }) {
