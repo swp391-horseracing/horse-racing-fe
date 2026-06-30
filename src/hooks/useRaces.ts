@@ -289,3 +289,18 @@ export function useRaceDetail(raceId: string | null) {
 
   return { detail, loading, error, refetch, clearDetail };
 }
+
+export async function fetchRaceEntries(raceId: string): Promise<RaceEntry[]> {
+  const data = await RaceService.getRaceEntries(raceId);
+  const raw = Array.isArray(data) ? data : ((data as any)?.data ?? []);
+  return raw.map((e: any) => ({
+    id: e.entryId,
+    horseId: e.horse?.id ?? "",
+    name: e.horse?.name ?? "",
+    laneNumber: String(e.laneNumber),
+    weightKg: "",
+    entryStatus: e.entryStatus,
+    jockeyName: e.jockey?.name ?? "",
+    clothNumber: 0,
+  }));
+}
