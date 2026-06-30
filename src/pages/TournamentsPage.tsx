@@ -466,6 +466,7 @@ export default function TournamentsPage() {
                           {races.map((race) => {
                             const isRaceLive = race.status === "Live";
                             const isCompleted = race.status === "Completed";
+                            console.log("race", race.status);
 
                             return (
                               <div
@@ -513,7 +514,7 @@ export default function TournamentsPage() {
                                   ) : (
                                     <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-[9px] font-bold text-primary">
                                       <Clock className="h-2.5 w-2.5 text-primary" />
-                                      Upcoming
+                                      {race.status}
                                     </span>
                                   )}
 
