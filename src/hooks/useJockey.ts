@@ -53,10 +53,7 @@ export function useJockey() {
       laneNumber: race.laneNumber ?? 0,
       laneCount: race.laneCount ?? 0,
 
-      entryStatus: (race.entryStatus ?? "pending") as
-        | "pending"
-        | "accepted"
-        | "declined",
+      entryStatus: race.entryStatus ?? "pending",
 
       confirmedAt: race.confirmedAt ?? null,
 
