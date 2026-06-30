@@ -115,9 +115,7 @@ export default function useTournament() {
         limit: 100,
       });
 
-      setAllTournaments(
-        response.data as unknown as TournamentListItem[]
-      );
+      setAllTournaments(response.data as unknown as TournamentListItem[]);
     } catch {
       setAllTournaments([]);
     }

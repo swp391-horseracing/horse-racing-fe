@@ -94,7 +94,8 @@ export default function ReportDetailView({
               "bg-slate-100 text-slate-600 border-slate-200"
           )}
         >
-          {STATUS_LABELS[report?.status || "draft"] || formatStatus(report?.status ?? "")}
+          {STATUS_LABELS[report?.status || "draft"] ||
+            formatStatus(report?.status ?? "")}
         </span>
       </div>
 

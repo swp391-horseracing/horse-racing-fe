@@ -46,7 +46,7 @@ interface RaceUI extends Omit<RaceListItem, "status"> {
 
 const mapRaceToUi = (race: RaceListItem): RaceUI => {
   const scheduled = new Date(race.scheduledAt);
-  console.log(race.venue); 
+  console.log(race.venue);
   console.log("mapRaceToUi", scheduled);
 
   const yyyy = scheduled.getUTCFullYear();
@@ -401,7 +401,9 @@ export default function RacesPage() {
                 <ScheduleStatCard
                   key={key}
                   label={isAll ? "Total" : formatStatus(key)}
-                  value={isAll ? racesInRange.length : (statusCounts.get(key) ?? 0)}
+                  value={
+                    isAll ? racesInRange.length : (statusCounts.get(key) ?? 0)
+                  }
                   active={statusFilter === key}
                   onClick={() => setStatusFilter(key as StatusFilter)}
                   liveDot={isOngoing}
@@ -586,15 +588,19 @@ export default function RacesPage() {
                             ? `${raceDetail.laneCount} Lanes`
                             : "Lanes TBC"}
                         </span>
-                        <span className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 font-bold ${
-                          raceDetail.status === "ongoing"
-                            ? "bg-rose-500/20 border-rose-400/50 text-rose-200"
-                            : raceDetail.status === "completed" || raceDetail.status === "result_confirmed"
-                              ? "bg-emerald-500/20 border-emerald-400/50 text-emerald-200"
-                              : raceDetail.status === "cancelled" || raceDetail.status === "postponed"
-                                ? "bg-amber-500/20 border-amber-400/50 text-amber-200"
-                                : "bg-white/15 border-white/30 text-white"
-                        }`}>
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 font-bold ${
+                            raceDetail.status === "ongoing"
+                              ? "bg-rose-500/20 border-rose-400/50 text-rose-200"
+                              : raceDetail.status === "completed" ||
+                                  raceDetail.status === "result_confirmed"
+                                ? "bg-emerald-500/20 border-emerald-400/50 text-emerald-200"
+                                : raceDetail.status === "cancelled" ||
+                                    raceDetail.status === "postponed"
+                                  ? "bg-amber-500/20 border-amber-400/50 text-amber-200"
+                                  : "bg-white/15 border-white/30 text-white"
+                          }`}
+                        >
                           {raceDetail.status === "ongoing" && (
                             <span className="h-1.5 w-1.5 rounded-full bg-rose-300 animate-pulse" />
                           )}
@@ -762,8 +768,12 @@ export default function RacesPage() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 text-sm bg-card">
-                            {[...raceDetail.entries].sort((a, b) => a.laneNumber - b.laneNumber).map(
-                              (entry: RaceEntry, idx: number) => (
+                            {[...raceDetail.entries]
+                              .sort(
+                                (a, b) =>
+                                  Number(a.laneNumber) - Number(b.laneNumber)
+                              )
+                              .map((entry: RaceEntry, idx: number) => (
                                 <tr
                                   key={entry.id || idx}
                                   className="hover:bg-[#064E3B]/5 transition-colors cursor-default"
@@ -794,8 +804,7 @@ export default function RacesPage() {
                                     {formatStatus(entry.entryStatus)}
                                   </td>
                                 </tr>
-                              )
-                            )}
+                              ))}
                           </tbody>
                         </table>
                       </div>

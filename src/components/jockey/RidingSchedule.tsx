@@ -137,7 +137,10 @@ export function RidingSchedule({
   }, [ridesInRange]);
 
   const uniqueEntryStatuses = useMemo(
-    () => ["All", ...new Set(ridesInRange.map((r) => r.entryStatus || "pending"))],
+    () => [
+      "All",
+      ...new Set(ridesInRange.map((r) => r.entryStatus || "pending")),
+    ],
     [ridesInRange]
   );
 
@@ -230,7 +233,11 @@ export function RidingSchedule({
                 <ScheduleStatCard
                   key={key}
                   label={isAll ? "Total" : formatStatus(key)}
-                  value={isAll ? ridesInRange.length : (entryStatusCounts.get(key) ?? 0)}
+                  value={
+                    isAll
+                      ? ridesInRange.length
+                      : (entryStatusCounts.get(key) ?? 0)
+                  }
                   active={statusFilter === key}
                   onClick={() => setStatusFilter(key)}
                   liveDot={key === "pending"}
@@ -347,9 +354,7 @@ export function RidingSchedule({
                             </div>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0 pl-3">
-                            <RideStatusBadge
-                              status={ride.entryStatus}
-                            />
+                            <RideStatusBadge status={ride.entryStatus} />
                           </div>
                         </div>
                       ) : (

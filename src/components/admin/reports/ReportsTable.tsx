@@ -101,7 +101,8 @@ export default function ReportsTable({
                       ) : r.reportStatus === "published" ? (
                         <CheckCircle className="w-2.5 h-2.5" />
                       ) : null}
-                      {STATUS_LABELS[r.reportStatus] || formatStatus(r.reportStatus)}
+                      {STATUS_LABELS[r.reportStatus] ||
+                        formatStatus(r.reportStatus)}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right">
