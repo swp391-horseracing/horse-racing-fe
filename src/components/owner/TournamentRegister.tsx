@@ -205,7 +205,7 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
       .catch(() => setTournamentDetail(null));
   }, [selectedRegistration]);
 
-  const displayTournament = tournamentDetail ?? selectedRegistration!.tournament;
+  const displayTournament = tournamentDetail ?? selectedRegistration?.tournament;
 
   const isPanelOpen = selectedRegistration !== null;
 
@@ -358,14 +358,14 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                   <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-primary-foreground/70">
                     <CalendarDays className="h-3 w-3" />
                     {formatDate(
-                      displayTournament.startDate
-                    )} - {formatDate(displayTournament.endDate)}
+                      displayTournament?.startDate
+                    )} - {formatDate(displayTournament?.endDate)}
                   </span>
                   <div className="text-2xl font-black font-headline text-white tracking-tight leading-snug truncate mt-1">
-                    {displayTournament.name}
+                    {displayTournament?.name}
                   </div>
                   <p className="text-xs text-primary-foreground/70 mt-1">
-                    {displayTournament.location}
+                    {displayTournament?.location}
                   </p>
                 </div>
                 <button
@@ -425,7 +425,7 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                       </p>
                       <div className="mt-1">
                         <TournamentStatusBadge
-                          status={displayTournament.status}
+                          status={displayTournament?.status ?? ""}
                         />
                       </div>
                     </div>
@@ -440,8 +440,8 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                         Registration Period
                       </p>
                       <p className="text-sm font-bold text-foreground mt-1">
-                        {displayTournament.registrationOpenDate
-                          ? `${formatDateFull(displayTournament.registrationOpenDate)} - ${displayTournament.registrationCloseDate ? formatDateFull(displayTournament.registrationCloseDate) : "TBD"}`
+                        {displayTournament?.registrationOpenDate
+                          ? `${formatDateFull(displayTournament?.registrationOpenDate)} - ${displayTournament?.registrationCloseDate ? formatDateFull(displayTournament?.registrationCloseDate) : "TBD"}`
                           : "Not specified"}
                       </p>
                     </div>
@@ -457,7 +457,7 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                       <p className="text-xs text-muted-foreground">Location</p>
                       <p className="text-sm font-bold text-foreground flex items-center gap-1.5 mt-0.5">
                         <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                        {displayTournament.location ||
+                        {displayTournament?.location ||
                           "Not specified"}
                       </p>
                     </div>
@@ -466,8 +466,8 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                         Prize Pool
                       </p>
                       <p className="text-sm font-bold text-foreground mt-0.5">
-                        {displayTournament.prizePool != null
-                          ? `$${displayTournament.prizePool.toLocaleString()}`
+                        {displayTournament?.prizePool != null
+                          ? `$${displayTournament?.prizePool.toLocaleString()}`
                           : "Not announced"}
                       </p>
                     </div>
@@ -476,7 +476,7 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                         Max Participants
                       </p>
                       <p className="text-sm font-bold text-foreground mt-0.5">
-                        {displayTournament.maximumParticipants ??
+                        {displayTournament?.maximumParticipants ??
                           "Not specified"}
                       </p>
                     </div>
@@ -484,41 +484,41 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                       <p className="text-xs text-muted-foreground">Dates</p>
                       <p className="text-sm font-bold text-foreground mt-0.5">
                         {formatDateFull(
-                          displayTournament.startDate
+                          displayTournament?.startDate
                         )}{" "}
                         -{" "}
                         {formatDateFull(
-                          displayTournament.endDate
+                          displayTournament?.endDate
                         )}
                       </p>
                     </div>
                   </div>
 
-                  {displayTournament.description && (
+                  {displayTournament?.description && (
                     <div className="mt-4 pt-4 border-t border-border">
                       <p className="text-xs text-muted-foreground mb-1">
                         Description
                       </p>
                       <p className="text-sm font-medium text-foreground leading-relaxed">
-                        {displayTournament.description}
+                        {displayTournament?.description}
                       </p>
                     </div>
                   )}
 
-                  {displayTournament.rules && (
+                  {displayTournament?.rules && (
                     <div className="mt-4 pt-4 border-t border-border">
                       <p className="text-xs font-bold text-foreground mb-1 flex items-center gap-1.5">
                         <ShieldAlert className="h-3.5 w-3.5 text-muted-foreground" />
                         Rules & Regulations
                       </p>
                       <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
-                        {displayTournament.rules}
+                        {displayTournament?.rules}
                       </p>
                     </div>
                   )}
                 </div>
 
-                {displayTournament.status ===
+                {displayTournament?.status ===
                   "registration_open" && (
                   <div className="flex items-center justify-end gap-3"></div>
                 )}
