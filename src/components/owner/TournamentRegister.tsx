@@ -404,14 +404,14 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                         Registration Status
                       </p>
-                      <div className="mt-1">
+                      <div className="mt-1 flex items-center gap-3">
                         <RegistrationStatusBadge
                           status={selectedRegistration.status}
                         />
+                        <span className="text-xs text-muted-foreground font-medium">
+                          Submitted {formatDate(selectedRegistration.submittedAt)}
+                        </span>
                       </div>
-                      <p className="text-[10px] text-muted-foreground mt-1.5">
-                        Submitted {formatDate(selectedRegistration.submittedAt)}
-                      </p>
                     </div>
                   </div>
 
@@ -431,6 +431,21 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                     </div>
                   </div>
 
+                  <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
+                    <div className="p-2.5 bg-muted text-muted-foreground rounded-lg">
+                      <CalendarDays className="h-4.5 w-4.5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Registration Period
+                      </p>
+                      <p className="text-sm font-bold text-foreground mt-1">
+                        {displayTournament.registrationOpenDate
+                          ? `${formatDateFull(displayTournament.registrationOpenDate)} - ${displayTournament.registrationCloseDate ? formatDateFull(displayTournament.registrationCloseDate) : "TBD"}`
+                          : "Not specified"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="rounded-xl border border-border bg-card p-4.5">
