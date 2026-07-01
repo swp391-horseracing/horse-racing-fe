@@ -21,7 +21,7 @@ import {
   ScheduleDetailFrame,
   type TabConfig,
 } from "../schedule/ScheduleDetailFrame";
-import { RaceService } from "../../services/RaceService";
+import { UserService } from "../../services/UserService";
 import type { RaceEntry } from "../../types/race";
 import { formatStatus } from "../../utils/statusFormat";
 
@@ -440,19 +440,36 @@ function JockeyDetailPanel({
   const [activeTab, setActiveTab] = useState<RideDetailTab>("info");
   const [raceEntries, setRaceEntries] = useState<RaceEntry[]>([]);
   const [entriesLoading, setEntriesLoading] = useState(false);
+  const [entriesError, setEntriesError] = useState<string | null>(null);
   useEffect(() => {
     let cancelled = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEntriesLoading(true);
-    RaceService.getRaceHorses(ride.id)
+    setEntriesError(null);
+    UserService.getMyRaceDetail(ride.id)
       .then((data) => {
         if (!cancelled) {
-          setRaceEntries(data ?? []);
+          if (data.entries) {
+            const mapped = data.entries.map((e) => ({
+              id: e.id,
+              horseId: e.horseId,
+              name: e.horseName,
+              laneNumber: "",
+              weightKg: "",
+              entryStatus: "",
+              jockeyName: e.jockeyName ?? "",
+              clothNumber: e.clothNumber,
+              trainerName: e.trainerName,
+            }));
+            setRaceEntries(mapped);
+          }
           setEntriesLoading(false);
         }
       })
       .catch(() => {
-        if (!cancelled) setEntriesLoading(false);
+        if (!cancelled) {
+          setEntriesLoading(false);
+          setEntriesError("Failed to load runner line-up for this race.");
+        }
       });
     return () => {
       cancelled = true;
@@ -643,6 +660,10 @@ function JockeyDetailPanel({
             {entriesLoading ? (
               <div className="p-6 text-center text-xs font-semibold text-slate-500">
                 Loading entries...
+              </div>
+            ) : entriesError ? (
+              <div className="p-6 text-center text-xs font-semibold text-red-500">
+                {entriesError}
               </div>
             ) : raceEntries.length > 0 ? (
               <table className="w-full text-left">
