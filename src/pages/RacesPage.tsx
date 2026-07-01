@@ -151,7 +151,10 @@ function RaceRow({
             Live
           </span>
         ) : isCompleted ? (
-          <span className="h-2 w-2 rounded-full bg-muted/80" />
+          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-muted/80" />
+            {formatStatus(race.status)}
+          </span>
         ) : (
           <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
             {formatStatus(race.status)}
@@ -354,6 +357,10 @@ export default function RacesPage() {
     () => ["All", ...new Set(racesInRange.map((r) => r.status))],
     [racesInRange]
   );
+
+  if (statusFilter !== "All" && !statusCounts.has(statusFilter)) {
+    setStatusFilter("All");
+  }
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
@@ -614,8 +621,7 @@ export default function RacesPage() {
                   headerRight={
                     isSpectator &&
                     (raceDetail?.status === "scheduled" ||
-                      raceDetail?.status === "pre_race" ||
-                      currentPrediction) && (
+                      raceDetail?.status === "pre_race") && (
                       <button
                         onClick={() => {
                           setModalKey((k) => k + 1);
