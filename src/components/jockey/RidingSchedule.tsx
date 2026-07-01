@@ -1,4 +1,10 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  startTransition,
+} from "react";
 import { cn } from "../../lib/utils";
 import type { DateRange } from "react-day-picker";
 import type { MyRide } from "../../hooks/useJockey";
@@ -443,8 +449,10 @@ function JockeyDetailPanel({
   const [entriesError, setEntriesError] = useState<string | null>(null);
   useEffect(() => {
     let cancelled = false;
-    setEntriesLoading(true);
-    setEntriesError(null);
+    startTransition(() => {
+      setEntriesLoading(true);
+      setEntriesError(null);
+    });
     UserService.getMyRaceDetail(ride.id)
       .then((data) => {
         if (!cancelled) {

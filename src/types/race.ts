@@ -103,7 +103,13 @@ export type Ride = {
   status: "scheduled" | "live" | "completed";
   ride: string;
   laneNumber: number;
-  entryStatus: "pending" | "accepted" | "declined" | "disqualified" | "did_not_finish" | "scratched";
+  entryStatus:
+    | "pending"
+    | "accepted"
+    | "declined"
+    | "disqualified"
+    | "did_not_finish"
+    | "scratched";
   confirmedAt: string | null;
   horseOwner: string;
   horsesId: string;
