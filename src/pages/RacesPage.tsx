@@ -459,39 +459,38 @@ export default function RacesPage() {
                   </p>
                 </div>
               ) : isCalendarMode ? (
-                  <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
-                    <div className="border-b border-border bg-muted/20 px-6 py-4 flex items-center gap-2">
-                      <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
-                        {dateRangeStr
-                          ? typeof dateRangeStr === "string"
-                            ? fmtShort(dateRangeStr)
-                            : `${fmtShort(dateRangeStr.from)} – ${fmtShort(dateRangeStr.to)}`
-                          : "All Races"}
-                      </span>
-                    </div>
-                    <div className="divide-y divide-border flex-1">
-                      {calendarFilteredRaces.length > 0 ? (
-                        calendarFilteredRaces.map((race) => (
-                          <RaceRow
-                            key={race.id}
-                            race={race}
-                            selected={raceId === race.id}
-                            onClick={() => handleSelectRace(race.id)}
-                            showPredictBadge={isSpectator}
-                          />
-                        ))
-                      ) : (
-                          <div className="p-12 text-center text-sm text-muted-foreground font-medium">
-                          {dateRangeStr
-                            ? "No races found in this date range."
-                            : "No races found in this month."}
-                        </div>
-                      )}
-                    </div>
+                <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
+                  <div className="border-b border-border bg-muted/20 px-6 py-4 flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
+                      {dateRangeStr
+                        ? typeof dateRangeStr === "string"
+                          ? fmtShort(dateRangeStr)
+                          : `${fmtShort(dateRangeStr.from)} – ${fmtShort(dateRangeStr.to)}`
+                        : "All Races"}
+                    </span>
                   </div>
-                )
-              : grouped.length > 0 ? (
+                  <div className="divide-y divide-border flex-1">
+                    {calendarFilteredRaces.length > 0 ? (
+                      calendarFilteredRaces.map((race) => (
+                        <RaceRow
+                          key={race.id}
+                          race={race}
+                          selected={raceId === race.id}
+                          onClick={() => handleSelectRace(race.id)}
+                          showPredictBadge={isSpectator}
+                        />
+                      ))
+                    ) : (
+                      <div className="p-12 text-center text-sm text-muted-foreground font-medium">
+                        {dateRangeStr
+                          ? "No races found in this date range."
+                          : "No races found in this month."}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : grouped.length > 0 ? (
                 <div className="space-y-6">
                   {grouped.map(([date, races]) => (
                     <div

@@ -44,7 +44,6 @@ function parseInputDate(value: string): Date | undefined {
   return new Date(year, month - 1, day);
 }
 
-
 function normalizeDay(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 }
@@ -70,7 +69,6 @@ export function ScheduleCalendar({
   const [inputTo, setInputTo] = useState(
     selectedRange?.to ? fmtInput(selectedRange.to) : ""
   );
-
 
   const rangeComplete = selectedRange?.from && selectedRange?.to;
 

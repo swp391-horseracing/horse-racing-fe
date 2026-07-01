@@ -144,6 +144,19 @@ export function RidingSchedule({
     [ridesInRange]
   );
 
+  const ownerStatusCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    ridesInRange.forEach((r) => {
+      map.set(r.status, (map.get(r.status) ?? 0) + 1);
+    });
+    return map;
+  }, [ridesInRange]);
+
+  const uniqueOwnerStatuses = useMemo(
+    () => ["All", ...new Set(ridesInRange.map((r) => r.status))],
+    [ridesInRange]
+  );
+
   const filteredRides = useMemo(() => {
     const lower = search.toLowerCase();
     return rides
@@ -247,25 +260,23 @@ export function RidingSchedule({
           </div>
         ) : (
           <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { key: "All", label: "All Races" },
-              { key: "scheduled", label: "Scheduled" },
-              { key: "live", label: "Live" },
-              { key: "completed", label: "Completed" },
-            ].map((item) => (
-              <button
-                key={item.key}
-                onClick={() => setStatusFilter(item.key)}
-                className={cn(
-                  "px-4 py-2.5 rounded-xl border text-xs font-bold transition shadow-xs",
-                  statusFilter === item.key
-                    ? "bg-[#064E3B] text-white border-[#064E3B]"
-                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
-                )}
-              >
-                {item.label}
-              </button>
-            ))}
+            {uniqueOwnerStatuses.map((key) => {
+              const isAll = key === "All";
+              return (
+                <ScheduleStatCard
+                  key={key}
+                  label={isAll ? "Total" : formatStatus(key)}
+                  value={
+                    isAll
+                      ? ridesInRange.length
+                      : (ownerStatusCounts.get(key) ?? 0)
+                  }
+                  active={statusFilter === key}
+                  onClick={() => setStatusFilter(key)}
+                  liveDot={key === "live"}
+                />
+              );
+            })}
           </div>
         )}
       </div>
