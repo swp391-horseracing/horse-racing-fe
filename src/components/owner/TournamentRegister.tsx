@@ -196,7 +196,9 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
     [filteredRegistrations, selectedId]
   );
 
-  const [tournamentDetail, setTournamentDetail] = useState<Tournament | null>(null);
+  const [tournamentDetail, setTournamentDetail] = useState<Tournament | null>(
+    null
+  );
 
   useEffect(() => {
     if (!selectedRegistration) return;
@@ -205,7 +207,8 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
       .catch(() => setTournamentDetail(null));
   }, [selectedRegistration]);
 
-  const displayTournament = tournamentDetail ?? selectedRegistration?.tournament;
+  const displayTournament =
+    tournamentDetail ?? selectedRegistration?.tournament;
 
   const isPanelOpen = selectedRegistration !== null;
 
@@ -357,9 +360,8 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                 <div className="min-w-0">
                   <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-primary-foreground/70">
                     <CalendarDays className="h-3 w-3" />
-                    {formatDate(
-                      displayTournament?.startDate
-                    )} - {formatDate(displayTournament?.endDate)}
+                    {formatDate(displayTournament?.startDate)} -{" "}
+                    {formatDate(displayTournament?.endDate)}
                   </span>
                   <div className="text-2xl font-black font-headline text-white tracking-tight leading-snug truncate mt-1">
                     {displayTournament?.name}
@@ -409,7 +411,8 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                           status={selectedRegistration.status}
                         />
                         <span className="text-xs text-muted-foreground font-medium">
-                          Submitted {formatDate(selectedRegistration.submittedAt)}
+                          Submitted{" "}
+                          {formatDate(selectedRegistration.submittedAt)}
                         </span>
                       </div>
                     </div>
@@ -457,8 +460,7 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                       <p className="text-xs text-muted-foreground">Location</p>
                       <p className="text-sm font-bold text-foreground flex items-center gap-1.5 mt-0.5">
                         <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                        {displayTournament?.location ||
-                          "Not specified"}
+                        {displayTournament?.location || "Not specified"}
                       </p>
                     </div>
                     <div>
@@ -483,13 +485,8 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                     <div>
                       <p className="text-xs text-muted-foreground">Dates</p>
                       <p className="text-sm font-bold text-foreground mt-0.5">
-                        {formatDateFull(
-                          displayTournament?.startDate
-                        )}{" "}
-                        -{" "}
-                        {formatDateFull(
-                          displayTournament?.endDate
-                        )}
+                        {formatDateFull(displayTournament?.startDate)} -{" "}
+                        {formatDateFull(displayTournament?.endDate)}
                       </p>
                     </div>
                   </div>
@@ -518,8 +515,7 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                   )}
                 </div>
 
-                {displayTournament?.status ===
-                  "registration_open" && (
+                {displayTournament?.status === "registration_open" && (
                   <div className="flex items-center justify-end gap-3"></div>
                 )}
               </div>
