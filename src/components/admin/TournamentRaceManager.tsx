@@ -3,7 +3,7 @@ import { Calendar, Flag, Loader2, ArrowLeft, Plus } from "lucide-react";
 import type { ToastType } from "../../types/referee";
 import { TournamentForm } from "./tournament/TournamentForm";
 import TournamentList from "./tournament/TournamentList";
-import TournamentDetailModal from "./tournament/TournamentDetailModal";
+
 import useAdminTournament from "../../hooks/admin/useAdminTournament";
 import useAdminRace from "../../hooks/admin/useAdminRace";
 import TournamentDetail from "./tournament/TournamentDetail";
@@ -84,10 +84,6 @@ export default function TournamentRaceManager({
     loadRaces,
     getRaceDetail,
   ]);
-
-  const handleOpenDetail = async (id: string) => {
-    await getTournamentDetail(id);
-  };
 
   const handleManageRaces = (id: string) => {
     setActiveTournamentId(id);
@@ -501,20 +497,10 @@ export default function TournamentRaceManager({
           ) : (
             <TournamentList
               tournaments={tournaments?.data ?? []}
-              onView={handleOpenDetail}
-              onManageRaces={handleManageRaces}
+              onManage={handleManageRaces}
             />
           )}
         </div>
-
-        <TournamentDetailModal
-          isOpen={!!selectedTournament}
-          onClose={clearSelectedTournament}
-          tournament={selectedTournament!}
-          onUpdate={handleUpdateTournament}
-          onStatusChange={handleUpdateStatus}
-          onManageRaces={handleManageRaces}
-        />
       </div>
       {pagination.totalPages > 1 && (
         <div className="flex items-center gap-2 pt-3">

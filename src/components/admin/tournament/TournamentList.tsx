@@ -2,14 +2,12 @@ import TournamentCard from "./TournamentCard";
 
 type Props = {
   tournaments: any[];
-  onView: (id: string) => void;
-  onManageRaces?: (id: string) => void;
+  onManage?: (id: string) => void;
 };
 
 export default function TournamentList({
   tournaments,
-  onView,
-  onManageRaces,
+  onManage,
 }: Props) {
   return (
     <div className="space-y-3">
@@ -17,8 +15,7 @@ export default function TournamentList({
         <TournamentCard
           key={tournament.id}
           tournament={tournament}
-          onView={onView}
-          onManageRaces={onManageRaces}
+          onManage={onManage}
         />
       ))}
     </div>
