@@ -252,12 +252,6 @@ export default function RacesPage() {
     }
   }, [selectedRange?.from, selectedRange?.to, loadRacesForRange]);
 
-  useEffect(() => {
-    if (!selectedRange?.from) {
-      setStatusFilter("All");
-    }
-  }, [selectedRange?.from]);
-
   const effectiveRaces = useMemo(() => {
     if (selectedRange?.from && selectedRange?.to) return rangeRaces;
     return apiRaces;
