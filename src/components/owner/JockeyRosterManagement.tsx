@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { cn } from "../../lib/utils";
-import { formatStatus } from "../../utils/statusFormat";
-import { type Entry, useOwner } from "../../hooks/useOwner.ts";
-import { useNavigate } from "react-router-dom";
+import { type Entry, type Jockey, useOwner } from "../../hooks/useOwner.ts";
+import { useNavigate, useParams } from "react-router-dom";
+import { Search, ArrowLeft } from "lucide-react";
+import { ToastContainer } from "../ui/toast";
+import { useToast } from "../../hooks/useToast";
 
 export function JockeyRosterManagement() {
   const {
@@ -14,12 +16,57 @@ export function JockeyRosterManagement() {
     entriesPagination,
     entriesPage,
     setEntriesPage,
+    jockeys,
+    loadJockeys,
+    inviteJockey,
   } = useOwner();
+
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
   const [subTab, setSubTab] = useState<"detail" | "invitation">("detail");
+  const [inviteJockeyView, setInviteJockeyView] = useState<'list' | 'write'>('list');
+  
+  const [selectedJockeyId, setSelectedJockeyId] = useState<number | null>(null);
+  const [inviteTitle, setInviteTitle] = useState("");
+  const [inviteMessage, setInviteMessage] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [keyword, setKeyword] = useState("");
 
   const navigate = useNavigate();
-  // Entries without confirmed jockey
+  const { entryId } = useParams<{ entryId: string }>();
+  const { toasts, addToast } = useToast(3000);
+
+  // Handle entryId from URL params to maintain context when navigating
+  useEffect(() => {
+    if (entryId) {
+      // Find and set the entry from the entries list based on the URL parameter
+      const entryFromUrl = entries.find(e => e.entryId === entryId);
+      if (entryFromUrl && !selectedEntry) {
+        setSelectedEntry(entryFromUrl);
+        setSubTab("detail");
+      }
+    } else if (selectedEntry && entryId === undefined) {
+      // Clear selectedEntry if we navigate away from URL with entryId
+      // This handles when user clicks back or navigates from the invite form
+      console.log("Clearing selectedEntry due to URL change");
+      setSelectedEntry(null);
+    }
+  }, [entryId, entries, selectedEntry]);
+
+  // Handle route navigation to sync state
+  useEffect(() => {
+    // If we're on the old send-invites route (should no longer happen)
+    if (entryId && window.location.pathname.includes('/send-invites')) {
+      console.log("Old route still being accessed, redirecting logic will be handled by navigation");
+    }
+  }, [entryId]);
+
+  // Load jockeys when entering the invite view
+  useEffect(() => {
+    if (inviteJockeyView === 'list') {
+      loadJockeys();
+    }
+  }, [inviteJockeyView, loadJockeys]);
+
   const entriesWithoutJockey = entries.filter((entry) => {
     const hasConfirmed = invitations.some(
       (i) => i.horse.id === entry.horseId && i.status === "confirmed"
@@ -27,13 +74,14 @@ export function JockeyRosterManagement() {
     return !hasConfirmed;
   });
 
-  // Related invitations for selected entry
   const relatedInvitations = selectedEntry
     ? invitations.filter((inv) => inv.horse.id === selectedEntry.horseId)
     : [];
 
   const handleFindJockey = (entry: Entry) => {
-    navigate(`/entries/${entry.entryId}/send-invites`);
+    setSelectedEntry(entry);
+    setInviteJockeyView('list');
+    loadJockeys();
   };
 
   const handleConfirm = (Inv: any) => {
@@ -46,30 +94,54 @@ export function JockeyRosterManagement() {
     cancelInvite(Inv.raceId, Inv.id);
   };
 
-  const statusBadgeClass = (status: string) =>
-    cn(
-      "rounded border px-1.5 py-0.5 text-[8px] font-black uppercase",
-      status === "confirmed" &&
-        "border-emerald-200 bg-emerald-50 text-emerald-800",
-      status === "accepted" && "border-blue-200 bg-blue-50 text-blue-800",
-      status === "pending" && "border-amber-200 bg-amber-50 text-amber-800",
-      status === "declined" && "border-rose-200 bg-rose-50 text-rose-800",
-      status === "superseded" && "border-slate-200 bg-slate-50 text-slate-400"
+  const filteredJockeys = useCallback(() => {
+    if (!keyword.trim()) return jockeys;
+    const term = keyword.toLowerCase();
+    return jockeys.filter(
+      (j: Jockey) =>
+        j.fullName.toLowerCase().includes(term) ||
+        (j.club && j.club.toLowerCase().includes(term))
     );
+  }, [jockeys, keyword]);
 
-  const toPascalCase = (str: string): string => {
-    if (!str) return "";
-    return str
-      .split(/[_\s-]+/)
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(" ");
+  const selectedJockey = filteredJockeys().find((j: Jockey) => j.id === selectedJockeyId);
+
+  const handleSelectJockey = () => {
+    if (!selectedJockeyId) return;
+    setInviteJockeyView('write');
   };
 
-  const handleSubTabChange = async (tab: "detail" | "invitation") => {
-    setSubTab(tab);
-    if (tab === "invitation" && selectedEntry?.raceId) {
-      await loadInvitations(selectedEntry.raceId);
+  const handleConfirmSend = async () => {
+    if (!selectedEntry || !selectedJockey) return;
+
+    setInviting(true);
+    
+    try {
+      await inviteJockey(
+        inviteTitle,
+        selectedEntry.entryId,
+        String(selectedJockey.id),
+        selectedEntry.horseId,
+        inviteMessage
+      );
+      addToast("Invitation sent successfully.", "success");
+      setSubTab("invitation");
+      // Reset form state and return to list view
+      handleBackToList();
+    } catch (error) {
+      console.error(error);
+      addToast("Failed to send invitation. Please try again.", "error");
+    } finally {
+      setInviting(false);
     }
+  };
+
+  const handleBackToList = () => {
+    setInviteJockeyView('list');
+    setSelectedJockeyId(null);
+    setInviteTitle('');
+    setInviteMessage('');
+    setKeyword('');
   };
 
   return (
