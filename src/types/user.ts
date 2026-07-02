@@ -147,6 +147,28 @@ export type UserRaceListResponse = {
   };
 };
 
+export interface MyEntry {
+  id: string;
+  raceId: string;
+  horseId: string;
+  horseName: string;
+  jockeyId?: string;
+  jockeyName?: string;
+  status: string;
+  laneNumber?: number;
+  clothNumber?: number;
+}
+
+export interface MyEntriesResponse {
+  data: MyEntry[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 export type UserRaceDetail = {
   id: string;
   tournamentId: string;

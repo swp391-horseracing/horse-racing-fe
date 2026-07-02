@@ -380,16 +380,6 @@ export default function TournamentDetail({
         </form>
       ) : (
         <>
-          <div>
-            <h3 className="font-semibold mb-2">Description</h3>
-            <p>{tournament.description || "No description available."}</p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-2">Rules</h3>
-            <p>{tournament.rules || "No rules available."}</p>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
               <strong>Location:</strong> {tournament.location}
@@ -436,6 +426,20 @@ export default function TournamentDetail({
               <strong>Min Participants:</strong>{" "}
               {tournament.minimumParticipants ?? 0}
             </div>
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-slate-100">
+            <h3 className="font-semibold mb-2">Description</h3>
+            <p className="whitespace-pre-wrap">
+              {tournament.description || "No description available."}
+            </p>
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-slate-100">
+            <h3 className="font-semibold mb-2">Rules</h3>
+            <p className="whitespace-pre-wrap">
+              {tournament.rules || "No rules available."}
+            </p>
           </div>
         </>
       )}

@@ -753,8 +753,8 @@ export default function RacesPage() {
                       Race Entries - Horses & Jockeys
                     </h3>
                     {raceDetail.entries && raceDetail.entries.length > 0 ? (
-                      <div className="overflow-hidden rounded-xl border border-[#064E3B]/10 bg-white shadow-sm">
-                        <table className="w-full text-left">
+                      <div className="overflow-x-auto rounded-xl border border-[#064E3B]/10 bg-white shadow-sm">
+                        <table className="w-full text-left min-w-[600px] md:min-w-0">
                           <thead className="bg-[#F4F6F5] border-b border-slate-100">
                             <tr>
                               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 w-20 text-center">

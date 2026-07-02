@@ -5,13 +5,8 @@ import {
   Calendar,
   ChevronLeft,
   Heart,
-  ShieldCheck,
-  Star,
-  Weight,
   PlayCircle,
   ArrowLeft,
-  Clock7,
-  Info,
 } from "lucide-react";
 import useHorse from "../hooks/horse/useHorse.ts";
 import useAuth from "../hooks/auth/useAuth.ts";
@@ -32,21 +27,10 @@ function getAge(birthDate?: string) {
   return `${Math.max(age, 0)} yrs`;
 }
 
-function InfoRow({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-}) {
+function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-4 py-2.5">
-      <div className="flex items-center gap-2 text-slate-500">
-        {icon}
-        <span>{label}</span>
-      </div>
+      <span className="text-slate-500">{label}</span>
       <div className="font-semibold text-[#173a35] text-right">{value}</div>
     </div>
   );
@@ -271,36 +255,30 @@ export default function HorseDetailPage() {
                   value={
                     (selectedHorse as any).isRetired ? "Retired" : "Active"
                   }
-                  icon={<Info className="h-4 w-4" />}
                 />
                 <InfoRow
                   label="Weight"
                   value={`${selectedHorse.weightKg ?? "No Info"} kg`}
-                  icon={<Weight className="h-4 w-4" />}
                 />
                 <InfoRow
                   label="Breed"
                   value={(selectedHorse as any).breed ?? "No Info"}
-                  icon={<Star className="h-4 w-4" />}
                 />
                 <InfoRow
                   label="Health"
                   value={(selectedHorse as any).healthStatus ?? "No Info"}
-                  icon={<ShieldCheck className="h-4 w-4" />}
                 />
                 <InfoRow
                   label="Created"
                   value={
                     formatDate((selectedHorse as any).createdAt) ?? "No Info"
                   }
-                  icon={<Clock7 className="h-4 w-4" />}
                 />
                 <InfoRow
                   label="Updated"
                   value={
                     formatDate((selectedHorse as any).updatedAt) ?? "No Info"
                   }
-                  icon={<Clock7 className="h-4 w-4" />}
                 />
               </div>
             </section>
