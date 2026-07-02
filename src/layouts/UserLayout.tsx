@@ -168,11 +168,11 @@ export default function UserLayout({
         key: ROUTES.ADMIN_DASHBOARD,
       },
       { label: "Access Management", icon: UserCheck, key: "/admin/access" },
-      { 
-        label: "Registry & Approvals", 
-        icon: Mail, 
+      {
+        label: "Registry & Approvals",
+        icon: Mail,
         key: "/admin/registry",
-        badge: pendingRegistrationsCount 
+        badge: pendingRegistrationsCount,
       },
       {
         label: "Tournaments & Races",
@@ -180,11 +180,11 @@ export default function UserLayout({
         key: "/admin/tournaments",
       },
       { label: "Virtual Economy", icon: TrendingUp, key: "/admin/economy" },
-      { 
-        label: "Race Reports", 
-        icon: ClipboardList, 
+      {
+        label: "Race Reports",
+        icon: ClipboardList,
         key: ROUTES.ADMIN_REPORTS,
-        badge: pendingReportsCount
+        badge: pendingReportsCount,
       },
     ],
     Referee: [
