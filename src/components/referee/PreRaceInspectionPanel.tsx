@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { type MockRace } from "../../types/referee";
 import { cn } from "../../lib/utils";
+import { formatStatus } from "../../utils/statusFormat";
 
 interface PreRaceInspectionPanelProps {
   race: MockRace;
@@ -169,7 +170,7 @@ export default function PreRaceInspectionPanel({
                       "bg-slate-100 text-slate-500 border-slate-200"
                   )}
                 >
-                  {lane.inspectionStatus}
+                  {formatStatus(lane.inspectionStatus)}
                 </span>
               </div>
               <p className="text-sm font-bold text-slate-800">
@@ -324,7 +325,7 @@ export default function PreRaceInspectionPanel({
                           : "border-slate-200 text-slate-600 hover:bg-slate-50"
                       )}
                     >
-                      {status}
+                      {formatStatus(status)}
                     </button>
                   ))}
                 </div>

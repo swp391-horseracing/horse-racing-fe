@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { formatStatus } from "../../utils/statusFormat";
 import type { ToastType } from "../../types/referee";
 import useAdmin from "../../hooks/admin/useAdmin.ts";
 import UserSearch from "./user/UserSearch.tsx";
@@ -172,7 +173,7 @@ export default function AccessManagement({
                             : "bg-rose-50 text-rose-700 border border-rose-200"
                         )}
                       >
-                        {u.status}
+                        {formatStatus(u.status)}
                       </span>
                     </td>
 

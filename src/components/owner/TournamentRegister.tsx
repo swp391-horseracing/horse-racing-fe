@@ -14,13 +14,14 @@ import {
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { formatTournamentStatus } from "../../styles/schema/tournamentStatusFlow";
+import { formatStatus } from "../../utils/statusFormat";
 import type {
   Tournament,
   TournamentRegistrationResponse,
 } from "../../types/tournament";
 import type { Horse } from "../../types/horse";
 
-export interface RaceRegisterProps {
+export interface TournamentRegisterProps {
   horses: Horse[];
   tournaments: Tournament[];
   registrations: TournamentRegistrationResponse[];
@@ -52,11 +53,6 @@ function formatDateFull(value?: string) {
     month: "long",
     day: "numeric",
   });
-}
-
-function formatStatus(status?: string) {
-  if (!status) return "Unknown";
-  return status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, " ");
 }
 
 function TournamentStatusBadge({ status }: { status: string }) {
@@ -154,7 +150,7 @@ function formatAge(dob: string): string {
   return `${age} years`;
 }
 
-export function RaceRegister({ registrations }: RaceRegisterProps) {
+export function TournamentRegister({ registrations }: TournamentRegisterProps) {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<ActiveFilterType>("All");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -212,7 +208,7 @@ export function RaceRegister({ registrations }: RaceRegisterProps) {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div className="min-w-0">
             <h2 className="text-3xl font-black tracking-tight text-primary font-headline">
-              Race & Tournament Registration
+              Tournament Registration
             </h2>
             <p className="mt-2 text-xs text-muted-foreground">
               Browse registrations with tournament, horse, and status details.

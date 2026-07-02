@@ -23,8 +23,8 @@ import {
 } from "../schedule/ScheduleDetailFrame";
 import { RaceService } from "../../services/RaceService";
 import type { RaceEntry } from "../../types/race";
+import { formatStatus } from "../../utils/statusFormat";
 
-type ComputedRideStatus = "pending" | "accepted" | "declined" | "finished";
 type RideDetailTab = "info" | "runners";
 
 interface RidingScheduleProps {
@@ -35,18 +35,13 @@ interface RidingScheduleProps {
   onDeclineRide?: (id: string) => void;
 }
 
-const getComputedRideStatus = (ride: MyRide): ComputedRideStatus => {
-  if (ride.status === "completed") return "finished";
-  return ride.entryStatus;
-};
-
 const formatOrdinal = (num: number) => {
   const suffixes = ["th", "st", "nd", "rd"];
   const val = num % 100;
   return num + (suffixes[(val - 20) % 10] || suffixes[val] || suffixes[0]);
 };
 
-const getStatusBadgeStyles = (status: ComputedRideStatus) => {
+const getStatusBadgeStyles = (status: string) => {
   switch (status) {
     case "pending":
       return "bg-[#D97706]/10 text-[#D97706] border-[#D97706]/30";
@@ -54,10 +49,14 @@ const getStatusBadgeStyles = (status: ComputedRideStatus) => {
       return "bg-[#064E3B]/10 text-[#064E3B] border-[#064E3B]/30";
     case "declined":
       return "bg-rose-500/10 text-rose-700 border-rose-500/30";
-    case "finished":
-      return "bg-slate-500/10 text-slate-600 border-slate-500/30";
+    case "did_not_finish":
+      return "bg-slate-100 text-slate-700 border-slate-300";
+    case "disqualified":
+      return "bg-red-50 text-red-800 border-red-300";
+    case "scratched":
+      return "bg-amber-50 text-amber-800 border-amber-300";
     default:
-      return "bg-slate-100 text-slate-650 border-slate-200";
+      return "bg-slate-500/10 text-slate-600 border-slate-500/30";
   }
 };
 
@@ -65,24 +64,26 @@ function RideStatusBadge({
   status,
   onDark,
 }: {
-  status: ComputedRideStatus;
+  status: string;
   onDark?: boolean;
 }) {
   if (onDark) {
-    const styles = {
+    const styles: Record<string, string> = {
       pending: "bg-[#D97706] !text-white border-transparent",
       accepted: "bg-emerald-600 !text-white border-transparent",
       declined: "bg-rose-600 !text-white border-transparent",
-      finished: "bg-slate-600 !text-white border-transparent",
+      did_not_finish: "bg-slate-600 !text-white border-transparent",
+      disqualified: "bg-red-600 !text-white border-transparent",
+      scratched: "bg-amber-600 !text-white border-transparent",
     };
     return (
       <span
         className={cn(
           "px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm !text-white",
-          styles[status]
+          styles[status] ?? "bg-slate-600 !text-white border-transparent"
         )}
       >
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {formatStatus(status)}
       </span>
     );
   }
@@ -93,7 +94,7 @@ function RideStatusBadge({
         getStatusBadgeStyles(status)
       )}
     >
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {formatStatus(status)}
     </span>
   );
 }
@@ -126,22 +127,20 @@ export function RidingSchedule({
     });
   }, [rides, selectedRange]);
 
-  const counts = useMemo(
-    () => ({
-      All: ridesInRange.length,
-      pending: ridesInRange.filter(
-        (r) => getComputedRideStatus(r) === "pending"
-      ).length,
-      accepted: ridesInRange.filter(
-        (r) => getComputedRideStatus(r) === "accepted"
-      ).length,
-      declined: ridesInRange.filter(
-        (r) => getComputedRideStatus(r) === "declined"
-      ).length,
-      finished: ridesInRange.filter(
-        (r) => getComputedRideStatus(r) === "finished"
-      ).length,
-    }),
+  const entryStatusCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    ridesInRange.forEach((r) => {
+      const key = r.entryStatus || "pending";
+      map.set(key, (map.get(key) ?? 0) + 1);
+    });
+    return map;
+  }, [ridesInRange]);
+
+  const uniqueEntryStatuses = useMemo(
+    () => [
+      "All",
+      ...new Set(ridesInRange.map((r) => r.entryStatus || "pending")),
+    ],
     [ridesInRange]
   );
 
@@ -150,7 +149,7 @@ export function RidingSchedule({
     return rides
       .filter((r) => {
         if (statusFilter === "All") return true;
-        if (isJockey) return getComputedRideStatus(r) === statusFilter;
+        if (isJockey) return r.entryStatus === statusFilter;
         return r.status === statusFilter;
       })
       .filter((r) => {
@@ -228,21 +227,17 @@ export function RidingSchedule({
 
         {isJockey ? (
           <div className="mb-6 grid grid-cols-2 md:grid-cols-5 gap-3">
-            {(
-              ["All", "pending", "accepted", "declined", "finished"] as const
-            ).map((key) => {
-              const labels = {
-                All: "Total",
-                pending: "Pending",
-                accepted: "Accepted",
-                declined: "Declined",
-                finished: "Finished",
-              };
+            {uniqueEntryStatuses.map((key) => {
+              const isAll = key === "All";
               return (
                 <ScheduleStatCard
                   key={key}
-                  label={labels[key]}
-                  value={counts[key]}
+                  label={isAll ? "Total" : formatStatus(key)}
+                  value={
+                    isAll
+                      ? ridesInRange.length
+                      : (entryStatusCounts.get(key) ?? 0)
+                  }
                   active={statusFilter === key}
                   onClick={() => setStatusFilter(key)}
                   liveDot={key === "pending"}
@@ -315,7 +310,7 @@ export function RidingSchedule({
                           "bg-[#064E3B]/5 border-l-[#064E3B]",
                         isJockey &&
                           activeSelectedRide?.id !== ride.id &&
-                          getComputedRideStatus(ride) === "pending" &&
+                          ride.entryStatus === "pending" &&
                           "bg-[#EAB308]/5 border-l-[#EAB308] hover:bg-[#EAB308]/10",
                         !activeSelectedRide &&
                           !isJockey &&
@@ -359,9 +354,7 @@ export function RidingSchedule({
                             </div>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0 pl-3">
-                            <RideStatusBadge
-                              status={getComputedRideStatus(ride)}
-                            />
+                            <RideStatusBadge status={ride.entryStatus} />
                           </div>
                         </div>
                       ) : (
@@ -384,7 +377,7 @@ export function RidingSchedule({
                                   : "bg-emerald-100 text-emerald-700"
                             )}
                           >
-                            {ride.status}
+                            {formatStatus(ride.status)}
                           </span>
                         </div>
                       )}
@@ -436,8 +429,6 @@ function JockeyDetailPanel({
   const [activeTab, setActiveTab] = useState<RideDetailTab>("info");
   const [raceEntries, setRaceEntries] = useState<RaceEntry[]>([]);
   const [entriesLoading, setEntriesLoading] = useState(false);
-  const computedRideStatus = getComputedRideStatus(ride);
-
   useEffect(() => {
     let cancelled = false;
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -488,18 +479,12 @@ function JockeyDetailPanel({
               minute: "2-digit",
             })}
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-[#EAB308]/45 text-[#EAB308] px-3 py-1.5 font-bold">
-            <Clock className="w-3.5 h-3.5" />
-            {ride.status === "completed" ? "Finished" : "Starts in 40 min"}
-          </span>
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
             <Compass className="w-3.5 h-3.5" />
             {ride.distanceMeters}m · {ride.trackCondition}
           </span>
+          <RideStatusBadge status={ride.entryStatus} onDark />
         </div>
-      }
-      headerRight={
-        <RideStatusBadge status={getComputedRideStatus(ride)} onDark />
       }
       onClose={onClose}
       tabs={tabs}
@@ -508,7 +493,7 @@ function JockeyDetailPanel({
     >
       {activeTab === "info" && (
         <>
-          {computedRideStatus === "finished" && ride.ranking && (
+          {ride.ranking && (
             <div className="bg-gradient-to-r from-[#EAB308]/20 to-[#EAB308]/5 border border-[#EAB308]/40 rounded-xl p-5 flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
               <div className="flex items-center gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#EAB308] text-[#064E3B] font-black border border-[#EAB308]/20 shadow-md">
@@ -604,7 +589,7 @@ function JockeyDetailPanel({
             </div>
           </div>
 
-          {computedRideStatus === "pending" && (
+          {ride.entryStatus === "pending" && (
             <div className="bg-white border-2 border-[#D97706]/20 rounded-xl p-5 shadow-md">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-[#D97706] mb-3 block">
                 Invitation Status
@@ -709,7 +694,7 @@ function JockeyDetailPanel({
                         <td className="px-5 py-3.5 text-slate-600 font-medium">
                           {isOurs ? (
                             <span className="text-[#064E3B] font-bold">
-                              {computedRideStatus === "declined"
+                              {ride.entryStatus === "declined"
                                 ? "— Refused —"
                                 : "You"}
                             </span>
@@ -719,7 +704,7 @@ function JockeyDetailPanel({
                         </td>
                         <td className="px-5 py-3.5 text-right">
                           {isOurs ? (
-                            <RideStatusBadge status={computedRideStatus} />
+                            <RideStatusBadge status={ride.entryStatus} />
                           ) : (
                             <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded border bg-emerald-50 border-emerald-200 text-emerald-700">
                               Confirmed
@@ -784,7 +769,7 @@ function OwnerDetailPanel({
       }
       headerRight={
         <span className="px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm bg-secondary !text-secondary-foreground border-transparent">
-          {ride.status}
+          {formatStatus(ride.status)}
         </span>
       }
       onClose={onClose}
