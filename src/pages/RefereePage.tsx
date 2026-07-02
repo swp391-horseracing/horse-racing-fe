@@ -157,9 +157,7 @@ export default function RefereePage() {
         setLoading(true);
 
         const reportPromise = RefereeService.getRefereeRaceReport(id);
-        const entriesPromise = RefereeService.getRefereeRaceEntries(id).catch(
-          () => null
-        );
+        const entriesPromise = RefereeService.getRefereeRaceEntries(id);
 
         Promise.all([reportPromise, entriesPromise])
           .then(([data, entriesData]) => {
@@ -180,18 +178,34 @@ export default function RefereePage() {
                   }
                 }
 
+                const mapEntryStatusToInspectionStatus = (
+                  entryStatus?: string
+                ): InspectionStatus | null => {
+                  switch (entryStatus) {
+                    case "confirmed":
+                      return "cleared";
+                    case "disqualified":
+                      return "disqualified";
+                    case "withdrawn":
+                    case "scratched":
+                      return "withdrawn";
+                    case "did_not_finish":
+                      return "cleared";
+                    case "pending":
+                      return "pending";
+                    default:
+                      return null;
+                  }
+                };
+
                 const mapEntryStatusToInspection = (
                   entryId: string,
                   finishStatus: string
                 ): InspectionStatus => {
-                  // If we have the real entryStatus from the entries endpoint, use it
-                  const es = entryStatusMap.get(entryId);
-                  if (es) {
-                    if (es === "confirmed") return "cleared";
-                    if (es === "disqualified") return "disqualified";
-                    if (es === "withdrawn") return "withdrawn";
-                    return "pending";
-                  }
+                  const mapped = mapEntryStatusToInspectionStatus(
+                    entryStatusMap.get(entryId)
+                  );
+                  if (mapped) return mapped;
                   // Fallback for non-scheduled phases
                   if (finishStatus === "dns") return "withdrawn";
                   return backendPhase === "scheduled" ? "pending" : "cleared";
@@ -239,13 +253,8 @@ export default function RefereePage() {
                   for (const e of entriesData.entries) {
                     if (!placementIds.has(e.id)) {
                       const inspStatus: InspectionStatus =
-                        e.entryStatus === "confirmed"
-                          ? "cleared"
-                          : e.entryStatus === "disqualified"
-                            ? "disqualified"
-                            : e.entryStatus === "withdrawn"
-                              ? "withdrawn"
-                              : "pending";
+                        mapEntryStatusToInspectionStatus(e.entryStatus) ??
+                        "pending";
                       lanes.push({
                         id: e.id,
                         laneNumber: e.laneNumber,
@@ -344,6 +353,7 @@ export default function RefereePage() {
         ...l,
         inspectionStatus: "cleared",
         inspectedAt: new Date().toISOString(),
+        failReason: null,
       }));
       addToast("Lane cleared for track entry.", "success");
     } catch (e: any) {
