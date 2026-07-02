@@ -168,7 +168,7 @@ export default function CourseManagement({
         res && typeof res === "object" && "data" in res ? res.data : res
       ) as CourseDetail;
       setSelectedCourse(detail);
-    } catch (_err) {
+    } catch {
       addToast("Failed to load course details", "error");
     } finally {
       setDetailLoading(false);
