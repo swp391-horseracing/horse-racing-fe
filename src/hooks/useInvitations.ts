@@ -88,6 +88,15 @@ export function useInvitations() {
     );
   }, []);
 
+  const declineInvitation = useCallback(async (id: string) => {
+    await UserService.declineInvitation(id);
+    setInvitations((prev) =>
+      prev.map((inv) =>
+        inv.id === id ? { ...inv, status: "declined" as const } : inv
+      )
+    );
+  }, []);
+
   return {
     invitations,
     loading,
@@ -96,6 +105,7 @@ export function useInvitations() {
     updateInvitationStatus,
     loadAllInvitation,
     cancelInvitation,
+    declineInvitation,
     setInvitations,
   };
 }

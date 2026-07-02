@@ -25,9 +25,9 @@ export default function JockeyPage() {
     invitations,
     loading: invitesLoading,
     acceptInvitation,
-    updateInvitationStatus,
     loadAllInvitation,
     cancelInvitation,
+    declineInvitation,
   } = useInvitations();
 
   const [selectedInvId, setSelectedInvId] = useState<string | null>("1");
@@ -45,13 +45,17 @@ export default function JockeyPage() {
     }
   };
 
-  const handleDeclineInvitation = (id: string) => {
+  const handleDeclineInvitation = async (id: string) => {
     const target = invitations.find((inv) => inv.id === id);
-    updateInvitationStatus(id, "declined");
-    addToast(
-      `You declined the invitation to ride ${target?.horse?.name ?? target?.horse?.id}. Deep access revoked.`,
-      "info"
-    );
+    try {
+      await declineInvitation(id);
+      addToast(
+        `You declined the invitation to ride ${target?.horse?.name ?? target?.horse?.id}. Deep access revoked.`,
+        "info"
+      );
+    } catch {
+      addToast("Failed to decline invitation. Please try again.", "error");
+    }
   };
 
   const handleCancelInvitation = async (id: string) => {

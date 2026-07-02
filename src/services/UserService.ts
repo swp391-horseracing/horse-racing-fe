@@ -100,6 +100,12 @@ export const UserService = {
     return response.data;
   },
 
+  declineInvitation: async (id: string) => {
+    const response = await api.patch(`/me/invitations/${id}/decline`);
+
+    return response.data;
+  },
+
   confirmInvitation: async (raceId: string, id: string) => {
     const response = await api.patch(
       `/me/races/${raceId}/invitations/${id}/confirm`
