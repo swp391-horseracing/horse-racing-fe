@@ -9,6 +9,7 @@ export type Entry = {
   raceStatus: string;
   entryStatus: string;
   scheduleAt: string;
+  status: string;
   venue: string;
   distanceMeters: number;
   laneNumber: number;
