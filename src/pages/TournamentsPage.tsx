@@ -314,7 +314,9 @@ export default function TournamentsPage() {
                   <div
                     key={t.id}
                     onClick={() =>
-                      isSelected ? handleCloseTournament() : handleOpenTournament(t.id)
+                      isSelected
+                        ? handleCloseTournament()
+                        : handleOpenTournament(t.id)
                     }
                     className={`group cursor-pointer overflow-hidden rounded-2xl border bg-card transition-all duration-150 ${
                       isSelected

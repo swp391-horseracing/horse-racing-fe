@@ -349,7 +349,8 @@ export function useOwner() {
           const ownerEntry = detail.value.entries.find((e) =>
             horseLookup.has(e.horseId)
           );
-          horseName = ownerEntry?.horseName ?? detail.value.entries[0]?.horseName ?? "";
+          horseName =
+            ownerEntry?.horseName ?? detail.value.entries[0]?.horseName ?? "";
         }
 
         mappedRides.push({
