@@ -85,11 +85,19 @@ export function useOwner() {
 
   const loadTournamentsList = useCallback(async () => {
     try {
-      const response = await TournamentService.getTournaments({
-        limit: 100,
-      });
-
-      setTournaments(response.data ?? []);
+      const all: Tournament[] = [];
+      let page = 1;
+      let totalPages = 1;
+      do {
+        const response = await TournamentService.getTournaments({
+          page,
+          limit: 100,
+        });
+        all.push(...(response.data ?? []));
+        totalPages = response.pagination.totalPages;
+        page++;
+      } while (page <= totalPages);
+      setTournaments(all);
     } catch (error) {
       console.error("Failed to load tournaments:", error);
     }
@@ -128,14 +136,22 @@ export function useOwner() {
       );
       if (approved.length === 0) return;
 
+      const uniqueTournamentIds = [
+        ...new Set(approved.map((reg) => reg.tournament.id)),
+      ];
       const raceResults = await Promise.allSettled(
-        approved.map((reg) =>
-          TournamentService.getTournamentRaces(reg.tournament.id)
+        uniqueTournamentIds.map((tournamentId) =>
+          TournamentService.getTournamentRaces(tournamentId)
         )
       );
-      const allRaces = raceResults.flatMap((r) =>
-        r.status === "fulfilled" ? (r.value.data ?? []) : []
-      );
+      const seenRaceIds = new Set<string>();
+      const allRaces = raceResults
+        .flatMap((r) => (r.status === "fulfilled" ? (r.value.data ?? []) : []))
+        .filter((race) => {
+          if (seenRaceIds.has(race.id)) return false;
+          seenRaceIds.add(race.id);
+          return true;
+        });
       if (allRaces.length === 0) return;
 
       const invResults = await Promise.allSettled(
@@ -307,14 +323,22 @@ export function useOwner() {
         return;
       }
 
+      const uniqueTournamentIds = [
+        ...new Set(approved.map((reg) => reg.tournament.id)),
+      ];
       const raceResults = await Promise.allSettled(
-        approved.map((reg) =>
-          TournamentService.getTournamentRaces(reg.tournament.id)
+        uniqueTournamentIds.map((tournamentId) =>
+          TournamentService.getTournamentRaces(tournamentId)
         )
       );
-      const allRaces = raceResults.flatMap((r) =>
-        r.status === "fulfilled" ? (r.value.data ?? []) : []
-      );
+      const seenRaceIds = new Set<string>();
+      const allRaces = raceResults
+        .flatMap((r) => (r.status === "fulfilled" ? (r.value.data ?? []) : []))
+        .filter((race) => {
+          if (seenRaceIds.has(race.id)) return false;
+          seenRaceIds.add(race.id);
+          return true;
+        });
       if (allRaces.length === 0) {
         setScheduleRides([]);
         return;
@@ -344,14 +368,11 @@ export function useOwner() {
         if (detail.status !== "fulfilled") continue;
 
         const race = allRaces[i];
-        let horseName = "";
-        if (detail.value.entries?.length) {
-          const ownerEntry = detail.value.entries.find((e) =>
-            horseLookup.has(e.horseId)
-          );
-          horseName =
-            ownerEntry?.horseName ?? detail.value.entries[0]?.horseName ?? "";
-        }
+        const ownerEntry = detail.value.entries?.find((e) =>
+          horseLookup.has(e.horseId)
+        );
+        if (!ownerEntry) continue;
+        const horseName = ownerEntry.horseName ?? "";
 
         mappedRides.push({
           id: race.id,

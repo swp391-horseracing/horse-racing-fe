@@ -282,7 +282,10 @@ export default function RacesPage() {
           r.className.toLowerCase().includes(lower);
         return matchStatus && matchSearch;
       })
-      .sort((a, b) => a.time.localeCompare(b.time));
+      .sort(
+        (a, b) =>
+          new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
+      );
   }, [allRaces, statusFilter, search]);
 
   const grouped = useMemo(() => {
@@ -439,6 +442,9 @@ export default function RacesPage() {
                   selectedRange={selectedRange}
                   onSelect={(range) => {
                     setSelectedRange(range);
+                    if (!range?.from) {
+                      setStatusFilter("All");
+                    }
                     if (range?.from) {
                       setViewMonth(range.from);
                     }

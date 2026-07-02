@@ -49,9 +49,7 @@ export default function OwnerPage() {
   } = useOwner();
 
   useEffect(() => {
-    if (registrations.length > 0) {
-      loadOwnerSchedule();
-    }
+    loadOwnerSchedule();
   }, [registrations, loadOwnerSchedule]);
 
   const { toasts, addToast } = useToast(3000);

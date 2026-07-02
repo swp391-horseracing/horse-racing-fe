@@ -110,12 +110,19 @@ export default function useTournament() {
 
   const loadAllTournaments = useCallback(async () => {
     try {
-      const response = await TournamentService.getTournaments({
-        page: 1,
-        limit: 100,
-      });
-
-      setAllTournaments(response.data as unknown as TournamentListItem[]);
+      const all: TournamentListItem[] = [];
+      let page = 1;
+      let totalPages = 1;
+      do {
+        const response = await TournamentService.getTournaments({
+          page,
+          limit: 100,
+        });
+        all.push(...(response.data as unknown as TournamentListItem[]));
+        totalPages = response.pagination.totalPages;
+        page++;
+      } while (page <= totalPages);
+      setAllTournaments(all);
     } catch {
       setAllTournaments([]);
     }

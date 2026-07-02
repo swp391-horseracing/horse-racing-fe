@@ -452,29 +452,29 @@ function JockeyDetailPanel({
     startTransition(() => {
       setEntriesLoading(true);
       setEntriesError(null);
+      setRaceEntries([]);
     });
     UserService.getMyRaceDetail(ride.id)
       .then((data) => {
         if (!cancelled) {
-          if (data.entries) {
-            const mapped = data.entries.map((e) => ({
-              id: e.id,
-              horseId: e.horseId,
-              name: e.horseName,
-              laneNumber: "",
-              weightKg: "",
-              entryStatus: "",
-              jockeyName: e.jockeyName ?? "",
-              clothNumber: e.clothNumber,
-              trainerName: e.trainerName,
-            }));
-            setRaceEntries(mapped);
-          }
+          const mapped = (data.entries ?? []).map((e) => ({
+            id: e.id,
+            horseId: e.horseId,
+            name: e.horseName,
+            laneNumber: "",
+            weightKg: "",
+            entryStatus: "",
+            jockeyName: e.jockeyName ?? "",
+            clothNumber: e.clothNumber,
+            trainerName: e.trainerName,
+          }));
+          setRaceEntries(mapped);
           setEntriesLoading(false);
         }
       })
       .catch(() => {
         if (!cancelled) {
+          setRaceEntries([]);
           setEntriesLoading(false);
           setEntriesError("Failed to load runner line-up for this race.");
         }

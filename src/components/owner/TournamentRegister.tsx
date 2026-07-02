@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, startTransition } from "react";
 import {
   Search,
   MapPin,
@@ -202,9 +202,20 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
 
   useEffect(() => {
     if (!selectedRegistration) return;
+    startTransition(() => {
+      setTournamentDetail(null);
+    });
+    let cancelled = false;
     TournamentService.getTournamentByID(selectedRegistration.tournament.id)
-      .then((data) => setTournamentDetail(data))
-      .catch(() => setTournamentDetail(null));
+      .then((data) => {
+        if (!cancelled) setTournamentDetail(data);
+      })
+      .catch(() => {
+        if (!cancelled) setTournamentDetail(null);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [selectedRegistration]);
 
   const displayTournament =
