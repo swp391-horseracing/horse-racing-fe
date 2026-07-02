@@ -355,7 +355,7 @@ export default function TournamentsPage() {
                           </span>
                           <span className="flex items-center gap-1">
                             <Flag className="h-3 w-3 text-muted-foreground/80" />
-                            {t.startDate}
+                            {formatDateOrFallback(t.startDate)}
                           </span>
                         </div>
                       </div>
@@ -403,8 +403,8 @@ export default function TournamentsPage() {
                 <div className="min-w-0">
                   <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-primary-foreground/70">
                     <CalendarDays className="h-3 w-3" />
-                    {selectedTournament.startDate} -{" "}
-                    {selectedTournament.endDate}
+                    {formatDateOrFallback(selectedTournament.startDate)} -{" "}
+                    {formatDateOrFallback(selectedTournament.endDate)}
                   </span>
                   <div className="text-2xl font-black font-headline text-white tracking-tight leading-snug truncate mt-1">
                     {selectedTournament.name}
@@ -565,7 +565,7 @@ export default function TournamentsPage() {
                       Entry Requirements & Conditions
                     </h4>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
                         <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
                           <Trophy className="h-4.5 w-4.5" />
@@ -588,21 +588,11 @@ export default function TournamentsPage() {
                         </div>
                         <div>
                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            Nominations Close
+                            Tournament Dates
                           </p>
                           <p className="text-base font-black text-foreground mt-1">
-                            {formatDateOrFallback(
-                              selectedTournament.registrationCloseDate
-                            )}
+                            {formatDateOrFallback(selectedTournament.startDate)} - {formatDateOrFallback(selectedTournament.endDate)}
                           </p>
-                          {selectedTournament.registrationOpenDate && (
-                            <p className="text-[10px] text-muted-foreground mt-0.5">
-                              Opens{" "}
-                              {formatDateOrFallback(
-                                selectedTournament.registrationOpenDate
-                              )}
-                            </p>
-                          )}
                         </div>
                       </div>
 
@@ -624,6 +614,20 @@ export default function TournamentsPage() {
                               Min {selectedTournament.minimumParticipants}
                             </p>
                           )}
+                        </div>
+                      </div>
+
+                      <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
+                        <div className="p-2.5 bg-secondary/15 text-secondary rounded-lg">
+                          <CalendarDays className="h-4.5 w-4.5" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            Registration Period
+                          </p>
+                          <p className="text-base font-black text-foreground mt-1">
+                            {formatDateOrFallback(selectedTournament.registrationOpenDate)} - {formatDateOrFallback(selectedTournament.registrationCloseDate)}
+                          </p>
                         </div>
                       </div>
                     </div>
