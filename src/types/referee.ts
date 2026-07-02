@@ -141,6 +141,29 @@ export interface RaceReport {
   referee: Referee;
 }
 
+export interface RefereeEntry {
+  id: string;
+  laneNumber: number;
+  entryStatus:
+    | "pending"
+    | "confirmed"
+    | "scratched"
+    | "withdrawn"
+    | "did_not_finish"
+    | "disqualified";
+  horse: {
+    id: string;
+    name: string;
+    breed: string;
+    weightKg: number | null;
+  };
+  jockey: {
+    id: string | null;
+    fullName: string | null;
+    weightKg: number | null;
+  };
+}
+
 export interface RefereeReport {
   race: RaceDetail;
   referee: Referee;
