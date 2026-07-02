@@ -133,7 +133,9 @@ export const UserService = {
     return response.data;
   },
 
-  getMyRaceDetail: async (raceId: string): Promise<UserRaceDetail> => {
+  getMyRaceDetail: async (
+    raceId: string | unknown
+  ): Promise<UserRaceDetail> => {
     const response = await api.get(`/me/races/${raceId}`);
     return response.data;
   },

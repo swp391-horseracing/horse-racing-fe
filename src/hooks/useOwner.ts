@@ -315,7 +315,7 @@ export function useOwner() {
       const entriesResponse = await UserService.getMyEntries();
       const entries = entriesResponse.data ?? [];
 
-      const ownerEntries = entries.filter((e) =>
+      const ownerEntries = entries.filter((e: Entry) =>
         approvedHorseIds.has(e.horseId)
       );
 
@@ -324,13 +324,15 @@ export function useOwner() {
         return;
       }
 
-      const uniqueRaceIds = [...new Set(ownerEntries.map((e) => e.raceId))];
+      const uniqueRaceIds = [
+        ...new Set(ownerEntries.map((e: Entry) => e.raceId)),
+      ];
 
       const raceDetailResults = await Promise.allSettled(
         uniqueRaceIds.map((raceId) => UserService.getMyRaceDetail(raceId))
       );
 
-      const raceDetailMap = new Map<string, UserRaceDetail>();
+      const raceDetailMap = new Map<string | unknown, UserRaceDetail>();
       for (let i = 0; i < uniqueRaceIds.length; i++) {
         const result = raceDetailResults[i];
         if (result.status === "fulfilled") {
@@ -348,7 +350,7 @@ export function useOwner() {
         postponed: "scheduled",
       };
 
-      const mappedRides: Ride[] = ownerEntries.map((entry) => {
+      const mappedRides: Ride[] = ownerEntries.map((entry: Entry) => {
         const race = raceDetailMap.get(entry.raceId);
         return {
           id: entry.raceId,

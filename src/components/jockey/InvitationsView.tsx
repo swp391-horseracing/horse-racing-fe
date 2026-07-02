@@ -285,7 +285,6 @@ function InvitationDetail({
   inv,
   onAccept,
   onDecline,
-  onCancel,
 }: {
   inv: Invitation | null;
   onAccept: (id: string) => void;
@@ -354,7 +353,7 @@ function InvitationDetail({
       {isPending ? (
         <div className="bg-gradient-to-tr from-[#064E3B]/5 to-[#EAB308]/5 border border-[#064E3B]/20 rounded-2xl p-5 shadow-sm">
           <h3 className="text-xs font-bold font-headline uppercase text-[#064E3B]">
-            Private Health Metrics (Deep Access)
+            Health Metrics
           </h3>
           <p className="text-xs text-slate-555 italic mt-3">
             "
@@ -370,11 +369,8 @@ function InvitationDetail({
             <Lock className="w-5 h-5 text-current" />
           </div>
           <h3 className="font-bold text-md text-[#064E3B] mt-2">
-            Private Records Locked
+            Records Locked
           </h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed mt-1">
-            Deep Access is revoked for completed or non-pending offers.
-          </p>
         </div>
       )}
 
@@ -392,19 +388,6 @@ function InvitationDetail({
               className="flex-1 border border-slate-200 bg-[#F4F6F5] text-slate-655 hover:bg-slate-100 py-3.5 text-xs font-bold transition"
             >
               Decline
-            </button>
-          </div>
-        </div>
-      )}
-
-      {(inv.status === "accepted" || inv.status === "confirmed") && (
-        <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 space-y-4 shadow-sm">
-          <div className="flex gap-4">
-            <button
-              onClick={() => onCancel(inv.id)}
-              className="flex-1 rounded-xl border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 py-3.5 text-xs font-bold transition"
-            >
-              Cancel Invitation
             </button>
           </div>
         </div>
