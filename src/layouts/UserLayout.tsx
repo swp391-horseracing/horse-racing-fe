@@ -32,6 +32,7 @@ import {
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
 import { useInvitations } from "../hooks/useInvitations.ts";
+import { useAdminBadges } from "../hooks/useAdminBadges.ts";
 
 // ─── Inline Custom Horse Icon Fallback ────────────────────────────────────────
 const HorseIcon = ({ className }: { className?: string }) => (
@@ -105,6 +106,11 @@ export default function UserLayout({
     sidebarGroupLabel = "My Account";
   }
 
+  const { pendingReportsCount, pendingRegistrationsCount } = useAdminBadges(
+    currentRole,
+    location.pathname
+  );
+
   // Role-based Nav configurations
   const navConfigurations: Record<
     "Jockey" | "Owner" | "Spectator" | "Admin" | "UserProfile" | "Referee",
@@ -162,14 +168,24 @@ export default function UserLayout({
         key: ROUTES.ADMIN_DASHBOARD,
       },
       { label: "Access Management", icon: UserCheck, key: "/admin/access" },
-      { label: "Registry & Approvals", icon: Mail, key: "/admin/registry" },
+      {
+        label: "Registry & Approvals",
+        icon: Mail,
+        key: "/admin/registry",
+        badge: pendingRegistrationsCount,
+      },
       {
         label: "Tournaments & Races",
         icon: Calendar,
         key: "/admin/tournaments",
       },
       { label: "Virtual Economy", icon: TrendingUp, key: "/admin/economy" },
-      { label: "Race Reports", icon: ClipboardList, key: ROUTES.ADMIN_REPORTS },
+      {
+        label: "Race Reports",
+        icon: ClipboardList,
+        key: ROUTES.ADMIN_REPORTS,
+        badge: pendingReportsCount,
+      },
     ],
     Referee: [
       {
@@ -247,7 +263,7 @@ export default function UserLayout({
                         <span>{item.label}</span>
                       </SidebarMenuButton>
                       {item.badge !== undefined && item.badge > 0 && (
-                        <SidebarMenuBadge className="bg-[#EAB308] text-[#064E3B] font-black px-2 py-0.5 text-[9px] rounded-full mr-2 font-label">
+                        <SidebarMenuBadge className="bg-[#EAB308] !text-[#064E3B] font-black px-2 py-0.5 text-[9px] rounded-full mr-2 font-label">
                           {item.badge}
                         </SidebarMenuBadge>
                       )}
