@@ -23,6 +23,7 @@ import RefereePage from "../pages/RefereePage.tsx";
 import LeaderBoardPage from "../pages/LeaderBoardPage.tsx";
 import NotFoundPage from "../pages/NotFoundPage.tsx";
 import HorseDetailPage from "../pages/HorseDetailPage.tsx";
+import SendInvites from "../components/owner/jockey-roster/SendInvites.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -123,6 +124,10 @@ export const router = createBrowserRouter([
           {
             path: ROUTES.OWNER_SCHEDULE,
             element: <OwnerPage />,
+          },
+          {
+            path: ROUTES.SEND_INVITES,
+            element: <SendInvites />,
           },
         ],
       },

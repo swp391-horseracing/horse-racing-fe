@@ -38,11 +38,6 @@ export default function OwnerPage() {
     editHorse,
     retireHorse,
     registerTournament,
-    confirmPairing,
-    cancelInvite,
-    inviteJockey,
-    jockeysPagination,
-    loadAllInvitations,
     loadOwnerSchedule,
     scheduleRides,
     scheduleLoading,
@@ -289,58 +284,7 @@ export default function OwnerPage() {
           />
         );
       case "/owner/jockeys":
-        return (
-          <JockeyRosterManagement
-            registrations={registrations}
-            jockeys={jockeys}
-            invitations={invitations}
-            onInviteJockey={async (raceId, jockeyId, horseId) => {
-              try {
-                await inviteJockey(raceId, jockeyId, horseId);
-                addToast("Invitation sent to jockey successfully.", "success");
-              } catch {
-                addToast(
-                  "Failed to send invitation. Please try again.",
-                  "error"
-                );
-              }
-            }}
-            onConfirmPairing={async (invId) => {
-              const inv = invitations.find((i) => i.id === invId);
-              if (!inv) return;
-              try {
-                await confirmPairing(inv.raceId, invId);
-                addToast(
-                  `Pairing confirmed for ${inv.horse?.name ?? inv.horse?.id} with jockey ${inv.jockey?.fullName ?? inv.jockey?.id}.`,
-                  "success"
-                );
-              } catch {
-                addToast(
-                  "Failed to confirm pairing. Please try again.",
-                  "error"
-                );
-              }
-            }}
-            onCancelInvite={async (invId) => {
-              const inv = invitations.find((i) => i.id === invId);
-              if (!inv) return;
-              try {
-                await cancelInvite(inv.raceId, invId);
-                addToast(
-                  `Invitation cancelled for ${inv.horse?.name ?? inv.horse?.id} with jockey ${inv.jockey?.fullName ?? inv.jockey?.id}.`,
-                  "success"
-                );
-              } catch {
-                addToast(
-                  "Failed to cancel invitation. Please try again.",
-                  "error"
-                );
-              }
-            }}
-            jockeysPagination={jockeysPagination}
-            loadAllInvitations={loadAllInvitations}
-          />
-        );
+        return <JockeyRosterManagement />;
       case "/owner/schedule":
         return (
           <RidingSchedule

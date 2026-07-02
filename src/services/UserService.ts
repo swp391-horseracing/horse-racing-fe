@@ -6,7 +6,6 @@ import type {
   UserProfile,
   UserRaceDetail,
   UserRaceListResponse,
-  MyEntriesResponse,
 } from "../types/user.ts";
 
 export const UserService = {
@@ -56,6 +55,17 @@ export const UserService = {
     return response.data;
   },
 
+  getMyEntries: async (
+    status?: string,
+    page: number = 1,
+    limit: number = 10
+  ) => {
+    const response = await api.get("/me/entries", {
+      params: { status, page, limit },
+    });
+    return response.data;
+  },
+
   //cancel my own invitation (jockey withdraws)
   cancelMyInvitation: async (id: string) => {
     const response = await api.delete(`/me/invitations/${id}`);
@@ -80,19 +90,19 @@ export const UserService = {
     return response.data;
   },
 
-  getMyEntries: async (params?: {
-    raceId?: string;
-    page?: number;
-    limit?: number;
-  }): Promise<MyEntriesResponse> => {
-    const response = await api.get("/me/entries", { params });
-    return response.data;
-  },
-
-  inviteJockey: async (raceId: string, jockeyId: string, horseId: string) => {
-    const response = await api.patch(`/me/invitations/${raceId}`, {
+  inviteJockey: async (
+    title: string,
+    entryId: string,
+    jockeyId: string,
+    horseId: string,
+    message?: string
+  ) => {
+    const response = await api.post(`/me/invitations`, {
+      title,
+      entryId,
       jockeyId,
       horseId,
+      message,
     });
 
     return response.data;
@@ -106,7 +116,6 @@ export const UserService = {
 
   acceptInvitation: async (id: string) => {
     const response = await api.patch(`/me/invitations/${id}/accept`);
-
     return response.data;
   },
 
