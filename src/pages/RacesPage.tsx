@@ -343,7 +343,7 @@ export default function RacesPage() {
   }, [navigate]);
 
   const panelOpen = raceId !== null;
-  const isCalendarMode = !tournamentId;
+  const isCalendarMode = true;
 
   const uniqueStatuses = useMemo(
     () => ["All", ...new Set(racesInRange.map((r) => r.status))],
@@ -362,7 +362,9 @@ export default function RacesPage() {
             <div className="flex items-center gap-3.5 min-w-0">
               <button
                 onClick={() =>
-                  tournamentId ? navigate(ROUTES.TOURNAMENTS) : navigate(-1)
+                  tournamentId
+                    ? navigate(`${ROUTES.TOURNAMENTS}?selected=${tournamentId}`)
+                    : navigate(-1)
                 }
                 className="p-1.5 rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted/40 transition-colors shrink-0"
               >
