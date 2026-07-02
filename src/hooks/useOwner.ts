@@ -11,6 +11,7 @@ import type {
 import type { Invitation } from "../types/invitation";
 import type { Jockey } from "../types/jockey";
 import type { Ride } from "../types/race.ts";
+import type { UserRaceDetail } from "../types/user";
 import { TournamentService } from "../services/TournamentService.ts";
 
 export type { Horse } from "../types/horse";
@@ -341,7 +342,7 @@ export function useOwner() {
         uniqueRaceIds.map((raceId) => UserService.getMyRaceDetail(raceId))
       );
 
-      const raceDetailMap = new Map<string, { tournamentId: string; name: string; roundName: string; distanceMeters: number; scheduledAt: string; venue: string; status: string; laneCount: number; trackCondition: string }>();
+      const raceDetailMap = new Map<string, UserRaceDetail>();
       for (let i = 0; i < uniqueRaceIds.length; i++) {
         const result = raceDetailResults[i];
         if (result.status === "fulfilled") {

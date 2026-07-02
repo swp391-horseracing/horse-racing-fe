@@ -178,6 +178,8 @@ export type UserRaceDetail = {
   scheduledAt: string;
   venue: string;
   status: string;
+  laneCount?: number;
+  trackCondition?: string;
   entries?: Array<{
     id: string;
     horseId: string;
