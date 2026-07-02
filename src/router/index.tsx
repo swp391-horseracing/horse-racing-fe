@@ -100,6 +100,22 @@ export const router = createBrowserRouter([
             path: ROUTES.OWNER_DASHBOARD,
             element: <OwnerPage />,
           },
+          {
+            path: ROUTES.OWNER_HORSE_MANAGEMENT,
+            element: <OwnerPage />,
+          },
+          {
+            path: ROUTES.OWNER_TOURNAMENT_REGISTER,
+            element: <OwnerPage />,
+          },
+          {
+            path: ROUTES.OWNER_JOCKEY_LIST,
+            element: <OwnerPage />,
+          },
+          {
+            path: ROUTES.OWNER_SCHEDULE,
+            element: <OwnerPage />,
+          },
         ],
       },
       {
