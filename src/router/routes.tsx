@@ -60,6 +60,7 @@ export const ROUTES = {
   RACE_DETAIL: "/races/:id",
   RACE_PREDICT: "/races/:id/predictions",
   SPECTATOR_PREDICTIONS: "/spectator/predictions",
+  SEND_INVITES: "entries/:entryId/send-invites",
 
   //ERROR
   NOTHING_DETAIL: "/*",

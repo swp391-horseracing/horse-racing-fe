@@ -55,6 +55,17 @@ export const UserService = {
     return response.data;
   },
 
+  getMyEntries: async (
+    status?: string,
+    page: number = 1,
+    limit: number = 10
+  ) => {
+    const response = await api.get("/me/entries", {
+      params: { status, page, limit },
+    });
+    return response.data;
+  },
+
   //cancel my own invitation (jockey withdraws)
   cancelMyInvitation: async (id: string) => {
     const response = await api.delete(`/me/invitations/${id}`);
@@ -79,10 +90,19 @@ export const UserService = {
     return response.data;
   },
 
-  inviteJockey: async (raceId: string, jockeyId: string, horseId: string) => {
-    const response = await api.post(`/me/races/${raceId}/invitations`, {
+  inviteJockey: async (
+    title: string,
+    entryId: string,
+    jockeyId: string,
+    horseId: string,
+    message?: string
+  ) => {
+    const response = await api.post(`/me/invitations`, {
+      title,
+      entryId,
       jockeyId,
       horseId,
+      message,
     });
 
     return response.data;

@@ -11,6 +11,7 @@ import type {
 import type { Invitation } from "../types/invitation";
 import type { Jockey } from "../types/jockey";
 import type { Ride } from "../types/race.ts";
+import type { Entry } from "../types/entry.ts";
 import { TournamentService } from "../services/TournamentService.ts";
 
 export type { Horse } from "../types/horse";
@@ -20,6 +21,7 @@ export type {
 } from "../types/tournament";
 export type { Invitation } from "../types/invitation";
 export type { Jockey } from "../types/jockey";
+export type { Entry } from "../types/entry.ts";
 
 export function useOwner() {
   const [horses, setHorses] = useState<Horse[]>([]);
@@ -31,6 +33,16 @@ export function useOwner() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [scheduleRides, setScheduleRides] = useState<Ride[]>([]);
   const [scheduleLoading, setScheduleLoading] = useState(false);
+
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [entriesLoading, setEntriesLoading] = useState(false);
+  const [entriesPage, setEntriesPage] = useState(1);
+  const [entriesPagination, setEntriesPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+  });
 
   const [loading, setLoading] = useState(false);
 
@@ -55,7 +67,6 @@ export function useOwner() {
     const ownerId = sessionStorage.getItem("userId");
 
     if (!ownerId) return;
-
     try {
       const response = await HorseService.getHorsesByOwnerId(ownerId, {
         page,
@@ -129,59 +140,26 @@ export function useOwner() {
     []
   );
 
-  const loadAllInvitations = useCallback(async () => {
-    try {
-      const approved = registrations.filter(
-        (r: TournamentRegistrationResponse) => r.status === "approved"
-      );
-      if (approved.length === 0) return;
-
-      const uniqueTournamentIds = [
-        ...new Set(approved.map((reg) => reg.tournament.id)),
-      ];
-      const raceResults = await Promise.allSettled(
-        uniqueTournamentIds.map((tournamentId) =>
-          TournamentService.getTournamentRaces(tournamentId)
-        )
-      );
-      const seenRaceIds = new Set<string>();
-      const allRaces = raceResults
-        .flatMap((r) => (r.status === "fulfilled" ? (r.value.data ?? []) : []))
-        .filter((race) => {
-          if (seenRaceIds.has(race.id)) return false;
-          seenRaceIds.add(race.id);
-          return true;
-        });
-      if (allRaces.length === 0) return;
-
-      const invResults = await Promise.allSettled(
-        allRaces.map((race) => UserService.getRaceInvitations(race.id))
-      );
-      const seen = new Set<string>();
-      const allInvitations: Invitation[] = [];
-      for (let i = 0; i < allRaces.length; i++) {
-        const result = invResults[i];
-        if (result.status !== "fulfilled") continue;
-        const raceInvitations = (result.value.data ?? []).map(
-          (inv: Invitation) => ({
-            ...inv,
-            raceId: inv.raceId || allRaces[i].id,
-            raceName: allRaces[i].name,
-          })
+  const loadEntries = useCallback(
+    async (status?: string) => {
+      setEntriesLoading(true);
+      try {
+        const response = await UserService.getMyEntries(
+          status,
+          entriesPage,
+          10
         );
-        for (const inv of raceInvitations) {
-          if (!seen.has(inv.id)) {
-            seen.add(inv.id);
-            allInvitations.push(inv);
-          }
-        }
+        console.log("ownerEntries is here:", response);
+        setEntries(response.data ?? []);
+        setEntriesPagination(response.pagination);
+      } catch (error) {
+        console.error("Failed to load entries:", error);
+      } finally {
+        setEntriesLoading(false);
       }
-
-      setInvitations(allInvitations);
-    } catch (error) {
-      console.error("Failed to load all invitations:", error);
-    }
-  }, [registrations]);
+    },
+    [entriesPage]
+  );
 
   const addHorse = async (payload: {
     name: string;
@@ -256,13 +234,21 @@ export function useOwner() {
   };
 
   const inviteJockey = async (
-    raceId: string,
+    title: string,
+    entryId: string,
     jockeyId: string,
-    horseId: string
+    horseId: string,
+    message?: string
   ) => {
-    const response = await UserService.inviteJockey(raceId, jockeyId, horseId);
+    const response = await UserService.inviteJockey(
+      title,
+      entryId,
+      jockeyId,
+      horseId,
+      message
+    );
 
-    await loadInvitations(raceId);
+    await loadInvitations(entryId);
 
     return response;
   };
@@ -415,6 +401,7 @@ export function useOwner() {
           loadRegistrations(),
           loadJockeys(),
           loadTournamentsList(),
+          loadEntries(),
         ]);
       } finally {
         setLoading(false);
@@ -436,6 +423,12 @@ export function useOwner() {
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jockeyPage]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => loadEntries(), 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entriesPage]);
 
   return {
     page,
@@ -462,11 +455,17 @@ export function useOwner() {
     loadTournamentsList,
     loadRegistration,
     loadInvitations,
-    loadAllInvitations,
+    loadEntries,
     loadOwnerSchedule,
 
     scheduleRides,
     scheduleLoading,
+
+    entries,
+    entriesLoading,
+    entriesPage,
+    setEntriesPage,
+    entriesPagination,
 
     addHorse,
     updateHorse,
