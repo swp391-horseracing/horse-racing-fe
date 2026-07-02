@@ -80,9 +80,11 @@ export const UserService = {
     return response.data;
   },
 
-  getMyEntries: async (
-    params?: { raceId?: string; page?: number; limit?: number }
-  ): Promise<MyEntriesResponse> => {
+  getMyEntries: async (params?: {
+    raceId?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<MyEntriesResponse> => {
     const response = await api.get("/me/entries", { params });
     return response.data;
   },

@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState, type SetStateAction } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type SetStateAction,
+} from "react";
 import { TournamentService } from "../services/TournamentService";
 
 import type {
@@ -64,16 +70,22 @@ const mapRaceToPreview = (race: RaceItem): RacePreview => {
 export default function useTournament() {
   const [page, setPage] = useState(1);
   const [search, setSearchState] = useState("");
-  const setSearch = useCallback((value: SetStateAction<string>) => {
-    setSearchState(value);
-    setPage(1);
-  }, [setPage]);
+  const setSearch = useCallback(
+    (value: SetStateAction<string>) => {
+      setSearchState(value);
+      setPage(1);
+    },
+    [setPage]
+  );
 
   const [activeFilter, setActiveFilterState] = useState<FilterTab>("All");
-  const setActiveFilter = useCallback((value: SetStateAction<FilterTab>) => {
-    setActiveFilterState(value);
-    setPage(1);
-  }, [setPage]);
+  const setActiveFilter = useCallback(
+    (value: SetStateAction<FilterTab>) => {
+      setActiveFilterState(value);
+      setPage(1);
+    },
+    [setPage]
+  );
 
   const [limit, setLimit] = useState(DEFAULT_LIMIT);
 

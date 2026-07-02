@@ -591,7 +591,8 @@ export default function TournamentsPage() {
                             Tournament Dates
                           </p>
                           <p className="text-base font-black text-foreground mt-1">
-                            {formatDateOrFallback(selectedTournament.startDate)} - {formatDateOrFallback(selectedTournament.endDate)}
+                            {formatDateOrFallback(selectedTournament.startDate)}{" "}
+                            - {formatDateOrFallback(selectedTournament.endDate)}
                           </p>
                         </div>
                       </div>
@@ -626,7 +627,13 @@ export default function TournamentsPage() {
                             Registration Period
                           </p>
                           <p className="text-base font-black text-foreground mt-1">
-                            {formatDateOrFallback(selectedTournament.registrationOpenDate)} - {formatDateOrFallback(selectedTournament.registrationCloseDate)}
+                            {formatDateOrFallback(
+                              selectedTournament.registrationOpenDate
+                            )}{" "}
+                            -{" "}
+                            {formatDateOrFallback(
+                              selectedTournament.registrationCloseDate
+                            )}
                           </p>
                         </div>
                       </div>

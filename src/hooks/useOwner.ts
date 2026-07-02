@@ -329,7 +329,9 @@ export function useOwner() {
       const entriesResponse = await UserService.getMyEntries();
       const entries = entriesResponse.data ?? [];
 
-      const ownerEntries = entries.filter((e) => approvedHorseIds.has(e.horseId));
+      const ownerEntries = entries.filter((e) =>
+        approvedHorseIds.has(e.horseId)
+      );
 
       if (ownerEntries.length === 0) {
         setScheduleRides([]);
