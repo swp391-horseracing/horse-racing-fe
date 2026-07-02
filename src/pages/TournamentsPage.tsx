@@ -546,7 +546,7 @@ export default function TournamentsPage() {
                       Entry Requirements & Conditions
                     </h4>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
                         <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
                           <Trophy className="h-4.5 w-4.5" />
@@ -589,21 +589,6 @@ export default function TournamentsPage() {
 
                       <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
                         <div className="p-2.5 bg-muted text-muted-foreground rounded-lg">
-                          <ShieldAlert className="h-4.5 w-4.5" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            Description
-                          </p>
-                          <p className="text-sm font-bold text-foreground mt-1 leading-snug">
-                            {selectedTournament.description ||
-                              "No description provided"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
-                        <div className="p-2.5 bg-muted text-muted-foreground rounded-lg">
                           <Users className="h-4.5 w-4.5" />
                         </div>
                         <div>
@@ -623,6 +608,17 @@ export default function TournamentsPage() {
                         </div>
                       </div>
                     </div>
+
+                    {selectedTournament.description && (
+                      <div className="p-4.5 rounded-xl border border-border bg-card text-sm text-foreground/90 leading-relaxed">
+                        <p className="font-bold text-primary mb-1 flex items-center gap-1.5">
+                          Description
+                        </p>
+                        <p className="whitespace-pre-wrap">
+                          {selectedTournament.description}
+                        </p>
+                      </div>
+                    )}
 
                     {selectedTournament.rules && (
                       <div className="p-4.5 rounded-xl border border-secondary/20 bg-secondary/5 text-xs text-foreground/90 leading-relaxed">
