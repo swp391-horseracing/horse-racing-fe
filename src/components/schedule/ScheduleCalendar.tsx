@@ -44,21 +44,6 @@ function parseInputDate(value: string): Date | undefined {
   return new Date(year, month - 1, day);
 }
 
-function datesEqual(a: Date, b: Date) {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
-function rangeEqual(a: DateRange, b: DateRange) {
-  const aOk = a.from && a.to;
-  const bOk = b.from && b.to;
-  if (!aOk || !bOk) return false;
-  return datesEqual(a.from!, b.from!) && datesEqual(a.to!, b.to!);
-}
-
 function normalizeDay(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 }
@@ -84,33 +69,6 @@ export function ScheduleCalendar({
   const [inputTo, setInputTo] = useState(
     selectedRange?.to ? fmtInput(selectedRange.to) : ""
   );
-
-  const today = useMemo(() => {
-    const d = new Date();
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  }, []);
-
-  const presets = useMemo<{ label: string; range: DateRange }[]>(() => {
-    const day = today.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    const monday = new Date(today);
-    monday.setDate(today.getDate() + diff);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-
-    const monthFrom = new Date(today.getFullYear(), today.getMonth(), 1);
-    const monthTo = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-    const next7To = new Date(today);
-    next7To.setDate(today.getDate() + 6);
-
-    return [
-      { label: "Today", range: { from: today, to: today } },
-      { label: "This Week", range: { from: monday, to: sunday } },
-      { label: "This Month", range: { from: monthFrom, to: monthTo } },
-      { label: "Next 7 Days", range: { from: today, to: next7To } },
-    ];
-  }, [today]);
 
   const rangeComplete = selectedRange?.from && selectedRange?.to;
 
@@ -151,16 +109,6 @@ export function ScheduleCalendar({
       return d > min && d < max;
     },
     [selectedRange]
-  );
-
-  const handlePreset = useCallback(
-    (range: DateRange) => {
-      onSelect(range);
-      setInputFrom(range.from ? fmtInput(range.from) : "");
-      setInputTo(range.to ? fmtInput(range.to) : "");
-      setPhase("to");
-    },
-    [onSelect]
   );
 
   const handleInputFromChange = useCallback(
@@ -243,38 +191,6 @@ export function ScheduleCalendar({
         </button>
       </div>
 
-      {/* Quick Presets */}
-      <div className="flex flex-wrap gap-1.5">
-        {presets.map((p) => {
-          const isActive =
-            selectedRange?.from &&
-            selectedRange?.to &&
-            rangeEqual(selectedRange, p.range);
-          return (
-            <button
-              key={p.label}
-              onClick={() => handlePreset(p.range)}
-              className={cn(
-                "px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all",
-                isActive
-                  ? "bg-[#064E3B]/10 text-[#064E3B] border-[#064E3B]/30"
-                  : "bg-white text-slate-500 border-slate-200 hover:border-slate-300 hover:text-slate-700"
-              )}
-            >
-              {p.label}
-            </button>
-          );
-        })}
-        {selectedRange && (
-          <button
-            onClick={handleClear}
-            className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:border-rose-400 transition-all"
-          >
-            Clear
-          </button>
-        )}
-      </div>
-
       {/* Calendar Mode */}
       {displayMode === "calendar" ? (
         <div
@@ -327,11 +243,12 @@ export function ScheduleCalendar({
                 {fmtShort(selectedRange.to!)}
                 <ArrowRight className="h-3 w-3" />
               </button>
-              <span className="text-[9px] text-slate-400 ml-auto font-semibold">
-                {phase === "from"
-                  ? "Click to change start"
-                  : "Click to change end"}
-              </span>
+              <button
+                onClick={handleClear}
+                className="ml-auto px-2.5 py-1 rounded-lg text-[10px] font-bold border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:border-rose-400 transition-all"
+              >
+                Clear
+              </button>
             </div>
           )}
         </div>

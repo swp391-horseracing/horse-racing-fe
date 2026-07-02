@@ -27,6 +27,9 @@ export const ROUTES = {
   OWNER_EDIT_HORSE: "/owner/horse/edit/:id",
   OWNER_EDIT_HORSE_TOURNAMENT: "/owner/tournament/edit-horse/:id",
   OWNER_SELECT_JOCKEY: "/owner/tournament/select-jockey",
+  OWNER_HORSE_MANAGEMENT: "/owner/horseManagement",
+  OWNER_TOURNAMENT_REGISTER: "/owner/tournamentRegister",
+  OWNER_SCHEDULE: "/owner/schedule",
 
   // JOCKEY
   JOCKEY_DASHBOARD: "/jockey",

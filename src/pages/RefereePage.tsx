@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { cn } from "../lib/utils";
@@ -108,7 +109,9 @@ function parseMSSToSecondsString(
 }
 
 export default function RefereePage() {
-  const [active, setActive] = useState<string>(ROUTES.REFEREE_DASHBOARD);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const active = location.pathname;
   const { toasts, addToast } = useToast();
 
   const [apiRaces, setApiRaces] = useState<MockRace[]>([]);
@@ -754,12 +757,12 @@ export default function RefereePage() {
           <RefereeDashboard
             races={apiRaces}
             onViewAll={() => {
-              setActive(ROUTES.REFEREE_RACE_LIST);
+              navigate(ROUTES.REFEREE_RACE_LIST);
               setFilterPhase("all");
             }}
             onSelectRace={(id) => {
               handleSelectRace(id);
-              setActive(ROUTES.REFEREE_RACE_LIST);
+              navigate(ROUTES.REFEREE_RACE_LIST);
             }}
             phaseBadgeStyle={phaseBadgeStyle}
             phaseLabel={phaseLabel}
@@ -781,12 +784,12 @@ export default function RefereePage() {
           <RefereeDashboard
             races={apiRaces}
             onViewAll={() => {
-              setActive(ROUTES.REFEREE_RACE_LIST);
+              navigate(ROUTES.REFEREE_RACE_LIST);
               setFilterPhase("all");
             }}
             onSelectRace={(id) => {
               handleSelectRace(id);
-              setActive(ROUTES.REFEREE_RACE_LIST);
+              navigate(ROUTES.REFEREE_RACE_LIST);
             }}
             phaseBadgeStyle={phaseBadgeStyle}
             phaseLabel={phaseLabel}
@@ -799,7 +802,7 @@ export default function RefereePage() {
     <UserLayout
       activeKey={active}
       onActiveKeyChange={(key) => {
-        setActive(key);
+        navigate(key);
         setSelectedRaceId(null);
       }}
     >

@@ -23,15 +23,15 @@ import { useRaces, useRaceDetail } from "../hooks/useRaces";
 import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
 import type { DateRange } from "react-day-picker";
 import { useToast } from "../hooks/useToast";
+import { formatStatus } from "../utils/statusFormat";
 import { ToastContainer } from "../components/ui/toast";
+import { cn } from "../lib/utils";
 
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
-import { ScheduleStatCard } from "../components/schedule/ScheduleStatCard";
 import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
 import { PlacePredictionModal } from "../components/spectator/PlacePredictionModal";
 
-type RaceStatus = "Live" | "Upcoming" | "Completed";
-type StatusFilter = "All" | RaceStatus;
+type StatusFilter = RaceApiStatus | "All";
 
 interface RaceUI extends Omit<RaceListItem, "status"> {
   title: string;
@@ -40,17 +40,9 @@ interface RaceUI extends Omit<RaceListItem, "status"> {
   distance: string;
   surface: string;
   className: string;
-  status: RaceStatus;
+  status: RaceApiStatus;
   isOpenForPrediction: boolean;
 }
-
-const mapApiStatusToUi = (status: RaceApiStatus): RaceStatus => {
-  if (status === "ongoing") return "Live";
-  if (status === "completed" || status === "result_confirmed")
-    return "Completed";
-  if (status === "scheduled" || status === "pre_race") return "Upcoming";
-  return "Upcoming";
-};
 
 const mapRaceToUi = (race: RaceListItem): RaceUI => {
   const scheduled = new Date(race.scheduledAt);
@@ -73,7 +65,7 @@ const mapRaceToUi = (race: RaceListItem): RaceUI => {
     distance: "",
     surface: race.venue,
     className: "Standard",
-    status: mapApiStatusToUi(race.status),
+    status: race.status,
     isOpenForPrediction:
       race.status === "scheduled" || race.status === "pre_race",
   };
@@ -89,12 +81,6 @@ const fmtShort = (d: string) =>
 const parseLocalDate = (dateStr: string) => {
   const [year, month, day] = dateStr.split("-").map(Number);
   return new Date(year, month - 1, day);
-};
-
-const STATUS_ORDER: Record<RaceStatus, number> = {
-  Live: 0,
-  Upcoming: 1,
-  Completed: 2,
 };
 
 const formatDateTime = (dateString: string | undefined) => {
@@ -122,7 +108,9 @@ function RaceRow({
   onClick: () => void;
   showPredictBadge?: boolean;
 }) {
-  const isLive = race.status === "Live";
+  const isLive = race.status === "ongoing";
+  const isCompleted =
+    race.status === "completed" || race.status === "result_confirmed";
   return (
     <button
       onClick={onClick}
@@ -157,17 +145,20 @@ function RaceRow({
             Predict
           </span>
         )}
-        {race.status === "Live" && (
+        {isLive ? (
           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
             Live
           </span>
-        )}
-        {race.status === "Completed" && (
-          <span className="h-2 w-2 rounded-full bg-muted/80" />
-        )}
-        {race.status === "Upcoming" && (
-          <span className="h-2 w-2 rounded-full bg-primary" />
+        ) : isCompleted ? (
+          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-muted/80" />
+            {formatStatus(race.status)}
+          </span>
+        ) : (
+          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+            {formatStatus(race.status)}
+          </span>
         )}
       </div>
     </button>
@@ -293,8 +284,7 @@ export default function RacesPage() {
       })
       .sort(
         (a, b) =>
-          STATUS_ORDER[a.status] - STATUS_ORDER[b.status] ||
-          a.time.localeCompare(b.time)
+          new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
       );
   }, [allRaces, statusFilter, search]);
 
@@ -356,17 +346,16 @@ export default function RacesPage() {
   }, [navigate]);
 
   const panelOpen = raceId !== null;
-  const isCalendarMode = !tournamentId;
+  const isCalendarMode = true;
 
-  const counts = useMemo(
-    () => ({
-      All: racesInRange.length,
-      Live: racesInRange.filter((r) => r.status === "Live").length,
-      Upcoming: racesInRange.filter((r) => r.status === "Upcoming").length,
-      Completed: racesInRange.filter((r) => r.status === "Completed").length,
-    }),
+  const uniqueStatuses = useMemo(
+    () => ["All", ...new Set(racesInRange.map((r) => r.status))],
     [racesInRange]
   );
+
+  if (statusFilter !== "All" && !uniqueStatuses.includes(statusFilter)) {
+    setStatusFilter("All");
+  }
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
@@ -376,7 +365,9 @@ export default function RacesPage() {
             <div className="flex items-center gap-3.5 min-w-0">
               <button
                 onClick={() =>
-                  tournamentId ? navigate(ROUTES.TOURNAMENTS) : navigate(-1)
+                  tournamentId
+                    ? navigate(`${ROUTES.TOURNAMENTS}?selected=${tournamentId}`)
+                    : navigate(-1)
                 }
                 className="p-1.5 rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted/40 transition-colors shrink-0"
               >
@@ -406,28 +397,27 @@ export default function RacesPage() {
             </div>
           </div>
 
-          <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
-            {(["All", "Live", "Upcoming", "Completed"] as const).map((key) => {
-              const labels = {
-                All: "Total",
-                Live: "Live",
-                Upcoming: "Upcoming",
-                Completed: "Completed",
-              };
-              return (
-                <ScheduleStatCard
-                  key={key}
-                  label={labels[key]}
-                  value={counts[key]}
-                  active={statusFilter === key}
-                  onClick={() => setStatusFilter(key)}
-                  liveDot={key === "Live"}
-                  activeClass="border-primary bg-card shadow-sm ring-[1.5px] ring-primary"
-                  inactiveClass="border-border bg-card hover:border-slate-300 hover:bg-slate-50/50"
-                />
-              );
-            })}
-          </div>
+          {dateRangeStr && (
+            <div className="mb-6 flex flex-wrap gap-2">
+              {uniqueStatuses.map((key) => {
+                const isAll = key === "All";
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setStatusFilter(key as StatusFilter)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border",
+                      statusFilter === key
+                        ? "bg-[#064E3B] text-white border-[#064E3B]"
+                        : "bg-white text-slate-600 border-slate-200 hover:border-[#064E3B]/30"
+                    )}
+                  >
+                    {isAll ? "All" : formatStatus(key)}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start transition-all">
@@ -452,6 +442,9 @@ export default function RacesPage() {
                   selectedRange={selectedRange}
                   onSelect={(range) => {
                     setSelectedRange(range);
+                    if (!range?.from) {
+                      setStatusFilter("All");
+                    }
                     if (range?.from) {
                       setViewMonth(range.from);
                     }
@@ -474,37 +467,37 @@ export default function RacesPage() {
                   </p>
                 </div>
               ) : isCalendarMode ? (
-                selectedRange?.from && (
-                  <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
-                    <div className="border-b border-border bg-muted/20 px-6 py-4 flex items-center gap-2">
-                      <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
-                        {dateRangeStr
-                          ? typeof dateRangeStr === "string"
-                            ? fmtShort(dateRangeStr)
-                            : `${fmtShort(dateRangeStr.from)} – ${fmtShort(dateRangeStr.to)}`
-                          : "All Races"}
-                      </span>
-                    </div>
-                    <div className="divide-y divide-border flex-1">
-                      {calendarFilteredRaces.length > 0 ? (
-                        calendarFilteredRaces.map((race) => (
-                          <RaceRow
-                            key={race.id}
-                            race={race}
-                            selected={raceId === race.id}
-                            onClick={() => handleSelectRace(race.id)}
-                            showPredictBadge={isSpectator}
-                          />
-                        ))
-                      ) : (
-                        <div className="p-12 text-center text-sm text-muted-foreground font-medium">
-                          No races found in this date range.
-                        </div>
-                      )}
-                    </div>
+                <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
+                  <div className="border-b border-border bg-muted/20 px-6 py-4 flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
+                      {dateRangeStr
+                        ? typeof dateRangeStr === "string"
+                          ? fmtShort(dateRangeStr)
+                          : `${fmtShort(dateRangeStr.from)} – ${fmtShort(dateRangeStr.to)}`
+                        : "All Races"}
+                    </span>
                   </div>
-                )
+                  <div className="divide-y divide-border flex-1">
+                    {calendarFilteredRaces.length > 0 ? (
+                      calendarFilteredRaces.map((race) => (
+                        <RaceRow
+                          key={race.id}
+                          race={race}
+                          selected={raceId === race.id}
+                          onClick={() => handleSelectRace(race.id)}
+                          showPredictBadge={isSpectator}
+                        />
+                      ))
+                    ) : (
+                      <div className="p-12 text-center text-sm text-muted-foreground font-medium">
+                        {dateRangeStr
+                          ? "No races found in this date range."
+                          : "No races found in this month."}
+                      </div>
+                    )}
+                  </div>
+                </div>
               ) : grouped.length > 0 ? (
                 <div className="space-y-6">
                   {grouped.map(([date, races]) => (
@@ -603,14 +596,33 @@ export default function RacesPage() {
                             ? `${raceDetail.laneCount} Lanes`
                             : "Lanes TBC"}
                         </span>
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 font-bold ${
+                            raceDetail.status === "ongoing"
+                              ? "bg-rose-500/20 border-rose-400/50 text-rose-200"
+                              : raceDetail.status === "completed" ||
+                                  raceDetail.status === "result_confirmed"
+                                ? "bg-emerald-500/20 border-emerald-400/50 text-emerald-200"
+                                : raceDetail.status === "cancelled" ||
+                                    raceDetail.status === "postponed"
+                                  ? "bg-amber-500/20 border-amber-400/50 text-amber-200"
+                                  : "bg-white/15 border-white/30 text-white"
+                          }`}
+                        >
+                          {raceDetail.status === "ongoing" && (
+                            <span className="h-1.5 w-1.5 rounded-full bg-rose-300 animate-pulse" />
+                          )}
+                          {raceDetail.status === "ongoing"
+                            ? "Live"
+                            : formatStatus(raceDetail.status)}
+                        </span>
                       </div>
                     </div>
                   }
                   headerRight={
                     isSpectator &&
                     (raceDetail?.status === "scheduled" ||
-                      raceDetail?.status === "pre_race" ||
-                      currentPrediction) ? (
+                      raceDetail?.status === "pre_race") && (
                       <button
                         onClick={() => {
                           setModalKey((k) => k + 1);
@@ -621,10 +633,6 @@ export default function RacesPage() {
                         <Target className="w-3.5 h-3.5" />
                         {currentPrediction ? "Update Prediction" : "Predict"}
                       </button>
-                    ) : (
-                      <span className="px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm bg-secondary !text-secondary-foreground border-transparent">
-                        Race detail
-                      </span>
                     )
                   }
                   onClose={handleCloseDetail}
@@ -750,13 +758,10 @@ export default function RacesPage() {
                           <thead className="bg-[#F4F6F5] border-b border-slate-100">
                             <tr>
                               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 w-20 text-center">
-                                #
+                                Lane
                               </th>
                               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
                                 Horse Name
-                              </th>
-                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">
-                                Lane
                               </th>
                               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
                                 Jockey Name
@@ -770,15 +775,19 @@ export default function RacesPage() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 text-sm bg-card">
-                            {raceDetail.entries.map(
-                              (entry: RaceEntry, idx: number) => (
+                            {[...raceDetail.entries]
+                              .sort(
+                                (a, b) =>
+                                  Number(a.laneNumber) - Number(b.laneNumber)
+                              )
+                              .map((entry: RaceEntry, idx: number) => (
                                 <tr
                                   key={entry.id || idx}
                                   className="hover:bg-[#064E3B]/5 transition-colors cursor-default"
                                 >
                                   <td className="px-6 py-4.5 text-center">
                                     <span className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white shadow-sm text-xs font-black text-slate-800 mx-auto">
-                                      {entry.clothNumber || idx + 1}
+                                      {entry.laneNumber}
                                     </span>
                                   </td>
                                   <td className="px-6 py-4.5 font-bold font-headline text-[#064E3B] text-base leading-snug">
@@ -792,9 +801,6 @@ export default function RacesPage() {
                                       {entry.name}
                                     </button>
                                   </td>
-                                  <td className="px-6 py-4.5 text-xs text-slate-500 font-mono break-all text-center">
-                                    {entry.laneNumber}
-                                  </td>
                                   <td className="px-6 py-4.5 font-medium text-slate-800">
                                     {entry.jockeyName}
                                   </td>
@@ -802,11 +808,10 @@ export default function RacesPage() {
                                     {entry.weightKg}
                                   </td>
                                   <td className="px-6 py-4.5 font-medium text-slate-800 hidden md:table-cell">
-                                    {entry.entryStatus}
+                                    {formatStatus(entry.entryStatus)}
                                   </td>
                                 </tr>
-                              )
-                            )}
+                              ))}
                           </tbody>
                         </table>
                       </div>

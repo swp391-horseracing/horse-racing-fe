@@ -65,12 +65,12 @@ export function OwnerDashBoardOverview({
                 (t: Tournament) => t.status === ("registration_open" as const)
               ).length
             } Active`,
-            action: () => setActiveTab("/owner/raceRegister"),
+            action: () => setActiveTab("/owner/tournamentRegister"),
           },
           {
             label: "Pending Approvals",
             val: `${pendingRegCount} Queued`,
-            action: () => setActiveTab("/owner/raceRegister"),
+            action: () => setActiveTab("/owner/tournamentRegister"),
           },
           {
             label: "Pending Invites",

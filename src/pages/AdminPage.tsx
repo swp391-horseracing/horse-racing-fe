@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { useToast } from "../hooks/useToast";
@@ -15,6 +15,7 @@ import RaceReportsManager from "../components/admin/RaceReportsManager";
 const TAB_ROUTE_MAP: Record<string, string> = {
   [ROUTES.ADMIN_DASHBOARD]: ROUTES.ADMIN_DASHBOARD,
   [ROUTES.ADMIN_USER_LIST]: "/admin/access",
+  "/admin/access": "/admin/access",
   "/admin/registry": "/admin/registry",
   [ROUTES.ADMIN_TOURNAMENT_LIST]: "/admin/tournaments",
   "/admin/economy": "/admin/economy",
@@ -27,6 +28,7 @@ function getTabKey(pathname: string): string {
 
 export default function AdminPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [active, setActive] = useState<string>(() =>
     getTabKey(location.pathname)
   );
@@ -42,7 +44,7 @@ export default function AdminPage() {
   }, [location.pathname]);
 
   const handleActiveChange = (key: string) => {
-    setActive(key);
+    navigate(key);
   };
 
   const renderContent = () => {

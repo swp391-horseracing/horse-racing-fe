@@ -23,6 +23,7 @@ import {
 } from "../../../types/report";
 import RejectInfoModal from "./RejectInfoModal";
 import PublishConfirmModal from "./PublishConfirmModal";
+import { formatStatus } from "../../../utils/statusFormat";
 
 interface ReportDetailViewProps {
   detail: ReportDetailData | null;
@@ -93,7 +94,8 @@ export default function ReportDetailView({
               "bg-slate-100 text-slate-600 border-slate-200"
           )}
         >
-          {STATUS_LABELS[report?.status || "draft"] || report?.status}
+          {STATUS_LABELS[report?.status || "draft"] ||
+            formatStatus(report?.status ?? "")}
         </span>
       </div>
 
@@ -138,7 +140,7 @@ export default function ReportDetailView({
             <div className="flex justify-between">
               <span className="text-slate-500 font-semibold">Race Status</span>
               <span className="font-bold text-slate-800 capitalize">
-                {race.status?.replace(/_/g, " ")}
+                {formatStatus(race.status ?? "")}
               </span>
             </div>
           </div>

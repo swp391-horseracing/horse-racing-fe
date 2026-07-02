@@ -142,9 +142,9 @@ export default function UserLayout({
         key: "/owner/horseManagement",
       },
       {
-        label: "Race Registration",
+        label: "Tournament Registration",
         icon: ClipboardList,
-        key: "/owner/raceRegister",
+        key: "/owner/tournamentRegister",
       },
       { label: "Jockey Roster", icon: UserCheck, key: "/owner/jockeys" },
       { label: "Horse Schedule", icon: Calendar, key: "/owner/schedule" },

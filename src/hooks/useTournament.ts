@@ -71,6 +71,10 @@ export default function useTournament() {
 
   const [tournaments, setTournaments] = useState<TournamentListItem[]>([]);
 
+  const [allTournaments, setAllTournaments] = useState<TournamentListItem[]>(
+    []
+  );
+
   const [pagination, setPagination] = useState({
     page: 1,
     limit: DEFAULT_LIMIT,
@@ -104,6 +108,26 @@ export default function useTournament() {
 
   const [detailTab, setDetailTab] = useState<DetailTab>("schedule");
 
+  const loadAllTournaments = useCallback(async () => {
+    try {
+      const all: TournamentListItem[] = [];
+      let page = 1;
+      let totalPages = 1;
+      do {
+        const response = await TournamentService.getTournaments({
+          page,
+          limit: 100,
+        });
+        all.push(...(response.data as unknown as TournamentListItem[]));
+        totalPages = response.pagination.totalPages;
+        page++;
+      } while (page <= totalPages);
+      setAllTournaments(all);
+    } catch {
+      setAllTournaments([]);
+    }
+  }, []);
+
   const loadTournaments = useCallback(async () => {
     try {
       setLoadingList(true);
@@ -133,6 +157,12 @@ export default function useTournament() {
       await loadTournaments();
     })();
   }, [loadTournaments]);
+
+  useEffect(() => {
+    (async () => {
+      await loadAllTournaments();
+    })();
+  }, [loadAllTournaments]);
 
   const loadTournamentDetail = useCallback(async () => {
     if (!selectedTournamentId) return;
@@ -185,17 +215,17 @@ export default function useTournament() {
 
   const counts = useMemo(
     () => ({
-      All: tournaments.length,
-      Live: tournaments.filter((t) => t.status === "ongoing").length,
-      Scheduled: tournaments.filter(
+      All: allTournaments.length,
+      Live: allTournaments.filter((t) => t.status === "ongoing").length,
+      Scheduled: allTournaments.filter(
         (t) =>
           t.status === "upcoming" ||
           t.status === "registration_open" ||
           t.status === "registration_closed"
       ).length,
-      Completed: tournaments.filter((t) => t.status === "completed").length,
+      Completed: allTournaments.filter((t) => t.status === "completed").length,
     }),
-    [tournaments]
+    [allTournaments]
   );
 
   const selectedRaces = useMemo(() => races.map(mapRaceToPreview), [races]);
@@ -228,7 +258,7 @@ export default function useTournament() {
     setLimit,
 
     tournaments: filteredTournaments,
-    rawTournaments: tournaments,
+    rawTournaments: allTournaments,
 
     pagination,
     counts,
@@ -253,6 +283,9 @@ export default function useTournament() {
     racesLoading,
     racesError,
 
-    reloadTournaments: loadTournaments,
+    reloadTournaments: () => {
+      void loadTournaments();
+      void loadAllTournaments();
+    },
   };
 }
