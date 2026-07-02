@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { useOwner } from "../hooks/useOwner.ts";
-import { useJockey } from "../hooks/useJockey.ts";
 import type { Horse } from "../types/horse";
 import { Clock } from "lucide-react";
 import { useToast } from "../hooks/useToast";
@@ -21,7 +21,9 @@ import { RidingSchedule } from "../components/jockey/RidingSchedule";
 import { JockeyRosterManagement } from "../components/owner/JockeyRosterManagement";
 
 export default function OwnerPage() {
-  const [active, setActive] = useState<string>(ROUTES.OWNER_DASHBOARD);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const active = location.pathname;
 
   const {
     pagination,
@@ -41,9 +43,14 @@ export default function OwnerPage() {
     inviteJockey,
     jockeysPagination,
     loadAllInvitations,
+    loadOwnerSchedule,
+    scheduleRides,
+    scheduleLoading,
   } = useOwner();
 
-  const { rides: ownerRides, loading: ridesLoading } = useJockey();
+  useEffect(() => {
+    loadOwnerSchedule();
+  }, [registrations, loadOwnerSchedule]);
 
   const { toasts, addToast } = useToast(3000);
   const [showAddHorse, setShowAddHorse] = useState(false);
@@ -111,7 +118,7 @@ export default function OwnerPage() {
     try {
       await addHorse(payload);
       setShowAddHorse(false);
-      setActive("/owner/horseManagement");
+      navigate("/owner/horseManagement");
       addToast(`Horse "${name}" registered successfully!`, "success");
     } catch (err: unknown) {
       const axiosError = err as {
@@ -250,7 +257,7 @@ export default function OwnerPage() {
             jockeys={jockeys}
             pagination={pagination}
             setPage={setPage}
-            setActiveTab={setActive}
+            setActiveTab={navigate}
           />
         );
       case "/owner/horseManagement":
@@ -337,8 +344,8 @@ export default function OwnerPage() {
       case "/owner/schedule":
         return (
           <RidingSchedule
-            rides={ownerRides}
-            loading={ridesLoading}
+            rides={scheduleRides}
+            loading={scheduleLoading}
             userRole="owner"
           />
         );
@@ -348,7 +355,7 @@ export default function OwnerPage() {
   };
 
   return (
-    <UserLayout activeKey={active} onActiveKeyChange={setActive}>
+    <UserLayout activeKey={active} onActiveKeyChange={navigate}>
       <div className="h-full w-full relative flex flex-col overflow-hidden bg-[#F4F6F5]">
         <ToastContainer toasts={toasts} />
 

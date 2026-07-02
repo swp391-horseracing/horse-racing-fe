@@ -25,9 +25,9 @@ import type { DateRange } from "react-day-picker";
 import { useToast } from "../hooks/useToast";
 import { formatStatus } from "../utils/statusFormat";
 import { ToastContainer } from "../components/ui/toast";
+import { cn } from "../lib/utils";
 
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
-import { ScheduleStatCard } from "../components/schedule/ScheduleStatCard";
 import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
 import { PlacePredictionModal } from "../components/spectator/PlacePredictionModal";
 
@@ -282,7 +282,10 @@ export default function RacesPage() {
           r.className.toLowerCase().includes(lower);
         return matchStatus && matchSearch;
       })
-      .sort((a, b) => a.time.localeCompare(b.time));
+      .sort(
+        (a, b) =>
+          new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
+      );
   }, [allRaces, statusFilter, search]);
 
   const grouped = useMemo(() => {
@@ -343,22 +346,14 @@ export default function RacesPage() {
   }, [navigate]);
 
   const panelOpen = raceId !== null;
-  const isCalendarMode = !tournamentId;
-
-  const statusCounts = useMemo(() => {
-    const map = new Map<string, number>();
-    racesInRange.forEach((r) => {
-      map.set(r.status, (map.get(r.status) ?? 0) + 1);
-    });
-    return map;
-  }, [racesInRange]);
+  const isCalendarMode = true;
 
   const uniqueStatuses = useMemo(
     () => ["All", ...new Set(racesInRange.map((r) => r.status))],
     [racesInRange]
   );
 
-  if (statusFilter !== "All" && !statusCounts.has(statusFilter)) {
+  if (statusFilter !== "All" && !uniqueStatuses.includes(statusFilter)) {
     setStatusFilter("All");
   }
 
@@ -370,7 +365,9 @@ export default function RacesPage() {
             <div className="flex items-center gap-3.5 min-w-0">
               <button
                 onClick={() =>
-                  tournamentId ? navigate(ROUTES.TOURNAMENTS) : navigate(-1)
+                  tournamentId
+                    ? navigate(`${ROUTES.TOURNAMENTS}?selected=${tournamentId}`)
+                    : navigate(-1)
                 }
                 className="p-1.5 rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted/40 transition-colors shrink-0"
               >
@@ -400,26 +397,27 @@ export default function RacesPage() {
             </div>
           </div>
 
-          <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
-            {uniqueStatuses.map((key) => {
-              const isAll = key === "All";
-              const isOngoing = key === "ongoing";
-              return (
-                <ScheduleStatCard
-                  key={key}
-                  label={isAll ? "Total" : formatStatus(key)}
-                  value={
-                    isAll ? racesInRange.length : (statusCounts.get(key) ?? 0)
-                  }
-                  active={statusFilter === key}
-                  onClick={() => setStatusFilter(key as StatusFilter)}
-                  liveDot={isOngoing}
-                  activeClass="border-primary bg-card shadow-sm ring-[1.5px] ring-primary"
-                  inactiveClass="border-border bg-card hover:border-slate-300 hover:bg-slate-50/50"
-                />
-              );
-            })}
-          </div>
+          {dateRangeStr && (
+            <div className="mb-6 flex flex-wrap gap-2">
+              {uniqueStatuses.map((key) => {
+                const isAll = key === "All";
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setStatusFilter(key as StatusFilter)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border",
+                      statusFilter === key
+                        ? "bg-[#064E3B] text-white border-[#064E3B]"
+                        : "bg-white text-slate-600 border-slate-200 hover:border-[#064E3B]/30"
+                    )}
+                  >
+                    {isAll ? "All" : formatStatus(key)}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start transition-all">
@@ -444,6 +442,9 @@ export default function RacesPage() {
                   selectedRange={selectedRange}
                   onSelect={(range) => {
                     setSelectedRange(range);
+                    if (!range?.from) {
+                      setStatusFilter("All");
+                    }
                     if (range?.from) {
                       setViewMonth(range.from);
                     }
@@ -466,37 +467,37 @@ export default function RacesPage() {
                   </p>
                 </div>
               ) : isCalendarMode ? (
-                selectedRange?.from && (
-                  <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
-                    <div className="border-b border-border bg-muted/20 px-6 py-4 flex items-center gap-2">
-                      <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
-                        {dateRangeStr
-                          ? typeof dateRangeStr === "string"
-                            ? fmtShort(dateRangeStr)
-                            : `${fmtShort(dateRangeStr.from)} – ${fmtShort(dateRangeStr.to)}`
-                          : "All Races"}
-                      </span>
-                    </div>
-                    <div className="divide-y divide-border flex-1">
-                      {calendarFilteredRaces.length > 0 ? (
-                        calendarFilteredRaces.map((race) => (
-                          <RaceRow
-                            key={race.id}
-                            race={race}
-                            selected={raceId === race.id}
-                            onClick={() => handleSelectRace(race.id)}
-                            showPredictBadge={isSpectator}
-                          />
-                        ))
-                      ) : (
-                        <div className="p-12 text-center text-sm text-muted-foreground font-medium">
-                          No races found in this date range.
-                        </div>
-                      )}
-                    </div>
+                <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
+                  <div className="border-b border-border bg-muted/20 px-6 py-4 flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
+                      {dateRangeStr
+                        ? typeof dateRangeStr === "string"
+                          ? fmtShort(dateRangeStr)
+                          : `${fmtShort(dateRangeStr.from)} – ${fmtShort(dateRangeStr.to)}`
+                        : "All Races"}
+                    </span>
                   </div>
-                )
+                  <div className="divide-y divide-border flex-1">
+                    {calendarFilteredRaces.length > 0 ? (
+                      calendarFilteredRaces.map((race) => (
+                        <RaceRow
+                          key={race.id}
+                          race={race}
+                          selected={raceId === race.id}
+                          onClick={() => handleSelectRace(race.id)}
+                          showPredictBadge={isSpectator}
+                        />
+                      ))
+                    ) : (
+                      <div className="p-12 text-center text-sm text-muted-foreground font-medium">
+                        {dateRangeStr
+                          ? "No races found in this date range."
+                          : "No races found in this month."}
+                      </div>
+                    )}
+                  </div>
+                </div>
               ) : grouped.length > 0 ? (
                 <div className="space-y-6">
                   {grouped.map(([date, races]) => (

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, startTransition } from "react";
 import {
   Search,
   MapPin,
@@ -9,7 +9,6 @@ import {
   AlertCircle,
   X,
   ShieldAlert,
-  Users,
   Flag,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
@@ -20,6 +19,7 @@ import type {
   TournamentRegistrationResponse,
 } from "../../types/tournament";
 import type { Horse } from "../../types/horse";
+import { TournamentService } from "../../services/TournamentService";
 
 export interface TournamentRegisterProps {
   horses: Horse[];
@@ -196,6 +196,31 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
     [filteredRegistrations, selectedId]
   );
 
+  const [tournamentDetail, setTournamentDetail] = useState<Tournament | null>(
+    null
+  );
+
+  useEffect(() => {
+    if (!selectedRegistration) return;
+    startTransition(() => {
+      setTournamentDetail(null);
+    });
+    let cancelled = false;
+    TournamentService.getTournamentByID(selectedRegistration.tournament.id)
+      .then((data) => {
+        if (!cancelled) setTournamentDetail(data);
+      })
+      .catch(() => {
+        if (!cancelled) setTournamentDetail(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedRegistration]);
+
+  const displayTournament =
+    tournamentDetail ?? selectedRegistration?.tournament;
+
   const isPanelOpen = selectedRegistration !== null;
 
   const handleSelect = (id: string) => {
@@ -346,15 +371,14 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                 <div className="min-w-0">
                   <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-primary-foreground/70">
                     <CalendarDays className="h-3 w-3" />
-                    {formatDate(
-                      selectedRegistration.tournament.startDate
-                    )} - {formatDate(selectedRegistration.tournament.endDate)}
+                    {formatDate(displayTournament?.startDate)} -{" "}
+                    {formatDate(displayTournament?.endDate)}
                   </span>
                   <div className="text-2xl font-black font-headline text-white tracking-tight leading-snug truncate mt-1">
-                    {selectedRegistration.tournament.name}
+                    {displayTournament?.name}
                   </div>
                   <p className="text-xs text-primary-foreground/70 mt-1">
-                    {selectedRegistration.tournament.location}
+                    {displayTournament?.location}
                   </p>
                 </div>
                 <button
@@ -393,14 +417,15 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                         Registration Status
                       </p>
-                      <div className="mt-1">
+                      <div className="mt-1 flex items-center gap-3">
                         <RegistrationStatusBadge
                           status={selectedRegistration.status}
                         />
+                        <span className="text-xs text-muted-foreground font-medium">
+                          Submitted{" "}
+                          {formatDate(selectedRegistration.submittedAt)}
+                        </span>
                       </div>
-                      <p className="text-[10px] text-muted-foreground mt-1.5">
-                        Submitted {formatDate(selectedRegistration.submittedAt)}
-                      </p>
                     </div>
                   </div>
 
@@ -414,7 +439,7 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                       </p>
                       <div className="mt-1">
                         <TournamentStatusBadge
-                          status={selectedRegistration.tournament.status}
+                          status={displayTournament?.status ?? ""}
                         />
                       </div>
                     </div>
@@ -422,14 +447,16 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
 
                   <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
                     <div className="p-2.5 bg-muted text-muted-foreground rounded-lg">
-                      <Users className="h-4.5 w-4.5" />
+                      <CalendarDays className="h-4.5 w-4.5" />
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                        Registration ID
+                        Registration Period
                       </p>
-                      <p className="text-sm font-bold text-foreground mt-1 font-mono">
-                        #{selectedRegistration.id.slice(0, 12)}
+                      <p className="text-sm font-bold text-foreground mt-1">
+                        {displayTournament?.registrationOpenDate
+                          ? `${formatDateFull(displayTournament?.registrationOpenDate)} - ${displayTournament?.registrationCloseDate ? formatDateFull(displayTournament?.registrationCloseDate) : "TBD"}`
+                          : "Not specified"}
                       </p>
                     </div>
                   </div>
@@ -444,8 +471,7 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                       <p className="text-xs text-muted-foreground">Location</p>
                       <p className="text-sm font-bold text-foreground flex items-center gap-1.5 mt-0.5">
                         <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                        {selectedRegistration.tournament.location ||
-                          "Not specified"}
+                        {displayTournament?.location || "Not specified"}
                       </p>
                     </div>
                     <div>
@@ -453,8 +479,8 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                         Prize Pool
                       </p>
                       <p className="text-sm font-bold text-foreground mt-0.5">
-                        {selectedRegistration.tournament.prizePool != null
-                          ? `$${selectedRegistration.tournament.prizePool.toLocaleString()}`
+                        {displayTournament?.prizePool != null
+                          ? `$${displayTournament?.prizePool.toLocaleString()}`
                           : "Not announced"}
                       </p>
                     </div>
@@ -463,50 +489,44 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                         Max Participants
                       </p>
                       <p className="text-sm font-bold text-foreground mt-0.5">
-                        {selectedRegistration.tournament.maximumParticipants ??
+                        {displayTournament?.maximumParticipants ??
                           "Not specified"}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Dates</p>
                       <p className="text-sm font-bold text-foreground mt-0.5">
-                        {formatDateFull(
-                          selectedRegistration.tournament.startDate
-                        )}{" "}
-                        -{" "}
-                        {formatDateFull(
-                          selectedRegistration.tournament.endDate
-                        )}
+                        {formatDateFull(displayTournament?.startDate)} -{" "}
+                        {formatDateFull(displayTournament?.endDate)}
                       </p>
                     </div>
                   </div>
 
-                  {selectedRegistration.tournament.description && (
+                  {displayTournament?.description && (
                     <div className="mt-4 pt-4 border-t border-border">
                       <p className="text-xs text-muted-foreground mb-1">
                         Description
                       </p>
                       <p className="text-sm font-medium text-foreground leading-relaxed">
-                        {selectedRegistration.tournament.description}
+                        {displayTournament?.description}
                       </p>
                     </div>
                   )}
 
-                  {selectedRegistration.tournament.rules && (
+                  {displayTournament?.rules && (
                     <div className="mt-4 pt-4 border-t border-border">
                       <p className="text-xs font-bold text-foreground mb-1 flex items-center gap-1.5">
                         <ShieldAlert className="h-3.5 w-3.5 text-muted-foreground" />
                         Rules & Regulations
                       </p>
                       <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
-                        {selectedRegistration.tournament.rules}
+                        {displayTournament?.rules}
                       </p>
                     </div>
                   )}
                 </div>
 
-                {selectedRegistration.tournament.status ===
-                  "registration_open" && (
+                {displayTournament?.status === "registration_open" && (
                   <div className="flex items-center justify-end gap-3"></div>
                 )}
               </div>

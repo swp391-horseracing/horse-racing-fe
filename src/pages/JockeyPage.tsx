@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import useHorse from "../hooks/horse/useHorse.ts";
@@ -13,7 +14,9 @@ import { RidingSchedule } from "../components/jockey/RidingSchedule";
 import { InvitationsView } from "../components/jockey/InvitationsView";
 
 export default function JockeyPage() {
-  const [active, setActive] = useState<string>(ROUTES.JOCKEY_INVITATIONS);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const active = location.pathname;
   const { toasts, addToast } = useToast();
 
   const { rides, loading: ridesLoading } = useJockey();
@@ -83,7 +86,7 @@ export default function JockeyPage() {
         return (
           <JockeyDashboardOverview
             data={invitations}
-            setActiveTab={(tab) => setActive(tab)}
+            setActiveTab={navigate}
             horseList={horses}
           />
         );
@@ -116,7 +119,7 @@ export default function JockeyPage() {
   };
 
   return (
-    <UserLayout activeKey={active} onActiveKeyChange={setActive}>
+    <UserLayout activeKey={active} onActiveKeyChange={navigate}>
       <div className="h-full w-full relative flex flex-col overflow-hidden">
         <ToastContainer toasts={toasts} />
 

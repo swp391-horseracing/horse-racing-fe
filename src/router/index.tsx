@@ -91,6 +91,14 @@ export const router = createBrowserRouter([
             path: ROUTES.JOCKEY_DASHBOARD,
             element: <JockeyPage />,
           },
+          {
+            path: ROUTES.JOCKEY_SCHEDULE,
+            element: <JockeyPage />,
+          },
+          {
+            path: ROUTES.JOCKEY_INVITATIONS,
+            element: <JockeyPage />,
+          },
         ],
       },
       {
@@ -100,6 +108,22 @@ export const router = createBrowserRouter([
             path: ROUTES.OWNER_DASHBOARD,
             element: <OwnerPage />,
           },
+          {
+            path: ROUTES.OWNER_HORSE_MANAGEMENT,
+            element: <OwnerPage />,
+          },
+          {
+            path: ROUTES.OWNER_TOURNAMENT_REGISTER,
+            element: <OwnerPage />,
+          },
+          {
+            path: ROUTES.OWNER_JOCKEY_LIST,
+            element: <OwnerPage />,
+          },
+          {
+            path: ROUTES.OWNER_SCHEDULE,
+            element: <OwnerPage />,
+          },
         ],
       },
       {
@@ -107,6 +131,10 @@ export const router = createBrowserRouter([
         children: [
           {
             path: ROUTES.SPECTATOR_DASHBOARD,
+            element: <SpectatorPage />,
+          },
+          {
+            path: ROUTES.SPECTATOR_PREDICTIONS,
             element: <SpectatorPage />,
           },
         ],
@@ -143,6 +171,7 @@ export const router = createBrowserRouter([
             path: ROUTES.ADMIN_USER_PROFILE,
             element: <AdminPage />,
           },
+          { path: "/admin/access", element: <AdminPage /> },
           { path: "/admin/registry", element: <AdminPage /> },
           {
             path: ROUTES.ADMIN_TOURNAMENT_LIST,

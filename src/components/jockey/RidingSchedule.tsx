@@ -1,4 +1,10 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  startTransition,
+} from "react";
 import { cn } from "../../lib/utils";
 import type { DateRange } from "react-day-picker";
 import type { MyRide } from "../../hooks/useJockey";
@@ -21,7 +27,7 @@ import {
   ScheduleDetailFrame,
   type TabConfig,
 } from "../schedule/ScheduleDetailFrame";
-import { RaceService } from "../../services/RaceService";
+import { UserService } from "../../services/UserService";
 import type { RaceEntry } from "../../types/race";
 import { formatStatus } from "../../utils/statusFormat";
 
@@ -144,6 +150,19 @@ export function RidingSchedule({
     [ridesInRange]
   );
 
+  const ownerStatusCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    ridesInRange.forEach((r) => {
+      map.set(r.status, (map.get(r.status) ?? 0) + 1);
+    });
+    return map;
+  }, [ridesInRange]);
+
+  const uniqueOwnerStatuses = useMemo(
+    () => ["All", ...new Set(ridesInRange.map((r) => r.status))],
+    [ridesInRange]
+  );
+
   const filteredRides = useMemo(() => {
     const lower = search.toLowerCase();
     return rides
@@ -247,25 +266,23 @@ export function RidingSchedule({
           </div>
         ) : (
           <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { key: "All", label: "All Races" },
-              { key: "scheduled", label: "Scheduled" },
-              { key: "live", label: "Live" },
-              { key: "completed", label: "Completed" },
-            ].map((item) => (
-              <button
-                key={item.key}
-                onClick={() => setStatusFilter(item.key)}
-                className={cn(
-                  "px-4 py-2.5 rounded-xl border text-xs font-bold transition shadow-xs",
-                  statusFilter === item.key
-                    ? "bg-[#064E3B] text-white border-[#064E3B]"
-                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
-                )}
-              >
-                {item.label}
-              </button>
-            ))}
+            {uniqueOwnerStatuses.map((key) => {
+              const isAll = key === "All";
+              return (
+                <ScheduleStatCard
+                  key={key}
+                  label={isAll ? "Total" : formatStatus(key)}
+                  value={
+                    isAll
+                      ? ridesInRange.length
+                      : (ownerStatusCounts.get(key) ?? 0)
+                  }
+                  active={statusFilter === key}
+                  onClick={() => setStatusFilter(key)}
+                  liveDot={key === "live"}
+                />
+              );
+            })}
           </div>
         )}
       </div>
@@ -429,19 +446,38 @@ function JockeyDetailPanel({
   const [activeTab, setActiveTab] = useState<RideDetailTab>("info");
   const [raceEntries, setRaceEntries] = useState<RaceEntry[]>([]);
   const [entriesLoading, setEntriesLoading] = useState(false);
+  const [entriesError, setEntriesError] = useState<string | null>(null);
   useEffect(() => {
     let cancelled = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setEntriesLoading(true);
-    RaceService.getRaceHorses(ride.id)
+    startTransition(() => {
+      setEntriesLoading(true);
+      setEntriesError(null);
+      setRaceEntries([]);
+    });
+    UserService.getMyRaceDetail(ride.id)
       .then((data) => {
         if (!cancelled) {
-          setRaceEntries(data ?? []);
+          const mapped = (data.entries ?? []).map((e) => ({
+            id: e.id,
+            horseId: e.horseId,
+            name: e.horseName,
+            laneNumber: "",
+            weightKg: "",
+            entryStatus: "",
+            jockeyName: e.jockeyName ?? "",
+            clothNumber: e.clothNumber,
+            trainerName: e.trainerName,
+          }));
+          setRaceEntries(mapped);
           setEntriesLoading(false);
         }
       })
       .catch(() => {
-        if (!cancelled) setEntriesLoading(false);
+        if (!cancelled) {
+          setRaceEntries([]);
+          setEntriesLoading(false);
+          setEntriesError("Failed to load runner line-up for this race.");
+        }
       });
     return () => {
       cancelled = true;
@@ -632,6 +668,10 @@ function JockeyDetailPanel({
             {entriesLoading ? (
               <div className="p-6 text-center text-xs font-semibold text-slate-500">
                 Loading entries...
+              </div>
+            ) : entriesError ? (
+              <div className="p-6 text-center text-xs font-semibold text-red-500">
+                {entriesError}
               </div>
             ) : raceEntries.length > 0 ? (
               <table className="w-full text-left">

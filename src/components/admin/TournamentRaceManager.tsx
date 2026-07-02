@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect } from "react";
-import { Calendar, Flag, Loader2, ArrowLeft, Plus } from "lucide-react";
+import { Calendar, Loader2, ArrowLeft, Plus } from "lucide-react";
 import type { ToastType } from "../../types/referee";
 import { TournamentForm } from "./tournament/TournamentForm";
 import TournamentList from "./tournament/TournamentList";
-import TournamentDetailModal from "./tournament/TournamentDetailModal";
+
 import useAdminTournament from "../../hooks/admin/useAdminTournament";
 import useAdminRace from "../../hooks/admin/useAdminRace";
 import TournamentDetail from "./tournament/TournamentDetail";
@@ -85,10 +85,6 @@ export default function TournamentRaceManager({
     getRaceDetail,
   ]);
 
-  const handleOpenDetail = async (id: string) => {
-    await getTournamentDetail(id);
-  };
-
   const handleManageRaces = (id: string) => {
     setActiveTournamentId(id);
     setView("tournament-detail");
@@ -106,31 +102,6 @@ export default function TournamentRaceManager({
 
     addToast("Failed to create tournament.", "error");
     return null;
-  };
-
-  const handleUpdateTournament = async (id: string, data: any) => {
-    const ok = await updateTournament(id, data);
-
-    if (ok) {
-      addToast("Tournament updated successfully.", "success");
-      await getTournamentDetail(id);
-    } else {
-      addToast("Failed to update tournament.", "error");
-    }
-    return ok;
-  };
-
-  const handleUpdateStatus = async (id: string, status: string) => {
-    const ok = await updateTournamentStatus(id, status);
-
-    if (ok) {
-      addToast("Tournament status updated.", "success");
-      await getTournamentDetail(id);
-    } else {
-      addToast("Failed to update tournament status.", "error");
-    }
-
-    return ok;
   };
 
   const handleCreateRace = async (data: RaceFormData) => {
@@ -459,30 +430,6 @@ export default function TournamentRaceManager({
         />
       )}
 
-      <div className="bg-gradient-to-r from-amber-50 to-amber-100/50 border border-amber-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
-        <div>
-          <h3 className="font-bold text-amber-900 text-sm flex items-center gap-2">
-            <Flag className="w-4 h-4" /> Results Pending Publication
-          </h3>
-          <p className="text-[11px] text-amber-700 mt-1">
-            Referee &apos;Ref_Smith&apos; has submitted the final report for
-            Race #42 (Concluded).
-          </p>
-        </div>
-
-        <button
-          onClick={() =>
-            addToast(
-              "Results Published. Virtual Economy updated (BR-BET-04).",
-              "success"
-            )
-          }
-          className="bg-amber-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-amber-700 shrink-0"
-        >
-          Publish Official Results
-        </button>
-      </div>
-
       <div className="flex gap-4">
         <div className="flex-1 bg-white border rounded-2xl p-4 shadow-sm space-y-3">
           <h3 className="font-bold text-sm text-[#064E3B] border-b pb-2">
@@ -501,20 +448,10 @@ export default function TournamentRaceManager({
           ) : (
             <TournamentList
               tournaments={tournaments?.data ?? []}
-              onView={handleOpenDetail}
-              onManageRaces={handleManageRaces}
+              onManage={handleManageRaces}
             />
           )}
         </div>
-
-        <TournamentDetailModal
-          isOpen={!!selectedTournament}
-          onClose={clearSelectedTournament}
-          tournament={selectedTournament!}
-          onUpdate={handleUpdateTournament}
-          onStatusChange={handleUpdateStatus}
-          onManageRaces={handleManageRaces}
-        />
       </div>
       {pagination.totalPages > 1 && (
         <div className="flex items-center gap-2 pt-3">

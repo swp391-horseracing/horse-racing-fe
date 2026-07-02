@@ -13,6 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import type { Horse } from "../types/horse";
 import banner from "../assets/images/horse-banner.png";
+import { formatStatus } from "../utils/statusFormat";
 
 function getAge(birthDate?: string) {
   if (!birthDate) return "N/A";
@@ -32,7 +33,7 @@ function getAge(birthDate?: string) {
 
 function getDisplayStatus(horse: Horse): string {
   if (horse.isRetired) return "Retired";
-  return horse.healthStatus || "Unknown";
+  return horse.healthStatus ? formatStatus(horse.healthStatus) : "Unknown";
 }
 
 function getStatusColor(horse: Horse): string {

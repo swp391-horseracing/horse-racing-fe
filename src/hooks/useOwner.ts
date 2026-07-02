@@ -10,6 +10,7 @@ import type {
 } from "../types/tournament";
 import type { Invitation } from "../types/invitation";
 import type { Jockey } from "../types/jockey";
+import type { Ride } from "../types/race.ts";
 import { TournamentService } from "../services/TournamentService.ts";
 
 export type { Horse } from "../types/horse";
@@ -28,6 +29,8 @@ export function useOwner() {
   >([]);
   const [jockeys, setJockeys] = useState<Jockey[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [scheduleRides, setScheduleRides] = useState<Ride[]>([]);
+  const [scheduleLoading, setScheduleLoading] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -82,11 +85,19 @@ export function useOwner() {
 
   const loadTournamentsList = useCallback(async () => {
     try {
-      const response = await TournamentService.getTournaments({
-        limit: 100,
-      });
-
-      setTournaments(response.data ?? []);
+      const all: Tournament[] = [];
+      let page = 1;
+      let totalPages = 1;
+      do {
+        const response = await TournamentService.getTournaments({
+          page,
+          limit: 100,
+        });
+        all.push(...(response.data ?? []));
+        totalPages = response.pagination.totalPages;
+        page++;
+      } while (page <= totalPages);
+      setTournaments(all);
     } catch (error) {
       console.error("Failed to load tournaments:", error);
     }
@@ -125,14 +136,22 @@ export function useOwner() {
       );
       if (approved.length === 0) return;
 
+      const uniqueTournamentIds = [
+        ...new Set(approved.map((reg) => reg.tournament.id)),
+      ];
       const raceResults = await Promise.allSettled(
-        approved.map((reg) =>
-          TournamentService.getTournamentRaces(reg.tournament.id)
+        uniqueTournamentIds.map((tournamentId) =>
+          TournamentService.getTournamentRaces(tournamentId)
         )
       );
-      const allRaces = raceResults.flatMap((r) =>
-        r.status === "fulfilled" ? (r.value.data ?? []) : []
-      );
+      const seenRaceIds = new Set<string>();
+      const allRaces = raceResults
+        .flatMap((r) => (r.status === "fulfilled" ? (r.value.data ?? []) : []))
+        .filter((race) => {
+          if (seenRaceIds.has(race.id)) return false;
+          seenRaceIds.add(race.id);
+          return true;
+        });
       if (allRaces.length === 0) return;
 
       const invResults = await Promise.allSettled(
@@ -293,6 +312,99 @@ export function useOwner() {
     return true;
   };
 
+  const loadOwnerSchedule = useCallback(async () => {
+    setScheduleLoading(true);
+    try {
+      const approved = registrations.filter(
+        (r: TournamentRegistrationResponse) => r.status === "approved"
+      );
+      if (approved.length === 0) {
+        setScheduleRides([]);
+        return;
+      }
+
+      const uniqueTournamentIds = [
+        ...new Set(approved.map((reg) => reg.tournament.id)),
+      ];
+      const raceResults = await Promise.allSettled(
+        uniqueTournamentIds.map((tournamentId) =>
+          TournamentService.getTournamentRaces(tournamentId)
+        )
+      );
+      const seenRaceIds = new Set<string>();
+      const allRaces = raceResults
+        .flatMap((r) => (r.status === "fulfilled" ? (r.value.data ?? []) : []))
+        .filter((race) => {
+          if (seenRaceIds.has(race.id)) return false;
+          seenRaceIds.add(race.id);
+          return true;
+        });
+      if (allRaces.length === 0) {
+        setScheduleRides([]);
+        return;
+      }
+
+      const detailResults = await Promise.allSettled(
+        allRaces.map((race) => UserService.getMyRaceDetail(race.id))
+      );
+
+      const horseLookup = new Map(
+        approved.map((reg) => [reg.horse.id, reg.horse.name])
+      );
+
+      const mappedRides: Ride[] = [];
+      const statusMap: Record<string, "scheduled" | "live" | "completed"> = {
+        scheduled: "scheduled",
+        pre_race: "scheduled",
+        ongoing: "live",
+        under_review: "live",
+        completed: "completed",
+        cancelled: "completed",
+        postponed: "scheduled",
+      };
+
+      for (let i = 0; i < allRaces.length; i++) {
+        const detail = detailResults[i];
+        if (detail.status !== "fulfilled") continue;
+
+        const race = allRaces[i];
+        const ownerEntry = detail.value.entries?.find((e) =>
+          horseLookup.has(e.horseId)
+        );
+        if (!ownerEntry) continue;
+        const horseName = ownerEntry.horseName ?? "";
+
+        mappedRides.push({
+          id: race.id,
+          tournamentId: race.tournamentId,
+          name: race.name,
+          roundName: race.roundName,
+          distanceMeters: race.distanceMeters,
+          scheduledAt: race.scheduledAt,
+          venue: race.venue,
+          status: statusMap[race.status] ?? "scheduled",
+          ride: horseName,
+          laneNumber: 0,
+          laneCount: race.laneCount,
+          entryStatus: "accepted" as const,
+          confirmedAt: null,
+          horseOwner: "",
+          horsesId: "",
+          ownerId: "",
+          trackCondition: race.trackCondition,
+          course: undefined,
+        });
+      }
+
+      setScheduleRides(mappedRides);
+    } catch (error) {
+      console.error("Failed to load owner schedule:", error);
+      setScheduleRides([]);
+    } finally {
+      setScheduleLoading(false);
+    }
+  }, [registrations]);
+
   useEffect(() => {
     const initialize = async () => {
       try {
@@ -351,6 +463,10 @@ export function useOwner() {
     loadRegistration,
     loadInvitations,
     loadAllInvitations,
+    loadOwnerSchedule,
+
+    scheduleRides,
+    scheduleLoading,
 
     addHorse,
     updateHorse,

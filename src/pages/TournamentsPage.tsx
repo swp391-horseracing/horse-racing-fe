@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Search,
   MapPin,
@@ -11,14 +11,12 @@ import {
   Clock,
   CheckCircle2,
   Play,
-  ShieldAlert,
   Users,
   ArrowRight,
   AlertCircle,
   Send,
 } from "lucide-react";
 import useTournament from "../hooks/useTournament";
-import { ROUTES } from "../router/routes";
 import { useOwner } from "../hooks/useOwner";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { formatStatus } from "../utils/statusFormat";
@@ -113,6 +111,7 @@ function formatDateOrFallback(value?: string) {
 
 export default function TournamentsPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const {
     search,
@@ -125,6 +124,7 @@ export default function TournamentsPage() {
     loadingList,
     listError,
     selectedTournament,
+    selectedTournamentId,
     openTournament,
     closeTournament,
     detailTab,
@@ -136,10 +136,27 @@ export default function TournamentsPage() {
     setPage,
   } = useTournament();
 
+  useEffect(() => {
+    const selectedId = searchParams.get("selected");
+    if (selectedId && selectedId !== selectedTournamentId) {
+      openTournament(selectedId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleOpenTournament = (id: string) => {
+    openTournament(id);
+    setSearchParams({ selected: id }, { replace: true });
+  };
+
+  const handleCloseTournament = () => {
+    closeTournament();
+    setSearchParams({}, { replace: true });
+  };
+
   // Updated to pass both raceId and date
   const handleGoToRaceDetail = (race: { id: string; date: string }) => {
-    console.log("race date is here: ", race.date);
-    navigate(ROUTES.RACES, {
+    navigate(`/races?tournamentId=${selectedTournament!.id}`, {
       state: {
         raceId: race.id,
         date: race.date,
@@ -232,7 +249,7 @@ export default function TournamentsPage() {
             onClick={() => {
               setActiveFilter("All");
               setPage(1);
-              closeTournament();
+              handleCloseTournament();
             }}
           />
           <StatFilterCard
@@ -242,7 +259,7 @@ export default function TournamentsPage() {
             onClick={() => {
               setActiveFilter("ongoing");
               setPage(1);
-              closeTournament();
+              handleCloseTournament();
             }}
             liveDot
           />
@@ -257,7 +274,7 @@ export default function TournamentsPage() {
             onClick={() => {
               setActiveFilter("upcoming");
               setPage(1);
-              closeTournament();
+              handleCloseTournament();
             }}
           />
           <StatFilterCard
@@ -267,7 +284,7 @@ export default function TournamentsPage() {
             onClick={() => {
               setActiveFilter("completed");
               setPage(1);
-              closeTournament();
+              handleCloseTournament();
             }}
           />
         </div>
@@ -297,7 +314,9 @@ export default function TournamentsPage() {
                   <div
                     key={t.id}
                     onClick={() =>
-                      isSelected ? closeTournament() : openTournament(t.id)
+                      isSelected
+                        ? handleCloseTournament()
+                        : handleOpenTournament(t.id)
                     }
                     className={`group cursor-pointer overflow-hidden rounded-2xl border bg-card transition-all duration-150 ${
                       isSelected
@@ -396,7 +415,7 @@ export default function TournamentsPage() {
                   </p>
                 </div>
                 <button
-                  onClick={closeTournament}
+                  onClick={handleCloseTournament}
                   className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -546,7 +565,7 @@ export default function TournamentsPage() {
                       Entry Requirements & Conditions
                     </h4>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
                         <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
                           <Trophy className="h-4.5 w-4.5" />
@@ -589,21 +608,6 @@ export default function TournamentsPage() {
 
                       <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
                         <div className="p-2.5 bg-muted text-muted-foreground rounded-lg">
-                          <ShieldAlert className="h-4.5 w-4.5" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            Description
-                          </p>
-                          <p className="text-sm font-bold text-foreground mt-1 leading-snug">
-                            {selectedTournament.description ||
-                              "No description provided"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
-                        <div className="p-2.5 bg-muted text-muted-foreground rounded-lg">
                           <Users className="h-4.5 w-4.5" />
                         </div>
                         <div>
@@ -623,6 +627,17 @@ export default function TournamentsPage() {
                         </div>
                       </div>
                     </div>
+
+                    {selectedTournament.description && (
+                      <div className="p-4.5 rounded-xl border border-border bg-card text-sm text-foreground/90 leading-relaxed">
+                        <p className="font-bold text-primary mb-1 flex items-center gap-1.5">
+                          Description
+                        </p>
+                        <p className="whitespace-pre-wrap">
+                          {selectedTournament.description}
+                        </p>
+                      </div>
+                    )}
 
                     {selectedTournament.rules && (
                       <div className="p-4.5 rounded-xl border border-secondary/20 bg-secondary/5 text-xs text-foreground/90 leading-relaxed">
