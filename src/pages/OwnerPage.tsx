@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { useOwner } from "../hooks/useOwner.ts";
-import { useJockey } from "../hooks/useJockey.ts";
 import type { Horse } from "../types/horse";
 import { Clock } from "lucide-react";
 import { useToast } from "../hooks/useToast";
@@ -41,9 +40,16 @@ export default function OwnerPage() {
     inviteJockey,
     jockeysPagination,
     loadAllInvitations,
+    loadOwnerSchedule,
+    scheduleRides,
+    scheduleLoading,
   } = useOwner();
 
-  const { rides: ownerRides, loading: ridesLoading } = useJockey();
+  useEffect(() => {
+    if (registrations.length > 0) {
+      loadOwnerSchedule();
+    }
+  }, [registrations, loadOwnerSchedule]);
 
   const { toasts, addToast } = useToast(3000);
   const [showAddHorse, setShowAddHorse] = useState(false);
@@ -337,8 +343,8 @@ export default function OwnerPage() {
       case "/owner/schedule":
         return (
           <RidingSchedule
-            rides={ownerRides}
-            loading={ridesLoading}
+            rides={scheduleRides}
+            loading={scheduleLoading}
             userRole="owner"
           />
         );
