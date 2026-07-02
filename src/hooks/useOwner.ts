@@ -323,36 +323,32 @@ export function useOwner() {
         return;
       }
 
-      const uniqueTournamentIds = [
-        ...new Set(approved.map((reg) => reg.tournament.id)),
-      ];
-      const raceResults = await Promise.allSettled(
-        uniqueTournamentIds.map((tournamentId) =>
-          TournamentService.getTournamentRaces(tournamentId)
-        )
-      );
-      const seenRaceIds = new Set<string>();
-      const allRaces = raceResults
-        .flatMap((r) => (r.status === "fulfilled" ? (r.value.data ?? []) : []))
-        .filter((race) => {
-          if (seenRaceIds.has(race.id)) return false;
-          seenRaceIds.add(race.id);
-          return true;
-        });
-      if (allRaces.length === 0) {
+      const approvedHorseIds = new Set(approved.map((reg) => reg.horse.id));
+
+      const entriesResponse = await UserService.getMyEntries();
+      const entries = entriesResponse.data ?? [];
+
+      const ownerEntries = entries.filter((e) => approvedHorseIds.has(e.horseId));
+
+      if (ownerEntries.length === 0) {
         setScheduleRides([]);
         return;
       }
 
-      const detailResults = await Promise.allSettled(
-        allRaces.map((race) => UserService.getMyRaceDetail(race.id))
+      const uniqueRaceIds = [...new Set(ownerEntries.map((e) => e.raceId))];
+
+      const raceDetailResults = await Promise.allSettled(
+        uniqueRaceIds.map((raceId) => UserService.getMyRaceDetail(raceId))
       );
 
-      const horseLookup = new Map(
-        approved.map((reg) => [reg.horse.id, reg.horse.name])
-      );
+      const raceDetailMap = new Map<string, { tournamentId: string; name: string; roundName: string; distanceMeters: number; scheduledAt: string; venue: string; status: string; laneCount: number; trackCondition: string }>();
+      for (let i = 0; i < uniqueRaceIds.length; i++) {
+        const result = raceDetailResults[i];
+        if (result.status === "fulfilled") {
+          raceDetailMap.set(uniqueRaceIds[i], result.value);
+        }
+      }
 
-      const mappedRides: Ride[] = [];
       const statusMap: Record<string, "scheduled" | "live" | "completed"> = {
         scheduled: "scheduled",
         pre_race: "scheduled",
@@ -363,38 +359,29 @@ export function useOwner() {
         postponed: "scheduled",
       };
 
-      for (let i = 0; i < allRaces.length; i++) {
-        const detail = detailResults[i];
-        if (detail.status !== "fulfilled") continue;
-
-        const race = allRaces[i];
-        const ownerEntry = detail.value.entries?.find((e) =>
-          horseLookup.has(e.horseId)
-        );
-        if (!ownerEntry) continue;
-        const horseName = ownerEntry.horseName ?? "";
-
-        mappedRides.push({
-          id: race.id,
-          tournamentId: race.tournamentId,
-          name: race.name,
-          roundName: race.roundName,
-          distanceMeters: race.distanceMeters,
-          scheduledAt: race.scheduledAt,
-          venue: race.venue,
-          status: statusMap[race.status] ?? "scheduled",
-          ride: horseName,
-          laneNumber: 0,
-          laneCount: race.laneCount,
-          entryStatus: "accepted" as const,
+      const mappedRides: Ride[] = ownerEntries.map((entry) => {
+        const race = raceDetailMap.get(entry.raceId);
+        return {
+          id: entry.raceId,
+          tournamentId: race?.tournamentId ?? "",
+          name: race?.name ?? "",
+          roundName: race?.roundName ?? "",
+          distanceMeters: race?.distanceMeters ?? 0,
+          scheduledAt: race?.scheduledAt ?? "",
+          venue: race?.venue ?? "",
+          status: statusMap[race?.status ?? ""] ?? "scheduled",
+          ride: entry.horseName,
+          laneNumber: entry.laneNumber ?? 0,
+          laneCount: race?.laneCount ?? 0,
+          entryStatus: entry.status as Ride["entryStatus"],
           confirmedAt: null,
           horseOwner: "",
-          horsesId: "",
+          horsesId: entry.horseId,
           ownerId: "",
-          trackCondition: race.trackCondition,
+          trackCondition: race?.trackCondition ?? "",
           course: undefined,
-        });
-      }
+        };
+      });
 
       setScheduleRides(mappedRides);
     } catch (error) {

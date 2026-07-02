@@ -6,6 +6,7 @@ import type {
   UserProfile,
   UserRaceDetail,
   UserRaceListResponse,
+  MyEntriesResponse,
 } from "../types/user.ts";
 
 export const UserService = {
@@ -79,8 +80,15 @@ export const UserService = {
     return response.data;
   },
 
+  getMyEntries: async (
+    params?: { raceId?: string; page?: number; limit?: number }
+  ): Promise<MyEntriesResponse> => {
+    const response = await api.get("/me/entries", { params });
+    return response.data;
+  },
+
   inviteJockey: async (raceId: string, jockeyId: string, horseId: string) => {
-    const response = await api.post(`/me/races/${raceId}/invitations`, {
+    const response = await api.patch(`/me/invitations/${raceId}`, {
       jockeyId,
       horseId,
     });
