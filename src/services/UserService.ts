@@ -6,6 +6,7 @@ import type {
   UserProfile,
   UserRaceDetail,
   UserRaceListResponse,
+  MyEntriesResponse,
 } from "../types/user.ts";
 
 export const UserService = {
@@ -116,6 +117,12 @@ export const UserService = {
 
   acceptInvitation: async (id: string) => {
     const response = await api.patch(`/me/invitations/${id}/accept`);
+    return response.data;
+  },
+
+  declineInvitation: async (id: string) => {
+    const response = await api.patch(`/me/invitations/${id}/decline`);
+
     return response.data;
   },
 

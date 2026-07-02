@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type SetStateAction,
+} from "react";
 import { TournamentService } from "../services/TournamentService";
 
 import type {
@@ -62,28 +68,33 @@ const mapRaceToPreview = (race: RaceItem): RacePreview => {
 };
 
 export default function useTournament() {
-  const [search, setSearch] = useState("");
-
-  const [activeFilter, setActiveFilter] = useState<FilterTab>("All");
-
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(DEFAULT_LIMIT);
+  const [search, setSearchState] = useState("");
+  const setSearch = useCallback(
+    (value: SetStateAction<string>) => {
+      setSearchState(value);
+      setPage(1);
+    },
+    [setPage]
+  );
 
-  const [tournaments, setTournaments] = useState<TournamentListItem[]>([]);
+  const [activeFilter, setActiveFilterState] = useState<FilterTab>("All");
+  const setActiveFilter = useCallback(
+    (value: SetStateAction<FilterTab>) => {
+      setActiveFilterState(value);
+      setPage(1);
+    },
+    [setPage]
+  );
+
+  const [limit, setLimit] = useState(DEFAULT_LIMIT);
 
   const [allTournaments, setAllTournaments] = useState<TournamentListItem[]>(
     []
   );
 
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: DEFAULT_LIMIT,
-    total: 0,
-    totalPages: 0,
-  });
-
-  const [loadingList, setLoadingList] = useState(false);
-  const [listError, setListError] = useState<string | null>(null);
+  const [loadingAll, setLoadingAll] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [selectedTournamentId, setSelectedTournamentId] = useState<
     string | null
@@ -110,53 +121,30 @@ export default function useTournament() {
 
   const loadAllTournaments = useCallback(async () => {
     try {
+      setLoadingAll(true);
+      setLoadError(null);
       const all: TournamentListItem[] = [];
-      let page = 1;
+      let currentPage = 1;
       let totalPages = 1;
       do {
         const response = await TournamentService.getTournaments({
-          page,
+          page: currentPage,
           limit: 100,
         });
         all.push(...(response.data as unknown as TournamentListItem[]));
         totalPages = response.pagination.totalPages;
-        page++;
-      } while (page <= totalPages);
+        currentPage++;
+      } while (currentPage <= totalPages);
       setAllTournaments(all);
-    } catch {
-      setAllTournaments([]);
-    }
-  }, []);
-
-  const loadTournaments = useCallback(async () => {
-    try {
-      setLoadingList(true);
-      setListError(null);
-
-      const response = await TournamentService.getTournaments({
-        status: activeFilter === "All" ? undefined : activeFilter,
-        page,
-        limit,
-      });
-
-      setTournaments(response.data as unknown as TournamentListItem[]);
-      setPagination(response.pagination);
     } catch (error) {
-      setListError(
+      setAllTournaments([]);
+      setLoadError(
         error instanceof Error ? error.message : "Load tournaments failed"
       );
-
-      setTournaments([]);
     } finally {
-      setLoadingList(false);
+      setLoadingAll(false);
     }
-  }, [activeFilter, page, limit]);
-
-  useEffect(() => {
-    (async () => {
-      await loadTournaments();
-    })();
-  }, [loadTournaments]);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -202,16 +190,45 @@ export default function useTournament() {
   }, [loadTournamentDetail]);
 
   const filteredTournaments = useMemo(() => {
+    let result = allTournaments;
+
+    if (activeFilter !== "All") {
+      const statusMap: Record<string, string[]> = {
+        ongoing: ["ongoing"],
+        upcoming: ["upcoming", "registration_open", "registration_closed"],
+        completed: ["completed"],
+      };
+      const allowedStatuses = statusMap[activeFilter] ?? [activeFilter];
+      result = result.filter((t) => allowedStatuses.includes(t.status));
+    }
+
     const keyword = search.trim().toLowerCase();
+    if (keyword) {
+      result = result.filter(
+        (t) =>
+          t.name.toLowerCase().includes(keyword) ||
+          t.location.toLowerCase().includes(keyword)
+      );
+    }
 
-    if (!keyword) return tournaments;
+    return result;
+  }, [allTournaments, activeFilter, search]);
 
-    return tournaments.filter(
-      (t) =>
-        t.name.toLowerCase().includes(keyword) ||
-        t.location.toLowerCase().includes(keyword)
-    );
-  }, [search, tournaments]);
+  const pagination = useMemo(() => {
+    const total = filteredTournaments.length;
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    return {
+      page: Math.min(page, totalPages),
+      limit,
+      total,
+      totalPages,
+    };
+  }, [filteredTournaments, page, limit]);
+
+  const paginatedTournaments = useMemo(() => {
+    const start = (pagination.page - 1) * limit;
+    return filteredTournaments.slice(start, start + limit);
+  }, [filteredTournaments, pagination.page, limit]);
 
   const counts = useMemo(
     () => ({
@@ -257,14 +274,13 @@ export default function useTournament() {
     limit,
     setLimit,
 
-    tournaments: filteredTournaments,
-    rawTournaments: allTournaments,
+    tournaments: paginatedTournaments,
 
     pagination,
     counts,
 
-    loadingList,
-    listError,
+    loadingList: loadingAll,
+    listError: loadError,
 
     selectedTournamentId,
     selectedTournament,
@@ -283,9 +299,6 @@ export default function useTournament() {
     racesLoading,
     racesError,
 
-    reloadTournaments: () => {
-      void loadTournaments();
-      void loadAllTournaments();
-    },
+    reloadTournaments: loadAllTournaments,
   };
 }

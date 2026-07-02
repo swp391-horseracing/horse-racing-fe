@@ -76,4 +76,21 @@ export const RefereeService = {
     );
     return response.data;
   },
+
+  getRefereeRaceEntries: async (raceId: string): Promise<any> => {
+    const response = await api.get(`/referee/races/${raceId}/entries`);
+    return response.data;
+  },
+
+  inspectEntry: async (
+    raceId: string,
+    entryId: string,
+    result: "cleared" | "disqualified" | "withdrawn"
+  ): Promise<any> => {
+    const response = await api.patch(
+      `/referee/races/${raceId}/entries/${entryId}/inspection`,
+      { result }
+    );
+    return response.data;
+  },
 };
