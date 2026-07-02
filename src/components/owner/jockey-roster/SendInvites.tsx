@@ -8,8 +8,16 @@ export default function SendInvites() {
   const { entryId } = useParams<{ entryId: string }>();
   const navigate = useNavigate();
 
-  const { entries, jockeys, loadJockeys, inviteJockey, loadInvitations } =
-    useOwner();
+  const {
+    entries,
+    jockeys,
+    loadJockeys,
+    inviteJockey,
+    loadInvitations,
+    jockeysPagination,
+    jockeyPage,
+    setJockeyPage,
+  } = useOwner();
 
   const entry: Entry | undefined = useMemo(
     () => entries.find((e) => e.entryId === entryId),
@@ -199,7 +207,30 @@ export default function SendInvites() {
             )}
           </div>
 
-          <div className="mt-8 flex justify-end gap-4">
+          <div className="mt-8 flex w-full justify-end gap-4">
+            {jockeysPagination.totalPages > 1 && (
+              <div className="flex mr-auto items-center justify-center gap-3">
+                <button
+                  disabled={jockeyPage <= 1}
+                  onClick={() => setJockeyPage((p) => p - 1)}
+                  className="rounded-lg border px-4 py-2 disabled:opacity-50"
+                >
+                  Prev
+                </button>
+
+                <span>
+                  {jockeyPage} / {jockeysPagination.totalPages}
+                </span>
+
+                <button
+                  disabled={jockeyPage >= jockeysPagination.totalPages}
+                  onClick={() => setJockeyPage((p) => p + 1)}
+                  className="rounded-lg border px-4 py-2 disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            )}
             <button
               onClick={() => navigate(-1)}
               className="px-8 py-3 border rounded-2xl font-bold hover:bg-slate-50"

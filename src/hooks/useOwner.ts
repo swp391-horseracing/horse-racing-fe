@@ -39,7 +39,7 @@ export function useOwner() {
   const [entriesPage, setEntriesPage] = useState(1);
   const [entriesPagination, setEntriesPagination] = useState({
     page: 1,
-    limit: 10,
+    limit: 8,
     total: 0,
     totalPages: 0,
   });
@@ -147,7 +147,7 @@ export function useOwner() {
         const response = await UserService.getMyEntries(
           status,
           entriesPage,
-          10
+          entriesPagination.limit
         );
         console.log("ownerEntries is here:", response);
         setEntries(response.data ?? []);
@@ -158,7 +158,7 @@ export function useOwner() {
         setEntriesLoading(false);
       }
     },
-    [entriesPage]
+    [entriesPage, entriesPagination]
   );
 
   const addHorse = async (payload: {

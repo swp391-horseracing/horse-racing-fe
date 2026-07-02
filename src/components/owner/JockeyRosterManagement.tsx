@@ -5,7 +5,16 @@ import { type Entry, useOwner } from "../../hooks/useOwner.ts";
 import { useNavigate } from "react-router-dom";
 
 export function JockeyRosterManagement() {
-  const { invitations, entries, loadInvitations } = useOwner();
+  const {
+    invitations,
+    entries,
+    loadInvitations,
+    confirmPairing,
+    cancelInvite,
+    entriesPagination,
+    entriesPage,
+    setEntriesPage,
+  } = useOwner();
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
   const [subTab, setSubTab] = useState<"detail" | "invitation">("detail");
 
@@ -25,6 +34,16 @@ export function JockeyRosterManagement() {
 
   const handleFindJockey = (entry: Entry) => {
     navigate(`/entries/${entry.entryId}/send-invites`);
+  };
+
+  const handleConfirm = (Inv: any) => {
+    console.log(Inv);
+    confirmPairing(Inv.raceId, Inv.id);
+  };
+
+  const handleCancel = (Inv: any) => {
+    console.log(Inv);
+    cancelInvite(Inv.raceId, Inv.id);
   };
 
   const statusBadgeClass = (status: string) =>
@@ -58,10 +77,10 @@ export function JockeyRosterManagement() {
 
       <div className="flex w-full gap-6 h-[calc(100vh-220px)]">
         {/* Left Sidebar - Entries List */}
-        <div className="w-5/12 border border-slate-200 bg-white rounded-3xl overflow-hidden flex flex-col">
-          <div className="flex-1">
+        <div className="w-5/16 border border-slate-200 bg-white rounded-3xl overflow-hidden flex flex-col">
+          <div className="flex flex-col w-full">
             {entriesWithoutJockey.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center px-8">
+              <div className="flex flex-col items-center justify-center text-center px-8">
                 <p className="text-slate-400">No pending entries</p>
               </div>
             ) : (
@@ -77,7 +96,7 @@ export function JockeyRosterManagement() {
                       setSubTab("detail");
                     }}
                     className={cn(
-                      "px-5 py-5 hover:bg-slate-50 cursor-pointer transition-all flex items-center gap-4",
+                      "py-5 hover:bg-slate-50 cursor-pointer transition-all flex items-center gap-4",
                       isSelected && "bg-emerald-50"
                     )}
                   >
@@ -118,6 +137,29 @@ export function JockeyRosterManagement() {
               })
             )}
           </div>
+          {entriesPagination.totalPages > 1 && (
+            <div className="flex mr-auto items-center justify-center gap-3">
+              <button
+                disabled={entriesPage <= 1}
+                onClick={() => setEntriesPage((p) => p - 1)}
+                className="rounded-lg border pr-4 py-2 disabled:opacity-50"
+              >
+                Prev
+              </button>
+
+              <span className="text-sm text-muted-foreground">
+                {entriesPage} / {entriesPagination.totalPages}
+              </span>
+
+              <button
+                disabled={entriesPage >= entriesPagination.totalPages}
+                onClick={() => setEntriesPage((p) => p + 1)}
+                className="rounded-lg border px-4 py-2 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right Panel - Detail + Invitation Sub Tabs */}
@@ -151,7 +193,7 @@ export function JockeyRosterManagement() {
               </div>
 
               {subTab === "detail" ? (
-                <div className="flex-1 p-8 overflow-auto">
+                <div className="flex-1 px-8 overflow-auto">
                   <div className="mb-8">
                     <div className="flex items-center justify-between">
                       <div>
@@ -322,7 +364,7 @@ export function JockeyRosterManagement() {
                 </div>
               ) : (
                 /* Invitation Sub-tab Content */
-                <div className="flex-1 p-8 overflow-auto">
+                <div className="flex-1 px-8 overflow-auto">
                   <div className="font-bold text-lg mb-6">
                     Invitations for this entry
                   </div>
@@ -356,6 +398,22 @@ export function JockeyRosterManagement() {
                           </div>
                           <span className={statusBadgeClass(inv.status)}>
                             {formatStatus(inv.status)}
+                            {inv.status === "accepted" && (
+                              <button
+                                onClick={() => handleConfirm(inv)}
+                                className="ml-3 rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700"
+                              >
+                                Confirm
+                              </button>
+                            )}
+                            {inv.status === "pending" && (
+                              <button
+                                onClick={() => handleCancel(inv)}
+                                className="ml-3 rounded-lg bg-red-400 px-3 py-1 text-sm font-medium text-white hover:bg-red-600"
+                              >
+                                cancel
+                              </button>
+                            )}
                           </span>
                         </div>
                       ))}

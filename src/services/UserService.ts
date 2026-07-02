@@ -116,7 +116,6 @@ export const UserService = {
 
   acceptInvitation: async (id: string) => {
     const response = await api.patch(`/me/invitations/${id}/accept`);
-
     return response.data;
   },
 
