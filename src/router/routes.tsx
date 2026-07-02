@@ -61,7 +61,6 @@ export const ROUTES = {
   RACE_PREDICT: "/races/:id/predictions",
   SPECTATOR_PREDICTIONS: "/spectator/predictions",
 
-
   //ERROR
   NOTHING_DETAIL: "/*",
 };

@@ -124,7 +124,6 @@ export const router = createBrowserRouter([
             path: ROUTES.OWNER_SCHEDULE,
             element: <OwnerPage />,
           },
-
         ],
       },
       {

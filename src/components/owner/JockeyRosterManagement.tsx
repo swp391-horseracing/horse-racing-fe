@@ -23,8 +23,10 @@ export function JockeyRosterManagement() {
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
   const [subTab, setSubTab] = useState<"detail" | "invitation">("detail");
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteModalStep, setInviteModalStep] = useState<'select' | 'write'>('select');
-  
+  const [inviteModalStep, setInviteModalStep] = useState<"select" | "write">(
+    "select"
+  );
+
   // Invite Modal State
   const [selectedJockeyId, setSelectedJockeyId] = useState<number | null>(null);
   const [inviteTitle, setInviteTitle] = useState("");
@@ -78,14 +80,14 @@ export function JockeyRosterManagement() {
 
   const handleSendClick = () => {
     if (!selectedJockey) return;
-    setInviteModalStep('write');
+    setInviteModalStep("write");
   };
 
   const handleConfirmSend = async () => {
     if (!selectedEntry || !selectedJockey) return;
 
     setInviting(true);
-    
+
     try {
       await inviteJockey(
         inviteTitle,
@@ -127,7 +129,7 @@ export function JockeyRosterManagement() {
 
   useEffect(() => {
     if (entryId) {
-      console.log("Found entryId in URL, redirecting or handling...")
+      console.log("Found entryId in URL, redirecting or handling...");
     }
   }, [entryId]);
 
@@ -140,11 +142,11 @@ export function JockeyRosterManagement() {
 
   const handleCloseInviteModal = () => {
     setShowInviteModal(false);
-    setInviteModalStep('select');
+    setInviteModalStep("select");
     setSelectedJockeyId(null);
-    setInviteTitle('');
-    setInviteMessage('');
-    setKeyword('');
+    setInviteTitle("");
+    setInviteMessage("");
+    setKeyword("");
   };
 
   return (
@@ -154,11 +156,11 @@ export function JockeyRosterManagement() {
           <h2 className="text-3xl font-bold tracking-tight !text-primary">
             {toPascalCase("jockey roster")}
           </h2>
-           <p className="text-muted-foreground mt-1 text-sm">
-             Manage your tournament entries and jockey invitations
-           </p>
-         </div>
-       </div>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Manage your tournament entries and jockey invitations
+          </p>
+        </div>
+      </div>
       <ToastContainer toasts={toasts} />
 
       <div className="flex w-full gap-6 flex-1 min-h-0">
@@ -167,7 +169,9 @@ export function JockeyRosterManagement() {
           <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
             {entriesWithoutJockey.length === 0 ? (
               <div className="flex flex-col items-center justify-center text-center p-8 h-full">
-                <p className="text-slate-400">{toPascalCase("no pending entries")}</p>
+                <p className="text-slate-400">
+                  {toPascalCase("no pending entries")}
+                </p>
               </div>
             ) : (
               entriesWithoutJockey.map((entry) => {
@@ -214,7 +218,10 @@ export function JockeyRosterManagement() {
                       )}
                       {entry.responsesCount > 0 && (
                         <div className="px-2 py-0.5 text-[9px] font-bold rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200">
-                          {entry.responsesCount} {toPascalCase(entry.responsesCount > 1 ? "responses" : "response")}
+                          {entry.responsesCount}{" "}
+                          {toPascalCase(
+                            entry.responsesCount > 1 ? "responses" : "response"
+                          )}
                         </div>
                       )}
                     </div>
@@ -289,7 +296,8 @@ export function JockeyRosterManagement() {
                         {selectedEntry.raceName}
                       </div>
                       <div className="text-xs text-slate-500 mt-1">
-                        {new Date(selectedEntry.scheduleAt).toLocaleString()} • {selectedEntry.venue}
+                        {new Date(selectedEntry.scheduleAt).toLocaleString()} •{" "}
+                        {selectedEntry.venue}
                       </div>
                     </div>
                     <button
@@ -312,17 +320,28 @@ export function JockeyRosterManagement() {
                     )}
                     {selectedEntry.pendingCount > 0 && (
                       <div className="px-4 py-1.5 text-xs font-bold rounded-xl bg-amber-100 text-amber-800 border border-amber-200">
-                        {selectedEntry.pendingCount} {toPascalCase(selectedEntry.pendingCount > 1 ? "pending invites" : "pending invite")}
+                        {selectedEntry.pendingCount}{" "}
+                        {toPascalCase(
+                          selectedEntry.pendingCount > 1
+                            ? "pending invites"
+                            : "pending invite"
+                        )}
                       </div>
                     )}
                     {selectedEntry.responsesCount > 0 && (
                       <div className="px-4 py-1.5 text-xs font-bold rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-200">
-                        {selectedEntry.responsesCount} {toPascalCase(selectedEntry.responsesCount > 1 ? "responses" : "response")}
+                        {selectedEntry.responsesCount}{" "}
+                        {toPascalCase(
+                          selectedEntry.responsesCount > 1
+                            ? "responses"
+                            : "response"
+                        )}
                       </div>
                     )}
                     {selectedEntry.entryStatus && (
                       <div className="px-4 py-1.5 text-xs font-bold rounded-xl bg-slate-100 text-slate-700 border border-slate-200">
-                        {toPascalCase("entry")}: {toPascalCase(selectedEntry.entryStatus)}
+                        {toPascalCase("entry")}:{" "}
+                        {toPascalCase(selectedEntry.entryStatus)}
                       </div>
                     )}
                   </div>
@@ -361,18 +380,30 @@ export function JockeyRosterManagement() {
                       </div>
                       <div className="space-y-2.5 text-sm">
                         <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                          <span className="text-slate-400 text-xs">{toPascalCase("race name")}</span>
-                          <span className="font-semibold text-slate-800">{selectedEntry.raceName}</span>
+                          <span className="text-slate-400 text-xs">
+                            {toPascalCase("race name")}
+                          </span>
+                          <span className="font-semibold text-slate-800">
+                            {selectedEntry.raceName}
+                          </span>
                         </div>
                         <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                          <span className="text-slate-400 text-xs">{toPascalCase("scheduled")}</span>
+                          <span className="text-slate-400 text-xs">
+                            {toPascalCase("scheduled")}
+                          </span>
                           <span className="font-semibold text-slate-800">
-                            {new Date(selectedEntry.scheduleAt).toLocaleString()}
+                            {new Date(
+                              selectedEntry.scheduleAt
+                            ).toLocaleString()}
                           </span>
                         </div>
                         <div className="flex justify-between pb-1">
-                          <span className="text-slate-400 text-xs">{toPascalCase("venue")}</span>
-                          <span className="font-semibold text-slate-800">{selectedEntry.venue}</span>
+                          <span className="text-slate-400 text-xs">
+                            {toPascalCase("venue")}
+                          </span>
+                          <span className="font-semibold text-slate-800">
+                            {selectedEntry.venue}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -383,16 +414,28 @@ export function JockeyRosterManagement() {
                       </div>
                       <div className="space-y-2.5 text-sm">
                         <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                          <span className="text-slate-400 text-xs">{toPascalCase("distance")}</span>
-                          <span className="font-semibold text-slate-800">{selectedEntry.distanceMeters} meters</span>
+                          <span className="text-slate-400 text-xs">
+                            {toPascalCase("distance")}
+                          </span>
+                          <span className="font-semibold text-slate-800">
+                            {selectedEntry.distanceMeters} meters
+                          </span>
                         </div>
                         <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                          <span className="text-slate-400 text-xs">{toPascalCase("lane number")}</span>
-                          <span className="font-semibold text-slate-800">#{selectedEntry.laneNumber}</span>
+                          <span className="text-slate-400 text-xs">
+                            {toPascalCase("lane number")}
+                          </span>
+                          <span className="font-semibold text-slate-800">
+                            #{selectedEntry.laneNumber}
+                          </span>
                         </div>
                         <div className="flex justify-between pb-1">
-                          <span className="text-slate-400 text-xs">{toPascalCase("weight")}</span>
-                          <span className="font-semibold text-slate-800">{selectedEntry.weightKg} kg</span>
+                          <span className="text-slate-400 text-xs">
+                            {toPascalCase("weight")}
+                          </span>
+                          <span className="font-semibold text-slate-800">
+                            {selectedEntry.weightKg} kg
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -403,22 +446,30 @@ export function JockeyRosterManagement() {
                       </div>
                       <div className="grid grid-cols-3 gap-4 text-sm">
                         <div>
-                          <div className="text-slate-400 text-[10px] uppercase font-bold">{toPascalCase("entry status")}</div>
+                          <div className="text-slate-400 text-[10px] uppercase font-bold">
+                            {toPascalCase("entry status")}
+                          </div>
                           <div className="font-semibold text-slate-800 capitalize mt-0.5">
                             {toPascalCase(selectedEntry.entryStatus)}
                           </div>
                         </div>
                         <div>
-                          <div className="text-slate-400 text-[10px] uppercase font-bold">{toPascalCase("race status")}</div>
+                          <div className="text-slate-400 text-[10px] uppercase font-bold">
+                            {toPascalCase("race status")}
+                          </div>
                           <div className="font-semibold text-slate-800 capitalize mt-0.5">
                             {toPascalCase(selectedEntry.raceStatus)}
                           </div>
                         </div>
                         {selectedEntry.confirmedAt && (
                           <div>
-                            <div className="text-slate-400 text-[10px] uppercase font-bold">{toPascalCase("confirmed at")}</div>
+                            <div className="text-slate-400 text-[10px] uppercase font-bold">
+                              {toPascalCase("confirmed at")}
+                            </div>
                             <div className="font-semibold text-slate-800 mt-0.5">
-                              {new Date(selectedEntry.confirmedAt).toLocaleDateString()}
+                              {new Date(
+                                selectedEntry.confirmedAt
+                              ).toLocaleDateString()}
                             </div>
                           </div>
                         )}
@@ -497,9 +548,12 @@ export function JockeyRosterManagement() {
           ) : (
             <div className="flex-1 flex items-center justify-center text-center p-8 bg-slate-50/50">
               <div>
-                <p className="text-slate-400 font-bold text-lg">{toPascalCase("select an entry")}</p>
+                <p className="text-slate-400 font-bold text-lg">
+                  {toPascalCase("select an entry")}
+                </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  Choose a stable entry on the left to review details and jockey pairings
+                  Choose a stable entry on the left to review details and jockey
+                  pairings
                 </p>
               </div>
             </div>
@@ -511,14 +565,17 @@ export function JockeyRosterManagement() {
       {showInviteModal && selectedEntry && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="w-full max-w-lg rounded-3xl bg-white p-8 shadow-xl">
-            {inviteModalStep === 'select' ? (
+            {inviteModalStep === "select" ? (
               /* Select Jockey Step */
               <>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-xl font-bold text-[#064E3B]">Choose jockey</h2>
+                    <h2 className="text-xl font-bold text-[#064E3B]">
+                      Choose jockey
+                    </h2>
                     <p className="mt-2 text-sm text-slate-500">
-                      Select a jockey for {selectedEntry.horseName} in {selectedEntry.raceName}.
+                      Select a jockey for {selectedEntry.horseName} in{" "}
+                      {selectedEntry.raceName}.
                     </p>
                   </div>
                   <button
@@ -538,14 +595,18 @@ export function JockeyRosterManagement() {
                     {selectedEntry.raceName}
                   </div>
                   <div className="text-xs text-slate-400 mt-2">
-                    {new Date(selectedEntry.scheduleAt).toLocaleString()} • {selectedEntry.venue}
+                    {new Date(selectedEntry.scheduleAt).toLocaleString()} •{" "}
+                    {selectedEntry.venue}
                   </div>
                 </div>
 
                 {/* Search */}
                 <div className="mt-6">
                   <div className="relative">
-                    <Search className="absolute left-4 top-3.5 text-slate-400" size={18} />
+                    <Search
+                      className="absolute left-4 top-3.5 text-slate-400"
+                      size={18}
+                    />
                     <input
                       value={keyword}
                       onChange={(e) => setKeyword(e.target.value)}
@@ -570,7 +631,7 @@ export function JockeyRosterManagement() {
                           type="button"
                           onClick={() => {
                             setSelectedJockeyId(jockey.id);
-                            setInviteModalStep('write');
+                            setInviteModalStep("write");
                           }}
                           className={cn(
                             "w-full rounded-3xl border p-5 text-left transition",
@@ -623,13 +684,16 @@ export function JockeyRosterManagement() {
               <>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-xl font-bold text-[#064E3B]">Write invitation</h2>
+                    <h2 className="text-xl font-bold text-[#064E3B]">
+                      Write invitation
+                    </h2>
                     <p className="mt-2 text-sm text-slate-500">
-                      Send a custom note to {selectedJockey?.fullName} before inviting.
+                      Send a custom note to {selectedJockey?.fullName} before
+                      inviting.
                     </p>
                   </div>
                   <button
-                    onClick={() => setInviteModalStep('select')}
+                    onClick={() => setInviteModalStep("select")}
                     className="rounded-full px-3 py-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
                   >
                     <ArrowLeft size={16} />
@@ -665,7 +729,7 @@ export function JockeyRosterManagement() {
 
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
                   <button
-                    onClick={() => setInviteModalStep('select')}
+                    onClick={() => setInviteModalStep("select")}
                     className="rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                   >
                     Back
