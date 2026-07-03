@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, matchPath } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { useOwner } from "../hooks/useOwner.ts";
@@ -19,6 +19,7 @@ import { HorseManagement } from "../components/owner/HorseManagement";
 import { TournamentRegister } from "../components/owner/TournamentRegister";
 import { RidingSchedule } from "../components/jockey/RidingSchedule";
 import { JockeyRosterManagement } from "../components/owner/JockeyRosterManagement";
+import { SendInvitesPage } from "../components/owner/SendInvitesPage";
 
 export default function OwnerPage() {
   const location = useLocation();
@@ -240,6 +241,14 @@ export default function OwnerPage() {
           <Clock className="w-5 h-5 animate-spin mr-2" /> Loading...
         </div>
       );
+
+    const sendInvitesMatch = matchPath(
+      "/entries/:entryId/send-invites",
+      active
+    );
+    if (sendInvitesMatch) {
+      return <SendInvitesPage />;
+    }
 
     switch (active) {
       case ROUTES.OWNER_DASHBOARD:

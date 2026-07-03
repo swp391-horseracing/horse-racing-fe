@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { cn } from "../../lib/utils";
 import { type Entry, useOwner } from "../../hooks/useOwner.ts";
-import { useParams } from "react-router-dom";
-import { Search, ArrowLeft } from "lucide-react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { ToastContainer } from "../ui/toast";
 import { useToast } from "../../hooks/useToast";
 
@@ -16,26 +15,16 @@ export function JockeyRosterManagement() {
     entriesPagination,
     entriesPage,
     setEntriesPage,
-    jockeys,
-    loadJockeys,
-    inviteJockey,
   } = useOwner();
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
   const [subTab, setSubTab] = useState<"detail" | "invitation">("detail");
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteModalStep, setInviteModalStep] = useState<"select" | "write">(
-    "select"
-  );
-
-  // Invite Modal State
-  const [selectedJockeyId, setSelectedJockeyId] = useState<number | null>(null);
-  const [inviteTitle, setInviteTitle] = useState("");
-  const [inviteMessage, setInviteMessage] = useState("");
-  const [inviting, setInviting] = useState(false);
-  const [keyword, setKeyword] = useState("");
 
   const { entryId } = useParams<{ entryId: string }>();
-  const { toasts, addToast } = useToast(3000);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const selectedEntryId = searchParams.get("selected");
+  const tabParam = searchParams.get("tab");
+  const { toasts } = useToast(3000);
   // Entries without confirmed jockey
   const entriesWithoutJockey = entries.filter((entry) => {
     const hasConfirmed = invitations.some(
@@ -50,10 +39,7 @@ export function JockeyRosterManagement() {
     : [];
 
   const handleFindJockey = (entry: Entry) => {
-    setSelectedEntry(entry);
-    setShowInviteModal(true);
-    // Reload jockeys when opening the modal for fresh list
-    loadJockeys();
+    navigate(`/entries/${entry.entryId}/send-invites`);
   };
 
   const handleConfirm = (Inv: any) => {
@@ -64,48 +50,6 @@ export function JockeyRosterManagement() {
   const handleCancel = (Inv: any) => {
     console.log(Inv);
     cancelInvite(Inv.raceId, Inv.id);
-  };
-
-  const filteredJockeys = (() => {
-    if (!keyword.trim()) return jockeys;
-    const term = keyword.toLowerCase();
-    return jockeys.filter(
-      (j) =>
-        j.fullName.toLowerCase().includes(term) ||
-        (j.club && j.club.toLowerCase().includes(term))
-    );
-  })();
-
-  const selectedJockey = filteredJockeys.find((j) => j.id === selectedJockeyId);
-
-  const handleSendClick = () => {
-    if (!selectedJockey) return;
-    setInviteModalStep("write");
-  };
-
-  const handleConfirmSend = async () => {
-    if (!selectedEntry || !selectedJockey) return;
-
-    setInviting(true);
-
-    try {
-      await inviteJockey(
-        inviteTitle,
-        selectedEntry.entryId,
-        String(selectedJockey.id),
-        selectedEntry.horseId,
-        inviteMessage
-      );
-      addToast("Invitation sent successfully.", "success");
-      handleCloseInviteModal();
-      // Keep selectedEntry unchanged, subTab will show updated invitation list
-      setSubTab("invitation");
-    } catch (error) {
-      console.error(error);
-      addToast("Failed to send invitation. Please try again.", "error");
-    } finally {
-      setInviting(false);
-    }
   };
 
   const statusBadgeClass = (status: string) =>
@@ -140,14 +84,22 @@ export function JockeyRosterManagement() {
     }
   };
 
-  const handleCloseInviteModal = () => {
-    setShowInviteModal(false);
-    setInviteModalStep("select");
-    setSelectedJockeyId(null);
-    setInviteTitle("");
-    setInviteMessage("");
-    setKeyword("");
-  };
+  // Auto-select entry from URL query param (returning from SendInvitesPage)
+  useEffect(() => {
+    if (selectedEntryId && entries.length > 0) {
+      const entry = entries.find((e) => e.entryId === selectedEntryId);
+      if (entry) {
+        const timer = setTimeout(() => {
+          setSelectedEntry(entry);
+          if (tabParam === "invitation" && entry.raceId) {
+            setSubTab("invitation");
+            loadInvitations(entry.raceId);
+          }
+        }, 0);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [selectedEntryId, tabParam, entries, loadInvitations]);
 
   return (
     <div className="max-w-6xl mx-auto p-5 h-full flex flex-col">
@@ -560,193 +512,6 @@ export function JockeyRosterManagement() {
           )}
         </div>
       </div>
-
-      {/* Invite Modal */}
-      {showInviteModal && selectedEntry && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-8 shadow-xl">
-            {inviteModalStep === "select" ? (
-              /* Select Jockey Step */
-              <>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-xl font-bold text-[#064E3B]">
-                      Choose jockey
-                    </h2>
-                    <p className="mt-2 text-sm text-slate-500">
-                      Select a jockey for {selectedEntry.horseName} in{" "}
-                      {selectedEntry.raceName}.
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleCloseInviteModal}
-                    className="rounded-full px-3 py-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                {/* Entry Details in Modal */}
-                <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                  <div className="font-semibold text-slate-800 text-lg">
-                    {selectedEntry.horseName}
-                  </div>
-                  <div className="text-sm text-slate-500 mt-1">
-                    {selectedEntry.raceName}
-                  </div>
-                  <div className="text-xs text-slate-400 mt-2">
-                    {new Date(selectedEntry.scheduleAt).toLocaleString()} •{" "}
-                    {selectedEntry.venue}
-                  </div>
-                </div>
-
-                {/* Search */}
-                <div className="mt-6">
-                  <div className="relative">
-                    <Search
-                      className="absolute left-4 top-3.5 text-slate-400"
-                      size={18}
-                    />
-                    <input
-                      value={keyword}
-                      onChange={(e) => setKeyword(e.target.value)}
-                      placeholder="Search jockey by name or club..."
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-11 py-3 text-sm text-slate-700 outline-none transition focus:border-[#064E3B]"
-                    />
-                  </div>
-                </div>
-
-                {/* Jockey List */}
-                <div className="mt-6 max-h-[400px] overflow-auto pr-2 space-y-3">
-                  {filteredJockeys.length === 0 ? (
-                    <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 py-20 text-center text-sm text-slate-400">
-                      No jockeys found.
-                    </div>
-                  ) : (
-                    filteredJockeys.map((jockey) => {
-                      const isSelected = selectedJockeyId === jockey.id;
-                      return (
-                        <button
-                          key={jockey.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedJockeyId(jockey.id);
-                            setInviteModalStep("write");
-                          }}
-                          className={cn(
-                            "w-full rounded-3xl border p-5 text-left transition",
-                            isSelected
-                              ? "border-[#064E3B] bg-emerald-50 shadow-sm"
-                              : "border-slate-200 bg-white hover:border-[#064E3B] hover:bg-slate-50"
-                          )}
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">
-                              {jockey.fullName
-                                .split(" ")
-                                .map((part) => part[0])
-                                .join("")}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="font-semibold text-slate-800 truncate">
-                                {jockey.fullName}
-                              </div>
-                              <div className="text-sm text-slate-500 truncate">
-                                {jockey.club || "No club"}
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })
-                  )}
-                </div>
-
-                {/* Footer */}
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-                  <button
-                    onClick={handleCloseInviteModal}
-                    className="rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSendClick}
-                    disabled={!selectedJockeyId}
-                    className="rounded-2xl bg-[#064E3B] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#043E2F] disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Next
-                  </button>
-                </div>
-              </>
-            ) : (
-              /* Write Invitation Step */
-              <>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-xl font-bold text-[#064E3B]">
-                      Write invitation
-                    </h2>
-                    <p className="mt-2 text-sm text-slate-500">
-                      Send a custom note to {selectedJockey?.fullName} before
-                      inviting.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setInviteModalStep("select")}
-                    className="rounded-full px-3 py-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-                  >
-                    <ArrowLeft size={16} />
-                  </button>
-                </div>
-
-                <div className="mt-6 space-y-5">
-                  <div>
-                    <label className="mb-2 block text-sm font-semibold text-slate-700">
-                      Title
-                    </label>
-                    <input
-                      value={inviteTitle}
-                      onChange={(e) => setInviteTitle(e.target.value)}
-                      placeholder={`Invitation for ${selectedEntry.raceName}`}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-[#064E3B]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-sm font-semibold text-slate-700">
-                      Message
-                    </label>
-                    <textarea
-                      value={inviteMessage}
-                      onChange={(e) => setInviteMessage(e.target.value)}
-                      rows={5}
-                      placeholder="Write a short message to the jockey..."
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-[#064E3B] resize-y"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
-                  <button
-                    onClick={() => setInviteModalStep("select")}
-                    className="rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                  >
-                    Back
-                  </button>
-                  <button
-                    onClick={handleConfirmSend}
-                    disabled={inviting}
-                    className="rounded-2xl bg-[#064E3B] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#043E2F] disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {inviting ? "Sending..." : "Send Invitation"}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
