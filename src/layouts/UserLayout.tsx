@@ -8,6 +8,7 @@ import {
   Activity,
   UserCheck,
   ClipboardList,
+  Flag,
 } from "lucide-react";
 import {
   Sidebar,
@@ -168,6 +169,7 @@ export default function UserLayout({
         key: ROUTES.ADMIN_DASHBOARD,
       },
       { label: "Access Management", icon: UserCheck, key: "/admin/access" },
+      { label: "Course Management", icon: Flag, key: "/admin/course" },
       {
         label: "Registry & Approvals",
         icon: Mail,
