@@ -27,6 +27,7 @@ export default function MainLayout() {
     { label: "Races", to: ROUTES.RACES },
     { label: "Tournaments", to: ROUTES.TOURNAMENTS },
     { label: "LeaderBoard", to: ROUTES.LEADERBOARD },
+    { label: "Courses", to: ROUTES.COURSES },
   ];
 
   interface LinkItem {
