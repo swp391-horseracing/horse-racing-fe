@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useMemo, useState, useCallback, useEffect, useRef } from "react";
 import {
   useNavigate,
   useSearchParams,
@@ -24,15 +24,16 @@ import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
 import type { DateRange } from "react-day-picker";
 import { useToast } from "../hooks/useToast";
 import { formatStatus } from "../utils/statusFormat";
-import { getRaceStatusStyle, getRaceStatusDetailStyle } from "../utils/statusStyles";
+import {
+  getRaceStatusStyle,
+  getRaceStatusDetailStyle,
+} from "../utils/statusStyles";
 import { ToastContainer } from "../components/ui/toast";
 import { cn } from "../lib/utils";
 
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
 import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
 import { PlacePredictionModal } from "../components/spectator/PlacePredictionModal";
-
-type StatusFilter = RaceApiStatus | "All";
 
 interface RaceUI extends Omit<RaceListItem, "status"> {
   title: string;
@@ -63,9 +64,12 @@ const mapRaceToUi = (race: RaceListItem): RaceUI => {
     title: race.name,
     date: `${yyyy}-${mm}-${dd}`,
     time: `${hh}:${min}`,
-    distance: race.course?.distanceMeters ? `${race.course.distanceMeters}m` : "",
+    distance: race.course?.distanceMeters
+      ? `${race.course.distanceMeters}m`
+      : "",
     surface: race.course?.surfaceType
-      ? race.course.surfaceType.charAt(0).toUpperCase() + race.course.surfaceType.slice(1)
+      ? race.course.surfaceType.charAt(0).toUpperCase() +
+        race.course.surfaceType.slice(1)
       : "",
     className: "Standard",
     status: race.status,
@@ -136,7 +140,15 @@ function RaceRow({
             {race.title}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            {[race.distance, race.surface, race.venue, race.date, race.entryCount ? `${race.entryCount} entries` : ""].filter(Boolean).join(" · ")}
+            {[
+              race.distance,
+              race.surface,
+              race.venue,
+              race.date,
+              race.entryCount ? `${race.entryCount} entries` : "",
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
         </div>
       </div>
@@ -147,13 +159,18 @@ function RaceRow({
           </span>
         )}
         {isLive ? (
-          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 ${getRaceStatusStyle(race.status)}`}>
+          <span
+            className={`text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 ${getRaceStatusStyle(race.status)}`}
+          >
             <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
             Live
           </span>
         ) : (
-          <span className={`text-[9px] font-bold px-2 py-0.5 rounded flex items-center gap-1 ${getRaceStatusStyle(race.status)}`}>
-            {(race.status === "completed" || race.status === "result_confirmed") && (
+          <span
+            className={`text-[9px] font-bold px-2 py-0.5 rounded flex items-center gap-1 ${getRaceStatusStyle(race.status)}`}
+          >
+            {(race.status === "completed" ||
+              race.status === "result_confirmed") && (
               <span className="h-1.5 w-1.5 rounded-full bg-muted/80" />
             )}
             {formatStatus(race.status)}
@@ -189,8 +206,15 @@ export default function RacesPage() {
     loadUpcomingRaces,
   } = useRaces();
 
-      const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
+  const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(
+    new Set()
+  );
   const [search, setSearch] = useState("");
+  const [selectedDistances, setSelectedDistances] = useState<Set<string>>(
+    new Set()
+  );
+  const [distanceOpen, setDistanceOpen] = useState(false);
+  const distanceRef = useRef<HTMLDivElement>(null);
 
   const [selectedRange, setSelectedRange] = useState<DateRange | undefined>(
     routeState?.date
@@ -261,7 +285,13 @@ export default function RacesPage() {
   const effectiveRaces = useMemo(() => {
     if (selectedRange?.from && selectedRange?.to) return rangeRaces;
     return upcomingRaces.length > 0 ? upcomingRaces : apiRaces;
-  }, [selectedRange?.from, selectedRange?.to, rangeRaces, upcomingRaces, apiRaces]);
+  }, [
+    selectedRange?.from,
+    selectedRange?.to,
+    rangeRaces,
+    upcomingRaces,
+    apiRaces,
+  ]);
 
   const allRaces = useMemo(
     () => effectiveRaces.map(mapRaceToUi),
@@ -281,18 +311,21 @@ export default function RacesPage() {
     const lower = search.toLowerCase();
     return allRaces
       .filter((r) => {
-        const matchStatus = statusFilter === "All" || r.status === statusFilter;
+        const matchStatus =
+          selectedStatuses.size === 0 || selectedStatuses.has(r.status);
         const matchSearch =
           !lower ||
           r.title.toLowerCase().includes(lower) ||
           r.className.toLowerCase().includes(lower);
-        return matchStatus && matchSearch;
+        const matchDistance =
+          selectedDistances.size === 0 || selectedDistances.has(r.distance);
+        return matchStatus && matchSearch && matchDistance;
       })
       .sort(
         (a, b) =>
           new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
       );
-  }, [allRaces, statusFilter, search]);
+  }, [allRaces, selectedStatuses, search, selectedDistances]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, RaceUI[]>();
@@ -359,13 +392,47 @@ export default function RacesPage() {
   const isCalendarMode = true;
 
   const uniqueStatuses = useMemo(
-    () => ["All", ...new Set(racesInRange.map((r) => r.status))],
+    () => [...new Set(racesInRange.map((r) => r.status))],
     [racesInRange]
   );
 
-  if (statusFilter !== "All" && !uniqueStatuses.includes(statusFilter)) {
-    setStatusFilter("All");
-  }
+  const toggleStatus = useCallback((s: string) => {
+    setSelectedStatuses((prev) => {
+      const next = new Set(prev);
+      if (next.has(s)) next.delete(s);
+      else next.add(s);
+      return next;
+    });
+  }, []);
+
+  const uniqueDistances = useMemo(() => {
+    const distances = allRaces
+      .map((r) => r.distance)
+      .filter(Boolean) as string[];
+    return [...new Set(distances)].sort((a, b) => parseInt(a) - parseInt(b));
+  }, [allRaces]);
+
+  const toggleDistance = useCallback((d: string) => {
+    setSelectedDistances((prev) => {
+      const next = new Set(prev);
+      if (next.has(d)) next.delete(d);
+      else next.add(d);
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        distanceRef.current &&
+        !distanceRef.current.contains(e.target as Node)
+      ) {
+        setDistanceOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
@@ -407,25 +474,92 @@ export default function RacesPage() {
             </div>
           </div>
 
-          {dateRangeStr && (
-            <div className="mb-6 flex flex-wrap gap-2">
-              {uniqueStatuses.map((key) => {
-                const isAll = key === "All";
-                return (
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1">
+              Status
+            </span>
+            <button
+              onClick={() => setSelectedStatuses(new Set())}
+              className={cn(
+                "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border",
+                selectedStatuses.size === 0
+                  ? "bg-[#064E3B] text-white border-[#064E3B]"
+                  : "bg-white text-slate-600 border-slate-200 hover:border-[#064E3B]/30"
+              )}
+            >
+              All
+            </button>
+            {uniqueStatuses.map((key) => (
+              <button
+                key={key}
+                onClick={() => toggleStatus(key)}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border",
+                  selectedStatuses.has(key)
+                    ? "bg-[#064E3B] text-white border-[#064E3B]"
+                    : "bg-white text-slate-600 border-slate-200 hover:border-[#064E3B]/30"
+                )}
+              >
+                {formatStatus(key)}
+              </button>
+            ))}
+          </div>
+
+          {uniqueDistances.length > 0 && (
+            <div
+              className="mb-6 flex flex-wrap items-center gap-2"
+              ref={distanceRef}
+            >
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1">
+                Distance
+              </span>
+              <div className="relative">
+                <button
+                  onClick={() => setDistanceOpen((prev) => !prev)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border",
+                    selectedDistances.size > 0
+                      ? "bg-[#064E3B] text-white border-[#064E3B]"
+                      : "bg-white text-slate-600 border-slate-200 hover:border-[#064E3B]/30"
+                  )}
+                >
+                  {selectedDistances.size === 0
+                    ? "All"
+                    : `${selectedDistances.size} selected`}
+                </button>
+                {distanceOpen && (
+                  <div className="absolute top-full left-0 z-50 mt-1 w-44 rounded-xl border border-slate-200 bg-white shadow-lg ring-1 ring-black/5 py-2">
+                    {uniqueDistances.map((d) => (
+                      <label
+                        key={d}
+                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedDistances.has(d)}
+                          onChange={() => toggleDistance(d)}
+                          className="rounded border-slate-300 text-[#064E3B] focus:ring-[#064E3B]"
+                        />
+                        {d}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {[...selectedDistances].map((d) => (
+                <span
+                  key={d}
+                  className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-bold bg-[#064E3B]/10 text-[#064E3B] border border-[#064E3B]/20"
+                >
+                  {d}
                   <button
-                    key={key}
-                    onClick={() => setStatusFilter(key as StatusFilter)}
-                    className={cn(
-                      "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border",
-                      statusFilter === key
-                        ? "bg-[#064E3B] text-white border-[#064E3B]"
-                        : "bg-white text-slate-600 border-slate-200 hover:border-[#064E3B]/30"
-                    )}
+                    onClick={() => toggleDistance(d)}
+                    className="hover:text-red-600 transition-colors leading-none"
                   >
-                    {isAll ? "All" : formatStatus(key)}
+                    ×
                   </button>
-                );
-              })}
+                </span>
+              ))}
             </div>
           )}
         </div>
@@ -453,7 +587,7 @@ export default function RacesPage() {
                   onSelect={(range) => {
                     setSelectedRange(range);
                     if (!range?.from) {
-                      setStatusFilter("All");
+                      setSelectedStatuses(new Set());
                     }
                     if (range?.from) {
                       setViewMonth(range.from);

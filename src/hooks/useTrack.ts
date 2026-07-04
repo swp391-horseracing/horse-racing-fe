@@ -56,8 +56,7 @@ export function useTrack(initialParams?: {
             );
             setTotalPages(paginated.pagination.totalPages || calculatedPages);
           }
-        }
-        else if (Array.isArray(response)) {
+        } else if (Array.isArray(response)) {
           setTracks(response);
           setTotalItems(response.length);
           setTotalPages(1);
@@ -183,10 +182,7 @@ export function useTrack(initialParams?: {
       try {
         setLoading(true);
         setError(null);
-        const response = await TrackService.updateTrackStatus(
-          trackId,
-          status
-        );
+        const response = await TrackService.updateTrackStatus(trackId, status);
 
         setTracks((prev) =>
           prev.map((track) =>
@@ -216,10 +212,7 @@ export function useTrack(initialParams?: {
       try {
         setLoading(true);
         setError(null);
-        const response = await TrackService.createTrackDistance(
-          trackId,
-          data
-        );
+        const response = await TrackService.createTrackDistance(trackId, data);
 
         if (trackDetail?.id === trackId) {
           await getTrackDistances(trackId);

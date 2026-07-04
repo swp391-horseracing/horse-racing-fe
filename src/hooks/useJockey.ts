@@ -66,7 +66,7 @@ export function useJockey() {
 
       ranking: race.ranking,
 
-      track: race.track,
+      track: race.course,
     };
   };
 

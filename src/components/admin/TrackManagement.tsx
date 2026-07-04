@@ -16,11 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { ToastType } from "../../types/referee";
-import type {
-  TrackDetail,
-  TrackListItem,
-  TrackShape,
-} from "../../types/track";
+import type { TrackDetail, TrackListItem, TrackShape } from "../../types/track";
 import { useTrack } from "../../hooks/useTrack";
 
 type OpenMenuState = {
@@ -101,9 +97,7 @@ export default function TrackManagement({
   } = useTrack({ autoFetchTracks: true, autoFetchTrackShapes: true });
 
   const [openMenu, setOpenMenu] = useState<OpenMenuState>(null);
-  const [selectedTrack, setSelectedTrack] = useState<TrackDetail | null>(
-    null
-  );
+  const [selectedTrack, setSelectedTrack] = useState<TrackDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -338,12 +332,10 @@ export default function TrackManagement({
                           <span
                             className="truncate"
                             title={
-                              track.address ||
-                              `${track.city}, ${track.country}`
+                              track.address || `${track.city}, ${track.country}`
                             }
                           >
-                            {track.address ||
-                              `${track.city}, ${track.country}`}
+                            {track.address || `${track.city}, ${track.country}`}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 text-slate-500">
@@ -500,8 +492,7 @@ export default function TrackManagement({
           <div className="flex items-center justify-between pt-3 border-t border-slate-100">
             <p className="text-[10px] text-slate-400">
               Showing {(currentPage - 1) * limit + 1}-
-              {Math.min(currentPage * limit, totalItems)} of {totalItems}{" "}
-              tracks
+              {Math.min(currentPage * limit, totalItems)} of {totalItems} tracks
             </p>
             <div className="flex items-center gap-2">
               <button

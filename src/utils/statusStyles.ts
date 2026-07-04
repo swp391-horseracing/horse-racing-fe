@@ -23,9 +23,14 @@ export const RACE_STATUS_DETAIL_STYLES: Record<string, string> = {
 };
 
 export function getRaceStatusStyle(status: string): string {
-  return RACE_STATUS_STYLES[status] ?? "bg-slate-100 text-slate-600 border-slate-200";
+  return (
+    RACE_STATUS_STYLES[status] ?? "bg-slate-100 text-slate-600 border-slate-200"
+  );
 }
 
 export function getRaceStatusDetailStyle(status: string): string {
-  return RACE_STATUS_DETAIL_STYLES[status] ?? "bg-slate-500/20 border-slate-400/50 text-slate-200";
+  return (
+    RACE_STATUS_DETAIL_STYLES[status] ??
+    "bg-slate-500/20 border-slate-400/50 text-slate-200"
+  );
 }

@@ -105,7 +105,9 @@ export default function TournamentRaceManager({
     return null;
   };
 
-  const handleCreateRace = async (data: RaceFormData): Promise<string | null> => {
+  const handleCreateRace = async (
+    data: RaceFormData
+  ): Promise<string | null> => {
     if (!activeTournamentId) return "No active tournament.";
     const payload: Record<string, unknown> = {
       name: data.name,
@@ -128,7 +130,9 @@ export default function TournamentRaceManager({
     return res.error ?? "Failed to create race.";
   };
 
-  const handleUpdateRace = async (data: RaceFormData): Promise<string | null> => {
+  const handleUpdateRace = async (
+    data: RaceFormData
+  ): Promise<string | null> => {
     if (!activeRaceId) return "No active race.";
     const payload: Record<string, unknown> = {
       name: data.name,
@@ -244,7 +248,9 @@ export default function TournamentRaceManager({
                         {race.venue ?? "-"}
                       </td>
                       <td className="p-3">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded capitalize ${getRaceStatusStyle(race.status)}`}>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded capitalize ${getRaceStatusStyle(race.status)}`}
+                        >
                           {STATUS_LABELS[race.status] ??
                             race.status.replaceAll("_", " ")}
                         </span>
@@ -367,7 +373,9 @@ export default function TournamentRaceManager({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm pt-2">
               <div>
                 <strong>Status:</strong>{" "}
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded capitalize ${getRaceStatusStyle(selectedRace.status)}`}>
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded capitalize ${getRaceStatusStyle(selectedRace.status)}`}
+                >
                   {STATUS_LABELS[selectedRace.status] ??
                     selectedRace.status.replaceAll("_", " ")}
                 </span>

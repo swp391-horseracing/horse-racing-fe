@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { AdminService } from "../../services/AdminService";
 import { RaceService } from "../../services/RaceService";
-import type { RaceDetail, RaceListItem } from "../../types/race";
+import type { Race, RaceDetail, RaceListItem } from "../../types/race";
 
 export default function useAdminRace() {
   const [races, setRaces] = useState<RaceListItem[]>([]);
@@ -56,7 +56,9 @@ export default function useAdminRace() {
     async (
       tournamentId: string,
       data: Record<string, unknown>
-    ): Promise<{ success: true; data: RaceListItem } | { success: false; error: string }> => {
+    ): Promise<
+      { success: true; data: Race } | { success: false; error: string }
+    > => {
       try {
         setActionLoading(true);
         setError(null);
@@ -65,7 +67,8 @@ export default function useAdminRace() {
 
         return { success: true, data: res };
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Create race failed";
+        const message =
+          err instanceof Error ? err.message : "Create race failed";
         setError(message);
 
         return { success: false, error: message };
@@ -89,7 +92,8 @@ export default function useAdminRace() {
 
         return { success: true };
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Update race failed";
+        const message =
+          err instanceof Error ? err.message : "Update race failed";
         setError(message);
 
         return { success: false, error: message };

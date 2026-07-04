@@ -807,12 +807,12 @@ function OwnerDetailPanel({
         </div>
       }
       headerRight={
-        <span className={cn(
-          "px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm",
-          getRaceStatusStyle(
-            ride.status === "live" ? "ongoing" : ride.status
-          )
-        )}>
+        <span
+          className={cn(
+            "px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm",
+            getRaceStatusStyle(ride.status === "live" ? "ongoing" : ride.status)
+          )}
+        >
           {formatStatus(ride.status)}
         </span>
       }

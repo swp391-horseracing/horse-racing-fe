@@ -207,9 +207,7 @@ export function useRaces() {
       const topRaces = collected.slice(0, limit);
 
       const [detailResults, entryResults] = await Promise.all([
-        Promise.allSettled(
-          topRaces.map((r) => RaceService.getRaceById(r.id))
-        ),
+        Promise.allSettled(topRaces.map((r) => RaceService.getRaceById(r.id))),
         Promise.allSettled(
           topRaces.map((r) => RaceService.getRaceHorses(r.id))
         ),

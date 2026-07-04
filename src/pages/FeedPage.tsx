@@ -304,8 +304,15 @@ export default function FeedPage() {
                           <h4 className="font-bold text-xs text-slate-700 truncate group-hover:text-[#064E3B] transition-colors">
                             {race.name}
                           </h4>
-                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${getRaceStatusStyle(race.status)}`}>
-                            {race.status === "ongoing" ? "Live" : race.status === "scheduled" || race.status === "pre_race" ? "Upcoming" : formatStatus(race.status)}
+                          <span
+                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${getRaceStatusStyle(race.status)}`}
+                          >
+                            {race.status === "ongoing"
+                              ? "Live"
+                              : race.status === "scheduled" ||
+                                  race.status === "pre_race"
+                                ? "Upcoming"
+                                : formatStatus(race.status)}
                           </span>
                         </div>
                         <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">

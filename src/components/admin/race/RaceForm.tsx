@@ -156,7 +156,9 @@ export default function RaceForm({
       const startMs = new Date(tournamentStartDate).getTime();
       const endMs = new Date(tournamentEndDate).getTime();
       if (scheduledMs < startMs || scheduledMs > endMs) {
-        setError("Scheduled date must be between tournament start and end dates");
+        setError(
+          "Scheduled date must be between tournament start and end dates"
+        );
         return;
       }
     }
