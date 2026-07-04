@@ -30,7 +30,7 @@ export interface RaceEntry {
 
 export type RaceSurface = "turf" | "dirt" | "synthetic";
 
-export interface RaceCourse {
+export interface RaceTrack {
   id: string;
   name: string;
   country: string;
@@ -42,7 +42,7 @@ export interface RaceCourse {
 export interface RaceListItem {
   id: string;
   tournamentId: string;
-  courseDistanceId: string;
+  trackDistanceId: string;
 
   name: string;
   raceNumber: number | null;
@@ -55,7 +55,7 @@ export interface RaceListItem {
   createdAt: string;
   updatedAt: string;
 
-  course?: RaceCourse;
+  track?: RaceTrack;
 }
 
 export interface Pagination {
@@ -117,7 +117,7 @@ export type Ride = {
   trackCondition: string;
   laneCount: number;
   ranking?: number;
-  course?: RaceCourse;
+  track?: RaceTrack;
 };
 
 export interface Race {

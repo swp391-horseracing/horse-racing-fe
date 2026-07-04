@@ -23,7 +23,7 @@ import RefereePage from "../pages/RefereePage.tsx";
 import LeaderBoardPage from "../pages/LeaderBoardPage.tsx";
 import NotFoundPage from "../pages/NotFoundPage.tsx";
 import HorseDetailPage from "../pages/HorseDetailPage.tsx";
-import CoursesPage from "../pages/CoursesPage.tsx";
+import TracksPage from "../pages/TracksPage.tsx";
 export const router = createBrowserRouter([
   {
     path: ROUTES.HOME,
@@ -67,8 +67,8 @@ export const router = createBrowserRouter([
         element: <TournamentsPage />,
       },
       {
-        path: ROUTES.COURSES,
-        element: <CoursesPage />,
+        path: ROUTES.TRACKS,
+        element: <TracksPage />,
       },
       {
         path: ROUTES.LEADERBOARD,
@@ -188,7 +188,7 @@ export const router = createBrowserRouter([
             path: ROUTES.ADMIN_TOURNAMENT_DETAIL,
             element: <AdminTournamentDetailPage />,
           },
-          { path: "/admin/course", element: <AdminPage /> },
+          { path: "/admin/track", element: <AdminPage /> },
           { path: "/admin/economy", element: <AdminPage /> },
           { path: ROUTES.ADMIN_REPORTS, element: <AdminPage /> },
           {

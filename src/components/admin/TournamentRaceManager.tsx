@@ -110,7 +110,7 @@ export default function TournamentRaceManager({
     const payload: Record<string, unknown> = {
       name: data.name,
       raceNumber: data.raceNumber,
-      courseDistanceId: data.courseDistanceId,
+      trackDistanceId: data.trackDistanceId,
       distanceMeters: data.distanceMeters,
       trackCondition: data.trackCondition,
       scheduleAt: new Date(data.scheduledAt).toISOString(),
@@ -133,7 +133,7 @@ export default function TournamentRaceManager({
     const payload: Record<string, unknown> = {
       name: data.name,
       raceNumber: data.raceNumber,
-      courseDistanceId: data.courseDistanceId,
+      trackDistanceId: data.trackDistanceId,
       distanceMeters: data.distanceMeters,
       trackCondition: data.trackCondition,
       scheduleAt: new Date(data.scheduledAt).toISOString(),

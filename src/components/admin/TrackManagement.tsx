@@ -17,13 +17,11 @@ import {
 import { cn } from "../../lib/utils";
 import type { ToastType } from "../../types/referee";
 import type {
-  CourseDetail,
-  CourseListItem,
+  TrackDetail,
+  TrackListItem,
   TrackShape,
-} from "../../types/course";
-import { useCourse } from "../../hooks/useCourse";
-
-// ==================== TYPES & CONSTANTS ====================
+} from "../../types/track";
+import { useTrack } from "../../hooks/useTrack";
 
 type OpenMenuState = {
   id: string;
@@ -45,8 +43,6 @@ function formatDateOrFallback(value?: string) {
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? "N/A" : d.toLocaleDateString();
 }
-
-// ==================== REUSABLE FORM MODAL ====================
 
 interface FormModalProps {
   isOpen: boolean;
@@ -83,37 +79,33 @@ function FormModal({ isOpen, onClose, title, children }: FormModalProps) {
   );
 }
 
-// ==================== MAIN COMPONENT ====================
-
-export default function CourseManagement({
+export default function TrackManagement({
   addToast,
 }: {
   addToast: (m: string, t?: ToastType) => void;
 }) {
-  // Hook with track shapes enabled for create form dropdown
   const {
-    courses,
+    tracks,
     loading,
     currentPage,
     totalPages,
     totalItems,
     limit,
     trackShapes,
-    getCourses,
-    updateCourseStatus,
-    getCourseById,
-    createCourse,
-    createCourseDistance,
-    deleteCourseDistance,
-  } = useCourse({ autoFetchCourses: true, autoFetchTrackShapes: true });
+    getTracks,
+    updateTrackStatus,
+    getTrackById,
+    createTrack,
+    createTrackDistance,
+    deleteTrackDistance,
+  } = useTrack({ autoFetchTracks: true, autoFetchTrackShapes: true });
 
   const [openMenu, setOpenMenu] = useState<OpenMenuState>(null);
-  const [selectedCourse, setSelectedCourse] = useState<CourseDetail | null>(
+  const [selectedTrack, setSelectedTrack] = useState<TrackDetail | null>(
     null
   );
   const [detailLoading, setDetailLoading] = useState(false);
 
-  // Create Course Modal State
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -130,7 +122,6 @@ export default function CourseManagement({
     description: "",
   });
 
-  // Add Distance Modal State
   const [isDistOpen, setIsDistOpen] = useState(false);
   const [distLoading, setDistLoading] = useState(false);
   const [distData, setDistData] = useState({
@@ -144,38 +135,37 @@ export default function CourseManagement({
 
   const handleStatusFilterChange = (value: string) => {
     setFilters((prev) => ({ ...prev, status: value }));
-    getCourses({ page: 1, status: value || undefined });
+    getTracks({ page: 1, status: value || undefined });
   };
 
-  const safeCourses = Array.isArray(courses) ? courses : [];
+  const safeTracks = Array.isArray(tracks) ? tracks : [];
 
-  const filteredCourses = safeCourses.filter((course) => {
+  const filteredTracks = safeTracks.filter((track) => {
     const searchLower = filters.search.toLowerCase().trim();
     if (!searchLower) return true;
     return (
-      course.name.toLowerCase().includes(searchLower) ||
-      (course.city && course.city.toLowerCase().includes(searchLower)) ||
-      (course.country && course.country.toLowerCase().includes(searchLower)) ||
-      (course.address && course.address.toLowerCase().includes(searchLower))
+      track.name.toLowerCase().includes(searchLower) ||
+      (track.city && track.city.toLowerCase().includes(searchLower)) ||
+      (track.country && track.country.toLowerCase().includes(searchLower)) ||
+      (track.address && track.address.toLowerCase().includes(searchLower))
     );
   });
 
-  const handleOpenDetails = async (courseId: string) => {
+  const handleOpenDetails = async (trackId: string) => {
     try {
       setDetailLoading(true);
-      const res = await getCourseById(courseId);
+      const res = await getTrackById(trackId);
       const detail = (
         res && typeof res === "object" && "data" in res ? res.data : res
-      ) as CourseDetail;
-      setSelectedCourse(detail);
+      ) as TrackDetail;
+      setSelectedTrack(detail);
     } catch {
-      addToast("Failed to load course details", "error");
+      addToast("Failed to load track details", "error");
     } finally {
       setDetailLoading(false);
     }
   };
 
-  // Handle Create Course Submit
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.trackShapeId) {
@@ -184,8 +174,8 @@ export default function CourseManagement({
     }
     try {
       setCreateLoading(true);
-      await createCourse(formData);
-      addToast("Course created successfully!", "success");
+      await createTrack(formData);
+      addToast("Track created successfully!", "success");
       setIsCreateOpen(false);
       setFormData({
         name: "",
@@ -201,23 +191,21 @@ export default function CourseManagement({
         description: "",
       });
     } catch {
-      addToast("Failed to create course.", "error");
+      addToast("Failed to create track.", "error");
     } finally {
       setCreateLoading(false);
     }
   };
 
-  // Handle Add Distance Submit
   const handleAddDistance = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCourse) return;
+    if (!selectedTrack) return;
     try {
       setDistLoading(true);
-      await createCourseDistance(selectedCourse.id, distData);
+      await createTrackDistance(selectedTrack.id, distData);
       addToast("Distance added successfully!", "success");
       setIsDistOpen(false);
-      // Refresh detail to show new distance
-      await handleOpenDetails(selectedCourse.id);
+      await handleOpenDetails(selectedTrack.id);
       setDistData({
         distanceMeters: 1400,
         name: "",
@@ -231,13 +219,12 @@ export default function CourseManagement({
     }
   };
 
-  const handleDeleteDistance = async (courseId: string, distanceId: string) => {
+  const handleDeleteDistance = async (trackId: string, distanceId: string) => {
     if (!confirm("Are you sure you want to remove this distance?")) return;
     try {
-      await deleteCourseDistance(courseId, distanceId);
+      await deleteTrackDistance(trackId, distanceId);
       addToast("Distance removed.", "success");
-      // Refresh detail
-      await handleOpenDetails(courseId);
+      await handleOpenDetails(trackId);
     } catch {
       addToast("Failed to remove distance.", "error");
     }
@@ -245,11 +232,10 @@ export default function CourseManagement({
 
   return (
     <div className="p-6 space-y-5 max-w-7xl mx-auto h-full relative">
-      {/* Header */}
       <div className="flex items-center justify-between border-b border-[#064E3B]/10 pb-4">
         <div>
           <h2 className="text-xl font-black font-headline text-[#064E3B]">
-            Course Management
+            Track Management
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             Manage race tracks, configurations, and operational status
@@ -260,18 +246,16 @@ export default function CourseManagement({
           className="inline-flex items-center gap-2 bg-[#064E3B] text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-[#064E3B]/90 transition shadow-sm shadow-[#064E3B]/20"
         >
           <Plus className="w-4 h-4" />
-          Create New Course
+          Create New Track
         </button>
       </div>
 
-      {/* Main Card */}
       <div className="bg-white border rounded-2xl p-5 shadow-sm space-y-4">
-        {/* Filters Row */}
         <div className="flex items-center justify-center gap-4">
           <div className="w-full">
             <input
               type="text"
-              placeholder="Search courses by name or location..."
+              placeholder="Search tracks by name or location..."
               value={filters.search}
               onChange={(e) =>
                 setFilters((prev) => ({ ...prev, search: e.target.value }))
@@ -294,12 +278,11 @@ export default function CourseManagement({
           </select>
         </div>
 
-        {/* Table */}
         <div className="border rounded-xl overflow-hidden">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 border-b text-slate-500 font-bold uppercase text-[9px] tracking-wider">
               <tr>
-                <th className="p-3 w-1/4">Course</th>
+                <th className="p-3 w-1/4">Track</th>
                 <th className="p-3 w-1/4">Location & Shape</th>
                 <th className="p-3 w-1/6">Capacity</th>
                 <th className="p-3 w-1/6">Status</th>
@@ -313,20 +296,20 @@ export default function CourseManagement({
                   <td colSpan={5} className="p-8 text-center text-slate-500">
                     <div className="inline-flex items-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Loading courses...
+                      Loading tracks...
                     </div>
                   </td>
                 </tr>
-              ) : filteredCourses.length === 0 ? (
+              ) : filteredTracks.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="p-8 text-center text-slate-500">
-                    No courses found matching your criteria.
+                    No tracks found matching your criteria.
                   </td>
                 </tr>
               ) : (
-                filteredCourses.map((course: CourseListItem) => (
+                filteredTracks.map((track: TrackListItem) => (
                   <tr
-                    key={course.id}
+                    key={track.id}
                     className="hover:bg-slate-50/50 transition-colors"
                   >
                     <td className="p-3">
@@ -337,12 +320,12 @@ export default function CourseManagement({
                         <div className="min-w-0">
                           <p
                             className="font-bold text-slate-800 truncate"
-                            title={course.name}
+                            title={track.name}
                           >
-                            {course.name}
+                            {track.name}
                           </p>
                           <p className="text-[10px] text-slate-400 font-mono">
-                            {course.id.slice(0, 8)}...
+                            {track.id.slice(0, 8)}...
                           </p>
                         </div>
                       </div>
@@ -355,20 +338,20 @@ export default function CourseManagement({
                           <span
                             className="truncate"
                             title={
-                              course.address ||
-                              `${course.city}, ${course.country}`
+                              track.address ||
+                              `${track.city}, ${track.country}`
                             }
                           >
-                            {course.address ||
-                              `${course.city}, ${course.country}`}
+                            {track.address ||
+                              `${track.city}, ${track.country}`}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 text-slate-500">
                           <Activity className="w-3 h-3 text-slate-400 shrink-0" />
                           <span className="capitalize text-[10px] truncate">
-                            {course.trackShape?.shape || "Unknown"}
-                            {course.trackShape?.description &&
-                              ` • ${course.trackShape.description}`}
+                            {track.trackShape?.shape || "Unknown"}
+                            {track.trackShape?.description &&
+                              ` • ${track.trackShape.description}`}
                           </span>
                         </div>
                       </div>
@@ -378,11 +361,11 @@ export default function CourseManagement({
                       <div className="flex items-center gap-1.5 text-slate-600">
                         <Users className="w-3 h-3 text-slate-400 shrink-0" />
                         <span className="font-medium">
-                          {course.grandstandCapacity?.toLocaleString() || 0}
+                          {track.grandstandCapacity?.toLocaleString() || 0}
                         </span>
                       </div>
                       <p className="text-[10px] text-slate-400 mt-0.5">
-                        Max Starters: {course.maxStartingPositions || 0}
+                        Max Starters: {track.maxStartingPositions || 0}
                       </p>
                     </td>
 
@@ -390,17 +373,17 @@ export default function CourseManagement({
                       <span
                         className={cn(
                           "inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase border",
-                          course.status === "active"
+                          track.status === "active"
                             ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : course.status === "maintenance" ||
-                                course.status === "under_maintainance"
+                            : track.status === "maintenance" ||
+                                track.status === "under_maintainance"
                               ? "bg-amber-50 text-amber-700 border-amber-200"
-                              : course.status === "draft"
+                              : track.status === "draft"
                                 ? "bg-slate-100 text-slate-600 border-slate-200"
                                 : "bg-rose-50 text-rose-700 border-rose-200"
                         )}
                       >
-                        {course.status || "Unknown"}
+                        {track.status || "Unknown"}
                       </span>
                     </td>
 
@@ -408,7 +391,7 @@ export default function CourseManagement({
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => handleOpenDetails(course.id)}
+                          onClick={() => handleOpenDetails(track.id)}
                           disabled={detailLoading}
                           className="inline-flex items-center gap-1 text-[10px] font-bold bg-slate-100 text-slate-600 px-2.5 py-1.5 rounded hover:bg-slate-200 transition disabled:opacity-50"
                         >
@@ -427,11 +410,11 @@ export default function CourseManagement({
                                 window.innerHeight - rect.bottom;
                               const dropUp = spaceBelow < 220;
                               setOpenMenu(
-                                openMenu?.id === course.id &&
+                                openMenu?.id === track.id &&
                                   openMenu?.type === "status"
                                   ? null
                                   : {
-                                      id: course.id,
+                                      id: track.id,
                                       type: "status",
                                       buttonTop: rect.top,
                                       buttonBottom: rect.bottom,
@@ -446,7 +429,7 @@ export default function CourseManagement({
                             <ChevronDown className="w-3 h-3" />
                           </button>
 
-                          {openMenu?.id === course.id &&
+                          {openMenu?.id === track.id &&
                             openMenu?.type === "status" &&
                             createPortal(
                               <div
@@ -472,8 +455,8 @@ export default function CourseManagement({
                                     type="button"
                                     onClick={async () => {
                                       try {
-                                        await updateCourseStatus(
-                                          course.id,
+                                        await updateTrackStatus(
+                                          track.id,
                                           opt.value
                                         );
                                         addToast(
@@ -513,18 +496,17 @@ export default function CourseManagement({
           </table>
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between pt-3 border-t border-slate-100">
             <p className="text-[10px] text-slate-400">
               Showing {(currentPage - 1) * limit + 1}-
               {Math.min(currentPage * limit, totalItems)} of {totalItems}{" "}
-              courses
+              tracks
             </p>
             <div className="flex items-center gap-2">
               <button
                 disabled={currentPage <= 1}
-                onClick={() => getCourses({ page: currentPage - 1 })}
+                onClick={() => getTracks({ page: currentPage - 1 })}
                 className="border rounded-lg px-3 py-1 text-xs font-medium disabled:opacity-50 hover:bg-slate-50"
               >
                 Prev
@@ -534,7 +516,7 @@ export default function CourseManagement({
               </span>
               <button
                 disabled={currentPage >= totalPages}
-                onClick={() => getCourses({ page: currentPage + 1 })}
+                onClick={() => getTracks({ page: currentPage + 1 })}
                 className="border rounded-lg px-3 py-1 text-xs font-medium disabled:opacity-50 hover:bg-slate-50"
               >
                 Next
@@ -544,41 +526,40 @@ export default function CourseManagement({
         )}
       </div>
 
-      {/* ==================== DETAIL MODAL ==================== */}
-      {selectedCourse && (
+      {selectedTrack && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
-            onClick={() => setSelectedCourse(null)}
+            onClick={() => setSelectedTrack(null)}
           />
           <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
             <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-[#064E3B]/5 to-transparent flex items-start justify-between shrink-0">
               <div className="min-w-0 pr-8">
                 <div className="flex items-center gap-3 mb-1">
                   <h3 className="text-xl font-black text-[#064E3B] truncate">
-                    {selectedCourse.name}
+                    {selectedTrack.name}
                   </h3>
                   <span
                     className={cn(
                       "px-2 py-0.5 rounded text-[9px] font-black uppercase border shrink-0",
-                      selectedCourse.status === "active"
+                      selectedTrack.status === "active"
                         ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                         : "bg-slate-100 text-slate-600 border-slate-200"
                     )}
                   >
-                    {selectedCourse.status}
+                    {selectedTrack.status}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 flex items-center gap-1.5">
                   <MapPin className="w-3 h-3 shrink-0" />
                   <span className="truncate">
-                    {selectedCourse.address ||
-                      `${selectedCourse.city}, ${selectedCourse.country}`}
+                    {selectedTrack.address ||
+                      `${selectedTrack.city}, ${selectedTrack.country}`}
                   </span>
                 </p>
               </div>
               <button
-                onClick={() => setSelectedCourse(null)}
+                onClick={() => setSelectedTrack(null)}
                 className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition shrink-0"
               >
                 <X className="w-4 h-4" />
@@ -589,34 +570,34 @@ export default function CourseManagement({
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <StatCard
                   label="Surface Type"
-                  value={selectedCourse.surfaceType}
+                  value={selectedTrack.surfaceType}
                   icon={<Layers className="w-3.5 h-3.5" />}
                 />
                 <StatCard
                   label="Track Shape"
-                  value={selectedCourse.trackShape?.shape}
+                  value={selectedTrack.trackShape?.shape}
                   icon={<Activity className="w-3.5 h-3.5" />}
                 />
                 <StatCard
                   label="Grandstand Cap."
-                  value={selectedCourse.grandstandCapacity?.toLocaleString()}
+                  value={selectedTrack.grandstandCapacity?.toLocaleString()}
                   icon={<Users className="w-3.5 h-3.5" />}
                 />
                 <StatCard
                   label="Max Starters"
-                  value={selectedCourse.maxStartingPositions}
+                  value={selectedTrack.maxStartingPositions}
                   icon={<Flag className="w-3.5 h-3.5" />}
                 />
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
-                {selectedCourse.trackShape?.description && (
+                {selectedTrack.trackShape?.description && (
                   <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50">
                     <h4 className="text-[10px] font-bold uppercase text-slate-400 mb-2 flex items-center gap-2">
                       <Activity className="w-3 h-3" /> Shape Description
                     </h4>
                     <p className="text-xs text-slate-600 leading-relaxed italic">
-                      "{selectedCourse.trackShape.description}"
+                      "{selectedTrack.trackShape.description}"
                     </p>
                   </div>
                 )}
@@ -625,22 +606,21 @@ export default function CourseManagement({
                     <MapPin className="w-3 h-3" /> Full Location
                   </h4>
                   <div className="text-xs text-slate-600 space-y-1">
-                    {selectedCourse.address && (
-                      <p className="font-medium">{selectedCourse.address}</p>
+                    {selectedTrack.address && (
+                      <p className="font-medium">{selectedTrack.address}</p>
                     )}
                     <p>
-                      {selectedCourse.city}, {selectedCourse.country}
+                      {selectedTrack.city}, {selectedTrack.country}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Distances Section with Add Button */}
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-[10px] font-bold uppercase text-slate-400 flex items-center gap-2">
                     <Ruler className="w-3 h-3" /> Available Race Distances (
-                    {selectedCourse.distances?.length || 0})
+                    {selectedTrack.distances?.length || 0})
                   </h4>
                   <button
                     onClick={() => setIsDistOpen(true)}
@@ -650,10 +630,10 @@ export default function CourseManagement({
                   </button>
                 </div>
                 <div className="space-y-2">
-                  {selectedCourse.distances &&
-                  selectedCourse.distances.length > 0 ? (
+                  {selectedTrack.distances &&
+                  selectedTrack.distances.length > 0 ? (
                     <div className="grid sm:grid-cols-2 gap-2">
-                      {selectedCourse.distances.map((dist) => (
+                      {selectedTrack.distances.map((dist) => (
                         <div
                           key={dist.id}
                           className="group flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-white hover:border-[#064E3B]/20 transition-colors"
@@ -689,7 +669,7 @@ export default function CourseManagement({
                             </span>
                             <button
                               onClick={() =>
-                                handleDeleteDistance(selectedCourse.id, dist.id)
+                                handleDeleteDistance(selectedTrack.id, dist.id)
                               }
                               className="p-1.5 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition opacity-0 group-hover:opacity-100"
                               title="Remove distance"
@@ -712,15 +692,15 @@ export default function CourseManagement({
               <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-x-6 gap-y-2 text-[10px] text-slate-400 font-mono">
                 <p>
                   <span className="text-slate-500 font-bold">ID:</span>{" "}
-                  {selectedCourse.id}
+                  {selectedTrack.id}
                 </p>
                 <p>
                   <span className="text-slate-500 font-bold">Created:</span>{" "}
-                  {formatDateOrFallback(selectedCourse.createdAt)}
+                  {formatDateOrFallback(selectedTrack.createdAt)}
                 </p>
                 <p>
                   <span className="text-slate-500 font-bold">Updated:</span>{" "}
-                  {formatDateOrFallback(selectedCourse.updatedAt)}
+                  {formatDateOrFallback(selectedTrack.updatedAt)}
                 </p>
               </div>
             </div>
@@ -728,15 +708,14 @@ export default function CourseManagement({
         </div>
       )}
 
-      {/* ==================== CREATE COURSE MODAL ==================== */}
       <FormModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
-        title="Create New Course"
+        title="Create New Track"
       >
         <form onSubmit={handleCreateSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <InputField label="Course Name" required>
+            <InputField label="Track Name" required>
               <input
                 required
                 value={formData.name}
@@ -891,7 +870,7 @@ export default function CourseManagement({
                 setFormData((p) => ({ ...p, description: e.target.value }))
               }
               className="w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs font-medium outline-none focus:ring-1 focus:ring-[#064E3B] resize-none"
-              placeholder="Optional course description..."
+              placeholder="Optional track description..."
             />
           </InputField>
 
@@ -911,17 +890,16 @@ export default function CourseManagement({
               {createLoading && (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               )}
-              Create Course
+              Create Track
             </button>
           </div>
         </form>
       </FormModal>
 
-      {/* ==================== ADD DISTANCE MODAL ==================== */}
       <FormModal
         isOpen={isDistOpen}
         onClose={() => setIsDistOpen(false)}
-        title={`Add Distance to ${selectedCourse?.name}`}
+        title={`Add Distance to ${selectedTrack?.name}`}
       >
         <form onSubmit={handleAddDistance} className="space-y-4">
           <InputField label="Distance (Meters)" required>
@@ -1004,8 +982,6 @@ export default function CourseManagement({
     </div>
   );
 }
-
-// ==================== HELPER COMPONENTS ====================
 
 function StatCard({
   label,

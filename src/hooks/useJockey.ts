@@ -33,12 +33,12 @@ export function useJockey() {
       name: race.name,
       roundName: race.roundName ?? "",
 
-      distanceMeters: race.course?.distanceMeters ?? race.distanceMeters ?? 0,
+      distanceMeters: race.track?.distanceMeters ?? race.distanceMeters ?? 0,
 
       scheduledAt: race.scheduledAt ?? "",
 
-      venue: race.course
-        ? `${race.course.city}, ${race.course.country}`
+      venue: race.track
+        ? `${race.track.city}, ${race.track.country}`
         : (race.venue ?? ""),
 
       status:
@@ -66,7 +66,7 @@ export function useJockey() {
 
       ranking: race.ranking,
 
-      course: race.course,
+      track: race.track,
     };
   };
 

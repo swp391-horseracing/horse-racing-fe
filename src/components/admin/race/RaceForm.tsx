@@ -1,9 +1,9 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { X, Loader2, Plus } from "lucide-react";
 import { AdminService } from "../../../services/AdminService";
-import AddCourseDistanceModal from "./AddCourseDistanceModal";
+import AddTrackDistanceModal from "./AddTrackDistanceModal";
 
-type Course = {
+type Track = {
   id: string;
   name: string;
   country: string;
@@ -12,7 +12,7 @@ type Course = {
   distanceMeters: number;
 };
 
-type CourseDistance = {
+type TrackDistanceType = {
   id: string;
   distanceMeters: number;
 };
@@ -26,7 +26,7 @@ export type RaceFormData = {
   venue: string;
   laneCount: number;
   raceNumber?: number;
-  courseDistanceId: string;
+  trackDistanceId: string;
 };
 
 const initialForm: RaceFormData = {
@@ -38,7 +38,7 @@ const initialForm: RaceFormData = {
   venue: "",
   laneCount: 8,
   raceNumber: undefined,
-  courseDistanceId: "",
+  trackDistanceId: "",
 };
 
 type Props = {
@@ -60,37 +60,37 @@ export default function RaceForm({
   });
   const [error, setError] = useState<string | null>(null);
 
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [coursesLoading, setCoursesLoading] = useState(false);
-  const [selectedCourseId, setSelectedCourseId] = useState("");
-  const [distances, setDistances] = useState<CourseDistance[]>([]);
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [tracksLoading, setTracksLoading] = useState(false);
+  const [selectedTrackId, setSelectedTrackId] = useState("");
+  const [distances, setDistances] = useState<TrackDistanceType[]>([]);
   const [distancesLoading, setDistancesLoading] = useState(false);
   const [showAddDistance, setShowAddDistance] = useState(false);
 
-  // Load courses on mount
+  // Load tracks on mount
   useEffect(() => {
     const load = async () => {
-      setCoursesLoading(true);
+      setTracksLoading(true);
       try {
-        const data = await AdminService.getCourses();
+        const data = await AdminService.getTracks();
         const list = Array.isArray(data) ? data : (data?.data ?? []);
-        setCourses(Array.isArray(list) ? list : []);
+        setTracks(Array.isArray(list) ? list : []);
       } catch {
         // silently fail
       } finally {
-        setCoursesLoading(false);
+        setTracksLoading(false);
       }
     };
     void load();
   }, []);
 
-  // When course changes, fetch distances
+  // When track changes, fetch distances
   useEffect(() => {
-    if (!selectedCourseId) return;
+    if (!selectedTrackId) return;
     const load = async () => {
       setDistancesLoading(true);
       try {
-        const data = await AdminService.getCourseDistances(selectedCourseId);
+        const data = await AdminService.getTrackDistances(selectedTrackId);
         const list = Array.isArray(data) ? data : (data?.data ?? []);
         setDistances(Array.isArray(list) ? list : []);
       } catch {
@@ -100,13 +100,13 @@ export default function RaceForm({
       }
     };
     void load();
-  }, [selectedCourseId]);
+  }, [selectedTrackId]);
 
-  const handleCourseChange = (courseId: string) => {
-    setSelectedCourseId(courseId);
-    const course = courses.find((c) => c.id === courseId);
-    if (course) {
-      setForm((prev) => ({ ...prev, venue: course.name }));
+  const handleTrackChange = (trackId: string) => {
+    setSelectedTrackId(trackId);
+    const track = tracks.find((c) => c.id === trackId);
+    if (track) {
+      setForm((prev) => ({ ...prev, venue: track.name }));
     }
   };
 
@@ -116,7 +116,7 @@ export default function RaceForm({
       setForm((prev) => ({
         ...prev,
         distanceMeters: dist.distanceMeters,
-        courseDistanceId: dist.id,
+        trackDistanceId: dist.id,
       }));
     }
   };
@@ -125,7 +125,7 @@ export default function RaceForm({
     setDistances((prev) => [...prev, { id, distanceMeters: meters }]);
     setForm((prev) => ({
       ...prev,
-      courseDistanceId: id,
+      trackDistanceId: id,
       distanceMeters: meters,
     }));
   };
@@ -142,8 +142,8 @@ export default function RaceForm({
       setError("Scheduled date is required.");
       return;
     }
-    if (!form.courseDistanceId) {
-      setError("Please select a course and distance.");
+    if (!form.trackDistanceId) {
+      setError("Please select a track and distance.");
       return;
     }
 
@@ -237,22 +237,22 @@ export default function RaceForm({
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold mb-2">Course</label>
-              {coursesLoading ? (
+              <label className="block text-sm font-semibold mb-2">Track</label>
+              {tracksLoading ? (
                 <div className="flex items-center gap-2 text-sm text-slate-500 py-3">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Loading courses...
+                  Loading tracks...
                 </div>
               ) : (
                 <select
-                  value={selectedCourseId}
-                  onChange={(e) => handleCourseChange(e.target.value)}
+                  value={selectedTrackId}
+                  onChange={(e) => handleTrackChange(e.target.value)}
                   className="w-full border rounded-xl px-4 py-3"
                 >
-                  <option value="">Select a course</option>
-                  {courses.map((course) => (
-                    <option key={course.id} value={course.id}>
-                      {course.name} — {course.surfaceType} ({course.city})
+                  <option value="">Select a track</option>
+                  {tracks.map((track) => (
+                    <option key={track.id} value={track.id}>
+                      {track.name} — {track.surfaceType} ({track.city})
                     </option>
                   ))}
                 </select>
@@ -260,11 +260,11 @@ export default function RaceForm({
             </div>
             <div>
               <label className="block text-sm font-semibold mb-2">
-                Course Distance
+                Track Distance
               </label>
-              {!selectedCourseId ? (
+              {!selectedTrackId ? (
                 <div className="w-full border rounded-xl px-4 py-3 text-sm text-slate-400 bg-slate-50">
-                  Select a course first
+                  Select a track first
                 </div>
               ) : distancesLoading ? (
                 <div className="flex items-center gap-2 text-sm text-slate-500 py-3">
@@ -282,7 +282,7 @@ export default function RaceForm({
               ) : (
                 <div className="flex gap-2">
                   <select
-                    value={form.courseDistanceId}
+                    value={form.trackDistanceId}
                     onChange={(e) => handleDistanceChange(e.target.value)}
                     className="flex-1 border rounded-xl px-4 py-3"
                   >
@@ -304,11 +304,11 @@ export default function RaceForm({
                 </div>
               )}
             </div>
-            {showAddDistance && selectedCourseId && (
-              <AddCourseDistanceModal
-                courseId={selectedCourseId}
-                courseName={
-                  courses.find((c) => c.id === selectedCourseId)?.name ?? ""
+            {showAddDistance && selectedTrackId && (
+              <AddTrackDistanceModal
+                trackId={selectedTrackId}
+                trackName={
+                  tracks.find((c) => c.id === selectedTrackId)?.name ?? ""
                 }
                 onClose={() => setShowAddDistance(false)}
                 onCreated={handleDistanceCreated}

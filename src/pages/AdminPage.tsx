@@ -11,7 +11,7 @@ import TournamentRaceManager from "../components/admin/TournamentRaceManager";
 import VirtualEconomy from "../components/admin/VirtualEconomy";
 import ControlCenterOverview from "../components/admin/controlCenterOverview.tsx";
 import RaceReportsManager from "../components/admin/RaceReportsManager";
-import CourseManagement from "../components/admin/CourseManagement.tsx";
+import TrackManagement from "../components/admin/TrackManagement.tsx";
 
 const TAB_ROUTE_MAP: Record<string, string> = {
   [ROUTES.ADMIN_DASHBOARD]: ROUTES.ADMIN_DASHBOARD,
@@ -20,7 +20,7 @@ const TAB_ROUTE_MAP: Record<string, string> = {
   "/admin/registry": "/admin/registry",
   [ROUTES.ADMIN_TOURNAMENT_LIST]: "/admin/tournaments",
   "/admin/economy": "/admin/economy",
-  "/admin/course": "/admin/course",
+  "/admin/track": "/admin/track",
   [ROUTES.ADMIN_REPORTS]: ROUTES.ADMIN_REPORTS,
 };
 
@@ -63,8 +63,8 @@ export default function AdminPage() {
         return <VirtualEconomy addToast={addToast} />;
       case ROUTES.ADMIN_REPORTS:
         return <RaceReportsManager addToast={addToast} />;
-      case "/admin/course":
-        return <CourseManagement addToast={addToast} />;
+      case "/admin/track":
+        return <TrackManagement addToast={addToast} />;
       default:
         return <ControlCenterOverview setActiveTab={handleActiveChange} />;
     }

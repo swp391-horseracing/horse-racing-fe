@@ -63,9 +63,9 @@ const mapRaceToUi = (race: RaceListItem): RaceUI => {
     title: race.name,
     date: `${yyyy}-${mm}-${dd}`,
     time: `${hh}:${min}`,
-    distance: race.course?.distanceMeters ? `${race.course.distanceMeters}m` : "",
-    surface: race.course?.surfaceType
-      ? race.course.surfaceType.charAt(0).toUpperCase() + race.course.surfaceType.slice(1)
+    distance: race.track?.distanceMeters ? `${race.track.distanceMeters}m` : "",
+    surface: race.track?.surfaceType
+      ? race.track.surfaceType.charAt(0).toUpperCase() + race.track.surfaceType.slice(1)
       : "",
     className: "Standard",
     status: race.status,
@@ -581,7 +581,7 @@ export default function RacesPage() {
                         </span>
                         <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
                           <Flag className="h-3.5 w-3.5" />
-                          {raceDetail.course?.name || "Venue"}
+                          {raceDetail.track?.name || "Venue"}
                         </span>
                         <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
                           <Hash className="h-3.5 w-3.5" />
@@ -591,14 +591,14 @@ export default function RacesPage() {
                         </span>
                         <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
                           <Trophy className="h-3.5 w-3.5" />
-                          {raceDetail.course?.distanceMeters
-                            ? `${raceDetail.course.distanceMeters}m`
+                          {raceDetail.track?.distanceMeters
+                            ? `${raceDetail.track.distanceMeters}m`
                             : raceDetail.distanceMeters
                               ? `${raceDetail.distanceMeters}m`
                               : "Distance TBC"}
                         </span>
                         <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold capitalize">
-                          {raceDetail.course?.surfaceType || "Standard"}
+                          {raceDetail.track?.surfaceType || "Standard"}
                         </span>
                         <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
                           <Layers className="h-3.5 w-3.5" />
@@ -645,13 +645,13 @@ export default function RacesPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                          Course
+                          Track
                         </span>
                         <span className="text-base font-black font-headline text-[#064E3B] block mt-1 capitalize">
-                          {raceDetail.course?.name || "TBC"}
+                          {raceDetail.track?.name || "TBC"}
                         </span>
                         <span className="text-xs text-slate-500 mt-0.5 block capitalize">
-                          {raceDetail.course?.surfaceType || "Unknown"} surface
+                          {raceDetail.track?.surfaceType || "Unknown"} surface
                         </span>
                       </div>
                       <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
@@ -659,14 +659,14 @@ export default function RacesPage() {
                           Distance
                         </span>
                         <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
-                          {raceDetail.course?.distanceMeters
-                            ? `${raceDetail.course.distanceMeters}m`
+                          {raceDetail.track?.distanceMeters
+                            ? `${raceDetail.track.distanceMeters}m`
                             : raceDetail.distanceMeters
                               ? `${raceDetail.distanceMeters}m`
                               : "TBC"}
                         </span>
                         <span className="text-xs text-slate-500 mt-0.5 block">
-                          Course distance
+                          Track distance
                         </span>
                       </div>
                       <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
@@ -687,10 +687,10 @@ export default function RacesPage() {
                           Location
                         </span>
                         <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
-                          {raceDetail.course?.city || "TBC"}
+                          {raceDetail.track?.city || "TBC"}
                         </span>
                         <span className="text-xs text-slate-500 mt-0.5 block">
-                          {raceDetail.course?.country || "Unknown"}
+                          {raceDetail.track?.country || "Unknown"}
                         </span>
                       </div>
                       <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">

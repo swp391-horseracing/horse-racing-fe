@@ -12,7 +12,7 @@ import {
   Clock,
   Home,
 } from "lucide-react";
-import { useCourse } from "../hooks/useCourse";
+import { useTrack } from "../hooks/useTrack";
 
 function StatFilterCard({
   label,
@@ -77,21 +77,21 @@ function StatusBadge({ status }: { status?: string }) {
   );
 }
 
-export default function CoursesPage() {
+export default function TracksPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const {
-    courses,
-    courseDetail,
+    tracks,
+    trackDetail,
     distances,
     loading,
     currentPage,
     totalPages,
-    getCourseById,
+    getTrackById,
     nextPage,
     prevPage,
-    setCourseDetail,
-  } = useCourse({ autoFetchCourses: true });
+    setTrackDetail,
+  } = useTrack({ autoFetchTracks: true });
 
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
@@ -101,39 +101,38 @@ export default function CoursesPage() {
 
   useEffect(() => {
     const selectedId = searchParams.get("selected");
-    if (selectedId && selectedId !== courseDetail?.id) {
-      getCourseById(selectedId);
+    if (selectedId && selectedId !== trackDetail?.id) {
+      getTrackById(selectedId);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleOpenCourse = (id: string) => {
-    getCourseById(id);
+  const handleOpenTrack = (id: string) => {
+    getTrackById(id);
     setDetailTab("overview");
     setSearchParams({ selected: id }, { replace: true });
   };
 
-  const handleCloseCourse = () => {
-    setCourseDetail(null);
+  const handleCloseTrack = () => {
+    setTrackDetail(null);
     setSearchParams({}, { replace: true });
   };
 
-  const safeCourses = Array.isArray(courses) ? courses : [];
+  const safeTracks = Array.isArray(tracks) ? tracks : [];
 
-  const filteredCourses = safeCourses.filter((course) => {
+  const filteredTracks = safeTracks.filter((track) => {
     const searchLower = search.toLowerCase();
     const matchesSearch =
-      course.name.toLowerCase().includes(searchLower) ||
-      (course.city && course.city.toLowerCase().includes(searchLower)) ||
-      (course.country && course.country.toLowerCase().includes(searchLower));
+      track.name.toLowerCase().includes(searchLower) ||
+      (track.city && track.city.toLowerCase().includes(searchLower)) ||
+      (track.country && track.country.toLowerCase().includes(searchLower));
 
     const matchesFilter =
-      activeFilter === "All" || course.status === activeFilter;
+      activeFilter === "All" || track.status === activeFilter;
 
     return matchesSearch && matchesFilter;
   });
 
-  const isPanelOpen = courseDetail !== null;
+  const isPanelOpen = trackDetail !== null;
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
@@ -141,7 +140,7 @@ export default function CoursesPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div className="min-w-0">
             <h1 className="text-3xl font-black font-headline text-primary tracking-tight leading-none">
-              Race Courses
+              Race Tracks
             </h1>
             <p className="mt-2 text-xs text-muted-foreground">
               Manage race tracks, configurations, and distance settings.
@@ -162,39 +161,39 @@ export default function CoursesPage() {
 
         <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatFilterCard
-            label="Total Courses"
-            value={safeCourses.length}
+            label="Total Tracks"
+            value={safeTracks.length}
             active={activeFilter === "All"}
             onClick={() => {
               setActiveFilter("All");
-              handleCloseCourse();
+              handleCloseTrack();
             }}
           />
           <StatFilterCard
             label="Active"
-            value={safeCourses.filter((c) => c.status === "active").length}
+            value={safeTracks.filter((c) => c.status === "active").length}
             active={activeFilter === "active"}
             onClick={() => {
               setActiveFilter("active");
-              handleCloseCourse();
+              handleCloseTrack();
             }}
           />
           <StatFilterCard
             label="Inactive"
-            value={safeCourses.filter((c) => c.status === "inactive").length}
+            value={safeTracks.filter((c) => c.status === "inactive").length}
             active={activeFilter === "inactive"}
             onClick={() => {
               setActiveFilter("inactive");
-              handleCloseCourse();
+              handleCloseTrack();
             }}
           />
           <StatFilterCard
             label="Maintenance"
-            value={safeCourses.filter((c) => c.status === "maintenance").length}
+            value={safeTracks.filter((c) => c.status === "maintenance").length}
             active={activeFilter === "maintenance"}
             onClick={() => {
               setActiveFilter("maintenance");
-              handleCloseCourse();
+              handleCloseTrack();
             }}
           />
         </div>
@@ -207,19 +206,19 @@ export default function CoursesPage() {
           >
             {loading && !isPanelOpen ? (
               <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
-                Loading courses...
+                Loading tracks...
               </div>
             ) : (
-              filteredCourses.map((course) => {
-                const isSelected = courseDetail?.id === course.id;
+              filteredTracks.map((track) => {
+                const isSelected = trackDetail?.id === track.id;
 
                 return (
                   <div
-                    key={course.id}
+                    key={track.id}
                     onClick={() =>
                       isSelected
-                        ? handleCloseCourse()
-                        : handleOpenCourse(course.id)
+                        ? handleCloseTrack()
+                        : handleOpenTrack(track.id)
                     }
                     className={`group cursor-pointer overflow-hidden rounded-2xl border bg-card transition-all duration-150 ${
                       isSelected
@@ -241,19 +240,19 @@ export default function CoursesPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-1.5">
                           <h3 className="text-sm font-black font-headline text-primary tracking-tight leading-tight truncate">
-                            {course.name}
+                            {track.name}
                           </h3>
-                          <StatusBadge status={course.status} />
+                          <StatusBadge status={track.status} />
                         </div>
                         <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <MapPin className="h-3 w-3 text-muted-foreground/80" />
-                            {course.city}, {course.country}
+                            {track.city}, {track.country}
                           </span>
-                          {course.surfaceType && (
+                          {track.surfaceType && (
                             <span className="flex items-center gap-1 capitalize">
                               <Layers className="h-3 w-3 text-muted-foreground/80" />
-                              {course.surfaceType}
+                              {track.surfaceType}
                             </span>
                           )}
                         </div>
@@ -264,11 +263,11 @@ export default function CoursesPage() {
               })
             )}
 
-            {!loading && filteredCourses.length === 0 && (
+            {!loading && filteredTracks.length === 0 && (
               <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
                 <Flag className="mx-auto mb-3 h-8 w-8 text-muted-foreground/60" />
                 <p className="text-sm font-semibold text-muted-foreground">
-                  No courses found.
+                  No tracks found.
                 </p>
               </div>
             )}
@@ -296,23 +295,23 @@ export default function CoursesPage() {
             )}
           </div>
 
-          {isPanelOpen && courseDetail && (
+          {isPanelOpen && trackDetail && (
             <div className="lg:col-span-9 lg:sticky lg:top-4 bg-card border border-border rounded-2xl shadow-md overflow-hidden flex flex-col">
               <div className="border-b border-primary/20 bg-primary px-6 py-5 flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-primary-foreground/70">
                     <MapPin className="h-3 w-3" />
-                    {courseDetail.city}, {courseDetail.country}
+                    {trackDetail.city}, {trackDetail.country}
                   </span>
                   <div className="text-2xl font-black font-headline text-white tracking-tight leading-snug truncate mt-1">
-                    {courseDetail.name}
+                    {trackDetail.name}
                   </div>
                   <p className="text-xs text-primary-foreground/70 mt-1">
                     Track configuration and distance settings
                   </p>
                 </div>
                 <button
-                  onClick={handleCloseCourse}
+                  onClick={handleCloseTrack}
                   className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -355,7 +354,7 @@ export default function CoursesPage() {
                             Surface
                           </p>
                           <p className="text-base font-black text-foreground mt-1 capitalize">
-                            {courseDetail.surfaceType || "N/A"}
+                            {trackDetail.surfaceType || "N/A"}
                           </p>
                         </div>
                       </div>
@@ -369,7 +368,7 @@ export default function CoursesPage() {
                             Shape
                           </p>
                           <p className="text-base font-black text-foreground mt-1 capitalize">
-                            {courseDetail.trackShape?.shape || "Unknown"}
+                            {trackDetail.trackShape?.shape || "Unknown"}
                           </p>
                         </div>
                       </div>
@@ -383,7 +382,7 @@ export default function CoursesPage() {
                             Capacity
                           </p>
                           <p className="text-base font-black text-foreground mt-1">
-                            {courseDetail.grandstandCapacity?.toLocaleString() ||
+                            {trackDetail.grandstandCapacity?.toLocaleString() ||
                               0}
                           </p>
                         </div>
@@ -398,7 +397,7 @@ export default function CoursesPage() {
                             Starters
                           </p>
                           <p className="text-base font-black text-foreground mt-1">
-                            {courseDetail.maxStartingPositions || 0}
+                            {trackDetail.maxStartingPositions || 0}
                           </p>
                         </div>
                       </div>
@@ -414,7 +413,7 @@ export default function CoursesPage() {
                             Address
                           </p>
                           <p className="text-sm font-bold text-foreground mt-1">
-                            {courseDetail.address || "Not specified"}
+                            {trackDetail.address || "Not specified"}
                           </p>
                         </div>
                       </div>
@@ -428,8 +427,8 @@ export default function CoursesPage() {
                             Total Distance
                           </p>
                           <p className="text-sm font-bold text-foreground mt-1">
-                            {courseDetail.distanceMeters
-                              ? `${courseDetail.distanceMeters.toLocaleString()}m`
+                            {trackDetail.distanceMeters
+                              ? `${trackDetail.distanceMeters.toLocaleString()}m`
                               : "N/A"}
                           </p>
                         </div>
@@ -437,12 +436,11 @@ export default function CoursesPage() {
                     </div>
 
                     <div className="flex justify-between text-[10px] text-muted-foreground/60 font-mono pt-2 border-t border-border">
-                      <span>ID: {courseDetail.id}</span>
+                      <span>ID: {trackDetail.id}</span>
                       <span>
                         Updated:{" "}
                         {new Date(
-                          // eslint-disable-next-line react-hooks/purity
-                          courseDetail.updatedAt || Date.now()
+                          trackDetail.updatedAt || Date.now()
                         ).toLocaleDateString()}
                       </span>
                     </div>

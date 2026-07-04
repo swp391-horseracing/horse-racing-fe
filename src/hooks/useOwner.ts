@@ -370,7 +370,7 @@ export function useOwner() {
           horsesId: entry.horseId,
           ownerId: "",
           trackCondition: race?.trackCondition ?? "",
-          course: undefined,
+          track: undefined,
         };
       });
 

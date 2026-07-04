@@ -3,15 +3,15 @@ import { X, Loader2 } from "lucide-react";
 import { AdminService } from "../../../services/AdminService";
 
 type Props = {
-  courseId: string;
-  courseName: string;
+  trackId: string;
+  trackName: string;
   onClose: () => void;
   onCreated: (id: string, distanceMeters: number) => void;
 };
 
-export default function AddCourseDistanceModal({
-  courseId,
-  courseName,
+export default function AddTrackDistanceModal({
+  trackId,
+  trackName,
   onClose,
   onCreated,
 }: Props) {
@@ -30,7 +30,7 @@ export default function AddCourseDistanceModal({
 
     setSaving(true);
     try {
-      const res = await AdminService.createCourseDistance(courseId, meters);
+      const res = await AdminService.createTrackDistance(trackId, meters);
       const newId = res?.id ?? res?.data?.id;
       if (newId) {
         onCreated(newId, meters);
@@ -39,7 +39,7 @@ export default function AddCourseDistanceModal({
       }
       onClose();
     } catch {
-      setError("Failed to create course distance.");
+      setError("Failed to create track distance.");
     } finally {
       setSaving(false);
     }
@@ -50,7 +50,7 @@ export default function AddCourseDistanceModal({
       <div className="w-full max-w-md bg-white rounded-2xl border p-6 shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-[#064E3B]">
-            Add Course Distance
+            Add Track Distance
           </h3>
           <button
             type="button"
@@ -62,7 +62,7 @@ export default function AddCourseDistanceModal({
         </div>
 
         <p className="text-sm text-slate-600 mb-4">
-          Adding a distance for <strong>{courseName}</strong>
+          Adding a distance for <strong>{trackName}</strong>
         </p>
 
         {error && (

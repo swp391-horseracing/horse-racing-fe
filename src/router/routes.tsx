@@ -55,7 +55,7 @@ export const ROUTES = {
   ADMIN_CALENDAR: "/admin/calendar",
   ADMIN_REPORTS: "/admin/reports",
 
-  COURSES: "/courses",
+  TRACKS: "/tracks",
 
   // DYNAMIC
   HORSE_DETAIL: "/horses/:id",
