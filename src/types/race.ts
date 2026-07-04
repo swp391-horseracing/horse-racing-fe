@@ -56,6 +56,7 @@ export interface RaceListItem {
   updatedAt: string;
 
   course?: RaceTrack;
+  entryCount?: number;
 }
 
 export interface Pagination {

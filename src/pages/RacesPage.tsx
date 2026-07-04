@@ -136,7 +136,7 @@ function RaceRow({
             {race.title}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            {[race.distance, race.surface, race.venue, race.date].filter(Boolean).join(" · ")}
+            {[race.distance, race.surface, race.venue, race.date, race.entryCount ? `${race.entryCount} entries` : ""].filter(Boolean).join(" · ")}
           </p>
         </div>
       </div>

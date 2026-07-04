@@ -206,15 +206,28 @@ export function useRaces() {
       );
       const topRaces = collected.slice(0, limit);
 
-      const results = await Promise.allSettled(
-        topRaces.map((r) => RaceService.getRaceById(r.id))
-      );
+      const [detailResults, entryResults] = await Promise.all([
+        Promise.allSettled(
+          topRaces.map((r) => RaceService.getRaceById(r.id))
+        ),
+        Promise.allSettled(
+          topRaces.map((r) => RaceService.getRaceHorses(r.id))
+        ),
+      ]);
       const enriched: RaceListItem[] = topRaces.map((race, i) => {
-        const res = results[i];
-        if (res.status === "fulfilled" && res.value?.course) {
-          return { ...race, course: res.value.course };
+        const detail = detailResults[i];
+        const entries = entryResults[i];
+        let enriched = { ...race };
+        if (detail.status === "fulfilled" && detail.value?.course) {
+          enriched = { ...enriched, course: detail.value.course };
         }
-        return race;
+        if (entries.status === "fulfilled") {
+          const list = Array.isArray(entries.value)
+            ? entries.value
+            : (entries.value?.data ?? []);
+          enriched = { ...enriched, entryCount: list.length };
+        }
+        return enriched;
       });
 
       setUpcomingRaces(enriched);
