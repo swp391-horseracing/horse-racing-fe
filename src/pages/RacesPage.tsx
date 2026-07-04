@@ -30,6 +30,7 @@ import { cn } from "../lib/utils";
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
 import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
 import { PlacePredictionModal } from "../components/spectator/PlacePredictionModal";
+import { ScheduleService } from "../services/ScheduleService";
 
 type StatusFilter = RaceApiStatus | "All";
 
@@ -310,15 +311,19 @@ export default function RacesPage() {
     return { from, to: `${y2}-${m2}-${d2}` };
   }, [selectedRange]);
 
+  const nextFiveRaces = useMemo(() => {
+    return filteredRaces.slice(0, 5);
+  }, [filteredRaces]);
+
   const calendarFilteredRaces = useMemo(() => {
-    if (!dateRangeStr) return filteredRaces;
+    if (!dateRangeStr) return nextFiveRaces;
     if (typeof dateRangeStr === "string") {
       return filteredRaces.filter((r) => r.date === dateRangeStr);
     }
     return filteredRaces.filter(
       (r) => r.date >= dateRangeStr.from && r.date <= dateRangeStr.to
     );
-  }, [filteredRaces, dateRangeStr]);
+  }, [filteredRaces, dateRangeStr, nextFiveRaces]);
 
   const raceDays = useMemo(() => {
     return allRaces.map((r) => parseLocalDate(r.date));
