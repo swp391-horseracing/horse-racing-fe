@@ -24,6 +24,7 @@ import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
 import type { DateRange } from "react-day-picker";
 import { useToast } from "../hooks/useToast";
 import { formatStatus } from "../utils/statusFormat";
+import { getRaceStatusStyle, getRaceStatusDetailStyle } from "../utils/statusStyles";
 import { ToastContainer } from "../components/ui/toast";
 import { cn } from "../lib/utils";
 
@@ -109,8 +110,6 @@ function RaceRow({
   showPredictBadge?: boolean;
 }) {
   const isLive = race.status === "ongoing";
-  const isCompleted =
-    race.status === "completed" || race.status === "result_confirmed";
   return (
     <button
       onClick={onClick}
@@ -146,17 +145,15 @@ function RaceRow({
           </span>
         )}
         {isLive ? (
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
+          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 ${getRaceStatusStyle(race.status)}`}>
             <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
             Live
           </span>
-        ) : isCompleted ? (
-          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-muted/80" />
-            {formatStatus(race.status)}
-          </span>
         ) : (
-          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+          <span className={`text-[9px] font-bold px-2 py-0.5 rounded flex items-center gap-1 ${getRaceStatusStyle(race.status)}`}>
+            {(race.status === "completed" || race.status === "result_confirmed") && (
+              <span className="h-1.5 w-1.5 rounded-full bg-muted/80" />
+            )}
             {formatStatus(race.status)}
           </span>
         )}
@@ -190,7 +187,7 @@ export default function RacesPage() {
     loadUpcomingRaces,
   } = useRaces();
 
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
+      const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
   const [search, setSearch] = useState("");
 
   const [selectedRange, setSelectedRange] = useState<DateRange | undefined>(
@@ -608,17 +605,7 @@ export default function RacesPage() {
                             : "Lanes TBC"}
                         </span>
                         <span
-                          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 font-bold ${
-                            raceDetail.status === "ongoing"
-                              ? "bg-rose-500/20 border-rose-400/50 text-rose-200"
-                              : raceDetail.status === "completed" ||
-                                  raceDetail.status === "result_confirmed"
-                                ? "bg-emerald-500/20 border-emerald-400/50 text-emerald-200"
-                                : raceDetail.status === "cancelled" ||
-                                    raceDetail.status === "postponed"
-                                  ? "bg-amber-500/20 border-amber-400/50 text-amber-200"
-                                  : "bg-white/15 border-white/30 text-white"
-                          }`}
+                          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 font-bold ${getRaceStatusDetailStyle(raceDetail.status)}`}
                         >
                           {raceDetail.status === "ongoing" && (
                             <span className="h-1.5 w-1.5 rounded-full bg-rose-300 animate-pulse" />

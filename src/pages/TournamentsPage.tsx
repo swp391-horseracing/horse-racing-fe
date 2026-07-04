@@ -20,6 +20,7 @@ import useTournament from "../hooks/useTournament";
 import { useOwner } from "../hooks/useOwner";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { formatStatus } from "../utils/statusFormat";
+import { getRaceStatusStyle } from "../utils/statusStyles";
 
 function StatFilterCard({
   label,
@@ -520,20 +521,20 @@ export default function TournamentsPage() {
                                   </div>
                                 </div>
 
-                                <div className="flex items-center gap-3 shrink-0 pl-3">
+                                  <div className="flex items-center gap-3 shrink-0 pl-3">
                                   {isRaceLive ? (
-                                    <span className="inline-flex items-center gap-1 rounded-full bg-secondary/15 border border-secondary/20 px-2.5 py-0.5 text-[9px] font-bold text-secondary-foreground">
-                                      <Play className="h-2 w-2 text-secondary fill-secondary animate-pulse" />
+                                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[9px] font-bold ${getRaceStatusStyle("ongoing")}`}>
+                                      <Play className="h-2 w-2 animate-pulse" />
                                       Live
                                     </span>
                                   ) : isCompleted ? (
-                                    <span className="inline-flex items-center gap-1 rounded-full bg-muted border border-border px-2.5 py-0.5 text-[9px] font-bold text-muted-foreground">
-                                      <CheckCircle2 className="h-2.5 w-2.5 text-muted-foreground" />
+                                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[9px] font-bold ${getRaceStatusStyle("completed")}`}>
+                                      <CheckCircle2 className="h-2.5 w-2.5" />
                                       Ended
                                     </span>
                                   ) : (
-                                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-[9px] font-bold text-primary">
-                                      <Clock className="h-2.5 w-2.5 text-primary" />
+                                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[9px] font-bold ${getRaceStatusStyle(race.status)}`}>
+                                      <Clock className="h-2.5 w-2.5" />
                                       {formatStatus(race.status)}
                                     </span>
                                   )}

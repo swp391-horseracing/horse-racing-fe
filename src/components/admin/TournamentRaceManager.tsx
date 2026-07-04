@@ -9,6 +9,7 @@ import useAdminRace from "../../hooks/admin/useAdminRace";
 import TournamentDetail from "./tournament/TournamentDetail";
 import { TournamentService } from "../../services/TournamentService";
 import { STATUS_LABELS } from "./race/raceStatus";
+import { getRaceStatusStyle } from "../../utils/statusStyles";
 import RaceForm, { type RaceFormData } from "./race/RaceForm";
 import RaceStatusButton from "./race/RaceStatusButton";
 import type { RaceItem } from "../../types/tournament";
@@ -243,7 +244,7 @@ export default function TournamentRaceManager({
                         {race.venue ?? "-"}
                       </td>
                       <td className="p-3">
-                        <span className="capitalize font-medium">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded capitalize ${getRaceStatusStyle(race.status)}`}>
                           {STATUS_LABELS[race.status] ??
                             race.status.replaceAll("_", " ")}
                         </span>
@@ -362,7 +363,7 @@ export default function TournamentRaceManager({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm pt-2">
               <div>
                 <strong>Status:</strong>{" "}
-                <span className="capitalize">
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded capitalize ${getRaceStatusStyle(selectedRace.status)}`}>
                   {STATUS_LABELS[selectedRace.status] ??
                     selectedRace.status.replaceAll("_", " ")}
                 </span>
