@@ -30,7 +30,6 @@ import { cn } from "../lib/utils";
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
 import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
 import { PlacePredictionModal } from "../components/spectator/PlacePredictionModal";
-import { ScheduleService } from "../services/ScheduleService";
 
 type StatusFilter = RaceApiStatus | "All";
 
@@ -184,8 +183,11 @@ export default function RacesPage() {
     races: apiRaces,
     rangeRaces,
     loading: racesLoading,
+    upcomingRaces,
+    upcomingLoading,
     loadRacesByMonth,
     loadRacesForRange,
+    loadUpcomingRaces,
   } = useRaces();
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
@@ -248,6 +250,10 @@ export default function RacesPage() {
   }, [viewYear, viewMonthIndex, loadRacesByMonth]);
 
   useEffect(() => {
+    loadUpcomingRaces(5);
+  }, [loadUpcomingRaces]);
+
+  useEffect(() => {
     if (selectedRange?.from && selectedRange?.to) {
       loadRacesForRange(selectedRange.from, selectedRange.to);
     }
@@ -255,8 +261,8 @@ export default function RacesPage() {
 
   const effectiveRaces = useMemo(() => {
     if (selectedRange?.from && selectedRange?.to) return rangeRaces;
-    return apiRaces;
-  }, [selectedRange?.from, selectedRange?.to, rangeRaces, apiRaces]);
+    return upcomingRaces.length > 0 ? upcomingRaces : apiRaces;
+  }, [selectedRange?.from, selectedRange?.to, rangeRaces, upcomingRaces, apiRaces]);
 
   const allRaces = useMemo(
     () => effectiveRaces.map(mapRaceToUi),
@@ -465,7 +471,7 @@ export default function RacesPage() {
             <div
               className={`${isCalendarMode && !panelOpen ? "lg:col-span-7" : "w-full"} space-y-4`}
             >
-              {racesLoading ? (
+              {!effectiveRaces.length && (racesLoading || upcomingLoading) ? (
                 <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
                   <p className="text-sm font-semibold text-muted-foreground">
                     Loading races...
@@ -498,7 +504,7 @@ export default function RacesPage() {
                       <div className="p-12 text-center text-sm text-muted-foreground font-medium">
                         {dateRangeStr
                           ? "No races found in this date range."
-                          : "No races found in this month."}
+                          : "No upcoming races found."}
                       </div>
                     )}
                   </div>
