@@ -63,8 +63,10 @@ const mapRaceToUi = (race: RaceListItem): RaceUI => {
     title: race.name,
     date: `${yyyy}-${mm}-${dd}`,
     time: `${hh}:${min}`,
-    distance: "",
-    surface: race.venue,
+    distance: race.course?.distanceMeters ? `${race.course.distanceMeters}m` : "",
+    surface: race.course?.surfaceType
+      ? race.course.surfaceType.charAt(0).toUpperCase() + race.course.surfaceType.slice(1)
+      : "",
     className: "Standard",
     status: race.status,
     isOpenForPrediction:
@@ -134,7 +136,7 @@ function RaceRow({
             {race.title}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            {race.className} · {race.distance} · {race.surface} · {race.date}
+            {[race.distance, race.surface, race.venue, race.date].filter(Boolean).join(" · ")}
           </p>
         </div>
       </div>

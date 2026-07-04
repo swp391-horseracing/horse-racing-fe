@@ -195,7 +195,8 @@ export function useRaces() {
           d.getMonth() + 1
         );
         const upcoming = (Array.isArray(data) ? data : []).filter(
-          (r) => r.status === "scheduled" || r.status === "pre_race"
+          (r: RaceListItem) =>
+            r.status === "scheduled" || r.status === "pre_race"
         );
         collected.push(...upcoming);
       }
@@ -203,7 +204,20 @@ export function useRaces() {
         (a, b) =>
           new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
       );
-      setUpcomingRaces(collected.slice(0, limit));
+      const topRaces = collected.slice(0, limit);
+
+      const results = await Promise.allSettled(
+        topRaces.map((r) => RaceService.getRaceById(r.id))
+      );
+      const enriched: RaceListItem[] = topRaces.map((race, i) => {
+        const res = results[i];
+        if (res.status === "fulfilled" && res.value?.course) {
+          return { ...race, course: res.value.course };
+        }
+        return race;
+      });
+
+      setUpcomingRaces(enriched);
     } catch {
       setUpcomingRaces([]);
     } finally {

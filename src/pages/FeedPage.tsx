@@ -6,6 +6,7 @@ import useTournament from "../hooks/useTournament";
 import { ROUTES } from "../router/routes";
 import { formatTournamentStatus } from "../styles/schema/tournamentStatusFlow";
 import { getRaceStatusStyle } from "../utils/statusStyles";
+import { formatStatus } from "../utils/statusFormat";
 import {
   Trophy,
   Calendar,
