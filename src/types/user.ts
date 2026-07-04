@@ -100,7 +100,7 @@ export type UserProfile = {
 export interface UserRace {
   id: string;
   tournamentId: string;
-  trackDistanceId: string;
+  courseDistanceId: string;
 
   name: string;
   raceNumber: number | null;
@@ -113,7 +113,7 @@ export interface UserRace {
   createdAt: string;
   updatedAt: string;
 
-  track?: RaceTrack;
+  course?: RaceTrack;
   venue?: string;
   distanceMeters?: number;
 

@@ -44,8 +44,10 @@ const initialForm: RaceFormData = {
 type Props = {
   initial?: Partial<RaceFormData>;
   onClose: () => void;
-  onSubmit: (data: RaceFormData) => Promise<boolean>;
+  onSubmit: (data: RaceFormData) => Promise<string | null>;
   actionLoading: boolean;
+  tournamentStartDate?: string;
+  tournamentEndDate?: string;
 };
 
 export default function RaceForm({
@@ -53,6 +55,8 @@ export default function RaceForm({
   onClose,
   onSubmit,
   actionLoading,
+  tournamentStartDate,
+  tournamentEndDate,
 }: Props) {
   const [form, setForm] = useState<RaceFormData>({
     ...initialForm,
@@ -147,13 +151,23 @@ export default function RaceForm({
       return;
     }
 
-    const ok = await onSubmit({
+    if (tournamentStartDate && tournamentEndDate) {
+      const scheduledMs = new Date(form.scheduledAt).getTime();
+      const startMs = new Date(tournamentStartDate).getTime();
+      const endMs = new Date(tournamentEndDate).getTime();
+      if (scheduledMs < startMs || scheduledMs > endMs) {
+        setError("Scheduled date must be between tournament start and end dates");
+        return;
+      }
+    }
+
+    const errMsg = await onSubmit({
       ...form,
       scheduledAt: new Date(form.scheduledAt).toISOString(),
     });
 
-    if (!ok) {
-      setError("Failed to save race.");
+    if (errMsg) {
+      setError(errMsg);
     }
   };
 
@@ -358,9 +372,16 @@ export default function RaceForm({
           </div>
 
           <div>
-            <label className="block text-sm font-semibold mb-2">
+            <label className="block text-sm font-semibold mb-1">
               Scheduled Date & Time
             </label>
+            {tournamentStartDate && tournamentEndDate && (
+              <p className="text-[11px] text-slate-500 mb-2">
+                Tournament period:{" "}
+                {new Date(tournamentStartDate).toLocaleDateString()} –{" "}
+                {new Date(tournamentEndDate).toLocaleDateString()}
+              </p>
+            )}
             <input
               type="datetime-local"
               value={form.scheduledAt}

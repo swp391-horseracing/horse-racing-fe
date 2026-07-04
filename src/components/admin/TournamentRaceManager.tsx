@@ -105,8 +105,8 @@ export default function TournamentRaceManager({
     return null;
   };
 
-  const handleCreateRace = async (data: RaceFormData) => {
-    if (!activeTournamentId) return false;
+  const handleCreateRace = async (data: RaceFormData): Promise<string | null> => {
+    if (!activeTournamentId) return "No active tournament.";
     const payload: Record<string, unknown> = {
       name: data.name,
       raceNumber: data.raceNumber,
@@ -118,18 +118,18 @@ export default function TournamentRaceManager({
       laneCount: data.laneCount,
     };
     const res = await createRace(activeTournamentId, payload);
-    if (res) {
+    if (res.success) {
       addToast("Race created successfully.", "success");
       setView("tournament-detail");
       void loadRaces(activeTournamentId);
-      return true;
+      return null;
     }
     addToast("Failed to create race.", "error");
-    return false;
+    return res.error ?? "Failed to create race.";
   };
 
-  const handleUpdateRace = async (data: RaceFormData) => {
-    if (!activeRaceId) return false;
+  const handleUpdateRace = async (data: RaceFormData): Promise<string | null> => {
+    if (!activeRaceId) return "No active race.";
     const payload: Record<string, unknown> = {
       name: data.name,
       raceNumber: data.raceNumber,
@@ -140,15 +140,15 @@ export default function TournamentRaceManager({
       venue: data.venue,
       laneCount: data.laneCount,
     };
-    const ok = await updateRace(activeRaceId, payload);
-    if (ok) {
+    const res = await updateRace(activeRaceId, payload);
+    if (res.success) {
       addToast("Race updated successfully.", "success");
       setRaceEditing(false);
       await getRaceDetail(activeRaceId);
-    } else {
-      addToast("Failed to update race.", "error");
+      return null;
     }
-    return ok;
+    addToast("Failed to update race.", "error");
+    return res.error ?? "Failed to update race.";
   };
 
   const handleRaceStatusChange = async (status: string) => {
@@ -290,6 +290,8 @@ export default function TournamentRaceManager({
             onClose={() => setView("tournament-detail")}
             onSubmit={handleCreateRace}
             actionLoading={raceActionLoading}
+            tournamentStartDate={selectedTournament?.startDate}
+            tournamentEndDate={selectedTournament?.endDate}
           />
         </div>
       </div>
@@ -358,6 +360,8 @@ export default function TournamentRaceManager({
               onClose={() => setRaceEditing(false)}
               onSubmit={handleUpdateRace}
               actionLoading={raceActionLoading}
+              tournamentStartDate={selectedTournament?.startDate}
+              tournamentEndDate={selectedTournament?.endDate}
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm pt-2">

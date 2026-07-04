@@ -211,8 +211,8 @@ export function useRaces() {
       );
       const enriched: RaceListItem[] = topRaces.map((race, i) => {
         const res = results[i];
-        if (res.status === "fulfilled" && res.value?.track) {
-          return { ...race, track: res.value.track };
+        if (res.status === "fulfilled" && res.value?.course) {
+          return { ...race, course: res.value.course };
         }
         return race;
       });

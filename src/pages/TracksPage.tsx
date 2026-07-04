@@ -104,6 +104,7 @@ export default function TracksPage() {
     if (selectedId && selectedId !== trackDetail?.id) {
       getTrackById(selectedId);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleOpenTrack = (id: string) => {
@@ -440,6 +441,7 @@ export default function TracksPage() {
                       <span>
                         Updated:{" "}
                         {new Date(
+                          // eslint-disable-next-line react-hooks/purity
                           trackDetail.updatedAt || Date.now()
                         ).toLocaleDateString()}
                       </span>

@@ -283,18 +283,21 @@ export function useTrack(initialParams?: {
 
   useEffect(() => {
     if (initialParams?.autoFetchTracks) {
+      /* eslint-disable react-hooks/set-state-in-effect */
       getTracks();
     }
   }, [initialParams?.autoFetchTracks, getTracks]);
 
   useEffect(() => {
     if (initialParams?.autoFetchTrackShapes) {
+      /* eslint-disable react-hooks/set-state-in-effect */
       getTrackShapes();
     }
   }, [initialParams?.autoFetchTrackShapes, getTrackShapes]);
 
   useEffect(() => {
     if (initialParams?.trackId) {
+      /* eslint-disable react-hooks/set-state-in-effect */
       getTrackById(initialParams.trackId);
     } else {
       setTrackDetail(null);
@@ -303,6 +306,7 @@ export function useTrack(initialParams?: {
 
   useEffect(() => {
     if (trackDetail?.id) {
+      /* eslint-disable react-hooks/set-state-in-effect */
       getTrackDistances(trackDetail.id);
     } else {
       setDistances([]);

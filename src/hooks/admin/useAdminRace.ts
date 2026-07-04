@@ -53,18 +53,22 @@ export default function useAdminRace() {
   }, []);
 
   const createRace = useCallback(
-    async (tournamentId: string, data: Record<string, unknown>) => {
+    async (
+      tournamentId: string,
+      data: Record<string, unknown>
+    ): Promise<{ success: true; data: RaceListItem } | { success: false; error: string }> => {
       try {
         setActionLoading(true);
         setError(null);
 
         const res = await AdminService.createRace(tournamentId, data);
 
-        return res;
+        return { success: true, data: res };
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Create race failed");
+        const message = err instanceof Error ? err.message : "Create race failed";
+        setError(message);
 
-        return null;
+        return { success: false, error: message };
       } finally {
         setActionLoading(false);
       }
@@ -73,18 +77,22 @@ export default function useAdminRace() {
   );
 
   const updateRace = useCallback(
-    async (raceId: string, data: Record<string, unknown>) => {
+    async (
+      raceId: string,
+      data: Record<string, unknown>
+    ): Promise<{ success: true } | { success: false; error: string }> => {
       try {
         setActionLoading(true);
         setError(null);
 
         await AdminService.updateRace(raceId, data);
 
-        return true;
+        return { success: true };
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Update race failed");
+        const message = err instanceof Error ? err.message : "Update race failed";
+        setError(message);
 
-        return false;
+        return { success: false, error: message };
       } finally {
         setActionLoading(false);
       }

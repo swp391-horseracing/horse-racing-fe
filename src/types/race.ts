@@ -42,7 +42,7 @@ export interface RaceTrack {
 export interface RaceListItem {
   id: string;
   tournamentId: string;
-  trackDistanceId: string;
+  courseDistanceId: string;
 
   name: string;
   raceNumber: number | null;
@@ -55,7 +55,7 @@ export interface RaceListItem {
   createdAt: string;
   updatedAt: string;
 
-  track?: RaceTrack;
+  course?: RaceTrack;
 }
 
 export interface Pagination {
