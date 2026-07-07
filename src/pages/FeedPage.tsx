@@ -29,32 +29,19 @@ export default function FeedPage() {
 
   const {
     races: apiRaces,
-    loading: racesLoading,
+    upcomingRaces,
+    upcomingLoading,
     loadRacesByMonth,
+    loadUpcomingRaces,
   } = useRaces();
 
   // Load tournaments
   const { tournaments, loadingList: tournamentsLoading } = useTournament();
 
   useEffect(() => {
-    loadRacesByMonth(currentYear, currentMonth + 1);
-  }, [currentYear, currentMonth, loadRacesByMonth]);
-
-  // Filter and sort races (Upcoming/Live first, then limit to 5)
-  const upcomingRaces = useMemo(() => {
-    return apiRaces
-      .filter(
-        (r) =>
-          r.status === "scheduled" ||
-          r.status === "pre_race" ||
-          r.status === "ongoing"
-      )
-      .sort(
-        (a, b) =>
-          new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
-      )
-      .slice(0, 5);
-  }, [apiRaces]);
+    loadRacesByMonth(currentYear, currentMonth);
+    loadUpcomingRaces(5);
+  }, [currentYear, currentMonth, loadRacesByMonth, loadUpcomingRaces]);
 
   // Filter active/registration/upcoming tournaments
   const activeTournaments = useMemo(() => {
@@ -272,7 +259,7 @@ export default function FeedPage() {
                 </button>
               </div>
 
-              {racesLoading ? (
+              {upcomingLoading ? (
                 <div className="py-8 text-center">
                   <p className="text-xs font-semibold text-slate-400">
                     Loading schedules...
