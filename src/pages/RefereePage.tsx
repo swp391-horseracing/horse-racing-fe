@@ -18,7 +18,6 @@ import RefereeDashboard from "../components/referee/RefereeDashboard";
 import RefereeRaceList from "../components/referee/RefereeRaceList";
 import PreRaceInspectionPanel from "../components/referee/PreRaceInspectionPanel";
 import LiveMonitorPanel from "../components/referee/LiveMonitorPanel";
-import ConfirmResultsPanel from "../components/referee/ConfirmResultsPanel";
 import RaceReportPanel from "../components/referee/RaceReportPanel";
 import { UserService } from "../services/UserService.ts";
 import { RefereeService } from "../services/RefereeService.ts";
@@ -30,17 +29,15 @@ const formatTime = (seconds: number) => {
 };
 
 const phaseLabel: Record<RacePhase, string> = {
-  scheduled: "Scheduled",
+  scheduled: "Pre-Race",
   live: "Live",
-  concluded: "Concluded",
-  report: "Pending Submit",
+  post_race: "Results",
 };
 
 const phaseBadgeStyle: Record<RacePhase, string> = {
   scheduled: "bg-amber-50 text-amber-900 border-amber-300 font-bold",
   live: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  concluded: "bg-indigo-100 text-indigo-800 border-indigo-200",
-  report: "bg-violet-100 text-violet-800 border-violet-200",
+  post_race: "bg-indigo-100 text-indigo-800 border-indigo-200",
 };
 
 const VIOLATION_CATEGORIES: ViolationCategory[] = [
@@ -66,20 +63,10 @@ const PRE_RACE_DISQUALIFY_REASONS = [
   "Steward Disqualification / Other",
 ];
 
-const mapBackendStatusToPhase = (
-  raceStatus: string,
-  reportStatus?: string
-): RacePhase => {
-  if (reportStatus === "referee_confirmed" || reportStatus === "published")
-    return "report";
-  if (
-    raceStatus === "completed" ||
-    raceStatus === "under_review" ||
-    raceStatus === "result_confirmed"
-  )
-    return "report";
+const mapBackendStatusToPhase = (raceStatus: string): RacePhase => {
   if (raceStatus === "ongoing") return "live";
-  return "scheduled";
+  if (raceStatus === "pre_race") return "scheduled";
+  return "post_race";
 };
 
 function formatSecondsToMSS(secondsStr: string | null | undefined): string {
@@ -123,14 +110,16 @@ export default function RefereePage() {
   // Clear selected race when navigating away from the race list
   useEffect(() => {
     if (selectedRaceId && active !== ROUTES.REFEREE_RACE_LIST) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedRaceId(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
   useEffect(() => {
     UserService.getMyRaces(1, 100)
       .then((res) => {
-        const races: MockRace[] = res.data.map((r) => ({
+        const races: MockRace[] = res.data.map((r: any) => ({
           id: r.id,
           name: r.name,
           venue: r.venue || "TBC",
@@ -141,8 +130,7 @@ export default function RefereePage() {
           elapsedSeconds: 0,
           timerRunning: false,
           reportNotes: "",
-          reportSubmitted:
-            r.status === "completed" || r.status === "result_confirmed",
+          reportStatus: r.resultStatus ?? null,
           refereeCheckedIn: false,
           lanes: [],
         }));
@@ -172,10 +160,7 @@ export default function RefereePage() {
               prev.map((r) => {
                 if (r.id !== id) return r;
 
-                const backendPhase = mapBackendStatusToPhase(
-                  data.race.status,
-                  data.report?.status
-                );
+                const backendPhase = mapBackendStatusToPhase(data.race.status);
 
                 // Build an entryStatus lookup from the entries endpoint
                 const entryStatusMap = new Map<string, string>();
@@ -280,15 +265,11 @@ export default function RefereePage() {
                   lanes.sort((a, b) => a.laneNumber - b.laneNumber);
                 }
 
-                const isSubmitted =
-                  data.report?.status !== "draft" &&
-                  data.report?.status !== undefined;
-
                 return {
                   ...r,
                   lanes,
                   reportNotes: data.report?.notes || "",
-                  reportSubmitted: isSubmitted,
+                  reportStatus: data.report?.status ?? null,
                   phase: backendPhase,
                 };
               })
@@ -476,7 +457,7 @@ export default function RefereePage() {
     }
     updateRace(raceId, (r) => ({
       ...r,
-      phase: "concluded",
+      phase: "post_race",
       timerRunning: false,
     }));
     addToast("Race ended. Enter finish placements.", "info");
@@ -511,22 +492,9 @@ export default function RefereePage() {
     }));
   };
 
-  const handleConfirmResults = async (raceId: string) => {
+  const savePlacements = async (raceId: string) => {
     const race = apiRaces.find((r) => r.id === raceId);
     if (!race) return;
-    const activeLanes = race.lanes.filter(
-      (l) => l.inspectionStatus === "cleared" && !l.flag
-    );
-    const incomplete = activeLanes.filter(
-      (l) => !l.finishPosition || !l.finishTime
-    );
-    if (incomplete.length > 0) {
-      addToast(
-        `All active competitors must receive a placement and finish time. ${incomplete.length} lane(s) missing.`,
-        "error"
-      );
-      return;
-    }
 
     try {
       const payload = {
@@ -543,26 +511,14 @@ export default function RefereePage() {
         })),
       };
       await RefereeService.updatePlacements(raceId, payload);
-
-      updateRace(raceId, (r) => ({ ...r, phase: "report" }));
-      addToast(
-        "Results captured. Ready for final report generation.",
-        "success"
-      );
+      return true;
     } catch (e: any) {
       addToast(
-        e.response?.data?.message || "Failed to confirm results",
+        e.response?.data?.message || "Failed to save placements",
         "error"
       );
+      return false;
     }
-  };
-
-  const handleEditResults = (raceId: string) => {
-    updateRace(raceId, (r) => ({ ...r, phase: "concluded" }));
-    addToast(
-      "Unlocked results for editing. Make your changes and re-confirm.",
-      "info"
-    );
   };
 
   const handleSaveReportDraft = (raceId: string, notes: string) => {
@@ -573,41 +529,33 @@ export default function RefereePage() {
   const handleSubmitReport = async (raceId: string) => {
     const race = apiRaces.find((r) => r.id === raceId);
     if (!race) return;
-    const unresolvedViolations = race.lanes
-      .flatMap((l) => l.violations)
-      .filter((v) => !v.violationType);
-    if (unresolvedViolations.length > 0) {
+
+    const activeLanes = race.lanes.filter(
+      (l) => l.inspectionStatus === "cleared" && !l.flag
+    );
+    const incomplete = activeLanes.filter(
+      (l) => !l.finishPosition || !l.finishTime
+    );
+    if (incomplete.length > 0) {
       addToast(
-        "All logged violations must be fully resolved before submission.",
+        `All active competitors must receive a placement and finish time. ${incomplete.length} lane(s) missing.`,
         "error"
       );
       return;
     }
 
-    try {
-      const placementsPayload = {
-        placements: race.lanes.map((l) => ({
-          entryId: l.id,
-          finishedPosition: l.finishPosition || 999,
-          finishTime: parseMSSToSecondsString(l.finishTime) || undefined,
-          finishStatus: (l.inspectionStatus === "withdrawn"
-            ? "dns"
-            : l.inspectionStatus === "disqualified"
-              ? "dsq"
-              : l.flag || "finished") as "finished" | "dnf" | "dsq" | "dns",
-          points: 0,
-        })),
-      };
-      await RefereeService.updatePlacements(raceId, placementsPayload);
+    const saved = await savePlacements(raceId);
+    if (!saved) return;
 
+    try {
       await RefereeService.submitReport(raceId, { notes: race.reportNotes });
 
       updateRace(raceId, (r) => ({
         ...r,
-        reportSubmitted: true,
+        reportStatus: "published",
       }));
       addToast(
-        "Report submitted successfully. Your track duties for this race are complete.",
+        "Report submitted successfully. Race result is now finalized.",
         "success"
       );
     } catch (e: any) {
@@ -733,12 +681,21 @@ export default function RefereePage() {
               <span
                 className={cn(
                   "text-[10px] font-black uppercase px-2.5 py-1 rounded-full border",
-                  phaseBadgeStyle[race.phase]
+                  phaseBadgeStyle[race.phase],
+                  (race.reportStatus === "published" ||
+                    race.reportStatus === "referee_confirmed") &&
+                    "!bg-emerald-50 !text-emerald-800 !border-emerald-200"
                 )}
               >
-                {race.phase === "report" && race.reportSubmitted
-                  ? "Submitted"
-                  : phaseLabel[race.phase]}
+                {race.phase === "post_race" && race.reportStatus === "published"
+                  ? "Finalized"
+                  : race.phase === "post_race" &&
+                      race.reportStatus === "referee_confirmed"
+                    ? "Finalized"
+                    : race.phase === "post_race" &&
+                        race.reportStatus === "draft"
+                      ? "Results (Draft)"
+                      : phaseLabel[race.phase]}
               </span>
             </div>
           </div>
@@ -777,10 +734,11 @@ export default function RefereePage() {
                   violationCategories={VIOLATION_CATEGORIES}
                 />
               )}
-              {race.phase === "concluded" && (
-                <ConfirmResultsPanel
+              {race.phase === "post_race" && (
+                <RaceReportPanel
                   race={race}
                   activeLanes={activeLanes}
+                  allViolations={allViolations}
                   onSetPlacement={(laneId, pos) =>
                     handleSetPlacement(race.id, laneId, pos)
                   }
@@ -790,15 +748,6 @@ export default function RefereePage() {
                   onSetFlag={(laneId, flag) =>
                     handleSetFlag(race.id, laneId, flag)
                   }
-                  onConfirmResults={() => handleConfirmResults(race.id)}
-                />
-              )}
-              {race.phase === "report" && (
-                <RaceReportPanel
-                  race={race}
-                  activeLanes={activeLanes}
-                  allViolations={allViolations}
-                  onEditResults={() => handleEditResults(race.id)}
                   onUpdateReportNotes={(notes) =>
                     updateRace(race.id, (r) => ({ ...r, reportNotes: notes }))
                   }
@@ -822,6 +771,9 @@ export default function RefereePage() {
                   }
                   onDeleteViolation={(laneId, violationId) =>
                     handleDeleteViolation(race.id, laneId, violationId)
+                  }
+                  onCreateViolation={(laneId, violationType, note) =>
+                    handleLogViolation(race.id, laneId, violationType, note)
                   }
                   violationCategories={VIOLATION_CATEGORIES}
                 />

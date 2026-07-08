@@ -19,9 +19,7 @@ export default function RefereeDashboard({
 }: RefereeDashboardProps) {
   const scheduledCount = races.filter((r) => r.phase === "scheduled").length;
   const liveCount = races.filter((r) => r.phase === "live").length;
-  const concludedCount = races.filter(
-    (r) => r.phase === "concluded" || r.phase === "report"
-  ).length;
+  const concludedCount = races.filter((r) => r.phase === "post_race").length;
   const totalLanes = races.reduce((sum, r) => sum + r.lanes.length, 0);
 
   return (
@@ -127,9 +125,13 @@ export default function RefereeDashboard({
                   phaseBadgeStyle[race.phase]
                 )}
               >
-                {race.phase === "report" && race.reportSubmitted
-                  ? "Submitted"
-                  : phaseLabel[race.phase]}
+                {race.phase === "post_race" &&
+                (race.reportStatus === "published" ||
+                  race.reportStatus === "referee_confirmed")
+                  ? "Finalized"
+                  : race.phase === "post_race" && race.reportStatus === "draft"
+                    ? "Results (Draft)"
+                    : phaseLabel[race.phase]}
               </span>
             </div>
           ))}

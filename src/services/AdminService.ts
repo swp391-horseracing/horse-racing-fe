@@ -1,10 +1,7 @@
 import api from "../lib/api";
 import type { Tournament, TournamentResponse } from "../types/tournament.ts";
 import type { UserResponse } from "../types/user.ts";
-import type {
-  Race,
-  RaceReportListResponse,
-} from "../types/race.ts";
+import type { Race, RaceReportListResponse } from "../types/race.ts";
 import type { RaceReport } from "../types/referee.ts";
 
 export const AdminService = {

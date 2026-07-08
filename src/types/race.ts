@@ -160,5 +160,3 @@ export interface AdminRace {
   createdAt: string;
   updatedAt: string;
 }
-
-

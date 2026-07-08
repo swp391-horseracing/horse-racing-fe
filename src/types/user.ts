@@ -135,6 +135,8 @@ export interface UserRace {
   ownerId?: string;
 
   ranking?: number;
+
+  resultStatus?: "draft" | "referee_confirmed" | "published" | null;
 }
 
 export type UserRaceListResponse = {

@@ -31,7 +31,6 @@ export default function ReportDetailView({
   detailLoading,
   onBack,
 }: ReportDetailViewProps) {
-
   if (detailLoading || !detail) {
     return (
       <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -356,7 +355,6 @@ export default function ReportDetailView({
           </div>
         </div>
       )}
-
     </div>
   );
 }

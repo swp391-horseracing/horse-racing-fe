@@ -7,7 +7,7 @@ export type InspectionStatus =
   | "disqualified"
   | "withdrawn";
 
-export type RacePhase = "scheduled" | "live" | "concluded" | "report";
+export type RacePhase = "scheduled" | "live" | "post_race";
 
 export type ViolationCategory =
   | "Whip Limit Exceeded"
@@ -41,7 +41,7 @@ export interface MockRace {
   elapsedSeconds: number;
   timerRunning: boolean;
   reportNotes: string;
-  reportSubmitted: boolean;
+  reportStatus: "draft" | "referee_confirmed" | "published" | null;
   refereeCheckedIn: boolean;
 }
 

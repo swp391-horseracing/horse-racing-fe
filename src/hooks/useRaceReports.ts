@@ -24,7 +24,6 @@ export function useRaceReports(addToast: (m: string, t?: ToastType) => void) {
   const [detail, setDetail] = useState<ReportDetailData | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
-
   // ── Fetch list ──
   const fetchReports = useCallback(
     async (overridePage?: number) => {
