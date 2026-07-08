@@ -4,7 +4,7 @@ import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { useOwner } from "../hooks/useOwner.ts";
 import type { Horse } from "../types/horse";
-import { Clock, Send } from "lucide-react";
+import { Clock } from "lucide-react";
 import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "../components/ui/toast";
 
@@ -46,7 +46,6 @@ export default function OwnerPage() {
     scheduleLoading,
     entries,
     enterRace,
-    approvedTournamentIds,
     eligibleHorsesByTournament,
   } = useOwner();
 
@@ -387,8 +386,8 @@ export default function OwnerPage() {
           currentEntryCount={enterRaceTarget?.currentEntryCount ?? 0}
           eligibleHorses={
             enterRaceTarget?.tournamentId
-              ? eligibleHorsesByTournament.get(enterRaceTarget.tournamentId) ??
-                []
+              ? (eligibleHorsesByTournament.get(enterRaceTarget.tournamentId) ??
+                [])
               : []
           }
           onSubmit={async (horseId) => {

@@ -74,9 +74,7 @@ export const UserService = {
   },
 
   withdrawRaceEntry: async (raceId: string, entryId: string) => {
-    const response = await api.delete(
-      `/me/races/${raceId}/entries/${entryId}`
-    );
+    const response = await api.delete(`/me/races/${raceId}/entries/${entryId}`);
     return response.data;
   },
 

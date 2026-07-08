@@ -21,7 +21,8 @@ import { useOwner } from "../hooks/useOwner";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { formatStatus } from "../utils/statusFormat";
 import { getRaceStatusStyle } from "../utils/statusStyles";
-import { HorseStatusIndicator, formatAge } from "../components/owner/TournamentRegister";
+import { HorseStatusIndicator } from "../components/owner/HorseStatusIndicator";
+import { formatAge } from "../components/owner/horseUtils";
 
 function StatFilterCard({
   label,
@@ -756,12 +757,14 @@ export default function TournamentsPage() {
                               >
                                 <div className="min-w-0 pr-3">
                                   <p className="text-sm font-bold text-foreground truncate">
-                                    {horse?.name || r.horse.name || "Unknown Horse"}
+                                    {horse?.name ||
+                                      r.horse.name ||
+                                      "Unknown Horse"}
                                   </p>
                                   {(horse?.breed || r.horse.breed) && (
                                     <p className="text-[10px] text-muted-foreground">
                                       {horse?.breed || r.horse.breed}
-                                      {(horse?.birthDate || r.horse.birthDate)
+                                      {horse?.birthDate || r.horse.birthDate
                                         ? ` · ${formatAge(horse?.birthDate || r.horse.birthDate)}`
                                         : ""}
                                     </p>

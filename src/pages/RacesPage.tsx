@@ -253,11 +253,8 @@ export default function RacesPage() {
   const isSpectator = userSession?.role === "spectator";
   const isOwner = userSession?.role === "horse_owner";
 
-  const {
-    enterRace,
-    approvedTournamentIds,
-    eligibleHorsesByTournament,
-  } = useOwner();
+  const { enterRace, approvedTournamentIds, eligibleHorsesByTournament } =
+    useOwner();
 
   const [enterRaceModalOpen, setEnterRaceModalOpen] = useState(false);
 
@@ -289,7 +286,7 @@ export default function RacesPage() {
     : undefined;
 
   const eligibleHorsesForRace = raceDetail?.tournamentId
-    ? eligibleHorsesByTournament.get(raceDetail.tournamentId) ?? []
+    ? (eligibleHorsesByTournament.get(raceDetail.tournamentId) ?? [])
     : [];
 
   const canEnterRace =

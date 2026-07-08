@@ -4,16 +4,12 @@ import {
   MapPin,
   CalendarDays,
   Trophy,
-  Clock3,
-  CheckCircle2,
-  AlertCircle,
   X,
   ShieldAlert,
   Flag,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { formatTournamentStatus } from "../../styles/schema/tournamentStatusFlow";
-import { formatStatus } from "../../utils/statusFormat";
 import type {
   Tournament,
   TournamentRegistrationResponse,
@@ -22,6 +18,8 @@ import type {
 import type { Horse } from "../../types/horse";
 import type { Entry } from "../../types/entry";
 import { TournamentService } from "../../services/TournamentService";
+import { HorseStatusIndicator } from "./HorseStatusIndicator";
+import { formatAge } from "./horseUtils";
 
 export interface TournamentRegisterProps {
   horses: Horse[];
@@ -31,7 +29,12 @@ export interface TournamentRegisterProps {
     horseId: string | null,
     tournamentId: number | null
   ) => void;
-  onEnterRace: (raceId: string, raceName: string, laneCount: number, tournamentId: string) => void;
+  onEnterRace: (
+    raceId: string,
+    raceName: string,
+    laneCount: number,
+    tournamentId: string
+  ) => void;
   onAssignJockey: (entryId: string) => void;
   entries: Entry[];
 }
@@ -88,34 +91,6 @@ function TournamentStatusBadge({ status }: { status: string }) {
   );
 }
 
-export function HorseStatusIndicator({ status }: { status: string }) {
-  if (status === "approved") {
-    return <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />;
-  }
-
-  const styles: Record<string, string> = {
-    pending: "bg-amber-100 text-amber-700 border-amber-200",
-    rejected: "bg-rose-100 text-rose-700 border-rose-200",
-  };
-
-  const icons: Record<string, React.ReactNode> = {
-    pending: <Clock3 className="h-3 w-3" />,
-    rejected: <AlertCircle className="h-3 w-3" />,
-  };
-
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider",
-        styles[status] ?? "bg-slate-100 text-slate-600 border-slate-200"
-      )}
-    >
-      {icons[status]}
-      {formatStatus(status)}
-    </span>
-  );
-}
-
 function StatFilterCard({
   label,
   value,
@@ -148,17 +123,6 @@ function StatFilterCard({
       <p className="text-lg font-black leading-none text-foreground">{value}</p>
     </button>
   );
-}
-
-export function formatAge(dob: string): string {
-  if (!dob) return "N/A";
-  const birth = new Date(dob);
-  if (Number.isNaN(birth.getTime())) return "N/A";
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-  return `${age} years`;
 }
 
 type RegistrationGroup = {
@@ -209,8 +173,7 @@ export function TournamentRegister({
 
       const matchesFilter =
         activeFilter === "All" ||
-        g.tournament.status ===
-          activeFilter.toLowerCase().replace(/\s+/g, "_");
+        g.tournament.status === activeFilter.toLowerCase().replace(/\s+/g, "_");
 
       return matchesSearch && matchesFilter;
     });
@@ -219,15 +182,11 @@ export function TournamentRegister({
   const counts = useMemo(() => {
     return {
       all: grouped.length,
-      ongoing: grouped.filter(
-        (g) => g.tournament.status === "ongoing"
-      ).length,
-      open: grouped.filter(
-        (g) => g.tournament.status === "registration_open"
-      ).length,
-      completed: grouped.filter(
-        (g) => g.tournament.status === "completed"
-      ).length,
+      ongoing: grouped.filter((g) => g.tournament.status === "ongoing").length,
+      open: grouped.filter((g) => g.tournament.status === "registration_open")
+        .length,
+      completed: grouped.filter((g) => g.tournament.status === "completed")
+        .length,
     };
   }, [grouped]);
 
@@ -267,11 +226,12 @@ export function TournamentRegister({
 
   useEffect(() => {
     if (!selectedGroup) {
-      setTournamentRaces([]);
       return;
     }
     let cancelled = false;
-    setRacesLoading(true);
+    startTransition(() => {
+      setRacesLoading(true);
+    });
     TournamentService.getTournamentRaces(selectedGroup.tournament.id, {
       limit: 100,
     })
@@ -370,7 +330,8 @@ export function TournamentRegister({
           >
             {filteredGroups.length > 0 ? (
               filteredGroups.map((g) => {
-                const isSelected = selectedGroup?.tournament.id === g.tournament.id;
+                const isSelected =
+                  selectedGroup?.tournament.id === g.tournament.id;
                 const tournament = g.tournament;
                 const isLive = tournament.status === "ongoing";
 
@@ -563,7 +524,9 @@ export function TournamentRegister({
                       </p>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <p className="text-xs text-muted-foreground">Location</p>
+                          <p className="text-xs text-muted-foreground">
+                            Location
+                          </p>
                           <p className="text-sm font-bold text-foreground flex items-center gap-1.5 mt-0.5">
                             <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
                             {displayTournament?.location || "Not specified"}
@@ -666,17 +629,14 @@ export function TournamentRegister({
                                       minute: "2-digit",
                                     })}
                                   </span>
-                                  <span>
-                                    {race.laneCount} lanes
-                                  </span>
+                                  <span>{race.laneCount} lanes</span>
                                 </div>
                                 {groupEntries.length > 0 && (
                                   <div className="flex flex-wrap gap-1 mt-1.5">
                                     {groupEntries.map((entry) => {
                                       const horseName =
                                         selectedGroup.items.find(
-                                          (r) =>
-                                            r.horse.id === entry.horseId
+                                          (r) => r.horse.id === entry.horseId
                                         )?.horse.name ?? "";
                                       const hasJockey =
                                         entry.jockeyName &&
@@ -699,8 +659,7 @@ export function TournamentRegister({
                               <div className="flex items-center gap-2 ml-3 shrink-0">
                                 {groupEntries.map((entry) => {
                                   const hasJockey =
-                                    entry.jockeyName &&
-                                    entry.jockeyName !== "";
+                                    entry.jockeyName && entry.jockeyName !== "";
                                   if (!hasJockey && isScheduled) {
                                     return (
                                       <button
