@@ -308,11 +308,14 @@ export default function OwnerPage() {
             registrations={registrations}
             entries={entries}
             onEnterRace={(raceId, raceName, laneCount, tournamentId) => {
+              const currentEntryCount = entries.filter(
+                (e) => e.raceId === raceId
+              ).length;
               setEnterRaceTarget({
                 raceId,
                 raceName,
                 laneCount,
-                currentEntryCount: 0,
+                currentEntryCount,
                 tournamentId,
               });
             }}

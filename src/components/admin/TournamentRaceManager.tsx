@@ -362,7 +362,10 @@ export default function TournamentRaceManager({
                 scheduledAt: selectedRace.scheduledAt ?? "",
                 venue: selectedRace.venue ?? "",
                 laneCount: selectedRace.laneCount ?? 8,
+                raceNumber: selectedRace.raceNumber ?? undefined,
+                trackDistanceId: selectedRace.courseDistanceId ?? "",
               }}
+              initialTrackId={selectedRace.course?.id ?? ""}
               onClose={() => setRaceEditing(false)}
               onSubmit={handleUpdateRace}
               actionLoading={raceActionLoading}

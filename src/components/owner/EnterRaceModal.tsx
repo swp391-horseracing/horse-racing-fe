@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback, startTransition } from "react";
 import { Layers, X } from "lucide-react";
 
 interface EnterRaceModalProps {
@@ -23,6 +23,22 @@ export function EnterRaceModal({
   const [horseId, setHorseId] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (isOpen) {
+      startTransition(() => {
+        setHorseId("");
+        setSubmitting(false);
+      });
+    }
+  }, [isOpen]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    },
+    [onClose]
+  );
+
   if (!isOpen) return null;
 
   const slotsAvailable = laneCount - currentEntryCount;
@@ -41,10 +57,23 @@ export function EnterRaceModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl border p-5 max-w-sm w-full shadow-xl">
+    <div
+      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+      onKeyDown={handleKeyDown}
+    >
+      <div
+        className="bg-white rounded-xl border p-5 max-w-sm w-full shadow-xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="enter-race-title"
+      >
         <div className="flex items-center justify-between border-b pb-2.5 mb-4">
-          <h3 className="font-bold text-base text-[#064E3B]">Enter Race</h3>
+          <h3
+            id="enter-race-title"
+            className="font-bold text-base text-[#064E3B]"
+          >
+            Enter Race
+          </h3>
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600"

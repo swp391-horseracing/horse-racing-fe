@@ -171,9 +171,16 @@ export function TournamentRegister({
         ) ||
         g.tournament.location.toLowerCase().includes(keyword);
 
+      const statusFilterMap: Record<string, string> = {
+        All: "All",
+        "On going": "ongoing",
+        "Registration open": "registration_open",
+        Completed: "completed",
+      };
+
       const matchesFilter =
         activeFilter === "All" ||
-        g.tournament.status === activeFilter.toLowerCase().replace(/\s+/g, "_");
+        g.tournament.status === statusFilterMap[activeFilter];
 
       return matchesSearch && matchesFilter;
     });
@@ -620,14 +627,15 @@ export function TournamentRegister({
                                 <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground mt-0.5">
                                   <span>{race.roundName}</span>
                                   <span>
-                                    {new Date(
-                                      race.scheduledAt
-                                    ).toLocaleDateString("en-US", {
-                                      month: "short",
-                                      day: "numeric",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })}
+                                    {new Date(race.scheduledAt).toLocaleString(
+                                      "en-US",
+                                      {
+                                        month: "short",
+                                        day: "numeric",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      }
+                                    )}
                                   </span>
                                   <span>{race.laneCount} lanes</span>
                                 </div>

@@ -124,7 +124,7 @@ export function OwnerEntries() {
                         <td className="px-5 py-4 hidden sm:table-cell">
                           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                             <CalendarDays className="h-3 w-3" />
-                            {new Date(entry.scheduleAt).toLocaleDateString(
+                            {new Date(entry.scheduleAt).toLocaleString(
                               "en-US",
                               {
                                 month: "short",
@@ -142,7 +142,9 @@ export function OwnerEntries() {
                           </span>
                         </td>
                         <td className="px-5 py-4">
-                          {statusBadgeClass(entry.entryStatus)}
+                          <span className={statusBadgeClass(entry.entryStatus)}>
+                            {entry.entryStatus}
+                          </span>
                         </td>
                         <td className="px-5 py-4 text-right">
                           {isScheduled && (
