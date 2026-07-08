@@ -127,7 +127,9 @@ export default function RefereeDashboard({
                   phaseBadgeStyle[race.phase]
                 )}
               >
-                {phaseLabel[race.phase]}
+                {race.phase === "report" && race.reportSubmitted
+                  ? "Submitted"
+                  : phaseLabel[race.phase]}
               </span>
             </div>
           ))}

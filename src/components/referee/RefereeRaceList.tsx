@@ -92,7 +92,9 @@ export default function RefereeRaceList({
                       phaseBadgeStyle[race.phase]
                     )}
                   >
-                    {phaseLabel[race.phase]}
+                    {race.phase === "report" && race.reportSubmitted
+                      ? "Submitted"
+                      : phaseLabel[race.phase]}
                   </span>
                 </div>
                 <div className="flex items-center gap-4 text-[10px] text-slate-500 font-bold">

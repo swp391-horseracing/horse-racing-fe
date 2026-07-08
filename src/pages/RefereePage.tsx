@@ -33,7 +33,7 @@ const phaseLabel: Record<RacePhase, string> = {
   scheduled: "Scheduled",
   live: "Live",
   concluded: "Concluded",
-  report: "Report Pending",
+  report: "Pending Submit",
 };
 
 const phaseBadgeStyle: Record<RacePhase, string> = {
@@ -120,6 +120,13 @@ export default function RefereePage() {
   const [filterPhase, setFilterPhase] = useState<RacePhase | "all">("all");
   const [loading, setLoading] = useState(false);
 
+  // Clear selected race when navigating away from the race list
+  useEffect(() => {
+    if (selectedRaceId && active !== ROUTES.REFEREE_RACE_LIST) {
+      setSelectedRaceId(null);
+    }
+  }, [active]);
+
   useEffect(() => {
     UserService.getMyRaces(1, 100)
       .then((res) => {
@@ -134,7 +141,8 @@ export default function RefereePage() {
           elapsedSeconds: 0,
           timerRunning: false,
           reportNotes: "",
-          reportSubmitted: false,
+          reportSubmitted:
+            r.status === "completed" || r.status === "result_confirmed",
           refereeCheckedIn: false,
           lanes: [],
         }));
@@ -549,6 +557,14 @@ export default function RefereePage() {
     }
   };
 
+  const handleEditResults = (raceId: string) => {
+    updateRace(raceId, (r) => ({ ...r, phase: "concluded" }));
+    addToast(
+      "Unlocked results for editing. Make your changes and re-confirm.",
+      "info"
+    );
+  };
+
   const handleSaveReportDraft = (raceId: string, notes: string) => {
     updateRace(raceId, (r) => ({ ...r, reportNotes: notes }));
     addToast("Draft saved locally.", "info");
@@ -720,7 +736,9 @@ export default function RefereePage() {
                   phaseBadgeStyle[race.phase]
                 )}
               >
-                {phaseLabel[race.phase]}
+                {race.phase === "report" && race.reportSubmitted
+                  ? "Submitted"
+                  : phaseLabel[race.phase]}
               </span>
             </div>
           </div>
@@ -780,6 +798,7 @@ export default function RefereePage() {
                   race={race}
                   activeLanes={activeLanes}
                   allViolations={allViolations}
+                  onEditResults={() => handleEditResults(race.id)}
                   onUpdateReportNotes={(notes) =>
                     updateRace(race.id, (r) => ({ ...r, reportNotes: notes }))
                   }

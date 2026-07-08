@@ -25,6 +25,7 @@ interface RaceReportPanelProps {
     horseName: string;
     laneNumber: number;
   })[];
+  onEditResults: () => void;
   onUpdateReportNotes: (notes: string) => void;
   onSaveReportDraft: () => void;
   onSubmitReport: () => void;
@@ -42,6 +43,7 @@ export default function RaceReportPanel({
   race,
   activeLanes,
   allViolations,
+  onEditResults,
   onUpdateReportNotes,
   onSaveReportDraft,
   onSubmitReport,
@@ -123,10 +125,18 @@ export default function RaceReportPanel({
 
       {/* Results Summary */}
       <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 shadow-sm">
-        <div className="mb-4 border-b border-slate-100 pb-3">
+        <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
           <h3 className="font-bold font-headline text-md text-[#064E3B] flex items-center gap-2">
             <Trophy className="w-4 h-4" /> Results Summary
           </h3>
+          {!race.reportSubmitted && (
+            <button
+              onClick={onEditResults}
+              className="text-[10px] font-black uppercase text-[#064E3B] hover:text-white bg-[#064E3B]/5 hover:bg-[#064E3B] px-3 py-1.5 rounded-lg border border-[#064E3B]/20 transition flex items-center gap-1 cursor-pointer"
+            >
+              Edit Results
+            </button>
+          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
