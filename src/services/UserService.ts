@@ -66,6 +66,20 @@ export const UserService = {
     return response.data;
   },
 
+  createRaceEntry: async (raceId: string, horseId: string) => {
+    const response = await api.post(`/me/races/${raceId}/entries`, {
+      horseId,
+    });
+    return response.data;
+  },
+
+  withdrawRaceEntry: async (raceId: string, entryId: string) => {
+    const response = await api.delete(
+      `/me/races/${raceId}/entries/${entryId}`
+    );
+    return response.data;
+  },
+
   //cancel my own invitation (jockey withdraws)
   cancelMyInvitation: async (id: string) => {
     const response = await api.delete(`/me/invitations/${id}`);

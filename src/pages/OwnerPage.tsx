@@ -4,7 +4,7 @@ import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { useOwner } from "../hooks/useOwner.ts";
 import type { Horse } from "../types/horse";
-import { Clock } from "lucide-react";
+import { Clock, Send } from "lucide-react";
 import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "../components/ui/toast";
 
@@ -20,6 +20,8 @@ import { TournamentRegister } from "../components/owner/TournamentRegister";
 import { RidingSchedule } from "../components/jockey/RidingSchedule";
 import { JockeyRosterManagement } from "../components/owner/JockeyRosterManagement";
 import { SendInvitesPage } from "../components/owner/SendInvitesPage";
+import { OwnerEntries } from "../components/owner/OwnerEntries";
+import { EnterRaceModal } from "../components/owner/EnterRaceModal";
 
 export default function OwnerPage() {
   const location = useLocation();
@@ -42,6 +44,10 @@ export default function OwnerPage() {
     loadOwnerSchedule,
     scheduleRides,
     scheduleLoading,
+    entries,
+    enterRace,
+    approvedTournamentIds,
+    eligibleHorsesByTournament,
   } = useOwner();
 
   useEffect(() => {
@@ -58,6 +64,14 @@ export default function OwnerPage() {
   const [selectedTournamentId, setSelectedTournamentId] = useState<
     number | null
   >(null);
+
+  const [enterRaceTarget, setEnterRaceTarget] = useState<{
+    raceId: string;
+    raceName: string;
+    laneCount: number;
+    currentEntryCount: number;
+    tournamentId: string;
+  } | null>(null);
 
   // Data is already loaded at page start by useOwner's initial effect.
   // Tab switching only changes the rendered view; no re-fetch needed.
@@ -285,6 +299,17 @@ export default function OwnerPage() {
             horses={horses}
             tournaments={tournaments}
             registrations={registrations}
+            approvedTournamentIds={approvedTournamentIds}
+            entries={entries}
+            onEnterRace={(raceId, raceName, laneCount, tournamentId) => {
+              setEnterRaceTarget({
+                raceId,
+                raceName,
+                laneCount,
+                currentEntryCount: 0,
+                tournamentId,
+              });
+            }}
             onOpenRegisterModal={(h, t) => {
               setSelectedHorseId(h);
               setSelectedTournamentId(t);
@@ -294,6 +319,8 @@ export default function OwnerPage() {
         );
       case "/owner/jockeys":
         return <JockeyRosterManagement />;
+      case "/owner/entries":
+        return <OwnerEntries />;
       case "/owner/schedule":
         return (
           <RidingSchedule
@@ -340,6 +367,37 @@ export default function OwnerPage() {
           initialHorseId={selectedHorseId}
           initialTournamentId={selectedTournamentId}
           onSubmit={handleRegisterTournament}
+        />
+
+        <EnterRaceModal
+          isOpen={enterRaceTarget !== null}
+          onClose={() => setEnterRaceTarget(null)}
+          raceName={enterRaceTarget?.raceName ?? ""}
+          laneCount={enterRaceTarget?.laneCount ?? 0}
+          currentEntryCount={enterRaceTarget?.currentEntryCount ?? 0}
+          eligibleHorses={
+            enterRaceTarget?.tournamentId
+              ? eligibleHorsesByTournament.get(enterRaceTarget.tournamentId) ??
+                []
+              : []
+          }
+          onSubmit={async (horseId) => {
+            if (!enterRaceTarget) return;
+            try {
+              await enterRace(enterRaceTarget.raceId, horseId);
+              addToast("Horse entered into race successfully!", "success");
+              setEnterRaceTarget(null);
+            } catch (err: unknown) {
+              const axiosError = err as {
+                response?: { data?: { message?: string } };
+              };
+              addToast(
+                axiosError?.response?.data?.message || "Failed to enter race.",
+                "error"
+              );
+              throw err;
+            }
+          }}
         />
       </div>
     </UserLayout>

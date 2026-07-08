@@ -9,6 +9,7 @@ import {
   UserCheck,
   ClipboardList,
   Flag,
+  ListChecks,
 } from "lucide-react";
 import {
   Sidebar,
@@ -148,6 +149,7 @@ export default function UserLayout({
         key: "/owner/tournamentRegister",
       },
       { label: "Jockey Roster", icon: UserCheck, key: "/owner/jockeys" },
+      { label: "My Entries", icon: ListChecks, key: "/owner/entries" },
       { label: "Horse Schedule", icon: Calendar, key: "/owner/schedule" },
     ],
     Spectator: [

@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, startTransition } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   MapPin,
@@ -17,8 +18,10 @@ import { formatStatus } from "../../utils/statusFormat";
 import type {
   Tournament,
   TournamentRegistrationResponse,
+  RaceItem,
 } from "../../types/tournament";
 import type { Horse } from "../../types/horse";
+import type { Entry } from "../../types/entry";
 import { TournamentService } from "../../services/TournamentService";
 
 export interface TournamentRegisterProps {
@@ -29,6 +32,9 @@ export interface TournamentRegisterProps {
     horseId: string | null,
     tournamentId: number | null
   ) => void;
+  approvedTournamentIds: Set<string>;
+  onEnterRace: (raceId: string, raceName: string, laneCount: number, tournamentId: string) => void;
+  entries: Entry[];
 }
 
 type ActiveFilterType = "All" | "On going" | "Registration open" | "Completed";
@@ -150,7 +156,13 @@ function formatAge(dob: string): string {
   return `${age} years`;
 }
 
-export function TournamentRegister({ registrations }: TournamentRegisterProps) {
+export function TournamentRegister({
+  registrations,
+  approvedTournamentIds,
+  onEnterRace,
+  entries,
+}: TournamentRegisterProps) {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<ActiveFilterType>("All");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -196,6 +208,8 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
     [filteredRegistrations, selectedId]
   );
 
+  const [detailTab, setDetailTab] = useState<"details" | "races">("details");
+
   const [tournamentDetail, setTournamentDetail] = useState<Tournament | null>(
     null
   );
@@ -212,6 +226,33 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
       })
       .catch(() => {
         if (!cancelled) setTournamentDetail(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedRegistration]);
+
+  const [tournamentRaces, setTournamentRaces] = useState<RaceItem[]>([]);
+  const [racesLoading, setRacesLoading] = useState(false);
+
+  useEffect(() => {
+    if (!selectedRegistration) {
+      setTournamentRaces([]);
+      return;
+    }
+    let cancelled = false;
+    setRacesLoading(true);
+    TournamentService.getTournamentRaces(selectedRegistration.tournament.id, {
+      limit: 100,
+    })
+      .then((data) => {
+        if (!cancelled) setTournamentRaces(data.data ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setTournamentRaces([]);
+      })
+      .finally(() => {
+        if (!cancelled) setRacesLoading(false);
       });
     return () => {
       cancelled = true;
@@ -389,145 +430,262 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                 </button>
               </div>
 
-              <div className="p-6 max-h-[550px] overflow-y-auto custom-scrollbar space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
-                    <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
-                      H
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                        Horse
-                      </p>
-                      <p className="text-base font-black text-foreground mt-1">
-                        {selectedRegistration.horse.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {selectedRegistration.horse.breed} ·{" "}
-                        {formatAge(selectedRegistration.horse.birthDate)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
-                    <div className="p-2.5 bg-secondary/15 text-secondary rounded-lg">
-                      <CalendarDays className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                        Registration Status
-                      </p>
-                      <div className="mt-1 flex items-center gap-3">
-                        <RegistrationStatusBadge
-                          status={selectedRegistration.status}
-                        />
-                        <span className="text-xs text-muted-foreground font-medium">
-                          Submitted{" "}
-                          {formatDate(selectedRegistration.submittedAt)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
-                    <div className="p-2.5 bg-muted text-muted-foreground rounded-lg">
-                      <ShieldAlert className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                        Tournament Status
-                      </p>
-                      <div className="mt-1">
-                        <TournamentStatusBadge
-                          status={displayTournament?.status ?? ""}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
-                    <div className="p-2.5 bg-muted text-muted-foreground rounded-lg">
-                      <CalendarDays className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                        Registration Period
-                      </p>
-                      <p className="text-sm font-bold text-foreground mt-1">
-                        {displayTournament?.registrationOpenDate
-                          ? `${formatDateFull(displayTournament?.registrationOpenDate)} - ${displayTournament?.registrationCloseDate ? formatDateFull(displayTournament?.registrationCloseDate) : "TBD"}`
-                          : "Not specified"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-border bg-card p-4.5">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
+              <div className="border-b border-border px-6 pt-5 pb-3">
+                <div className="inline-flex rounded-xl bg-slate-100 p-1 self-start">
+                  <button
+                    onClick={() => setDetailTab("details")}
+                    className={`rounded-lg px-5 py-1.5 text-xs font-bold transition-all ${
+                      detailTab === "details"
+                        ? "bg-white text-[#064E3B] shadow-sm"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
                     Tournament Details
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Location</p>
-                      <p className="text-sm font-bold text-foreground flex items-center gap-1.5 mt-0.5">
-                        <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                        {displayTournament?.location || "Not specified"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">
-                        Prize Pool
-                      </p>
-                      <p className="text-sm font-bold text-foreground mt-0.5">
-                        {displayTournament?.prizePool != null
-                          ? `$${displayTournament?.prizePool.toLocaleString()}`
-                          : "Not announced"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">
-                        Max Participants
-                      </p>
-                      <p className="text-sm font-bold text-foreground mt-0.5">
-                        {displayTournament?.maximumParticipants ??
-                          "Not specified"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Dates</p>
-                      <p className="text-sm font-bold text-foreground mt-0.5">
-                        {formatDateFull(displayTournament?.startDate)} -{" "}
-                        {formatDateFull(displayTournament?.endDate)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {displayTournament?.description && (
-                    <div className="mt-4 pt-4 border-t border-border">
-                      <p className="text-xs text-muted-foreground mb-1">
-                        Description
-                      </p>
-                      <p className="text-sm font-medium text-foreground leading-relaxed">
-                        {displayTournament?.description}
-                      </p>
-                    </div>
-                  )}
-
-                  {displayTournament?.rules && (
-                    <div className="mt-4 pt-4 border-t border-border">
-                      <p className="text-xs font-bold text-foreground mb-1 flex items-center gap-1.5">
-                        <ShieldAlert className="h-3.5 w-3.5 text-muted-foreground" />
-                        Rules & Regulations
-                      </p>
-                      <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
-                        {displayTournament?.rules}
-                      </p>
-                    </div>
-                  )}
+                  </button>
+                  <button
+                    onClick={() => setDetailTab("races")}
+                    className={`rounded-lg px-5 py-1.5 text-xs font-bold transition-all ${
+                      detailTab === "races"
+                        ? "bg-white text-[#064E3B] shadow-sm"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    Races
+                  </button>
                 </div>
+              </div>
 
-                {displayTournament?.status === "registration_open" && (
-                  <div className="flex items-center justify-end gap-3"></div>
+              <div className="p-6 max-h-[550px] overflow-y-auto custom-scrollbar space-y-6">
+                {detailTab === "details" ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
+                        <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
+                          H
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            Horse
+                          </p>
+                          <p className="text-base font-black text-foreground mt-1">
+                            {selectedRegistration.horse.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {selectedRegistration.horse.breed} ·{" "}
+                            {formatAge(selectedRegistration.horse.birthDate)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
+                        <div className="p-2.5 bg-secondary/15 text-secondary rounded-lg">
+                          <CalendarDays className="h-4.5 w-4.5" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            Registration Status
+                          </p>
+                          <div className="mt-1 flex items-center gap-3">
+                            <RegistrationStatusBadge
+                              status={selectedRegistration.status}
+                            />
+                            <span className="text-xs text-muted-foreground font-medium">
+                              Submitted{" "}
+                              {formatDate(selectedRegistration.submittedAt)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
+                        <div className="p-2.5 bg-muted text-muted-foreground rounded-lg">
+                          <ShieldAlert className="h-4.5 w-4.5" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            Tournament Status
+                          </p>
+                          <div className="mt-1">
+                            <TournamentStatusBadge
+                              status={displayTournament?.status ?? ""}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
+                        <div className="p-2.5 bg-muted text-muted-foreground rounded-lg">
+                          <CalendarDays className="h-4.5 w-4.5" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            Registration Period
+                          </p>
+                          <p className="text-sm font-bold text-foreground mt-1">
+                            {displayTournament?.registrationOpenDate
+                              ? `${formatDateFull(displayTournament?.registrationOpenDate)} - ${displayTournament?.registrationCloseDate ? formatDateFull(displayTournament?.registrationCloseDate) : "TBD"}`
+                              : "Not specified"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-border bg-card p-4.5">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                        Tournament Details
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Location</p>
+                          <p className="text-sm font-bold text-foreground flex items-center gap-1.5 mt-0.5">
+                            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                            {displayTournament?.location || "Not specified"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">
+                            Prize Pool
+                          </p>
+                          <p className="text-sm font-bold text-foreground mt-0.5">
+                            {displayTournament?.prizePool != null
+                              ? `$${displayTournament?.prizePool.toLocaleString()}`
+                              : "Not announced"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">
+                            Max Participants
+                          </p>
+                          <p className="text-sm font-bold text-foreground mt-0.5">
+                            {displayTournament?.maximumParticipants ??
+                              "Not specified"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Dates</p>
+                          <p className="text-sm font-bold text-foreground mt-0.5">
+                            {formatDateFull(displayTournament?.startDate)} -{" "}
+                            {formatDateFull(displayTournament?.endDate)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {displayTournament?.description && (
+                        <div className="mt-4 pt-4 border-t border-border">
+                          <p className="text-xs text-muted-foreground mb-1">
+                            Description
+                          </p>
+                          <p className="text-sm font-medium text-foreground leading-relaxed">
+                            {displayTournament?.description}
+                          </p>
+                        </div>
+                      )}
+
+                      {displayTournament?.rules && (
+                        <div className="mt-4 pt-4 border-t border-border">
+                          <p className="text-xs font-bold text-foreground mb-1 flex items-center gap-1.5">
+                            <ShieldAlert className="h-3.5 w-3.5 text-muted-foreground" />
+                            Rules & Regulations
+                          </p>
+                          <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
+                            {displayTournament?.rules}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-xl border border-border bg-card p-4.5">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                      Races
+                    </p>
+                    {racesLoading ? (
+                      <div className="text-xs text-muted-foreground py-4 text-center">
+                        Loading races...
+                      </div>
+                    ) : tournamentRaces.length > 0 ? (
+                      <div className="space-y-2">
+                        {tournamentRaces.map((race) => {
+                          const isScheduled = race.status === "scheduled";
+                          const existingEntry = entries.find(
+                            (e) =>
+                              e.raceId === race.id &&
+                              e.horseId === selectedRegistration?.horse.id
+                          );
+                          const hasJockey =
+                            existingEntry &&
+                            existingEntry.jockeyName &&
+                            existingEntry.jockeyName !== "";
+                          return (
+                            <div
+                              key={race.id}
+                              className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:bg-slate-50/50 transition-colors"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-bold text-foreground truncate">
+                                  {race.name}
+                                </p>
+                                <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground mt-0.5">
+                                  <span>{race.roundName}</span>
+                                  <span>
+                                    {new Date(
+                                      race.scheduledAt
+                                    ).toLocaleDateString("en-US", {
+                                      month: "short",
+                                      day: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                  </span>
+                                  <span>
+                                    {race.laneCount} lanes
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 ml-3 shrink-0">
+                                {existingEntry && !hasJockey && isScheduled && (
+                                  <button
+                                    onClick={() =>
+                                      navigate(
+                                        `/entries/${existingEntry.entryId}/send-invites`
+                                      )
+                                    }
+                                    className="rounded-md border border-[#064E3B]/20 bg-[#064E3B]/5 text-[#064E3B] px-3 py-1.5 text-[10px] font-bold hover:bg-[#064E3B]/10 transition-colors"
+                                  >
+                                    Assign
+                                  </button>
+                                )}
+                                {isScheduled &&
+                                  selectedRegistration.status === "approved" &&
+                                  approvedTournamentIds.has(
+                                    race.tournamentId
+                                  ) &&
+                                  !existingEntry && (
+                                    <button
+                                      onClick={() =>
+                                        onEnterRace(
+                                          race.id,
+                                          race.name,
+                                          race.laneCount,
+                                          race.tournamentId
+                                        )
+                                      }
+                                      className="rounded-md bg-[#064E3B] text-white px-3 py-1.5 text-[10px] font-bold hover:bg-[#043E2F] transition-colors"
+                                    >
+                                      Enter
+                                    </button>
+                                  )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground py-4 text-center">
+                        No races available for this tournament.
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
