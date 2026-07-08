@@ -32,6 +32,7 @@ export const ROUTES = {
   OWNER_SCHEDULE: "/owner/schedule",
   OWNER_ENTRIES: "/owner/entries",
   OWNER_SEND_INVITES: "/entries/:entryId/send-invites",
+  OWNER_ENTRY_SEND_INVITES: "/owner/entries/:entryId/send-invites",
 
   // JOCKEY
   JOCKEY_DASHBOARD: "/jockey",

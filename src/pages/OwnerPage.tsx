@@ -264,6 +264,14 @@ export default function OwnerPage() {
       return <SendInvitesPage />;
     }
 
+    const ownerEntrySendInvitesMatch = matchPath(
+      "/owner/entries/:entryId/send-invites",
+      active
+    );
+    if (ownerEntrySendInvitesMatch) {
+      return <SendInvitesPage />;
+    }
+
     switch (active) {
       case ROUTES.OWNER_DASHBOARD:
         return (
@@ -314,6 +322,9 @@ export default function OwnerPage() {
               setSelectedTournamentId(t);
               setShowRegisterTournament(true);
             }}
+            onAssignJockey={(entryId) =>
+              navigate(`/owner/entries/${entryId}/send-invites`)
+            }
           />
         );
       case "/owner/jockeys":

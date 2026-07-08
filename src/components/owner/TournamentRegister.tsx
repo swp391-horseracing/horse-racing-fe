@@ -1,5 +1,4 @@
 import { useMemo, useState, useEffect, startTransition } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Search,
   MapPin,
@@ -33,6 +32,7 @@ export interface TournamentRegisterProps {
     tournamentId: number | null
   ) => void;
   onEnterRace: (raceId: string, raceName: string, laneCount: number, tournamentId: string) => void;
+  onAssignJockey: (entryId: string) => void;
   entries: Entry[];
 }
 
@@ -169,9 +169,9 @@ type RegistrationGroup = {
 export function TournamentRegister({
   registrations,
   onEnterRace,
+  onAssignJockey,
   entries,
 }: TournamentRegisterProps) {
-  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<ActiveFilterType>("All");
   const [selectedTournamentId, setSelectedTournamentId] = useState<
@@ -494,36 +494,36 @@ export function TournamentRegister({
               <div className="p-6 max-h-[550px] overflow-y-auto custom-scrollbar space-y-6">
                 {detailTab === "details" ? (
                   <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="p-4.5 rounded-xl border border-border bg-card flex flex-col gap-3">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                          Registered Horses ({selectedGroup.items.length})
-                        </p>
-                        <div className="max-h-[200px] overflow-y-auto custom-scrollbar divide-y divide-border">
-                          {selectedGroup.items.map((r) => (
-                            <div
-                              key={r.id}
-                              className="flex items-center justify-between py-2.5"
-                            >
-                              <div className="min-w-0 pr-3">
-                                <p className="text-sm font-bold text-foreground truncate">
-                                  {r.horse.name}
+                    <div className="p-4.5 rounded-xl border border-border bg-card flex flex-col gap-3">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Registered Horses ({selectedGroup.items.length})
+                      </p>
+                      <div className="max-h-[200px] overflow-y-auto custom-scrollbar divide-y divide-border">
+                        {selectedGroup.items.map((r) => (
+                          <div
+                            key={r.id}
+                            className="flex items-center justify-between py-2.5"
+                          >
+                            <div className="min-w-0 pr-3">
+                              <p className="text-sm font-bold text-foreground truncate">
+                                {r.horse.name}
+                              </p>
+                              {r.horse.breed && (
+                                <p className="text-[10px] text-muted-foreground">
+                                  {r.horse.breed}
+                                  {r.horse.birthDate
+                                    ? ` · ${formatAge(r.horse.birthDate)}`
+                                    : ""}
                                 </p>
-                                {r.horse.breed && (
-                                  <p className="text-[10px] text-muted-foreground">
-                                    {r.horse.breed}
-                                    {r.horse.birthDate
-                                      ? ` · ${formatAge(r.horse.birthDate)}`
-                                      : ""}
-                                  </p>
-                                )}
-                              </div>
-                              <HorseStatusIndicator status={r.status} />
+                              )}
                             </div>
-                          ))}
-                        </div>
+                            <HorseStatusIndicator status={r.status} />
+                          </div>
+                        ))}
                       </div>
+                    </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="p-4.5 rounded-xl border border-border bg-card flex flex-col items-start gap-2.5">
                         <div className="p-2 bg-secondary/15 text-secondary rounded-lg">
                           <CalendarDays className="h-4 w-4" />
@@ -706,9 +706,7 @@ export function TournamentRegister({
                                       <button
                                         key={entry.entryId}
                                         onClick={() =>
-                                          navigate(
-                                            `/entries/${entry.entryId}/send-invites`
-                                          )
+                                          onAssignJockey(entry.entryId)
                                         }
                                         className="rounded-md border border-[#064E3B]/20 bg-[#064E3B]/5 text-[#064E3B] px-3 py-1.5 text-[10px] font-bold hover:bg-[#064E3B]/10 transition-colors"
                                       >
