@@ -43,7 +43,6 @@ export interface MockRace {
   reportNotes: string;
   reportSubmitted: boolean;
   refereeCheckedIn: boolean;
-  adminUnlocked: boolean;
 }
 
 import type { RaceDetail } from "./race.ts";

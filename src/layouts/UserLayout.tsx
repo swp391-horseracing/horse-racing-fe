@@ -108,7 +108,7 @@ export default function UserLayout({
     sidebarGroupLabel = "My Account";
   }
 
-  const { pendingReportsCount, pendingRegistrationsCount } = useAdminBadges(
+  const { pendingRegistrationsCount } = useAdminBadges(
     currentRole,
     location.pathname
   );
@@ -188,7 +188,6 @@ export default function UserLayout({
         label: "Race Reports",
         icon: ClipboardList,
         key: ROUTES.ADMIN_REPORTS,
-        badge: pendingReportsCount,
       },
     ],
     Referee: [

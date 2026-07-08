@@ -8,9 +8,6 @@ import {
   CheckCircle,
   Pencil,
   Trash2,
-  Lock,
-  Unlock,
-  ShieldAlert,
 } from "lucide-react";
 import type {
   MockRace,
@@ -28,7 +25,6 @@ interface RaceReportPanelProps {
     horseName: string;
     laneNumber: number;
   })[];
-  onEditResults: () => void;
   onUpdateReportNotes: (notes: string) => void;
   onSaveReportDraft: () => void;
   onSubmitReport: () => void;
@@ -39,7 +35,6 @@ interface RaceReportPanelProps {
     note: string
   ) => Promise<void>;
   onDeleteViolation: (laneId: string, violationId: string) => Promise<void>;
-  onToggleAdminLock: (unlocked: boolean) => void;
   violationCategories: ViolationCategory[];
 }
 
@@ -47,13 +42,11 @@ export default function RaceReportPanel({
   race,
   activeLanes,
   allViolations,
-  onEditResults,
   onUpdateReportNotes,
   onSaveReportDraft,
   onSubmitReport,
   onUpdateViolation,
   onDeleteViolation,
-  onToggleAdminLock,
   violationCategories,
 }: RaceReportPanelProps) {
   const [editingViolation, setEditingViolation] = useState<
@@ -116,7 +109,7 @@ export default function RaceReportPanel({
 
   return (
     <div className="space-y-6">
-      {race.reportSubmitted && !race.adminUnlocked && (
+      {race.reportSubmitted && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 text-center">
           <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-3" />
           <h3 className="font-headline font-black text-emerald-800 text-lg">
@@ -128,69 +121,12 @@ export default function RaceReportPanel({
         </div>
       )}
 
-      {race.reportSubmitted && race.adminUnlocked && (
-        <div className="bg-amber-50 border border-amber-300 rounded-2xl p-6 text-center">
-          <ShieldAlert className="w-10 h-10 text-amber-600 mx-auto mb-3" />
-          <h3 className="font-headline font-black text-amber-900 text-lg">
-            Recheck & Correction Requested
-          </h3>
-          <p className="text-xs text-amber-700 font-semibold mt-1">
-            The administrator has unlocked this report for editing. Please
-            review and correct any issues, then re-submit.
-          </p>
-        </div>
-      )}
-
-      {/* Admin Simulator */}
-      {race.reportSubmitted && (
-        <div className="bg-slate-900 border border-slate-700 rounded-2xl p-5 shadow-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
-                Admin Simulator
-              </p>
-              <p className="text-xs text-slate-300 font-semibold mt-1">
-                Toggle the lock state to simulate admin sending results back for
-                correction.
-              </p>
-            </div>
-            <button
-              onClick={() => onToggleAdminLock(!race.adminUnlocked)}
-              className={cn(
-                "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase border transition-all duration-300 cursor-pointer",
-                race.adminUnlocked
-                  ? "bg-amber-500/20 text-amber-400 border-amber-500/40 hover:bg-amber-500/30"
-                  : "bg-emerald-500/20 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/30"
-              )}
-            >
-              {race.adminUnlocked ? (
-                <>
-                  <Unlock className="w-4 h-4" /> Unlocked (Edit Mode)
-                </>
-              ) : (
-                <>
-                  <Lock className="w-4 h-4" /> Locked (Submitted)
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Results Summary */}
       <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 shadow-sm">
-        <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+        <div className="mb-4 border-b border-slate-100 pb-3">
           <h3 className="font-bold font-headline text-md text-[#064E3B] flex items-center gap-2">
             <Trophy className="w-4 h-4" /> Results Summary
           </h3>
-          {(!race.reportSubmitted || race.adminUnlocked) && (
-            <button
-              onClick={onEditResults}
-              className="text-[10px] font-black uppercase text-[#064E3B] hover:text-white bg-[#064E3B]/5 hover:bg-[#064E3B] px-3 py-1.5 rounded-lg border border-[#064E3B]/20 transition flex items-center gap-1 cursor-pointer"
-            >
-              Edit Results
-            </button>
-          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
@@ -286,7 +222,7 @@ export default function RaceReportPanel({
                   <span className="text-[9px] font-label font-bold text-orange-700">
                     {new Date(v.occurredAt).toLocaleTimeString()}
                   </span>
-                  {(!race.reportSubmitted || race.adminUnlocked) && (
+                  {!race.reportSubmitted && (
                     <button
                       onClick={() => openEditModal(v)}
                       className="text-[9px] font-bold px-2 py-1 rounded-md border border-orange-300 text-orange-700 hover:bg-orange-100 transition flex items-center gap-1"
@@ -309,31 +245,26 @@ export default function RaceReportPanel({
         <textarea
           value={race.reportNotes}
           onChange={(e) => onUpdateReportNotes(e.target.value)}
-          disabled={race.reportSubmitted && !race.adminUnlocked}
+          disabled={race.reportSubmitted}
           className="w-full border border-slate-200 rounded-xl px-4 py-3 text-xs font-semibold h-28 resize-none focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 disabled:bg-slate-50 disabled:text-slate-400"
           placeholder="Enter overarching track notes (e.g., weather conditions, track state changes)..."
         />
       </div>
 
       {/* Actions */}
-      {(!race.reportSubmitted || race.adminUnlocked) && (
+      {!race.reportSubmitted && (
         <div className="flex justify-end gap-3">
-          {!race.reportSubmitted && (
-            <button
-              onClick={onSaveReportDraft}
-              className="text-xs font-bold px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition flex items-center gap-2"
-            >
-              <Save className="w-3.5 h-3.5" /> Save as Draft
-            </button>
-          )}
+          <button
+            onClick={onSaveReportDraft}
+            className="text-xs font-bold px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition flex items-center gap-2"
+          >
+            <Save className="w-3.5 h-3.5" /> Save as Draft
+          </button>
           <button
             onClick={onSubmitReport}
             className="text-xs font-bold px-5 py-2.5 rounded-xl bg-[#064E3B] text-white hover:bg-[#043E2F] transition flex items-center gap-2 shadow-sm"
           >
-            <Send className="w-3.5 h-3.5" />{" "}
-            {race.adminUnlocked
-              ? "Sign and Re-Submit Report"
-              : "Sign and Submit Report"}
+            <Send className="w-3.5 h-3.5" /> Sign and Submit Report
           </button>
         </div>
       )}

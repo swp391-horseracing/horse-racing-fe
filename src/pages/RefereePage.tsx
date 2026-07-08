@@ -136,7 +136,6 @@ export default function RefereePage() {
           reportNotes: "",
           reportSubmitted: false,
           refereeCheckedIn: false,
-          adminUnlocked: false,
           lanes: [],
         }));
         setApiRaces(races);
@@ -550,14 +549,6 @@ export default function RefereePage() {
     }
   };
 
-  const handleEditResults = (raceId: string) => {
-    updateRace(raceId, (r) => ({ ...r, phase: "concluded" }));
-    addToast(
-      "Unlocked results for editing. Make your changes and re-confirm.",
-      "info"
-    );
-  };
-
   const handleSaveReportDraft = (raceId: string, notes: string) => {
     updateRace(raceId, (r) => ({ ...r, reportNotes: notes }));
     addToast("Draft saved locally.", "info");
@@ -595,33 +586,17 @@ export default function RefereePage() {
 
       await RefereeService.submitReport(raceId, { notes: race.reportNotes });
 
-      const isResubmission = race.adminUnlocked;
       updateRace(raceId, (r) => ({
         ...r,
         reportSubmitted: true,
-        adminUnlocked: false,
       }));
       addToast(
-        isResubmission
-          ? "Report re-submitted successfully. Corrections have been locked."
-          : "Report submitted successfully. Your track duties for this race are complete.",
+        "Report submitted successfully. Your track duties for this race are complete.",
         "success"
       );
     } catch (e: any) {
       addToast(e.response?.data?.message || "Failed to submit report", "error");
     }
-  };
-
-  // NOTE: This toggle emulates administrative lock/unlock overrides locally.
-  // It is intentionally kept client-side for testing and QA flows (e.g. testing report re-submission).
-  const handleToggleAdminLock = (raceId: string, unlocked: boolean) => {
-    updateRace(raceId, (r) => ({ ...r, adminUnlocked: unlocked }));
-    addToast(
-      unlocked
-        ? "[Admin] Report unlocked — referee may now edit and re-submit."
-        : "[Admin] Report locked — editing disabled.",
-      unlocked ? "warning" : "info"
-    );
   };
 
   const handleUpdateViolation = async (
@@ -805,7 +780,6 @@ export default function RefereePage() {
                   race={race}
                   activeLanes={activeLanes}
                   allViolations={allViolations}
-                  onEditResults={() => handleEditResults(race.id)}
                   onUpdateReportNotes={(notes) =>
                     updateRace(race.id, (r) => ({ ...r, reportNotes: notes }))
                   }
@@ -829,9 +803,6 @@ export default function RefereePage() {
                   }
                   onDeleteViolation={(laneId, violationId) =>
                     handleDeleteViolation(race.id, laneId, violationId)
-                  }
-                  onToggleAdminLock={(unlocked) =>
-                    handleToggleAdminLock(race.id, unlocked)
                   }
                   violationCategories={VIOLATION_CATEGORIES}
                 />
