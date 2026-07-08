@@ -112,11 +112,13 @@ function RaceRow({
   selected,
   onClick,
   showPredictBadge,
+  canEnter,
 }: {
   race: RaceUI;
   selected: boolean;
   onClick: () => void;
   showPredictBadge?: boolean;
+  canEnter?: boolean;
 }) {
   const isLive = race.status === "ongoing";
   return (
@@ -156,6 +158,11 @@ function RaceRow({
         </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0 pl-4">
+        {race.isOpenForPrediction && canEnter && (
+          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-[#064E3B] text-white border border-[#064E3B]/40">
+            Enter
+          </span>
+        )}
         {race.isOpenForPrediction && showPredictBadge && (
           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#EAB308]/15 text-[#8A6D00] border border-[#EAB308]/30">
             Predict
@@ -654,6 +661,11 @@ export default function RacesPage() {
                           selected={raceId === race.id}
                           onClick={() => handleSelectRace(race.id)}
                           showPredictBadge={isSpectator}
+                          canEnter={
+                            isOwner &&
+                            race.isOpenForPrediction &&
+                            approvedTournamentIds.has(race.tournamentId)
+                          }
                         />
                       ))
                     ) : (
@@ -685,6 +697,11 @@ export default function RacesPage() {
                             selected={raceId === race.id}
                             onClick={() => handleSelectRace(race.id)}
                             showPredictBadge={isSpectator}
+                            canEnter={
+                              isOwner &&
+                              race.isOpenForPrediction &&
+                              approvedTournamentIds.has(race.tournamentId)
+                            }
                           />
                         ))}
                       </div>

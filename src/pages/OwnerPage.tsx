@@ -299,7 +299,6 @@ export default function OwnerPage() {
             horses={horses}
             tournaments={tournaments}
             registrations={registrations}
-            approvedTournamentIds={approvedTournamentIds}
             entries={entries}
             onEnterRace={(raceId, raceName, laneCount, tournamentId) => {
               setEnterRaceTarget({
