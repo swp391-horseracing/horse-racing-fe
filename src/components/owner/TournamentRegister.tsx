@@ -88,23 +88,29 @@ function TournamentStatusBadge({ status }: { status: string }) {
   );
 }
 
-function RegistrationStatusBadge({ status }: { status: string }) {
+export function HorseStatusIndicator({ status }: { status: string }) {
+  if (status === "approved") {
+    return <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />;
+  }
+
   const styles: Record<string, string> = {
-    approved: "bg-emerald-100 text-emerald-700 border-emerald-200",
     pending: "bg-amber-100 text-amber-700 border-amber-200",
     rejected: "bg-rose-100 text-rose-700 border-rose-200",
+  };
+
+  const icons: Record<string, React.ReactNode> = {
+    pending: <Clock3 className="h-3 w-3" />,
+    rejected: <AlertCircle className="h-3 w-3" />,
   };
 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider",
+        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider",
         styles[status] ?? "bg-slate-100 text-slate-600 border-slate-200"
       )}
     >
-      {status === "approved" && <CheckCircle2 className="h-3 w-3" />}
-      {status === "pending" && <Clock3 className="h-3 w-3" />}
-      {status === "rejected" && <AlertCircle className="h-3 w-3" />}
+      {icons[status]}
       {formatStatus(status)}
     </span>
   );
@@ -144,7 +150,7 @@ function StatFilterCard({
   );
 }
 
-function formatAge(dob: string): string {
+export function formatAge(dob: string): string {
   if (!dob) return "N/A";
   const birth = new Date(dob);
   if (Number.isNaN(birth.getTime())) return "N/A";
@@ -408,16 +414,16 @@ export function TournamentRegister({
                             {formatDate(tournament.startDate)}
                           </span>
                         </div>
-                        <div className="mt-2 space-y-1">
+                        <div className="mt-2 divide-y divide-border border-t border-border">
                           {g.items.map((r) => (
                             <div
                               key={r.id}
-                              className="flex flex-wrap items-center gap-2"
+                              className="flex items-center justify-between py-1.5"
                             >
-                              <span className="text-sm font-bold text-primary/90">
+                              <span className="text-sm font-bold text-primary/90 truncate pr-2">
                                 {r.horse.name}
                               </span>
-                              <RegistrationStatusBadge status={r.status} />
+                              <HorseStatusIndicator status={r.status} />
                             </div>
                           ))}
                         </div>
@@ -493,22 +499,26 @@ export function TournamentRegister({
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                           Registered Horses ({selectedGroup.items.length})
                         </p>
-                        <div className="max-h-[200px] overflow-y-auto custom-scrollbar space-y-2">
+                        <div className="max-h-[200px] overflow-y-auto custom-scrollbar divide-y divide-border">
                           {selectedGroup.items.map((r) => (
                             <div
                               key={r.id}
-                              className="flex items-center justify-between gap-2 p-2 rounded-lg border border-border bg-card"
+                              className="flex items-center justify-between py-2.5"
                             >
-                              <div className="min-w-0">
+                              <div className="min-w-0 pr-3">
                                 <p className="text-sm font-bold text-foreground truncate">
                                   {r.horse.name}
                                 </p>
-                                <p className="text-[10px] text-muted-foreground">
-                                  {r.horse.breed} ·{" "}
-                                  {formatAge(r.horse.birthDate)}
-                                </p>
+                                {r.horse.breed && (
+                                  <p className="text-[10px] text-muted-foreground">
+                                    {r.horse.breed}
+                                    {r.horse.birthDate
+                                      ? ` · ${formatAge(r.horse.birthDate)}`
+                                      : ""}
+                                  </p>
+                                )}
                               </div>
-                              <RegistrationStatusBadge status={r.status} />
+                              <HorseStatusIndicator status={r.status} />
                             </div>
                           ))}
                         </div>

@@ -21,6 +21,7 @@ import { useOwner } from "../hooks/useOwner";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { formatStatus } from "../utils/statusFormat";
 import { getRaceStatusStyle } from "../utils/statusStyles";
+import { HorseStatusIndicator, formatAge } from "../components/owner/TournamentRegister";
 
 function StatFilterCard({
   label,
@@ -743,7 +744,7 @@ export default function TournamentsPage() {
                         <h5 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                           Registered Horses ({tournamentRegistrations.length})
                         </h5>
-                        <div className="space-y-2">
+                        <div className="divide-y divide-border rounded-xl border border-border bg-card">
                           {tournamentRegistrations.map((r) => {
                             const horse = ownerHorses.find(
                               (h) => h.id === r.horse.id
@@ -751,14 +752,22 @@ export default function TournamentsPage() {
                             return (
                               <div
                                 key={r.id}
-                                className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3"
+                                className="flex items-center justify-between px-4 py-2.5"
                               >
-                                <span className="text-sm font-bold text-foreground">
-                                  {horse?.name || "Unknown Horse"}
-                                </span>
-                                <span className="text-[10px] font-bold tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                                  {formatStatus(r.status)}
-                                </span>
+                                <div className="min-w-0 pr-3">
+                                  <p className="text-sm font-bold text-foreground truncate">
+                                    {horse?.name || r.horse.name || "Unknown Horse"}
+                                  </p>
+                                  {(horse?.breed || r.horse.breed) && (
+                                    <p className="text-[10px] text-muted-foreground">
+                                      {horse?.breed || r.horse.breed}
+                                      {(horse?.birthDate || r.horse.birthDate)
+                                        ? ` · ${formatAge(horse?.birthDate || r.horse.birthDate)}`
+                                        : ""}
+                                    </p>
+                                  )}
+                                </div>
+                                <HorseStatusIndicator status={r.status} />
                               </div>
                             );
                           })}
