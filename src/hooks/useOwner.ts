@@ -169,6 +169,8 @@ export function useOwner() {
     weightKg: string;
     imageUrl: string;
     healthStatus: string;
+    baseSpeed?: number;
+    stamina?: number;
   }) => {
     await HorseService.createHorse(
       payload.name,
@@ -176,7 +178,9 @@ export function useOwner() {
       payload.birthDate,
       payload.weightKg,
       payload.imageUrl,
-      payload.healthStatus
+      payload.healthStatus,
+      payload.baseSpeed,
+      payload.stamina
     );
 
     await loadHorses();
@@ -191,6 +195,8 @@ export function useOwner() {
       weightKg: string;
       imageUrl: string;
       healthStatus: string;
+      baseSpeed?: number;
+      stamina?: number;
     }
   ) => {
     await HorseService.updateHorse(
@@ -200,7 +206,9 @@ export function useOwner() {
       payload.birthDate,
       payload.weightKg,
       payload.imageUrl,
-      payload.healthStatus
+      payload.healthStatus,
+      payload.baseSpeed,
+      payload.stamina
     );
 
     await loadHorses();
@@ -221,6 +229,8 @@ export function useOwner() {
       weightKg: string;
       imageUrl: string;
       healthStatus: string;
+      baseSpeed?: number;
+      stamina?: number;
     }
   ) => {
     await HorseService.editHorse(id, payload);

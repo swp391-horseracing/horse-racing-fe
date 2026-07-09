@@ -114,6 +114,8 @@ export default function OwnerPage() {
     const rawBirthDate = data.get("birth_date") as string;
     const rawWeight = data.get("weight_kg") as string;
     const healthStatusVal = (data.get("health_status") as string) || "Healthy";
+    const baseSpeedRaw = data.get("base_speed") as string;
+    const staminaRaw = data.get("stamina") as string;
 
     const payload = {
       name,
@@ -122,6 +124,8 @@ export default function OwnerPage() {
       weightKg: rawWeight,
       imageUrl: "",
       healthStatus: healthStatusVal,
+      baseSpeed: baseSpeedRaw ? Number(baseSpeedRaw) : undefined,
+      stamina: staminaRaw ? Number(staminaRaw) : undefined,
     };
 
     try {
@@ -163,6 +167,9 @@ export default function OwnerPage() {
       return;
     }
 
+    const baseSpeedRaw = data.get("base_speed") as string;
+    const staminaRaw = data.get("stamina") as string;
+
     const payload = {
       name,
       breed: data.get("breed") as string,
@@ -170,6 +177,8 @@ export default function OwnerPage() {
       weightKg: data.get("weight_kg") as string,
       imageUrl: "",
       healthStatus: (data.get("health_status") as string) || "Healthy",
+      baseSpeed: baseSpeedRaw ? Number(baseSpeedRaw) : undefined,
+      stamina: staminaRaw ? Number(staminaRaw) : undefined,
     };
 
     try {

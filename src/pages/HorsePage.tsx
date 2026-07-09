@@ -92,6 +92,8 @@ function HorseRow({ horse, selected }: { horse: Horse; selected: boolean }) {
           </p>
           <p className="text-xs text-muted-foreground mt-1">
             {horse.breed} · {getAge(horse.birthDate)} · {horse.weightKg}kg
+            {horse.baseSpeed != null && ` · Spd ${horse.baseSpeed}`}
+            {horse.stamina != null && ` · Sta ${horse.stamina}`}
           </p>
         </div>
       </div>
