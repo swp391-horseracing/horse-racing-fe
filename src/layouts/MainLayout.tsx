@@ -5,7 +5,7 @@ import { Bell, Newspaper } from "lucide-react";
 import React from "react";
 import NotificationTab from "../components/NotificationTab.tsx";
 import useAuth from "../hooks/auth/useAuth.ts";
-import Footer from "../components/Footer.tsx";
+// import Footer from "../components/Footer.tsx";
 import { useUserProfile } from "../hooks/useUserProfile.ts";
 
 export default function MainLayout() {
@@ -174,7 +174,7 @@ export default function MainLayout() {
       {/* Application Viewport */}
       <div className="w-full flex-1 bg-white rounded-sm min-h-0 overflow-y-auto  shadow-sm border border-gray-200">
         <Outlet />
-        <Footer />
+        {/* <Footer /> */}
       </div>
     </div>
   );

@@ -23,9 +23,7 @@ import RefereePage from "../pages/RefereePage.tsx";
 import LeaderBoardPage from "../pages/LeaderBoardPage.tsx";
 import NotFoundPage from "../pages/NotFoundPage.tsx";
 import HorseDetailPage from "../pages/HorseDetailPage.tsx";
-import SendInvites from "../components/owner/jockey-roster/SendInvites.tsx";
 import CoursesPage from "../pages/CoursesPage.tsx";
-
 export const router = createBrowserRouter([
   {
     path: ROUTES.HOME,
@@ -130,8 +128,8 @@ export const router = createBrowserRouter([
             element: <OwnerPage />,
           },
           {
-            path: ROUTES.SEND_INVITES,
-            element: <SendInvites />,
+            path: ROUTES.OWNER_SEND_INVITES,
+            element: <OwnerPage />,
           },
         ],
       },

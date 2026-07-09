@@ -30,6 +30,7 @@ export const ROUTES = {
   OWNER_HORSE_MANAGEMENT: "/owner/horseManagement",
   OWNER_TOURNAMENT_REGISTER: "/owner/tournamentRegister",
   OWNER_SCHEDULE: "/owner/schedule",
+  OWNER_SEND_INVITES: "/entries/:entryId/send-invites",
 
   // JOCKEY
   JOCKEY_DASHBOARD: "/jockey",
@@ -62,7 +63,6 @@ export const ROUTES = {
   RACE_DETAIL: "/races/:id",
   RACE_PREDICT: "/races/:id/predictions",
   SPECTATOR_PREDICTIONS: "/spectator/predictions",
-  SEND_INVITES: "entries/:entryId/send-invites",
 
   //ERROR
   NOTHING_DETAIL: "/*",
