@@ -16,9 +16,10 @@ export const TrackService = {
     page?: number;
     limit?: number;
     status?: string;
-  }): Promise<TrackListItem[] | { data: TrackListItem[] }> {
+  }): Promise<TrackListItem[]> {
     const response = await api.get("/courses", { params });
-    return response.data;
+    const data = response.data;
+    return Array.isArray(data) ? data : (data.data ?? []);
   },
 
   async getTrackById(trackId: string): Promise<TrackDetail> {

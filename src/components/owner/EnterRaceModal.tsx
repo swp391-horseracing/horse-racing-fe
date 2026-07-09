@@ -51,6 +51,8 @@ export function EnterRaceModal({
     try {
       await onSubmit(horseId);
       onClose();
+    } catch {
+      // Error already surfaced by caller's onSubmit handler
     } finally {
       setSubmitting(false);
     }

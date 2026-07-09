@@ -112,6 +112,7 @@ export default function TournamentRaceManager({
     const payload: Record<string, unknown> = {
       name: data.name,
       raceNumber: data.raceNumber,
+      roundName: data.roundName,
       trackDistanceId: data.trackDistanceId,
       distanceMeters: data.distanceMeters,
       trackCondition: data.trackCondition,
@@ -137,6 +138,7 @@ export default function TournamentRaceManager({
     const payload: Record<string, unknown> = {
       name: data.name,
       raceNumber: data.raceNumber,
+      roundName: data.roundName,
       trackDistanceId: data.trackDistanceId,
       distanceMeters: data.distanceMeters,
       trackCondition: data.trackCondition,
