@@ -1035,6 +1035,7 @@ export default function RacesPage() {
                       "Failed to enter race.",
                     "error"
                   );
+                  throw err;
                 }
               }}
             />

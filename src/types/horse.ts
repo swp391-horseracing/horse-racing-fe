@@ -9,8 +9,8 @@ export interface Horse {
   healthStatus: string;
   status: "Active" | "Retired";
   isRetired: boolean;
-  baseSpeed: number;
-  stamina: number;
+  baseSpeed?: number;
+  stamina?: number;
   isRacing?: boolean;
   createdAt: string;
   updatedAt: string;

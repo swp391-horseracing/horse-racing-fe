@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import {
   Trophy,
   AlertTriangle,
+  Clock,
   FileText,
   Save,
   Send,
@@ -312,7 +313,7 @@ export default function RaceReportPanel({
 
   return (
     <div className="space-y-6">
-      {!isEditable && (
+      {!isEditable && race.reportStatus === "published" && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 text-center">
           <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-3" />
           <h3 className="font-headline font-black text-emerald-800 text-lg">
@@ -320,6 +321,17 @@ export default function RaceReportPanel({
           </h3>
           <p className="text-xs text-emerald-600 font-semibold mt-1">
             The race result has been published and is now final.
+          </p>
+        </div>
+      )}
+      {!isEditable && race.reportStatus === "referee_confirmed" && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center">
+          <Clock className="w-10 h-10 text-amber-500 mx-auto mb-3" />
+          <h3 className="font-headline font-black text-amber-800 text-lg">
+            Report Submitted
+          </h3>
+          <p className="text-xs text-amber-600 font-semibold mt-1">
+            The race result has been submitted and is pending publication.
           </p>
         </div>
       )}

@@ -637,7 +637,7 @@ export default function RefereePage() {
       if (!selectedRace) return null;
       const race = selectedRace;
       const activeLanes = race.lanes.filter(
-        (l) => l.inspectionStatus === "cleared"
+        (l) => l.inspectionStatus === "cleared" && !l.flag
       );
       const allViolations = race.lanes.flatMap((l) =>
         l.violations.map((v) => ({

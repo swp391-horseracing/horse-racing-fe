@@ -153,7 +153,6 @@ export interface AdminRace {
   distanceMeters: number;
   trackCondition: "dry" | "wet" | "muddy" | "heavy";
   scheduledAt: string;
-  scheduleAt: string;
   venue: string;
   laneCount: number;
   status: RaceApiStatus;

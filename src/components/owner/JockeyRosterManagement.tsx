@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "../../lib/utils";
 import { type Entry, useOwner } from "../../hooks/useOwner.ts";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -80,20 +80,23 @@ export function JockeyRosterManagement() {
   };
 
   // Auto-select entry from URL query param (returning from SendInvitesPage)
+  const autoSelectDone = useRef(false);
   useEffect(() => {
-    if (selectedEntryId && entries.length > 0) {
-      const entry = entries.find((e) => e.entryId === selectedEntryId);
-      if (entry) {
-        const timer = setTimeout(() => {
-          setSelectedEntry(entry);
-          if (tabParam === "invitation" && entry.raceId) {
-            setSubTab("invitation");
-            loadInvitations(entry.raceId);
-          }
-        }, 0);
-        return () => clearTimeout(timer);
+    if (autoSelectDone.current) return;
+    if (!selectedEntryId || entries.length === 0) return;
+
+    const entry = entries.find((e) => e.entryId === selectedEntryId);
+    if (!entry) return;
+
+    autoSelectDone.current = true;
+    const timer = setTimeout(() => {
+      setSelectedEntry(entry);
+      if (tabParam === "invitation" && entry.raceId) {
+        setSubTab("invitation");
+        loadInvitations(entry.raceId);
       }
-    }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [selectedEntryId, tabParam, entries, loadInvitations]);
 
   return (

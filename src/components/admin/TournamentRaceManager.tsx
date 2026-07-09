@@ -116,7 +116,7 @@ export default function TournamentRaceManager({
       trackDistanceId: data.trackDistanceId,
       distanceMeters: data.distanceMeters,
       trackCondition: data.trackCondition,
-      scheduleAt: new Date(data.scheduledAt).toISOString(),
+      scheduledAt: new Date(data.scheduledAt).toISOString(),
       venue: data.venue,
       laneCount: data.laneCount,
     };
@@ -142,7 +142,7 @@ export default function TournamentRaceManager({
       trackDistanceId: data.trackDistanceId,
       distanceMeters: data.distanceMeters,
       trackCondition: data.trackCondition,
-      scheduleAt: new Date(data.scheduledAt).toISOString(),
+      scheduledAt: new Date(data.scheduledAt).toISOString(),
       venue: data.venue,
       laneCount: data.laneCount,
     };
