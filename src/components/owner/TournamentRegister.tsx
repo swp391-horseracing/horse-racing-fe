@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, startTransition } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Search,
   MapPin,
@@ -204,7 +205,9 @@ export function TournamentRegister({
     [filteredGroups, selectedTournamentId]
   );
 
-  const [detailTab, setDetailTab] = useState<"details" | "races">("details");
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") === "races" ? "races" : "details";
+  const [detailTab, setDetailTab] = useState<"details" | "races">(defaultTab);
 
   const [tournamentDetail, setTournamentDetail] = useState<Tournament | null>(
     null
@@ -618,89 +621,85 @@ export function TournamentRegister({
                           return (
                             <div
                               key={race.id}
-                              className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:bg-slate-50/50 transition-colors"
+                              className="p-3 rounded-lg border border-border bg-card hover:bg-slate-50/50 transition-colors"
                             >
-                              <div className="min-w-0 flex-1">
-                                <p className="text-sm font-bold text-foreground truncate">
-                                  {race.name}
-                                </p>
-                                <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground mt-0.5">
-                                  <span>{race.roundName}</span>
-                                  <span>
-                                    {new Date(race.scheduledAt).toLocaleString(
-                                      "en-US",
-                                      {
+                              <div className="flex items-center justify-between">
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-bold text-foreground truncate">
+                                    {race.name}
+                                  </p>
+                                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground mt-0.5">
+                                    <span>{race.roundName}</span>
+                                    <span>
+                                      {new Date(
+                                        race.scheduledAt
+                                      ).toLocaleString("en-US", {
                                         month: "short",
                                         day: "numeric",
                                         hour: "2-digit",
                                         minute: "2-digit",
-                                      }
-                                    )}
-                                  </span>
-                                  <span>{race.laneCount} lanes</span>
-                                </div>
-                                {groupEntries.length > 0 && (
-                                  <div className="flex flex-wrap gap-1 mt-1.5">
-                                    {groupEntries.map((entry) => {
-                                      const horseName =
-                                        selectedGroup.items.find(
-                                          (r) => r.horse.id === entry.horseId
-                                        )?.horse.name ?? "";
-                                      const hasJockey =
-                                        entry.jockeyName &&
-                                        entry.jockeyName !== "";
-                                      return (
-                                        <span
-                                          key={entry.entryId}
-                                          className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/30 px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground"
-                                        >
-                                          {horseName}
-                                          {hasJockey
-                                            ? " (assigned)"
-                                            : " (no jockey)"}
-                                        </span>
-                                      );
-                                    })}
+                                      })}
+                                    </span>
+                                    <span>{race.laneCount} lanes</span>
                                   </div>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2 ml-3 shrink-0">
-                                {groupEntries.map((entry) => {
-                                  const hasJockey =
-                                    entry.jockeyName && entry.jockeyName !== "";
-                                  if (!hasJockey && isScheduled) {
-                                    return (
+                                </div>
+                                <div className="ml-3 shrink-0">
+                                  {isScheduled &&
+                                    anyApproved &&
+                                    groupEntries.length === 0 && (
                                       <button
-                                        key={entry.entryId}
                                         onClick={() =>
-                                          onAssignJockey(entry.entryId)
+                                          onEnterRace(
+                                            race.id,
+                                            race.name,
+                                            race.laneCount,
+                                            race.tournamentId
+                                          )
                                         }
-                                        className="rounded-md border border-[#064E3B]/20 bg-[#064E3B]/5 text-[#064E3B] px-3 py-1.5 text-[10px] font-bold hover:bg-[#064E3B]/10 transition-colors"
+                                        className="rounded-md bg-[#064E3B] text-white px-3 py-1.5 text-[10px] font-bold hover:bg-[#043E2F] transition-colors"
                                       >
-                                        Assign
+                                        Enter
                                       </button>
-                                    );
-                                  }
-                                  return null;
-                                })}
-                                {isScheduled &&
-                                  anyApproved &&
-                                  groupEntries.length === 0 && (
-                                    <button
-                                      onClick={() =>
-                                        onEnterRace(
-                                          race.id,
-                                          race.name,
-                                          race.laneCount,
-                                          race.tournamentId
-                                        )
-                                      }
-                                      className="rounded-md bg-[#064E3B] text-white px-3 py-1.5 text-[10px] font-bold hover:bg-[#043E2F] transition-colors"
-                                    >
-                                      Enter
-                                    </button>
-                                  )}
+                                    )}
+                                </div>
                               </div>
+                              {groupEntries.length > 0 && (
+                                <div className="mt-2 space-y-1">
+                                  {groupEntries.map((entry) => {
+                                    const horseName =
+                                      selectedGroup.items.find(
+                                        (r) => r.horse.id === entry.horseId
+                                      )?.horse.name ?? "";
+                                    const hasJockey =
+                                      entry.jockeyName &&
+                                      entry.jockeyName !== "";
+                                    return (
+                                      <div
+                                        key={entry.entryId}
+                                        className="flex items-center justify-between pl-2 pr-1 py-1.5 rounded-md bg-muted/20 border border-border/50"
+                                      >
+                                        <span className="text-[11px] font-semibold text-foreground">
+                                          {horseName}
+                                        </span>
+                                        {!hasJockey && isScheduled ? (
+                                          <button
+                                            onClick={() =>
+                                              onAssignJockey(entry.entryId)
+                                            }
+                                            className="rounded-md border border-[#064E3B]/20 bg-[#064E3B]/5 text-[#064E3B] px-3 py-1.5 text-[10px] font-bold hover:bg-[#064E3B]/10 transition-colors"
+                                          >
+                                            Assign
+                                          </button>
+                                        ) : (
+                                          <span className="text-[10px] text-emerald-600 font-medium">
+                                            Assigned
+                                          </span>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
                           );
                         })}

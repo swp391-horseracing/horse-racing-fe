@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import useHorse from "../hooks/horse/useHorse.ts";
 import useAuth from "../hooks/auth/useAuth.ts";
+import { formatStatus } from "../utils/statusFormat";
 
 function getAge(birthDate?: string) {
   if (!birthDate) return "N/A";
@@ -261,12 +262,32 @@ export default function HorseDetailPage() {
                   value={`${selectedHorse.weightKg ?? "No Info"} kg`}
                 />
                 <InfoRow
+                  label="Base Speed"
+                  value={
+                    selectedHorse.baseSpeed != null
+                      ? String(selectedHorse.baseSpeed)
+                      : "N/A"
+                  }
+                />
+                <InfoRow
+                  label="Stamina"
+                  value={
+                    selectedHorse.stamina != null
+                      ? String(selectedHorse.stamina)
+                      : "N/A"
+                  }
+                />
+                <InfoRow
                   label="Breed"
                   value={(selectedHorse as any).breed ?? "No Info"}
                 />
                 <InfoRow
                   label="Health"
-                  value={(selectedHorse as any).healthStatus ?? "No Info"}
+                  value={
+                    (selectedHorse as any).healthStatus
+                      ? formatStatus((selectedHorse as any).healthStatus)
+                      : "No Info"
+                  }
                 />
                 <InfoRow
                   label="Created"

@@ -1,5 +1,13 @@
 import React from "react";
-import { Calendar, FileText, Dumbbell, Heart, Sparkles } from "lucide-react";
+import {
+  Calendar,
+  FileText,
+  Dumbbell,
+  Heart,
+  Sparkles,
+  Gauge,
+  HeartPulse,
+} from "lucide-react";
 
 interface AddHorseModalProps {
   isOpen: boolean;
@@ -116,6 +124,38 @@ export function AddHorseModal({
                 <option value="Injured">Injured (Under recovery)</option>
                 <option value="Sick">Sick (Under Treatment)</option>
               </select>
+            </div>
+
+            {/* Base Speed */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <Gauge className="w-3.5 h-3.5 text-[#064E3B]" /> Base Speed
+              </label>
+              <input
+                name="base_speed"
+                type="number"
+                min="0"
+                max="100"
+                step="1"
+                placeholder="0-100 (optional)"
+                className="w-full bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-[#064E3B] rounded-xl px-3 py-2.5 text-xs font-medium outline-none transition"
+              />
+            </div>
+
+            {/* Stamina */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <HeartPulse className="w-3.5 h-3.5 text-[#064E3B]" /> Stamina
+              </label>
+              <input
+                name="stamina"
+                type="number"
+                min="0"
+                max="100"
+                step="1"
+                placeholder="0-100 (optional)"
+                className="w-full bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-[#064E3B] rounded-xl px-3 py-2.5 text-xs font-medium outline-none transition"
+              />
             </div>
 
             {/* Status (Default Hidden / Managed internally on registration) */}

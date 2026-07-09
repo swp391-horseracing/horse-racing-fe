@@ -82,7 +82,7 @@ export interface UpdateTrackData {
 }
 
 export interface CreateTrackDistanceData {
-  distance: number;
+  distanceMeters: number;
   name?: string;
   type?: string;
   status?: string;

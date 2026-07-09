@@ -196,7 +196,8 @@ export function useRaces() {
         );
         const upcoming = (Array.isArray(data) ? data : []).filter(
           (r: RaceListItem) =>
-            r.status === "scheduled" || r.status === "pre_race"
+            (r.status === "scheduled" || r.status === "pre_race") &&
+            new Date(r.scheduledAt).getTime() >= now.getTime()
         );
         collected.push(...upcoming);
       }

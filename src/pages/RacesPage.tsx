@@ -31,6 +31,7 @@ import {
   getRaceStatusDetailStyle,
 } from "../utils/statusStyles";
 import { ToastContainer } from "../components/ui/toast";
+import { friendlyErrorMessage } from "../utils/errorMessages";
 import { cn } from "../lib/utils";
 
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
@@ -159,8 +160,8 @@ function RaceRow({
       </div>
       <div className="flex items-center gap-2 flex-shrink-0 pl-4">
         {race.isOpenForPrediction && canEnter && (
-          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-[#064E3B] text-white border border-[#064E3B]/40">
-            Enter
+          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-[#064E3B]/10 text-[#064E3B] border border-[#064E3B]/20">
+            Enter race
           </span>
         )}
         {race.isOpenForPrediction && showPredictBadge && (
@@ -795,7 +796,7 @@ export default function RacesPage() {
                       {canEnterRace && (
                         <button
                           onClick={() => setEnterRaceModalOpen(true)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#064E3B] text-white font-bold text-[11px] hover:bg-[#043E2F] hover:shadow-md transition-all cursor-pointer"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#064E3B] text-white font-bold text-[11px] border border-white/30 hover:bg-[#043E2F] hover:shadow-md hover:border-white/50 transition-all cursor-pointer"
                         >
                           <Send className="w-3.5 h-3.5" />
                           Enter Race
@@ -1020,7 +1021,7 @@ export default function RacesPage() {
               raceName={raceDetail.name}
               laneCount={raceDetail.laneCount ?? 0}
               currentEntryCount={raceDetail.entries?.length ?? 0}
-              eligibleHorses={eligibleHorsesForRace}
+              horseOptions={eligibleHorsesForRace}
               onSubmit={async (horseId) => {
                 try {
                   await enterRace(raceDetail.id, horseId);
@@ -1031,10 +1032,10 @@ export default function RacesPage() {
                     response?: { data?: { message?: string } };
                   };
                   addToast(
-                    axiosError?.response?.data?.message ||
-                      "Failed to enter race.",
+                    friendlyErrorMessage(axiosError?.response?.data?.message),
                     "error"
                   );
+                  throw err;
                 }
               }}
             />

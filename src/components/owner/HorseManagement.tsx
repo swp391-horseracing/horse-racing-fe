@@ -69,6 +69,8 @@ function HorseRow({
                 ? `${new Date().getFullYear() - new Date(horse.birthDate).getFullYear()} years old`
                 : "N/A"}
             </span>
+            {horse.baseSpeed != null && <span>Spd {horse.baseSpeed}</span>}
+            {horse.stamina != null && <span>Sta {horse.stamina}</span>}
           </div>
         </div>
       </div>

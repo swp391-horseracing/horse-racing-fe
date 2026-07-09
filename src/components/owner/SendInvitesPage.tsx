@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Search } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useOwner, type Entry } from "../../hooks/useOwner.ts";
@@ -9,6 +9,8 @@ import { ToastContainer } from "../ui/toast";
 export function SendInvitesPage() {
   const { entryId } = useParams<{ entryId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = (location.state as { returnTo?: string })?.returnTo;
   const { entries, jockeys, loadJockeys, inviteJockey } = useOwner();
   const { toasts, addToast } = useToast(3000);
 
@@ -51,7 +53,10 @@ export function SendInvitesPage() {
         inviteMessage
       );
       addToast("Invitation sent successfully.", "success");
-      navigate("/owner/jockeys?selected=" + entry.entryId + "&tab=invitation");
+      navigate(
+        returnTo ||
+          "/owner/jockeys?selected=" + entry.entryId + "&tab=invitation"
+      );
     } catch {
       addToast("Failed to send invitation. Please try again.", "error");
     } finally {
@@ -60,7 +65,9 @@ export function SendInvitesPage() {
   };
 
   const handleCancel = () => {
-    if (entry) {
+    if (returnTo) {
+      navigate(returnTo);
+    } else if (entry) {
       navigate("/owner/jockeys?selected=" + entry.entryId);
     } else {
       navigate("/owner/jockeys");

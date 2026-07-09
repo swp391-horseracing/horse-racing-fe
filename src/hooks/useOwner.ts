@@ -24,6 +24,17 @@ export type { Invitation } from "../types/invitation";
 export type { Jockey } from "../types/jockey";
 export type { Entry } from "../types/entry.ts";
 
+export interface HorseOption {
+  id: string;
+  name: string;
+  breed: string;
+  isRetired: boolean;
+  isRacing: boolean;
+  healthStatus: string;
+  eligible: boolean;
+  reason?: string;
+}
+
 export function useOwner() {
   const [horses, setHorses] = useState<Horse[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -169,6 +180,8 @@ export function useOwner() {
     weightKg: string;
     imageUrl: string;
     healthStatus: string;
+    baseSpeed?: number;
+    stamina?: number;
   }) => {
     await HorseService.createHorse(
       payload.name,
@@ -176,7 +189,9 @@ export function useOwner() {
       payload.birthDate,
       payload.weightKg,
       payload.imageUrl,
-      payload.healthStatus
+      payload.healthStatus,
+      payload.baseSpeed,
+      payload.stamina
     );
 
     await loadHorses();
@@ -191,6 +206,8 @@ export function useOwner() {
       weightKg: string;
       imageUrl: string;
       healthStatus: string;
+      baseSpeed?: number;
+      stamina?: number;
     }
   ) => {
     await HorseService.updateHorse(
@@ -200,7 +217,9 @@ export function useOwner() {
       payload.birthDate,
       payload.weightKg,
       payload.imageUrl,
-      payload.healthStatus
+      payload.healthStatus,
+      payload.baseSpeed,
+      payload.stamina
     );
 
     await loadHorses();
@@ -221,6 +240,8 @@ export function useOwner() {
       weightKg: string;
       imageUrl: string;
       healthStatus: string;
+      baseSpeed?: number;
+      stamina?: number;
     }
   ) => {
     await HorseService.editHorse(id, payload);
@@ -310,14 +331,25 @@ export function useOwner() {
   );
 
   const eligibleHorsesByTournament = useMemo(() => {
-    const map = new Map<string, { id: string; name: string }[]>();
+    const map = new Map<string, HorseOption[]>();
     registrations
       .filter((r) => r.status === "approved")
       .forEach((r) => {
         const existing = map.get(r.tournament.id) ?? [];
+        const h = r.horse;
+        const reasons: string[] = [];
+        if (h.isRetired) reasons.push("Retired");
+        if (h.isRacing) reasons.push("Currently racing in another event");
+
         existing.push({
-          id: r.horse.id,
-          name: r.horse.name,
+          id: h.id,
+          name: h.name,
+          breed: h.breed,
+          isRetired: h.isRetired,
+          isRacing: h.isRacing ?? false,
+          healthStatus: h.healthStatus,
+          eligible: reasons.length === 0,
+          reason: reasons.length > 0 ? reasons.join(", ") : undefined,
         });
         map.set(r.tournament.id, existing);
       });

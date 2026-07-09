@@ -3,8 +3,10 @@ import { useLocation, useNavigate, matchPath } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes.tsx";
 import { useOwner } from "../hooks/useOwner.ts";
+import { RaceService } from "../services/RaceService.ts";
 import type { Horse } from "../types/horse";
 import { Clock } from "lucide-react";
+import { friendlyErrorMessage } from "../utils/errorMessages";
 import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "../components/ui/toast";
 
@@ -114,6 +116,8 @@ export default function OwnerPage() {
     const rawBirthDate = data.get("birth_date") as string;
     const rawWeight = data.get("weight_kg") as string;
     const healthStatusVal = (data.get("health_status") as string) || "Healthy";
+    const baseSpeedRaw = data.get("base_speed") as string;
+    const staminaRaw = data.get("stamina") as string;
 
     const payload = {
       name,
@@ -122,6 +126,8 @@ export default function OwnerPage() {
       weightKg: rawWeight,
       imageUrl: "",
       healthStatus: healthStatusVal,
+      baseSpeed: baseSpeedRaw ? Number(baseSpeedRaw) : undefined,
+      stamina: staminaRaw ? Number(staminaRaw) : undefined,
     };
 
     try {
@@ -138,7 +144,10 @@ export default function OwnerPage() {
         ? serverMessage.join(", ")
         : serverMessage;
 
-      addToast(formattedError || "Failed to save horse details.", "error");
+      addToast(
+        friendlyErrorMessage(formattedError) || "Failed to save horse details.",
+        "error"
+      );
     }
   };
 
@@ -163,6 +172,9 @@ export default function OwnerPage() {
       return;
     }
 
+    const baseSpeedRaw = data.get("base_speed") as string;
+    const staminaRaw = data.get("stamina") as string;
+
     const payload = {
       name,
       breed: data.get("breed") as string,
@@ -170,6 +182,8 @@ export default function OwnerPage() {
       weightKg: data.get("weight_kg") as string,
       imageUrl: "",
       healthStatus: (data.get("health_status") as string) || "Healthy",
+      baseSpeed: baseSpeedRaw ? Number(baseSpeedRaw) : undefined,
+      stamina: staminaRaw ? Number(staminaRaw) : undefined,
     };
 
     try {
@@ -233,18 +247,15 @@ export default function OwnerPage() {
     }
 
     const isFull = (t.currentCount as number) >= (t.maxCapacity as number);
-    try {
-      await registerTournament(String(tournamentId), horseId);
-      setShowRegisterTournament(false);
-      addToast(
-        isFull
-          ? "Tournament full. Joined waitlist successfully."
-          : "Registration submitted for Admin approval.",
-        isFull ? "warning" : "success"
-      );
-    } catch {
-      addToast("Failed to submit tournament registration.", "error");
-    }
+
+    await registerTournament(String(tournamentId), horseId);
+    setShowRegisterTournament(false);
+    addToast(
+      isFull
+        ? "Tournament full. Joined waitlist successfully."
+        : "Registration submitted for Admin approval.",
+      isFull ? "warning" : "success"
+    );
   };
 
   const renderContent = () => {
@@ -307,10 +318,14 @@ export default function OwnerPage() {
             tournaments={tournaments}
             registrations={registrations}
             entries={entries}
-            onEnterRace={(raceId, raceName, laneCount, tournamentId) => {
-              const currentEntryCount = entries.filter(
-                (e) => e.raceId === raceId
-              ).length;
+            onEnterRace={async (raceId, raceName, laneCount, tournamentId) => {
+              let currentEntryCount = 0;
+              try {
+                const detail = await RaceService.getRaceById(raceId);
+                currentEntryCount = detail.entries?.length ?? 0;
+              } catch {
+                // fall back to 0 if detail fetch fails
+              }
               setEnterRaceTarget({
                 raceId,
                 raceName,
@@ -325,7 +340,9 @@ export default function OwnerPage() {
               setShowRegisterTournament(true);
             }}
             onAssignJockey={(entryId) =>
-              navigate(`/owner/entries/${entryId}/send-invites`)
+              navigate(`/owner/entries/${entryId}/send-invites`, {
+                state: { returnTo: "/owner/tournamentRegister?tab=races" },
+              })
             }
           />
         );
@@ -387,7 +404,7 @@ export default function OwnerPage() {
           raceName={enterRaceTarget?.raceName ?? ""}
           laneCount={enterRaceTarget?.laneCount ?? 0}
           currentEntryCount={enterRaceTarget?.currentEntryCount ?? 0}
-          eligibleHorses={
+          horseOptions={
             enterRaceTarget?.tournamentId
               ? (eligibleHorsesByTournament.get(enterRaceTarget.tournamentId) ??
                 [])
@@ -404,7 +421,7 @@ export default function OwnerPage() {
                 response?: { data?: { message?: string } };
               };
               addToast(
-                axiosError?.response?.data?.message || "Failed to enter race.",
+                friendlyErrorMessage(axiosError?.response?.data?.message),
                 "error"
               );
               throw err;

@@ -49,8 +49,8 @@ export default function ReportDetailView({
 
   // Normalize course details
   const venueStr =
-    race.course?.name || race.courseName || race.venue || "Unknown Venue";
-  const cityStr = race.course?.city || race.courseCity || "";
+    race.course?.name || race.trackName || race.venue || "Unknown Venue";
+  const cityStr = race.course?.city || race.trackCity || "";
   const surfaceStr = race.course?.surfaceType || race.surfaceType || "";
 
   return (

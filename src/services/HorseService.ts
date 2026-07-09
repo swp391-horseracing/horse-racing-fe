@@ -21,7 +21,9 @@ export const HorseService = {
     birthDate: string,
     weightKg: string,
     imageUrl: string,
-    healthStatus: string
+    healthStatus: string,
+    baseSpeed?: number,
+    stamina?: number
   ) => {
     const response = await api.post("/horses", {
       name,
@@ -30,6 +32,8 @@ export const HorseService = {
       weightKg,
       imageUrl,
       healthStatus,
+      baseSpeed,
+      stamina,
     });
 
     return response.data;
@@ -61,7 +65,9 @@ export const HorseService = {
     birthDate: string,
     weightKg: string,
     imageUrl: string,
-    healthStatus: string
+    healthStatus: string,
+    baseSpeed?: number,
+    stamina?: number
   ) => {
     const response = await api.patch(`/horses/${id}`, {
       name,
@@ -70,6 +76,8 @@ export const HorseService = {
       weightKg,
       imageUrl,
       healthStatus,
+      baseSpeed,
+      stamina,
     });
 
     return response.data;
@@ -89,6 +97,8 @@ export const HorseService = {
       weightKg: string;
       imageUrl: string;
       healthStatus: string;
+      baseSpeed?: number;
+      stamina?: number;
     }
   ) => {
     const response = await api.patch(`/horses/${id}`, data);
