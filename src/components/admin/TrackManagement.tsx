@@ -334,7 +334,7 @@ export default function TrackManagement({
                           >
                             {track.city && track.country
                               ? `${track.city}, ${track.country}`
-                              : track.city ?? track.country ?? "—"}
+                              : (track.city ?? track.country ?? "—")}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 text-slate-500">
