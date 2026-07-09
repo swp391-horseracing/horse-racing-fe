@@ -1,14 +1,11 @@
-import { useState } from "react";
 import {
   ChevronLeft,
-  CheckCircle,
   AlertTriangle,
   Trophy,
   User,
   MapPin,
   FileText,
   Loader2,
-  Construction,
 } from "lucide-react";
 import { cn } from "../../../lib/utils";
 import type {
@@ -21,28 +18,19 @@ import {
   formatDate,
   formatFinishTime,
 } from "../../../types/report";
-import RejectInfoModal from "./RejectInfoModal";
-import PublishConfirmModal from "./PublishConfirmModal";
 import { formatStatus } from "../../../utils/statusFormat";
 
 interface ReportDetailViewProps {
   detail: ReportDetailData | null;
   detailLoading: boolean;
-  publishLoading: boolean;
   onBack: () => void;
-  onPublish: () => void;
 }
 
 export default function ReportDetailView({
   detail,
   detailLoading,
-  publishLoading,
   onBack,
-  onPublish,
 }: ReportDetailViewProps) {
-  const [showRejectInfo, setShowRejectInfo] = useState(false);
-  const [showPublishConfirm, setShowPublishConfirm] = useState(false);
-
   if (detailLoading || !detail) {
     return (
       <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -55,7 +43,6 @@ export default function ReportDetailView({
 
   const { race, referees, referee, report, placements } = detail as any;
   const violations = placements?.filter((p: any) => p.violation !== null) || [];
-  const isPending = report?.status === "referee_confirmed";
 
   // Normalize referees to an array
   const activeReferees = referees || (referee ? [referee] : []);
@@ -368,40 +355,6 @@ export default function ReportDetailView({
           </div>
         </div>
       )}
-
-      {/* Action Buttons */}
-      {isPending && (
-        <div className="flex justify-end gap-3 pt-2">
-          <button
-            onClick={() => setShowRejectInfo(true)}
-            className="text-xs font-bold px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition flex items-center gap-2 cursor-pointer"
-          >
-            <Construction className="w-3.5 h-3.5" />
-            Reject Report
-            <span className="text-[8px] font-black uppercase bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-md border border-amber-200 ml-1">
-              In Dev
-            </span>
-          </button>
-          <button
-            onClick={() => setShowPublishConfirm(true)}
-            className="text-xs font-bold px-5 py-2.5 rounded-xl bg-[#064E3B] text-white hover:bg-[#043E2F] transition flex items-center gap-2 shadow-sm cursor-pointer"
-          >
-            <CheckCircle className="w-3.5 h-3.5" /> Publish Official Results
-          </button>
-        </div>
-      )}
-
-      {/* Modals */}
-      <RejectInfoModal
-        isOpen={showRejectInfo}
-        onClose={() => setShowRejectInfo(false)}
-      />
-      <PublishConfirmModal
-        isOpen={showPublishConfirm}
-        onClose={() => setShowPublishConfirm(false)}
-        onConfirm={onPublish}
-        loading={publishLoading}
-      />
     </div>
   );
 }

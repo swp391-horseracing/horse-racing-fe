@@ -37,22 +37,20 @@ export default function RefereeRaceList({
 
       {/* Filter Tabs */}
       <div className="flex gap-2">
-        {(["all", "scheduled", "live", "concluded", "report"] as const).map(
-          (f) => (
-            <button
-              key={f}
-              onClick={() => onFilterChange(f)}
-              className={cn(
-                "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border",
-                filterPhase === f
-                  ? "bg-[#064E3B] text-white border-[#064E3B]"
-                  : "bg-white text-slate-600 border-slate-200 hover:border-[#064E3B]/30"
-              )}
-            >
-              {f === "all" ? "All" : phaseLabel[f]}
-            </button>
-          )
-        )}
+        {(["all", "scheduled", "live", "post_race"] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => onFilterChange(f)}
+            className={cn(
+              "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border",
+              filterPhase === f
+                ? "bg-[#064E3B] text-white border-[#064E3B]"
+                : "bg-white text-slate-600 border-slate-200 hover:border-[#064E3B]/30"
+            )}
+          >
+            {f === "all" ? "All" : phaseLabel[f]}
+          </button>
+        ))}
       </div>
 
       {/* Race Cards */}
@@ -92,7 +90,14 @@ export default function RefereeRaceList({
                       phaseBadgeStyle[race.phase]
                     )}
                   >
-                    {phaseLabel[race.phase]}
+                    {race.phase === "post_race" &&
+                    (race.reportStatus === "published" ||
+                      race.reportStatus === "referee_confirmed")
+                      ? "Finalized"
+                      : race.phase === "post_race" &&
+                          race.reportStatus === "draft"
+                        ? "Results (Draft)"
+                        : phaseLabel[race.phase]}
                   </span>
                 </div>
                 <div className="flex items-center gap-4 text-[10px] text-slate-500 font-bold">

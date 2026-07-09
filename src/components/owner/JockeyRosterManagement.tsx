@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { cn } from "../../lib/utils";
 import { type Entry, useOwner } from "../../hooks/useOwner.ts";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ToastContainer } from "../ui/toast";
 import { useToast } from "../../hooks/useToast";
 
@@ -19,7 +19,6 @@ export function JockeyRosterManagement() {
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
   const [subTab, setSubTab] = useState<"detail" | "invitation">("detail");
 
-  const { entryId } = useParams<{ entryId: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const selectedEntryId = searchParams.get("selected");
@@ -71,11 +70,7 @@ export function JockeyRosterManagement() {
       .join(" ");
   };
 
-  useEffect(() => {
-    if (entryId) {
-      console.log("Found entryId in URL, redirecting or handling...");
-    }
-  }, [entryId]);
+  // entryId from URL available for future redirect handling
 
   const handleSubTabChange = async (tab: "detail" | "invitation") => {
     setSubTab(tab);

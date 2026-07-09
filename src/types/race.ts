@@ -160,7 +160,3 @@ export interface AdminRace {
   createdAt: string;
   updatedAt: string;
 }
-
-export interface PublishRaceResponse {
-  message: string;
-}

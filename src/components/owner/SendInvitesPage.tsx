@@ -60,8 +60,11 @@ export function SendInvitesPage() {
   };
 
   const handleCancel = () => {
-    if (!entry) return;
-    navigate("/owner/jockeys?selected=" + entry.entryId);
+    if (entry) {
+      navigate("/owner/jockeys?selected=" + entry.entryId);
+    } else {
+      navigate("/owner/jockeys");
+    }
   };
 
   if (!entry) {

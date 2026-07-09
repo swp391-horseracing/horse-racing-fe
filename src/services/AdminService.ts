@@ -1,11 +1,7 @@
 import api from "../lib/api";
 import type { Tournament, TournamentResponse } from "../types/tournament.ts";
 import type { UserResponse } from "../types/user.ts";
-import type {
-  Race,
-  RaceReportListResponse,
-  PublishRaceResponse,
-} from "../types/race.ts";
+import type { Race, RaceReportListResponse } from "../types/race.ts";
 import type { RaceReport } from "../types/referee.ts";
 
 export const AdminService = {
@@ -119,11 +115,6 @@ export const AdminService = {
 
   async getRaceReport(raceId: string): Promise<RaceReport> {
     const response = await api.get(`/admin/races/${raceId}/report`);
-    return response.data;
-  },
-
-  async publishRace(raceId: string): Promise<PublishRaceResponse> {
-    const response = await api.patch(`/admin/races/${raceId}/publish`);
     return response.data;
   },
 

@@ -291,7 +291,7 @@ export default function RacesPage() {
 
   const canEnterRace =
     isOwner &&
-    raceDetail?.status === "scheduled" &&
+    (raceDetail?.status === "scheduled" || raceDetail?.status === "pre_race") &&
     raceDetail?.tournamentId &&
     approvedTournamentIds.has(raceDetail.tournamentId);
 
@@ -1035,7 +1035,6 @@ export default function RacesPage() {
                       "Failed to enter race.",
                     "error"
                   );
-                  throw err;
                 }
               }}
             />

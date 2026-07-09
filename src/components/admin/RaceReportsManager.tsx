@@ -25,14 +25,12 @@ export default function RaceReportsManager({
     selectedRaceId,
     detail,
     detailLoading,
-    publishLoading,
     handleSearch,
     handleKeyDown,
     handleStatusFilterChange,
     handlePageChange,
     openDetail,
     closeDetail,
-    handlePublish,
   } = useRaceReports(addToast);
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -44,9 +42,7 @@ export default function RaceReportsManager({
       <ReportDetailView
         detail={detail}
         detailLoading={detailLoading}
-        publishLoading={publishLoading}
         onBack={closeDetail}
-        onPublish={handlePublish}
       />
     );
   }

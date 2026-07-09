@@ -23,7 +23,6 @@ export function useRaceReports(addToast: (m: string, t?: ToastType) => void) {
   const [selectedRaceId, setSelectedRaceId] = useState<string | null>(null);
   const [detail, setDetail] = useState<ReportDetailData | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [publishLoading, setPublishLoading] = useState(false);
 
   // ── Fetch list ──
   const fetchReports = useCallback(
@@ -110,28 +109,6 @@ export function useRaceReports(addToast: (m: string, t?: ToastType) => void) {
     setDetail(null);
   };
 
-  // ── Publish ──
-  const handlePublish = async () => {
-    if (!selectedRaceId) return;
-    setPublishLoading(true);
-    try {
-      await AdminService.publishRace(selectedRaceId);
-      addToast(
-        "Race result published. Predictions resolved and race completed.",
-        "success"
-      );
-      closeDetail();
-      fetchReports();
-    } catch (e: unknown) {
-      const msg =
-        (e as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || "Failed to publish result";
-      addToast(msg, "error");
-    } finally {
-      setPublishLoading(false);
-    }
-  };
-
   return {
     // State
     reports,
@@ -147,7 +124,6 @@ export function useRaceReports(addToast: (m: string, t?: ToastType) => void) {
     selectedRaceId,
     detail,
     detailLoading,
-    publishLoading,
     // Actions
     handleSearch,
     handleKeyDown,
@@ -155,6 +131,5 @@ export function useRaceReports(addToast: (m: string, t?: ToastType) => void) {
     handlePageChange,
     openDetail,
     closeDetail,
-    handlePublish,
   };
 }
