@@ -334,7 +334,9 @@ export default function OwnerPage() {
               setShowRegisterTournament(true);
             }}
             onAssignJockey={(entryId) =>
-              navigate(`/owner/entries/${entryId}/send-invites`)
+              navigate(`/owner/entries/${entryId}/send-invites`, {
+                state: { returnTo: "/owner/tournamentRegister?tab=races" },
+              })
             }
           />
         );
