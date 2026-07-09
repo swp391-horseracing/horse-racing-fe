@@ -188,13 +188,19 @@ export default function TournamentsPage() {
     );
 
   const activeHorses = ownerHorses.filter((h) => h.status !== "Retired");
-  const availableHorses = activeHorses.filter((h) => !isHorseRegistered(h.id));
   const tournamentRegistrations = ownerRegistrations.filter(
     (r) => r.tournament.id === selectedTournament?.id
   );
 
   const handleRegister = async () => {
     if (!selectedRegHorseId || !selectedTournament) return;
+    if (isHorseRegistered(selectedRegHorseId)) {
+      setRegStatus({
+        type: "error",
+        message: "This horse is already registered for this tournament.",
+      });
+      return;
+    }
 
     setRegStatus({ type: "loading" });
     try {
@@ -697,28 +703,38 @@ export default function TournamentsPage() {
                         Select a horse to register
                       </p>
 
-                      {availableHorses.length > 0 ? (
+                      {activeHorses.length > 0 ? (
                         <div className="flex items-center gap-3">
                           <select
                             value={selectedRegHorseId}
                             onChange={(e) =>
                               setSelectedRegHorseId(e.target.value)
                             }
-                            className="flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-medium outline-none focus:ring-1 focus:ring-primary"
+                            disabled={regStatus.type === "loading"}
+                            className="flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-medium outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
                           >
                             <option value="">Choose a horse...</option>
-                            {availableHorses.map((h) => (
-                              <option key={h.id} value={h.id}>
-                                {h.name}
-                              </option>
-                            ))}
+                            {activeHorses.map((h) => {
+                              const registered = isHorseRegistered(h.id);
+                              return (
+                                <option
+                                  key={h.id}
+                                  value={h.id}
+                                  disabled={registered}
+                                >
+                                  {h.name}
+                                  {registered ? " (Already registered)" : ""}
+                                </option>
+                              );
+                            })}
                           </select>
 
                           <button
                             onClick={handleRegister}
                             disabled={
                               !selectedRegHorseId ||
-                              regStatus.type === "loading"
+                              regStatus.type === "loading" ||
+                              isHorseRegistered(selectedRegHorseId)
                             }
                             className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
                           >

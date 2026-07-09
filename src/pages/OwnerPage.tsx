@@ -6,6 +6,7 @@ import { useOwner } from "../hooks/useOwner.ts";
 import { RaceService } from "../services/RaceService.ts";
 import type { Horse } from "../types/horse";
 import { Clock } from "lucide-react";
+import { friendlyErrorMessage } from "../utils/errorMessages";
 import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "../components/ui/toast";
 
@@ -143,7 +144,10 @@ export default function OwnerPage() {
         ? serverMessage.join(", ")
         : serverMessage;
 
-      addToast(formattedError || "Failed to save horse details.", "error");
+      addToast(
+        friendlyErrorMessage(formattedError) || "Failed to save horse details.",
+        "error"
+      );
     }
   };
 
@@ -243,18 +247,15 @@ export default function OwnerPage() {
     }
 
     const isFull = (t.currentCount as number) >= (t.maxCapacity as number);
-    try {
-      await registerTournament(String(tournamentId), horseId);
-      setShowRegisterTournament(false);
-      addToast(
-        isFull
-          ? "Tournament full. Joined waitlist successfully."
-          : "Registration submitted for Admin approval.",
-        isFull ? "warning" : "success"
-      );
-    } catch {
-      addToast("Failed to submit tournament registration.", "error");
-    }
+
+    await registerTournament(String(tournamentId), horseId);
+    setShowRegisterTournament(false);
+    addToast(
+      isFull
+        ? "Tournament full. Joined waitlist successfully."
+        : "Registration submitted for Admin approval.",
+      isFull ? "warning" : "success"
+    );
   };
 
   const renderContent = () => {
@@ -403,7 +404,7 @@ export default function OwnerPage() {
           raceName={enterRaceTarget?.raceName ?? ""}
           laneCount={enterRaceTarget?.laneCount ?? 0}
           currentEntryCount={enterRaceTarget?.currentEntryCount ?? 0}
-          eligibleHorses={
+          horseOptions={
             enterRaceTarget?.tournamentId
               ? (eligibleHorsesByTournament.get(enterRaceTarget.tournamentId) ??
                 [])
@@ -420,7 +421,7 @@ export default function OwnerPage() {
                 response?: { data?: { message?: string } };
               };
               addToast(
-                axiosError?.response?.data?.message || "Failed to enter race.",
+                friendlyErrorMessage(axiosError?.response?.data?.message),
                 "error"
               );
               throw err;

@@ -31,6 +31,7 @@ import {
   getRaceStatusDetailStyle,
 } from "../utils/statusStyles";
 import { ToastContainer } from "../components/ui/toast";
+import { friendlyErrorMessage } from "../utils/errorMessages";
 import { cn } from "../lib/utils";
 
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
@@ -1020,7 +1021,7 @@ export default function RacesPage() {
               raceName={raceDetail.name}
               laneCount={raceDetail.laneCount ?? 0}
               currentEntryCount={raceDetail.entries?.length ?? 0}
-              eligibleHorses={eligibleHorsesForRace}
+              horseOptions={eligibleHorsesForRace}
               onSubmit={async (horseId) => {
                 try {
                   await enterRace(raceDetail.id, horseId);
@@ -1031,8 +1032,7 @@ export default function RacesPage() {
                     response?: { data?: { message?: string } };
                   };
                   addToast(
-                    axiosError?.response?.data?.message ||
-                      "Failed to enter race.",
+                    friendlyErrorMessage(axiosError?.response?.data?.message),
                     "error"
                   );
                   throw err;
