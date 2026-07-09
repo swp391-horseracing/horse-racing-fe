@@ -1,6 +1,6 @@
-import { useUserProfile, type ProfileTab } from "../hooks/useUserProfile.ts";
-import AccountPanel from "../components/user_profile/accountPanel.tsx";
-import NotificationsPanel from "../components/user_profile/NotificationsPanel.tsx";
+import { useUserProfile, type ProfileTab } from "../hooks/useUserProfile";
+import AccountPanel from "../components/user_profile/accountPanel";
+import NotificationsPanel from "../components/user_profile/NotificationsPanel";
 import UserLayout from "../layouts/UserLayout";
 
 export default function UserPage() {

@@ -1,5 +1,5 @@
-import api from "../lib/api.ts";
-import type { RaceListItem } from "../types/race.ts";
+import api from "../lib/api";
+import type { RaceListItem } from "../types/race";
 
 export const ScheduleService = {
   async getRacesByMonth(year: number, month: number): Promise<RaceListItem[]> {

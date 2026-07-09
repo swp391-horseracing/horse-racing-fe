@@ -6,7 +6,7 @@ import type {
   TournamentDetail,
   TournamentListResponse,
 } from "../../types/tournament";
-import { TournamentService } from "../../services/TournamentService.ts";
+import { TournamentService } from "../../services/TournamentService";
 
 export default function useAdminTournament() {
   const [tournaments, setTournaments] = useState<TournamentListResponse>();

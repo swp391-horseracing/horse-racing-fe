@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Clock, Trophy, MapPin, CalendarDays, X } from "lucide-react";
 import { useOwner, type Entry } from "../../hooks/useOwner";
 import { cn } from "../../lib/utils";
+import { getEntryStatusStyle } from "../../utils/statusStyles";
 import { useToast } from "../../hooks/useToast";
 import { ToastContainer } from "../ui/toast";
 
@@ -40,14 +41,7 @@ export function OwnerEntries() {
   const statusBadgeClass = (status: string) =>
     cn(
       "rounded border px-1.5 py-0.5 text-[8px] font-black uppercase",
-      status === "pending" && "border-amber-200 bg-amber-50 text-amber-800",
-      status === "accepted" &&
-        "border-emerald-200 bg-emerald-50 text-emerald-800",
-      status === "scheduled" && "border-blue-200 bg-blue-50 text-blue-800",
-      status === "confirmed" &&
-        "border-emerald-200 bg-emerald-50 text-emerald-800",
-      status === "declined" && "border-rose-200 bg-rose-50 text-rose-800",
-      status === "withdrawn" && "border-slate-200 bg-slate-50 text-slate-400"
+      getEntryStatusStyle(status)
     );
 
   return (

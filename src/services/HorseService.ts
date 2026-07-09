@@ -1,5 +1,5 @@
 import api from "../lib/api";
-import type { HorseListResponse, RetireHorseResponse } from "../types/horse.ts";
+import type { HorseListResponse, RetireHorseResponse } from "../types/horse";
 
 export const HorseService = {
   async getHorses(

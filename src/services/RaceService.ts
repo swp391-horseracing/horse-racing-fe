@@ -1,5 +1,5 @@
-import api from "../lib/api.ts";
-import type { RaceDetail, RaceEntry, RaceListItem } from "../types/race.ts";
+import api from "../lib/api";
+import type { RaceDetail, RaceEntry, RaceListItem } from "../types/race";
 
 export const RaceService = {
   async getRaces(params?: {

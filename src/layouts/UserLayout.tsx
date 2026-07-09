@@ -31,10 +31,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "../components/ui/breadcrumb";
-import { ROUTES } from "../router/routes.tsx";
+import { ROUTES } from "../router/routes";
 import { cn } from "../lib/utils";
-import { useInvitations } from "../hooks/useInvitations.ts";
-import { useAdminBadges } from "../hooks/useAdminBadges.ts";
+import { useInvitations } from "../hooks/useInvitations";
+import { useAdminBadges } from "../hooks/useAdminBadges";
 
 // ─── Inline Custom Horse Icon Fallback ────────────────────────────────────────
 const HorseIcon = ({ className }: { className?: string }) => (

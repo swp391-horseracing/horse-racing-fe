@@ -1,6 +1,6 @@
-import { ROUTES } from "../../router/routes.tsx";
+import { ROUTES } from "../../router/routes";
 import { Trophy, TrendingUp, Mail, Award, Calendar } from "lucide-react";
-import type { Invitation } from "../../types/invitation.ts";
+import type { Invitation } from "../../types/invitation";
 
 export interface JockeyHorse {
   id: string | number;

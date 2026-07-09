@@ -1,18 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Search } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { useOwner, type Entry } from "../../hooks/useOwner.ts";
+import { useOwner, type Entry, type Jockey } from "../../hooks/useOwner";
 import { useToast } from "../../hooks/useToast";
 import { ToastContainer } from "../ui/toast";
 
-export function SendInvitesPage() {
+interface SendInvitesPageProps {
+  entries?: Entry[];
+  jockeys?: Jockey[];
+  loadJockeys?: () => Promise<void>;
+  inviteJockey?: (
+    title: string,
+    entryId: string,
+    jockeyId: string,
+    horseId: string,
+    message?: string
+  ) => Promise<any>;
+}
+
+export function SendInvitesPage({
+  entries: propEntries,
+  jockeys: propJockeys,
+  loadJockeys: propLoadJockeys,
+  inviteJockey: propInviteJockey,
+}: SendInvitesPageProps = {}) {
   const { entryId } = useParams<{ entryId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const returnTo = (location.state as { returnTo?: string })?.returnTo;
-  const { entries, jockeys, loadJockeys, inviteJockey } = useOwner();
+
+  const {
+    entries: hookEntries,
+    jockeys: hookJockeys,
+    loadJockeys: hookLoadJockeys,
+    inviteJockey: hookInviteJockey,
+  } = useOwner();
+
+  const entries = propEntries ?? hookEntries;
+  const jockeys = propJockeys ?? hookJockeys;
+  const loadJockeys = propLoadJockeys ?? hookLoadJockeys;
+  const inviteJockey = propInviteJockey ?? hookInviteJockey;
+
   const { toasts, addToast } = useToast(3000);
+
+  useEffect(() => {
+    if (loadJockeys) {
+      void loadJockeys();
+    }
+  }, [loadJockeys]);
 
   const entry = entries.find((e: Entry) => e.entryId === entryId);
 
@@ -137,10 +173,7 @@ export function SendInvitesPage() {
               />
               <input
                 value={keyword}
-                onChange={(e) => {
-                  setKeyword(e.target.value);
-                  if (!jockeys.length) loadJockeys();
-                }}
+                onChange={(e) => setKeyword(e.target.value)}
                 placeholder="Search jockey by name or club..."
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-11 py-3 text-sm text-slate-700 outline-none transition focus:border-[#064E3B]"
               />

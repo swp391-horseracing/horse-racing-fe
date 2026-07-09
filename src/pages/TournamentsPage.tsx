@@ -19,10 +19,9 @@ import {
 import useTournament from "../hooks/useTournament";
 import { useOwner } from "../hooks/useOwner";
 import { useUserProfile } from "../hooks/useUserProfile";
-import { formatStatus } from "../utils/statusFormat";
+import { formatStatus, formatAge } from "../utils/formatters";
 import { getRaceStatusStyle } from "../utils/statusStyles";
 import { HorseStatusIndicator } from "../components/owner/HorseStatusIndicator";
-import { formatAge } from "../components/owner/horseUtils";
 
 function StatFilterCard({
   label,
@@ -751,7 +750,9 @@ export default function TournamentsPage() {
                         <p className="text-sm text-muted-foreground">
                           {ownerHorses.length === 0
                             ? "You don't have any horses yet. Add one from your dashboard."
-                            : "All your horses are already registered for this tournament."}
+                            : activeHorses.length === 0
+                              ? "All your horses are retired and cannot be registered."
+                              : "All your horses are already registered for this tournament."}
                         </p>
                       )}
                     </div>

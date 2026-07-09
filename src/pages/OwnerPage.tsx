@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, matchPath } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
-import { ROUTES } from "../router/routes.tsx";
-import { useOwner } from "../hooks/useOwner.ts";
-import { RaceService } from "../services/RaceService.ts";
+import { ROUTES } from "../router/routes";
+import { useOwner } from "../hooks/useOwner";
+import { RaceService } from "../services/RaceService";
 import type { Horse } from "../types/horse";
 import { Clock } from "lucide-react";
 import { friendlyErrorMessage } from "../utils/errorMessages";
@@ -49,6 +49,8 @@ export default function OwnerPage() {
     entries,
     enterRace,
     eligibleHorsesByTournament,
+    loadJockeys,
+    inviteJockey,
   } = useOwner();
 
   useEffect(() => {
@@ -271,7 +273,14 @@ export default function OwnerPage() {
       active
     );
     if (sendInvitesMatch) {
-      return <SendInvitesPage />;
+      return (
+        <SendInvitesPage
+          entries={entries}
+          jockeys={jockeys}
+          loadJockeys={loadJockeys}
+          inviteJockey={inviteJockey}
+        />
+      );
     }
 
     const ownerEntrySendInvitesMatch = matchPath(
@@ -279,7 +288,14 @@ export default function OwnerPage() {
       active
     );
     if (ownerEntrySendInvitesMatch) {
-      return <SendInvitesPage />;
+      return (
+        <SendInvitesPage
+          entries={entries}
+          jockeys={jockeys}
+          loadJockeys={loadJockeys}
+          inviteJockey={inviteJockey}
+        />
+      );
     }
 
     switch (active) {

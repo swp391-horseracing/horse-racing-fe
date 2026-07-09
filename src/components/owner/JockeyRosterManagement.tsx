@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { cn } from "../../lib/utils";
-import { type Entry, useOwner } from "../../hooks/useOwner.ts";
+import { type Entry, type Invitation, useOwner } from "../../hooks/useOwner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ToastContainer } from "../ui/toast";
 import { useToast } from "../../hooks/useToast";
@@ -20,10 +20,10 @@ export function JockeyRosterManagement() {
   const [subTab, setSubTab] = useState<"detail" | "invitation">("detail");
 
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const selectedEntryId = searchParams.get("selected");
   const tabParam = searchParams.get("tab");
-  const { toasts } = useToast(3000);
+  const { toasts, addToast } = useToast(3000);
   // Entries without confirmed jockey
   const entriesWithoutJockey = entries.filter((entry) => {
     const hasConfirmed = invitations.some(
@@ -41,14 +41,22 @@ export function JockeyRosterManagement() {
     navigate(`/owner/entries/${entry.entryId}/send-invites`);
   };
 
-  const handleConfirm = (Inv: any) => {
-    console.log(Inv);
-    confirmPairing(Inv.raceId, Inv.id);
+  const handleConfirm = async (inv: Invitation) => {
+    try {
+      await confirmPairing(inv.raceId, inv.id);
+      addToast("Pairing confirmed successfully.", "success");
+    } catch {
+      addToast("Failed to confirm pairing.", "error");
+    }
   };
 
-  const handleCancel = (Inv: any) => {
-    console.log(Inv);
-    cancelInvite(Inv.raceId, Inv.id);
+  const handleCancel = async (inv: Invitation) => {
+    try {
+      await cancelInvite(inv.raceId, inv.id);
+      addToast("Invitation cancelled successfully.", "success");
+    } catch {
+      addToast("Failed to cancel invitation.", "error");
+    }
   };
 
   const statusBadgeClass = (status: string) =>
@@ -93,11 +101,24 @@ export function JockeyRosterManagement() {
       setSelectedEntry(entry);
       if (tabParam === "invitation" && entry.raceId) {
         setSubTab("invitation");
-        loadInvitations(entry.raceId);
+        void loadInvitations(entry.raceId);
       }
+
+      // Clear auto-select query parameters to clean the URL
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("selected");
+      newParams.delete("tab");
+      setSearchParams(newParams, { replace: true });
     }, 0);
     return () => clearTimeout(timer);
-  }, [selectedEntryId, tabParam, entries, loadInvitations]);
+  }, [
+    selectedEntryId,
+    tabParam,
+    entries,
+    loadInvitations,
+    searchParams,
+    setSearchParams,
+  ]);
 
   return (
     <div className="max-w-6xl mx-auto p-5 h-full flex flex-col">

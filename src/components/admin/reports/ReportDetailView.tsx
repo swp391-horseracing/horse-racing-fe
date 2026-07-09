@@ -18,7 +18,7 @@ import {
   formatDate,
   formatFinishTime,
 } from "../../../types/report";
-import { formatStatus } from "../../../utils/statusFormat";
+import { formatStatus } from "../../../utils/formatters";
 
 interface ReportDetailViewProps {
   detail: ReportDetailData | null;
@@ -41,17 +41,16 @@ export default function ReportDetailView({
     );
   }
 
-  const { race, referees, referee, report, placements } = detail as any;
-  const violations = placements?.filter((p: any) => p.violation !== null) || [];
+  const { race, referees, report, placements } = detail;
+  const violations = placements?.filter((p) => p.violation !== null) || [];
 
   // Normalize referees to an array
-  const activeReferees = referees || (referee ? [referee] : []);
+  const activeReferees = referees || [];
 
   // Normalize course details
-  const venueStr =
-    race.course?.name || race.trackName || race.venue || "Unknown Venue";
-  const cityStr = race.course?.city || race.trackCity || "";
-  const surfaceStr = race.course?.surfaceType || race.surfaceType || "";
+  const venueStr = race.trackName || "Unknown Venue";
+  const cityStr = race.trackCity || "";
+  const surfaceStr = race.surfaceType || "";
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">

@@ -4,7 +4,6 @@ export interface TrackShape {
   createdAt?: string;
   updatedAt?: string;
   description?: string;
-  [key: string]: any;
 }
 
 export interface TrackListItem {
@@ -21,7 +20,6 @@ export interface TrackListItem {
   status?: string;
   createdAt?: string;
   updatedAt?: string;
-  [key: string]: any;
 }
 
 export interface PaginatedResponse<T> {
@@ -44,7 +42,6 @@ export interface TrackDistance {
   createdAt?: string;
   updatedAt?: string;
   distanceMeters?: number;
-  [key: string]: any;
 }
 
 export interface GetTracksParams {

@@ -5,8 +5,7 @@ import { useRaces } from "../hooks/useRaces";
 import useTournament from "../hooks/useTournament";
 import { ROUTES } from "../router/routes";
 import { formatTournamentStatus } from "../styles/schema/tournamentStatusFlow";
-import { getRaceStatusStyle } from "../utils/statusStyles";
-import { formatStatus } from "../utils/statusFormat";
+import { getRaceStatusStyle, getRaceStatusLabel } from "../utils/statusStyles";
 import {
   Trophy,
   Calendar,
@@ -294,12 +293,7 @@ export default function FeedPage() {
                           <span
                             className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${getRaceStatusStyle(race.status)}`}
                           >
-                            {race.status === "ongoing"
-                              ? "Live"
-                              : race.status === "scheduled" ||
-                                  race.status === "pre_race"
-                                ? "Upcoming"
-                                : formatStatus(race.status)}
+                            {getRaceStatusLabel(race.status)}
                           </span>
                         </div>
                         <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">

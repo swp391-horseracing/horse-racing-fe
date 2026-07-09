@@ -1,6 +1,6 @@
-import type { User } from "../types/user.ts";
-import { Label } from "./ui/label.tsx";
-import { Input } from "./ui/input.tsx";
+import type { User } from "../types/user";
+import { Label } from "./ui/label";
+import { Input } from "./ui/input";
 
 type FieldBoxProps = {
   label: string;

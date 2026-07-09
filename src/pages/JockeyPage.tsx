@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
-import { ROUTES } from "../router/routes.tsx";
-import useHorse from "../hooks/horse/useHorse.ts";
-import { useInvitations } from "../hooks/useInvitations.ts";
+import { ROUTES } from "../router/routes";
+import useHorse from "../hooks/horse/useHorse";
+import { useInvitations } from "../hooks/useInvitations";
 import { useJockey } from "../hooks/useJockey";
 import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "../components/ui/toast";

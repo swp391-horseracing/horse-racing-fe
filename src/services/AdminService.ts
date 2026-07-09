@@ -1,8 +1,7 @@
 import api from "../lib/api";
-import type { Tournament, TournamentResponse } from "../types/tournament.ts";
-import type { UserResponse } from "../types/user.ts";
-import type { Race, RaceReportListResponse } from "../types/race.ts";
-import type { RaceReport } from "../types/referee.ts";
+import type { Tournament, TournamentResponse } from "../types/tournament";
+import type { UserResponse } from "../types/user";
+import type { Race, RaceReportListResponse } from "../types/race";
 
 export const AdminService = {
   // ── Users ──
@@ -113,7 +112,7 @@ export const AdminService = {
     return response.data;
   },
 
-  async getRaceReport(raceId: string): Promise<RaceReport> {
+  async getRaceReport(raceId: string): Promise<any> {
     const response = await api.get(`/admin/races/${raceId}/report`);
     return response.data;
   },

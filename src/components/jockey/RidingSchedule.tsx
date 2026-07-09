@@ -29,7 +29,7 @@ import {
 } from "../schedule/ScheduleDetailFrame";
 import { UserService } from "../../services/UserService";
 import type { RaceEntry } from "../../types/race";
-import { formatStatus } from "../../utils/statusFormat";
+import { formatStatus } from "../../utils/formatters";
 import {
   getRaceStatusStyle,
   getRaceStatusDetailStyle,

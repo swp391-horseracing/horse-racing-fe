@@ -56,10 +56,6 @@ export function useTrack(initialParams?: {
             );
             setTotalPages(paginated.pagination.totalPages || calculatedPages);
           }
-        } else if (Array.isArray(response)) {
-          setTracks(response);
-          setTotalItems(response.length);
-          setTotalPages(1);
         }
 
         return response;

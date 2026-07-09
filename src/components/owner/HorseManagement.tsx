@@ -1,9 +1,9 @@
 import React from "react";
 import { Edit3, Plus, Trash2 } from "lucide-react";
 import { cn } from "../../lib/utils";
-import type { Horse } from "../../types/horse.ts";
+import type { Horse } from "../../types/horse";
 import { useNavigate } from "react-router-dom";
-import { ROUTES } from "../../router/routes.tsx";
+import { ROUTES } from "../../router/routes";
 
 export interface HorseManagementProps {
   horses: Horse[];

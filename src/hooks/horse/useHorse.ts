@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { HorseService } from "../../services/HorseService.ts";
-import type { Horse } from "../../types/horse.ts";
+import { HorseService } from "../../services/HorseService";
+import type { Horse } from "../../types/horse";
 
 export default function useHorse() {
   const [horses, setHorses] = useState<Horse[]>([]);

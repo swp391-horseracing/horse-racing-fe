@@ -20,7 +20,7 @@ import type { Horse } from "../../types/horse";
 import type { Entry } from "../../types/entry";
 import { TournamentService } from "../../services/TournamentService";
 import { HorseStatusIndicator } from "./HorseStatusIndicator";
-import { formatAge } from "./horseUtils";
+import { formatAge } from "../../utils/formatters";
 
 export interface TournamentRegisterProps {
   horses: Horse[];

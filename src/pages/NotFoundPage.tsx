@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ROUTES } from "../router/routes.tsx";
+import { ROUTES } from "../router/routes";
 import Horse from "../assets/gif/404Horse.gif";
 
 export default function NotFoundPage() {

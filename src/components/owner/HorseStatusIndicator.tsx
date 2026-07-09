@@ -1,6 +1,6 @@
 import { CheckCircle2, Clock3, AlertCircle } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { formatStatus } from "../../utils/statusFormat";
+import { formatStatus } from "../../utils/formatters";
 
 export function HorseStatusIndicator({ status }: { status: string }) {
   if (status === "approved") {

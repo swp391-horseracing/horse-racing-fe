@@ -6,7 +6,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { ROUTES } from "../../router/routes.tsx";
+import { ROUTES } from "../../router/routes";
 
 interface SpectatorDashboardProps {
   setActiveTab?: (tab: string) => void;

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { HorseService } from "../services/HorseService";
 import { UserService } from "../services/UserService";
-import { JockeyService } from "../services/JockeyService.ts";
+import { JockeyService } from "../services/JockeyService";
 
 import type { Horse } from "../types/horse";
 import type {
@@ -10,10 +10,10 @@ import type {
 } from "../types/tournament";
 import type { Invitation } from "../types/invitation";
 import type { Jockey } from "../types/jockey";
-import type { Ride } from "../types/race.ts";
-import type { Entry } from "../types/entry.ts";
+import type { Ride } from "../types/race";
+import type { Entry } from "../types/entry";
 import type { UserRaceDetail } from "../types/user";
-import { TournamentService } from "../services/TournamentService.ts";
+import { TournamentService } from "../services/TournamentService";
 
 export type { Horse } from "../types/horse";
 export type {
@@ -22,7 +22,7 @@ export type {
 } from "../types/tournament";
 export type { Invitation } from "../types/invitation";
 export type { Jockey } from "../types/jockey";
-export type { Entry } from "../types/entry.ts";
+export type { Entry } from "../types/entry";
 
 export interface HorseOption {
   id: string;

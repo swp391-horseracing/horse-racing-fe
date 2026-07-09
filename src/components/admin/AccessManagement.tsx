@@ -2,10 +2,10 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { formatStatus } from "../../utils/statusFormat";
+import { formatStatus } from "../../utils/formatters";
 import type { ToastType } from "../../types/referee";
-import useAdmin from "../../hooks/admin/useAdmin.ts";
-import UserSearch from "./user/UserSearch.tsx";
+import useAdmin from "../../hooks/admin/useAdmin";
+import UserSearch from "./user/UserSearch";
 
 type OpenMenuState =
   | {
