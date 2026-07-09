@@ -31,7 +31,7 @@ export function SendInvitesPage() {
     );
   })();
 
-  const selectedJockey = filteredJockeys.find((j) => j.id === selectedJockeyId);
+  const selectedJockey = jockeys.find((j) => j.id === selectedJockeyId);
 
   const handleSelectJockey = (jockeyId: number) => {
     setSelectedJockeyId(jockeyId);

@@ -4,22 +4,22 @@ import {
   MapPin,
   CalendarDays,
   Trophy,
-  Clock3,
-  CheckCircle2,
-  AlertCircle,
   X,
   ShieldAlert,
   Flag,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { formatTournamentStatus } from "../../styles/schema/tournamentStatusFlow";
-import { formatStatus } from "../../utils/statusFormat";
 import type {
   Tournament,
   TournamentRegistrationResponse,
+  RaceItem,
 } from "../../types/tournament";
 import type { Horse } from "../../types/horse";
+import type { Entry } from "../../types/entry";
 import { TournamentService } from "../../services/TournamentService";
+import { HorseStatusIndicator } from "./HorseStatusIndicator";
+import { formatAge } from "./horseUtils";
 
 export interface TournamentRegisterProps {
   horses: Horse[];
@@ -29,6 +29,14 @@ export interface TournamentRegisterProps {
     horseId: string | null,
     tournamentId: number | null
   ) => void;
+  onEnterRace: (
+    raceId: string,
+    raceName: string,
+    laneCount: number,
+    tournamentId: string
+  ) => void;
+  onAssignJockey: (entryId: string) => void;
+  entries: Entry[];
 }
 
 type ActiveFilterType = "All" | "On going" | "Registration open" | "Completed";
@@ -83,28 +91,6 @@ function TournamentStatusBadge({ status }: { status: string }) {
   );
 }
 
-function RegistrationStatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    approved: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    pending: "bg-amber-100 text-amber-700 border-amber-200",
-    rejected: "bg-rose-100 text-rose-700 border-rose-200",
-  };
-
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider",
-        styles[status] ?? "bg-slate-100 text-slate-600 border-slate-200"
-      )}
-    >
-      {status === "approved" && <CheckCircle2 className="h-3 w-3" />}
-      {status === "pending" && <Clock3 className="h-3 w-3" />}
-      {status === "rejected" && <AlertCircle className="h-3 w-3" />}
-      {formatStatus(status)}
-    </span>
-  );
-}
-
 function StatFilterCard({
   label,
   value,
@@ -139,74 +125,98 @@ function StatFilterCard({
   );
 }
 
-function formatAge(dob: string): string {
-  if (!dob) return "N/A";
-  const birth = new Date(dob);
-  if (Number.isNaN(birth.getTime())) return "N/A";
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-  return `${age} years`;
-}
+type RegistrationGroup = {
+  tournament: Tournament;
+  items: TournamentRegistrationResponse[];
+};
 
-export function TournamentRegister({ registrations }: TournamentRegisterProps) {
+export function TournamentRegister({
+  registrations,
+  onEnterRace,
+  onAssignJockey,
+  entries,
+}: TournamentRegisterProps) {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<ActiveFilterType>("All");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedTournamentId, setSelectedTournamentId] = useState<
+    string | null
+  >(null);
 
-  const filteredRegistrations = useMemo(() => {
+  const grouped = useMemo(() => {
+    const map = new Map<string, RegistrationGroup>();
+    registrations.forEach((r) => {
+      const existing = map.get(r.tournament.id);
+      if (existing) {
+        existing.items.push(r);
+      } else {
+        map.set(r.tournament.id, {
+          tournament: r.tournament,
+          items: [r],
+        });
+      }
+    });
+    return Array.from(map.values());
+  }, [registrations]);
+
+  const filteredGroups = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-
-    return registrations.filter((r) => {
-      const tournament = r.tournament;
-      const horse = r.horse;
-
+    return grouped.filter((g) => {
       const matchesSearch =
         !keyword ||
-        tournament.name.toLowerCase().includes(keyword) ||
-        horse.name.toLowerCase().includes(keyword) ||
-        horse.breed.toLowerCase().includes(keyword) ||
-        tournament.location.toLowerCase().includes(keyword);
+        g.tournament.name.toLowerCase().includes(keyword) ||
+        g.items.some(
+          (r) =>
+            r.horse.name.toLowerCase().includes(keyword) ||
+            r.horse.breed.toLowerCase().includes(keyword)
+        ) ||
+        g.tournament.location.toLowerCase().includes(keyword);
+
+      const statusFilterMap: Record<string, string> = {
+        All: "All",
+        "On going": "ongoing",
+        "Registration open": "registration_open",
+        Completed: "completed",
+      };
 
       const matchesFilter =
         activeFilter === "All" ||
-        tournament.status === activeFilter.toLowerCase().replace(/\s+/g, "_");
+        g.tournament.status === statusFilterMap[activeFilter];
 
       return matchesSearch && matchesFilter;
     });
-  }, [registrations, search, activeFilter]);
+  }, [grouped, search, activeFilter]);
 
   const counts = useMemo(() => {
     return {
-      all: registrations.length,
-      ongoing: registrations.filter((r) => r.tournament.status === "ongoing")
+      all: grouped.length,
+      ongoing: grouped.filter((g) => g.tournament.status === "ongoing").length,
+      open: grouped.filter((g) => g.tournament.status === "registration_open")
         .length,
-      open: registrations.filter(
-        (r) => r.tournament.status === "registration_open"
-      ).length,
-      completed: registrations.filter(
-        (r) => r.tournament.status === "completed"
-      ).length,
+      completed: grouped.filter((g) => g.tournament.status === "completed")
+        .length,
     };
-  }, [registrations]);
+  }, [grouped]);
 
-  const selectedRegistration = useMemo(
-    () => filteredRegistrations.find((r) => r.id === selectedId) ?? null,
-    [filteredRegistrations, selectedId]
+  const selectedGroup = useMemo(
+    () =>
+      filteredGroups.find((g) => g.tournament.id === selectedTournamentId) ??
+      null,
+    [filteredGroups, selectedTournamentId]
   );
+
+  const [detailTab, setDetailTab] = useState<"details" | "races">("details");
 
   const [tournamentDetail, setTournamentDetail] = useState<Tournament | null>(
     null
   );
 
   useEffect(() => {
-    if (!selectedRegistration) return;
+    if (!selectedGroup) return;
     startTransition(() => {
       setTournamentDetail(null);
     });
     let cancelled = false;
-    TournamentService.getTournamentByID(selectedRegistration.tournament.id)
+    TournamentService.getTournamentByID(selectedGroup.tournament.id)
       .then((data) => {
         if (!cancelled) setTournamentDetail(data);
       })
@@ -216,15 +226,43 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
     return () => {
       cancelled = true;
     };
-  }, [selectedRegistration]);
+  }, [selectedGroup]);
+
+  const [tournamentRaces, setTournamentRaces] = useState<RaceItem[]>([]);
+  const [racesLoading, setRacesLoading] = useState(false);
+
+  useEffect(() => {
+    if (!selectedGroup) {
+      return;
+    }
+    let cancelled = false;
+    startTransition(() => {
+      setRacesLoading(true);
+    });
+    TournamentService.getTournamentRaces(selectedGroup.tournament.id, {
+      limit: 100,
+    })
+      .then((data) => {
+        if (!cancelled) setTournamentRaces(data.data ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setTournamentRaces([]);
+      })
+      .finally(() => {
+        if (!cancelled) setRacesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedGroup]);
 
   const displayTournament =
-    tournamentDetail ?? selectedRegistration?.tournament;
+    tournamentDetail ?? selectedGroup?.tournament ?? null;
 
-  const isPanelOpen = selectedRegistration !== null;
+  const isPanelOpen = selectedGroup !== null;
 
   const handleSelect = (id: string) => {
-    setSelectedId((prev) => (prev === id ? null : id));
+    setSelectedTournamentId((prev) => (prev === id ? null : id));
   };
 
   return (
@@ -259,7 +297,7 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
             active={activeFilter === "All"}
             onClick={() => {
               setActiveFilter("All");
-              setSelectedId(null);
+              setSelectedTournamentId(null);
             }}
           />
           <StatFilterCard
@@ -268,7 +306,7 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
             active={activeFilter === "On going"}
             onClick={() => {
               setActiveFilter("On going");
-              setSelectedId(null);
+              setSelectedTournamentId(null);
             }}
           />
           <StatFilterCard
@@ -277,7 +315,7 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
             active={activeFilter === "Registration open"}
             onClick={() => {
               setActiveFilter("Registration open");
-              setSelectedId(null);
+              setSelectedTournamentId(null);
             }}
           />
           <StatFilterCard
@@ -286,7 +324,7 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
             active={activeFilter === "Completed"}
             onClick={() => {
               setActiveFilter("Completed");
-              setSelectedId(null);
+              setSelectedTournamentId(null);
             }}
           />
         </div>
@@ -297,17 +335,17 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
               isPanelOpen ? "lg:col-span-3" : "lg:col-span-12"
             }`}
           >
-            {filteredRegistrations.length > 0 ? (
-              filteredRegistrations.map((r) => {
-                const isSelected = selectedRegistration?.id === r.id;
-                const tournament = r.tournament;
-                const horse = r.horse;
+            {filteredGroups.length > 0 ? (
+              filteredGroups.map((g) => {
+                const isSelected =
+                  selectedGroup?.tournament.id === g.tournament.id;
+                const tournament = g.tournament;
                 const isLive = tournament.status === "ongoing";
 
                 return (
                   <div
-                    key={r.id}
-                    onClick={() => handleSelect(r.id)}
+                    key={g.tournament.id}
+                    onClick={() => handleSelect(g.tournament.id)}
                     className={`group cursor-pointer overflow-hidden rounded-2xl border bg-card transition-all duration-150 ${
                       isSelected
                         ? "border-primary ring-1 ring-primary bg-primary/5"
@@ -344,11 +382,18 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                             {formatDate(tournament.startDate)}
                           </span>
                         </div>
-                        <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                          <span className="flex items-center gap-1 text-[11px] font-semibold text-foreground/80">
-                            {horse.name}
-                          </span>
-                          <RegistrationStatusBadge status={r.status} />
+                        <div className="mt-2 divide-y divide-border border-t border-border">
+                          {g.items.map((r) => (
+                            <div
+                              key={r.id}
+                              className="flex items-center justify-between py-1.5"
+                            >
+                              <span className="text-sm font-bold text-primary/90 truncate pr-2">
+                                {r.horse.name}
+                              </span>
+                              <HorseStatusIndicator status={r.status} />
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -365,7 +410,7 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
             )}
           </div>
 
-          {isPanelOpen && selectedRegistration && (
+          {isPanelOpen && selectedGroup && (
             <div className="lg:col-span-9 lg:sticky lg:top-4 bg-card border border-border rounded-2xl shadow-md overflow-hidden flex flex-col">
               <div className="border-b border-primary/20 bg-primary px-6 py-5 flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -382,152 +427,290 @@ export function TournamentRegister({ registrations }: TournamentRegisterProps) {
                   </p>
                 </div>
                 <button
-                  onClick={() => setSelectedId(null)}
+                  onClick={() => setSelectedTournamentId(null)}
                   className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>
 
-              <div className="p-6 max-h-[550px] overflow-y-auto custom-scrollbar space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
-                    <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
-                      H
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                        Horse
-                      </p>
-                      <p className="text-base font-black text-foreground mt-1">
-                        {selectedRegistration.horse.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {selectedRegistration.horse.breed} ·{" "}
-                        {formatAge(selectedRegistration.horse.birthDate)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
-                    <div className="p-2.5 bg-secondary/15 text-secondary rounded-lg">
-                      <CalendarDays className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                        Registration Status
-                      </p>
-                      <div className="mt-1 flex items-center gap-3">
-                        <RegistrationStatusBadge
-                          status={selectedRegistration.status}
-                        />
-                        <span className="text-xs text-muted-foreground font-medium">
-                          Submitted{" "}
-                          {formatDate(selectedRegistration.submittedAt)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
-                    <div className="p-2.5 bg-muted text-muted-foreground rounded-lg">
-                      <ShieldAlert className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                        Tournament Status
-                      </p>
-                      <div className="mt-1">
-                        <TournamentStatusBadge
-                          status={displayTournament?.status ?? ""}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
-                    <div className="p-2.5 bg-muted text-muted-foreground rounded-lg">
-                      <CalendarDays className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                        Registration Period
-                      </p>
-                      <p className="text-sm font-bold text-foreground mt-1">
-                        {displayTournament?.registrationOpenDate
-                          ? `${formatDateFull(displayTournament?.registrationOpenDate)} - ${displayTournament?.registrationCloseDate ? formatDateFull(displayTournament?.registrationCloseDate) : "TBD"}`
-                          : "Not specified"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-border bg-card p-4.5">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
+              <div className="border-b border-border px-6 pt-5 pb-3">
+                <div className="inline-flex rounded-xl bg-slate-100 p-1 self-start">
+                  <button
+                    onClick={() => setDetailTab("details")}
+                    className={`rounded-lg px-5 py-1.5 text-xs font-bold transition-all ${
+                      detailTab === "details"
+                        ? "bg-white text-[#064E3B] shadow-sm"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
                     Tournament Details
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Location</p>
-                      <p className="text-sm font-bold text-foreground flex items-center gap-1.5 mt-0.5">
-                        <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                        {displayTournament?.location || "Not specified"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">
-                        Prize Pool
-                      </p>
-                      <p className="text-sm font-bold text-foreground mt-0.5">
-                        {displayTournament?.prizePool != null
-                          ? `$${displayTournament?.prizePool.toLocaleString()}`
-                          : "Not announced"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">
-                        Max Participants
-                      </p>
-                      <p className="text-sm font-bold text-foreground mt-0.5">
-                        {displayTournament?.maximumParticipants ??
-                          "Not specified"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Dates</p>
-                      <p className="text-sm font-bold text-foreground mt-0.5">
-                        {formatDateFull(displayTournament?.startDate)} -{" "}
-                        {formatDateFull(displayTournament?.endDate)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {displayTournament?.description && (
-                    <div className="mt-4 pt-4 border-t border-border">
-                      <p className="text-xs text-muted-foreground mb-1">
-                        Description
-                      </p>
-                      <p className="text-sm font-medium text-foreground leading-relaxed">
-                        {displayTournament?.description}
-                      </p>
-                    </div>
-                  )}
-
-                  {displayTournament?.rules && (
-                    <div className="mt-4 pt-4 border-t border-border">
-                      <p className="text-xs font-bold text-foreground mb-1 flex items-center gap-1.5">
-                        <ShieldAlert className="h-3.5 w-3.5 text-muted-foreground" />
-                        Rules & Regulations
-                      </p>
-                      <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
-                        {displayTournament?.rules}
-                      </p>
-                    </div>
-                  )}
+                  </button>
+                  <button
+                    onClick={() => setDetailTab("races")}
+                    className={`rounded-lg px-5 py-1.5 text-xs font-bold transition-all ${
+                      detailTab === "races"
+                        ? "bg-white text-[#064E3B] shadow-sm"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    Races
+                  </button>
                 </div>
+              </div>
 
-                {displayTournament?.status === "registration_open" && (
-                  <div className="flex items-center justify-end gap-3"></div>
+              <div className="p-6 max-h-[550px] overflow-y-auto custom-scrollbar space-y-6">
+                {detailTab === "details" ? (
+                  <>
+                    <div className="p-4.5 rounded-xl border border-border bg-card flex flex-col gap-3">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Registered Horses ({selectedGroup.items.length})
+                      </p>
+                      <div className="max-h-[200px] overflow-y-auto custom-scrollbar divide-y divide-border">
+                        {selectedGroup.items.map((r) => (
+                          <div
+                            key={r.id}
+                            className="flex items-center justify-between py-2.5"
+                          >
+                            <div className="min-w-0 pr-3">
+                              <p className="text-sm font-bold text-foreground truncate">
+                                {r.horse.name}
+                              </p>
+                              {r.horse.breed && (
+                                <p className="text-[10px] text-muted-foreground">
+                                  {r.horse.breed}
+                                  {r.horse.birthDate
+                                    ? ` · ${formatAge(r.horse.birthDate)}`
+                                    : ""}
+                                </p>
+                              )}
+                            </div>
+                            <HorseStatusIndicator status={r.status} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-4.5 rounded-xl border border-border bg-card flex flex-col items-start gap-2.5">
+                        <div className="p-2 bg-secondary/15 text-secondary rounded-lg">
+                          <CalendarDays className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            Tournament Status
+                          </p>
+                          <div className="mt-1">
+                            <TournamentStatusBadge
+                              status={displayTournament?.status ?? ""}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4.5 rounded-xl border border-border bg-card flex flex-col items-start gap-2.5">
+                        <div className="p-2 bg-muted text-muted-foreground rounded-lg">
+                          <CalendarDays className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            Registration Period
+                          </p>
+                          <p className="text-sm font-bold text-foreground mt-1">
+                            {displayTournament?.registrationOpenDate
+                              ? `${formatDateFull(displayTournament?.registrationOpenDate)} - ${displayTournament?.registrationCloseDate ? formatDateFull(displayTournament?.registrationCloseDate) : "TBD"}`
+                              : "Not specified"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-border bg-card p-4.5">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                        Tournament Details
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-muted-foreground">
+                            Location
+                          </p>
+                          <p className="text-sm font-bold text-foreground flex items-center gap-1.5 mt-0.5">
+                            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                            {displayTournament?.location || "Not specified"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">
+                            Prize Pool
+                          </p>
+                          <p className="text-sm font-bold text-foreground mt-0.5">
+                            {displayTournament?.prizePool != null
+                              ? `$${displayTournament?.prizePool.toLocaleString()}`
+                              : "Not announced"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">
+                            Max Participants
+                          </p>
+                          <p className="text-sm font-bold text-foreground mt-0.5">
+                            {displayTournament?.maximumParticipants ??
+                              "Not specified"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Dates</p>
+                          <p className="text-sm font-bold text-foreground mt-0.5">
+                            {formatDateFull(displayTournament?.startDate)} -{" "}
+                            {formatDateFull(displayTournament?.endDate)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {displayTournament?.description && (
+                        <div className="mt-4 pt-4 border-t border-border">
+                          <p className="text-xs text-muted-foreground mb-1">
+                            Description
+                          </p>
+                          <p className="text-sm font-medium text-foreground leading-relaxed">
+                            {displayTournament?.description}
+                          </p>
+                        </div>
+                      )}
+
+                      {displayTournament?.rules && (
+                        <div className="mt-4 pt-4 border-t border-border">
+                          <p className="text-xs font-bold text-foreground mb-1 flex items-center gap-1.5">
+                            <ShieldAlert className="h-3.5 w-3.5 text-muted-foreground" />
+                            Rules & Regulations
+                          </p>
+                          <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
+                            {displayTournament?.rules}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-xl border border-border bg-card p-4.5">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                      Races
+                    </p>
+                    {racesLoading ? (
+                      <div className="text-xs text-muted-foreground py-4 text-center">
+                        Loading races...
+                      </div>
+                    ) : tournamentRaces.length > 0 ? (
+                      <div className="space-y-2">
+                        {tournamentRaces.map((race) => {
+                          const isScheduled = race.status === "scheduled";
+                          const groupHorseIds = new Set(
+                            selectedGroup.items.map((r) => r.horse.id)
+                          );
+                          const groupEntries = entries.filter(
+                            (e) =>
+                              e.raceId === race.id &&
+                              groupHorseIds.has(e.horseId)
+                          );
+                          const anyApproved = selectedGroup.items.some(
+                            (r) => r.status === "approved"
+                          );
+                          return (
+                            <div
+                              key={race.id}
+                              className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:bg-slate-50/50 transition-colors"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-bold text-foreground truncate">
+                                  {race.name}
+                                </p>
+                                <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground mt-0.5">
+                                  <span>{race.roundName}</span>
+                                  <span>
+                                    {new Date(race.scheduledAt).toLocaleString(
+                                      "en-US",
+                                      {
+                                        month: "short",
+                                        day: "numeric",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      }
+                                    )}
+                                  </span>
+                                  <span>{race.laneCount} lanes</span>
+                                </div>
+                                {groupEntries.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-1.5">
+                                    {groupEntries.map((entry) => {
+                                      const horseName =
+                                        selectedGroup.items.find(
+                                          (r) => r.horse.id === entry.horseId
+                                        )?.horse.name ?? "";
+                                      const hasJockey =
+                                        entry.jockeyName &&
+                                        entry.jockeyName !== "";
+                                      return (
+                                        <span
+                                          key={entry.entryId}
+                                          className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/30 px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground"
+                                        >
+                                          {horseName}
+                                          {hasJockey
+                                            ? " (assigned)"
+                                            : " (no jockey)"}
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 ml-3 shrink-0">
+                                {groupEntries.map((entry) => {
+                                  const hasJockey =
+                                    entry.jockeyName && entry.jockeyName !== "";
+                                  if (!hasJockey && isScheduled) {
+                                    return (
+                                      <button
+                                        key={entry.entryId}
+                                        onClick={() =>
+                                          onAssignJockey(entry.entryId)
+                                        }
+                                        className="rounded-md border border-[#064E3B]/20 bg-[#064E3B]/5 text-[#064E3B] px-3 py-1.5 text-[10px] font-bold hover:bg-[#064E3B]/10 transition-colors"
+                                      >
+                                        Assign
+                                      </button>
+                                    );
+                                  }
+                                  return null;
+                                })}
+                                {isScheduled &&
+                                  anyApproved &&
+                                  groupEntries.length === 0 && (
+                                    <button
+                                      onClick={() =>
+                                        onEnterRace(
+                                          race.id,
+                                          race.name,
+                                          race.laneCount,
+                                          race.tournamentId
+                                        )
+                                      }
+                                      className="rounded-md bg-[#064E3B] text-white px-3 py-1.5 text-[10px] font-bold hover:bg-[#043E2F] transition-colors"
+                                    >
+                                      Enter
+                                    </button>
+                                  )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground py-4 text-center">
+                        No races available for this tournament.
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect, startTransition, type FormEvent } from "react";
 import { X, Loader2, Plus } from "lucide-react";
 import { AdminService } from "../../../services/AdminService";
 import AddTrackDistanceModal from "./AddTrackDistanceModal";
@@ -43,6 +43,7 @@ const initialForm: RaceFormData = {
 
 type Props = {
   initial?: Partial<RaceFormData>;
+  initialTrackId?: string;
   onClose: () => void;
   onSubmit: (data: RaceFormData) => Promise<string | null>;
   actionLoading: boolean;
@@ -52,6 +53,7 @@ type Props = {
 
 export default function RaceForm({
   initial,
+  initialTrackId,
   onClose,
   onSubmit,
   actionLoading,
@@ -71,6 +73,15 @@ export default function RaceForm({
   const [distancesLoading, setDistancesLoading] = useState(false);
   const [showAddDistance, setShowAddDistance] = useState(false);
 
+  // Seed track selector when editing
+  useEffect(() => {
+    if (initialTrackId && initial?.trackDistanceId) {
+      startTransition(() => {
+        setSelectedTrackId(initialTrackId);
+      });
+    }
+  }, [initialTrackId, initial?.trackDistanceId]);
+
   // Load tracks on mount
   useEffect(() => {
     const load = async () => {
@@ -80,7 +91,7 @@ export default function RaceForm({
         const list = Array.isArray(data) ? data : (data?.data ?? []);
         setTracks(Array.isArray(list) ? list : []);
       } catch {
-        // silently fail
+        setError("Failed to load tracks. Please try again.");
       } finally {
         setTracksLoading(false);
       }
@@ -110,7 +121,12 @@ export default function RaceForm({
     setSelectedTrackId(trackId);
     const track = tracks.find((c) => c.id === trackId);
     if (track) {
-      setForm((prev) => ({ ...prev, venue: track.name }));
+      setForm((prev) => ({
+        ...prev,
+        venue: track.name,
+        trackDistanceId: "",
+        distanceMeters: 0,
+      }));
     }
   };
 

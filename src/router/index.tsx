@@ -128,7 +128,15 @@ export const router = createBrowserRouter([
             element: <OwnerPage />,
           },
           {
+            path: ROUTES.OWNER_ENTRIES,
+            element: <OwnerPage />,
+          },
+          {
             path: ROUTES.OWNER_SEND_INVITES,
+            element: <OwnerPage />,
+          },
+          {
+            path: ROUTES.OWNER_ENTRY_SEND_INVITES,
             element: <OwnerPage />,
           },
         ],

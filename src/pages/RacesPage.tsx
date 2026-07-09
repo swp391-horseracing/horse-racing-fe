@@ -15,6 +15,7 @@ import {
   Layers,
   Trophy,
   Target,
+  Send,
 } from "lucide-react";
 import { ROUTES } from "../router/routes.tsx";
 
@@ -23,6 +24,7 @@ import { useRaces, useRaceDetail } from "../hooks/useRaces";
 import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
 import type { DateRange } from "react-day-picker";
 import { useToast } from "../hooks/useToast";
+import { useOwner } from "../hooks/useOwner";
 import { formatStatus } from "../utils/statusFormat";
 import {
   getRaceStatusStyle,
@@ -34,6 +36,7 @@ import { cn } from "../lib/utils";
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
 import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
 import { PlacePredictionModal } from "../components/spectator/PlacePredictionModal";
+import { EnterRaceModal } from "../components/owner/EnterRaceModal";
 
 interface RaceUI extends Omit<RaceListItem, "status"> {
   title: string;
@@ -109,11 +112,13 @@ function RaceRow({
   selected,
   onClick,
   showPredictBadge,
+  canEnter,
 }: {
   race: RaceUI;
   selected: boolean;
   onClick: () => void;
   showPredictBadge?: boolean;
+  canEnter?: boolean;
 }) {
   const isLive = race.status === "ongoing";
   return (
@@ -153,6 +158,11 @@ function RaceRow({
         </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0 pl-4">
+        {race.isOpenForPrediction && canEnter && (
+          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-[#064E3B] text-white border border-[#064E3B]/40">
+            Enter
+          </span>
+        )}
         {race.isOpenForPrediction && showPredictBadge && (
           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#EAB308]/15 text-[#8A6D00] border border-[#EAB308]/30">
             Predict
@@ -241,6 +251,13 @@ export default function RacesPage() {
     }
   });
   const isSpectator = userSession?.role === "spectator";
+  const isOwner = userSession?.role === "horse_owner";
+
+  const { enterRace, approvedTournamentIds, eligibleHorsesByTournament } =
+    useOwner();
+
+  const [enterRaceModalOpen, setEnterRaceModalOpen] = useState(false);
+
   const [predictModalOpen, setPredictModalOpen] = useState(
     () => !!(urlRaceId && searchParams.get("predict") === "true")
   );
@@ -267,6 +284,16 @@ export default function RacesPage() {
   const currentPrediction = raceDetail
     ? myPredictions.get(raceDetail.id)
     : undefined;
+
+  const eligibleHorsesForRace = raceDetail?.tournamentId
+    ? (eligibleHorsesByTournament.get(raceDetail.tournamentId) ?? [])
+    : [];
+
+  const canEnterRace =
+    isOwner &&
+    raceDetail?.status === "scheduled" &&
+    raceDetail?.tournamentId &&
+    approvedTournamentIds.has(raceDetail.tournamentId);
 
   useEffect(() => {
     loadRacesByMonth(viewYear, viewMonthIndex + 1);
@@ -631,6 +658,11 @@ export default function RacesPage() {
                           selected={raceId === race.id}
                           onClick={() => handleSelectRace(race.id)}
                           showPredictBadge={isSpectator}
+                          canEnter={
+                            isOwner &&
+                            race.isOpenForPrediction &&
+                            approvedTournamentIds.has(race.tournamentId)
+                          }
                         />
                       ))
                     ) : (
@@ -662,6 +694,11 @@ export default function RacesPage() {
                             selected={raceId === race.id}
                             onClick={() => handleSelectRace(race.id)}
                             showPredictBadge={isSpectator}
+                            canEnter={
+                              isOwner &&
+                              race.isOpenForPrediction &&
+                              approvedTournamentIds.has(race.tournamentId)
+                            }
                           />
                         ))}
                       </div>
@@ -754,20 +791,33 @@ export default function RacesPage() {
                     </div>
                   }
                   headerRight={
-                    isSpectator &&
-                    (raceDetail?.status === "scheduled" ||
-                      raceDetail?.status === "pre_race") && (
-                      <button
-                        onClick={() => {
-                          setModalKey((k) => k + 1);
-                          setPredictModalOpen(true);
-                        }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EAB308] text-[#064E3B] font-bold text-[11px] hover:bg-[#D9A207] hover:shadow-md transition-all cursor-pointer"
-                      >
-                        <Target className="w-3.5 h-3.5" />
-                        {currentPrediction ? "Update Prediction" : "Predict"}
-                      </button>
-                    )
+                    <>
+                      {canEnterRace && (
+                        <button
+                          onClick={() => setEnterRaceModalOpen(true)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#064E3B] text-white font-bold text-[11px] hover:bg-[#043E2F] hover:shadow-md transition-all cursor-pointer"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          Enter Race
+                        </button>
+                      )}
+                      {isSpectator &&
+                        (raceDetail?.status === "scheduled" ||
+                          raceDetail?.status === "pre_race") && (
+                          <button
+                            onClick={() => {
+                              setModalKey((k) => k + 1);
+                              setPredictModalOpen(true);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EAB308] text-[#064E3B] font-bold text-[11px] hover:bg-[#D9A207] hover:shadow-md transition-all cursor-pointer"
+                          >
+                            <Target className="w-3.5 h-3.5" />
+                            {currentPrediction
+                              ? "Update Prediction"
+                              : "Predict"}
+                          </button>
+                        )}
+                    </>
                   }
                   onClose={handleCloseDetail}
                   containerClass="border-slate-200 bg-white shadow-lg"
@@ -963,6 +1013,33 @@ export default function RacesPage() {
           <ToastContainer toasts={toasts} />
 
           {/* Place Prediction Modal */}
+          {raceDetail && (
+            <EnterRaceModal
+              isOpen={enterRaceModalOpen}
+              onClose={() => setEnterRaceModalOpen(false)}
+              raceName={raceDetail.name}
+              laneCount={raceDetail.laneCount ?? 0}
+              currentEntryCount={raceDetail.entries?.length ?? 0}
+              eligibleHorses={eligibleHorsesForRace}
+              onSubmit={async (horseId) => {
+                try {
+                  await enterRace(raceDetail.id, horseId);
+                  addToast("Horse entered into race successfully!", "success");
+                  loadDetail();
+                } catch (err: unknown) {
+                  const axiosError = err as {
+                    response?: { data?: { message?: string } };
+                  };
+                  addToast(
+                    axiosError?.response?.data?.message ||
+                      "Failed to enter race.",
+                    "error"
+                  );
+                  throw err;
+                }
+              }}
+            />
+          )}
           {raceDetail && (
             <PlacePredictionModal
               key={modalKey}

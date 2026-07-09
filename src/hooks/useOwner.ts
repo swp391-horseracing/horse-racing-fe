@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { HorseService } from "../services/HorseService";
 import { UserService } from "../services/UserService";
 import { JockeyService } from "../services/JockeyService.ts";
@@ -299,6 +299,42 @@ export function useOwner() {
     return true;
   };
 
+  const approvedTournamentIds = useMemo(
+    () =>
+      new Set(
+        registrations
+          .filter((r) => r.status === "approved")
+          .map((r) => r.tournament.id)
+      ),
+    [registrations]
+  );
+
+  const eligibleHorsesByTournament = useMemo(() => {
+    const map = new Map<string, { id: string; name: string }[]>();
+    registrations
+      .filter((r) => r.status === "approved")
+      .forEach((r) => {
+        const existing = map.get(r.tournament.id) ?? [];
+        existing.push({
+          id: r.horse.id,
+          name: r.horse.name,
+        });
+        map.set(r.tournament.id, existing);
+      });
+    return map;
+  }, [registrations]);
+
+  const enterRace = async (raceId: string, horseId: string) => {
+    const res = await UserService.createRaceEntry(raceId, horseId);
+    await loadEntries();
+    return res;
+  };
+
+  const withdrawEntry = async (raceId: string, entryId: string) => {
+    await UserService.withdrawRaceEntry(raceId, entryId);
+    await loadEntries();
+  };
+
   const loadOwnerSchedule = useCallback(async () => {
     setScheduleLoading(true);
     try {
@@ -465,6 +501,11 @@ export function useOwner() {
     retireHorse,
 
     registerTournament,
+
+    approvedTournamentIds,
+    eligibleHorsesByTournament,
+    enterRace,
+    withdrawEntry,
 
     inviteJockey,
     confirmPairing,

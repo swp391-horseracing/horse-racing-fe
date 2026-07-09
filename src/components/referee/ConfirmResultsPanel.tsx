@@ -2,6 +2,13 @@ import { useState, useCallback } from "react";
 import { Trophy, CheckCircle, AlertCircle } from "lucide-react";
 import type { MockRace, LaneEntry } from "../../types/referee";
 import { cn } from "../../lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 interface ConfirmResultsPanelProps {
   race: MockRace;
@@ -136,7 +143,7 @@ function validateResults(lanes: LaneEntry[]): {
   // Stop here if basic fields are missing
   if (errors.length > 0) return { valid: false, errors };
 
-  // 2. Dead-heat position ranking validation
+  // 2. Position ranking validation
   const positions = active.map((l) => l.finishPosition!).sort((a, b) => a - b);
 
   // Check positions start at 1
@@ -148,29 +155,19 @@ function validateResults(lanes: LaneEntry[]): {
     });
   }
 
-  // Check dead-heat gap rule: if N horses share position P, next position must be P+N
-  const positionCounts = new Map<number, number>();
-  for (const pos of positions) {
-    positionCounts.set(pos, (positionCounts.get(pos) || 0) + 1);
-  }
-
-  const sortedPositions = [...positionCounts.keys()].sort((a, b) => a - b);
-  let expectedNext = 1;
-  for (const pos of sortedPositions) {
-    if (pos !== expectedNext) {
-      errors.push({
-        field: "position",
-        laneId: "",
-        message: `Position gap error: expected #${expectedNext} but found #${pos}. With dead-heats, positions must skip accordingly (e.g., two #1s → next is #3).`,
-      });
-      break;
-    }
-    expectedNext = pos + positionCounts.get(pos)!;
+  // All positions must be unique
+  const uniquePositions = new Set(positions);
+  if (uniquePositions.size !== positions.length) {
+    errors.push({
+      field: "position",
+      laneId: "",
+      message:
+        "Each entry must have a unique position. Duplicate positions are not allowed.",
+    });
   }
 
   // 3. Time-position consistency
   if (errors.length === 0) {
-    // Group by position
     const byPosition = new Map<number, LaneEntry[]>();
     for (const lane of active) {
       const pos = lane.finishPosition!;
@@ -178,22 +175,6 @@ function validateResults(lanes: LaneEntry[]): {
       byPosition.get(pos)!.push(lane);
     }
 
-    // Horses sharing a position must have the same time
-    for (const [pos, group] of byPosition) {
-      if (group.length > 1) {
-        const times = group.map((l) => timeToSeconds(l.finishTime));
-        const allSame = times.every((t) => t === times[0]);
-        if (!allSame) {
-          errors.push({
-            field: "time",
-            laneId: "",
-            message: `Dead-heat at #${pos}: all horses sharing this position must have identical finish times.`,
-          });
-        }
-      }
-    }
-
-    // A better position must have a faster (or equal) time than the next
     const sortedGroups = [...byPosition.entries()].sort((a, b) => a[0] - b[0]);
     for (let i = 0; i < sortedGroups.length - 1; i++) {
       const [posA, groupA] = sortedGroups[i];
@@ -208,13 +189,13 @@ function validateResults(lanes: LaneEntry[]): {
         errors.push({
           field: "time",
           laneId: "",
-          message: `Time inconsistency: #${posA} finishers must have a faster time than #${posB} finishers.`,
+          message: `Time inconsistency: #${posA} must have a faster time than #${posB}.`,
         });
       } else if (worstTimeA === bestTimeB) {
         errors.push({
           field: "time",
           laneId: "",
-          message: `#${posA} and #${posB} have the same finish time but different positions. Consider a dead-heat.`,
+          message: `#${posA} and #${posB} have the same finish time.`,
         });
       }
     }
@@ -241,6 +222,13 @@ export default function ConfirmResultsPanel({
   const markBlurred = useCallback((key: string) => {
     setBlurredFields((prev) => new Set(prev).add(key));
   }, []);
+
+  const allPositions = Array.from(
+    { length: activeLanes.length },
+    (_, i) => i + 1
+  );
+  const positionTakenByOther = (laneId: string, pos: number) =>
+    activeLanes.some((l) => l.id !== laneId && l.finishPosition === pos);
 
   const handleTimeBlur = (laneId: string, rawValue: string) => {
     const formatted = parseAndFormatTime(rawValue);
@@ -320,31 +308,47 @@ export default function ConfirmResultsPanel({
                       {lane.jockeyName}
                     </td>
                     <td className="py-2.5 px-3">
-                      <input
-                        type="number"
-                        min={1}
-                        max={activeLanes.length}
-                        value={lane.finishPosition ?? ""}
-                        onChange={(e) =>
+                      <Select
+                        value={lane.finishPosition?.toString() ?? ""}
+                        onValueChange={(val) =>
                           onSetPlacement(
                             lane.id,
-                            e.target.value ? parseInt(e.target.value) : null
+                            val ? parseInt(val, 10) : null
                           )
                         }
-                        onBlur={() => markBlurred(`pos-${lane.id}`)}
                         disabled={!!lane.flag}
-                        className={cn(
-                          "w-16 border rounded-lg px-2 py-1 text-xs font-bold text-center focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20",
-                          !lane.finishPosition &&
-                            !lane.flag &&
-                            blurredFields.has(`pos-${lane.id}`)
-                            ? "border-red-400 bg-red-50/50"
-                            : hasFieldError("position", lane.id)
+                        onOpenChange={(open) => {
+                          if (!open) markBlurred(`pos-${lane.id}`);
+                        }}
+                      >
+                        <SelectTrigger
+                          className={cn(
+                            "w-16 border rounded-lg px-2 py-1 text-xs font-bold text-center focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20",
+                            !lane.finishPosition &&
+                              !lane.flag &&
+                              blurredFields.has(`pos-${lane.id}`)
                               ? "border-red-400 bg-red-50/50"
-                              : "border-slate-200"
-                        )}
-                        placeholder="#"
-                      />
+                              : hasFieldError("position", lane.id)
+                                ? "border-red-400 bg-red-50/50"
+                                : "border-slate-200"
+                          )}
+                        >
+                          <SelectValue placeholder="#" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {allPositions
+                            .filter(
+                              (pos) =>
+                                pos === lane.finishPosition ||
+                                !positionTakenByOther(lane.id, pos)
+                            )
+                            .map((pos) => (
+                              <SelectItem key={pos} value={pos.toString()}>
+                                {pos}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
                     </td>
                     <td className="py-2.5 px-3">
                       <input

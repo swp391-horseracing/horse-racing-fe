@@ -39,7 +39,7 @@ export function JockeyRosterManagement() {
     : [];
 
   const handleFindJockey = (entry: Entry) => {
-    navigate(`/entries/${entry.entryId}/send-invites`);
+    navigate(`/owner/entries/${entry.entryId}/send-invites`);
   };
 
   const handleConfirm = (Inv: any) => {
