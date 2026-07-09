@@ -1,5 +1,13 @@
 import React from "react";
-import { Calendar, FileText, Dumbbell, Heart, Sparkles, Gauge, HeartPulse } from "lucide-react";
+import {
+  Calendar,
+  FileText,
+  Dumbbell,
+  Heart,
+  Sparkles,
+  Gauge,
+  HeartPulse,
+} from "lucide-react";
 
 interface AddHorseModalProps {
   isOpen: boolean;

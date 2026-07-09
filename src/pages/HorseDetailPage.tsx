@@ -263,11 +263,19 @@ export default function HorseDetailPage() {
                 />
                 <InfoRow
                   label="Base Speed"
-                  value={selectedHorse.baseSpeed != null ? String(selectedHorse.baseSpeed) : "N/A"}
+                  value={
+                    selectedHorse.baseSpeed != null
+                      ? String(selectedHorse.baseSpeed)
+                      : "N/A"
+                  }
                 />
                 <InfoRow
                   label="Stamina"
-                  value={selectedHorse.stamina != null ? String(selectedHorse.stamina) : "N/A"}
+                  value={
+                    selectedHorse.stamina != null
+                      ? String(selectedHorse.stamina)
+                      : "N/A"
+                  }
                 />
                 <InfoRow
                   label="Breed"
@@ -275,7 +283,11 @@ export default function HorseDetailPage() {
                 />
                 <InfoRow
                   label="Health"
-                  value={(selectedHorse as any).healthStatus ? formatStatus((selectedHorse as any).healthStatus) : "No Info"}
+                  value={
+                    (selectedHorse as any).healthStatus
+                      ? formatStatus((selectedHorse as any).healthStatus)
+                      : "No Info"
+                  }
                 />
                 <InfoRow
                   label="Created"
