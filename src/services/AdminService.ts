@@ -10,16 +10,16 @@ import type { RaceReport } from "../types/referee.ts";
 
 export const AdminService = {
   // ── Users ──
-  getCourses: async () => {
+  getTracks: async () => {
     const response = await api.get(`/courses`);
     return response.data;
   },
-  getCourseDistances: async (id: string) => {
+  getTrackDistances: async (id: string) => {
     const response = await api.get(`/courses/${id}/distances`);
     return response.data;
   },
-  createCourseDistance: async (courseId: string, distanceMeters: number) => {
-    const response = await api.post(`/courses/${courseId}/distances`, {
+  createTrackDistance: async (trackId: string, distanceMeters: number) => {
+    const response = await api.post(`/courses/${trackId}/distances`, {
       distanceMeters: Number(distanceMeters),
     });
     return response.data;

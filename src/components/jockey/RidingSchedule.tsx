@@ -30,6 +30,7 @@ import {
 import { UserService } from "../../services/UserService";
 import type { RaceEntry } from "../../types/race";
 import { formatStatus } from "../../utils/statusFormat";
+import { getRaceStatusStyle } from "../../utils/statusStyles";
 
 type RideDetailTab = "info" | "runners";
 
@@ -387,11 +388,9 @@ export function RidingSchedule({
                           <span
                             className={cn(
                               "text-[10px] font-bold px-2 py-0.5 rounded uppercase",
-                              ride.status === "live"
-                                ? "bg-rose-100 text-rose-700"
-                                : ride.status === "completed"
-                                  ? "bg-slate-100 text-slate-600"
-                                  : "bg-emerald-100 text-emerald-700"
+                              getRaceStatusStyle(
+                                ride.status === "live" ? "ongoing" : ride.status
+                              )
                             )}
                           >
                             {formatStatus(ride.status)}
@@ -808,7 +807,12 @@ function OwnerDetailPanel({
         </div>
       }
       headerRight={
-        <span className="px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm bg-secondary !text-secondary-foreground border-transparent">
+        <span
+          className={cn(
+            "px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm",
+            getRaceStatusStyle(ride.status === "live" ? "ongoing" : ride.status)
+          )}
+        >
           {formatStatus(ride.status)}
         </span>
       }

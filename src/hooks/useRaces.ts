@@ -133,6 +133,8 @@ export function useRaces() {
   const [races, setRaces] = useState<RaceListItem[]>([]);
   const [rangeRaces, setRangeRaces] = useState<RaceListItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [upcomingRaces, setUpcomingRaces] = useState<RaceListItem[]>([]);
+  const [upcomingLoading, setUpcomingLoading] = useState(false);
 
   const loadRacesByMonth = useCallback(async (year: number, month: number) => {
     setLoading(true);
@@ -180,6 +182,60 @@ export function useRaces() {
     }
   }, []);
 
+  const loadUpcomingRaces = useCallback(async (limit = 10) => {
+    setUpcomingLoading(true);
+    try {
+      const now = new Date();
+      const collected: RaceListItem[] = [];
+      const maxMonths = 6;
+      for (let i = 0; i < maxMonths && collected.length < limit; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        const data = await ScheduleService.getRacesByMonth(
+          d.getFullYear(),
+          d.getMonth() + 1
+        );
+        const upcoming = (Array.isArray(data) ? data : []).filter(
+          (r: RaceListItem) =>
+            r.status === "scheduled" || r.status === "pre_race"
+        );
+        collected.push(...upcoming);
+      }
+      collected.sort(
+        (a, b) =>
+          new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
+      );
+      const topRaces = collected.slice(0, limit);
+
+      const [detailResults, entryResults] = await Promise.all([
+        Promise.allSettled(topRaces.map((r) => RaceService.getRaceById(r.id))),
+        Promise.allSettled(
+          topRaces.map((r) => RaceService.getRaceHorses(r.id))
+        ),
+      ]);
+      const enriched: RaceListItem[] = topRaces.map((race, i) => {
+        const detail = detailResults[i];
+        const entries = entryResults[i];
+        let enriched = { ...race };
+        if (detail.status === "fulfilled" && detail.value?.course) {
+          enriched = { ...enriched, course: detail.value.course };
+        }
+        if (entries.status === "fulfilled") {
+          const list = Array.isArray(entries.value)
+            ? entries.value
+            : (entries.value?.data ?? []);
+          enriched = { ...enriched, entryCount: list.length };
+        }
+        return enriched;
+      });
+
+      setUpcomingRaces(enriched);
+    } catch {
+      setUpcomingRaces([]);
+    } finally {
+      setUpcomingLoading(false);
+    }
+  }, []);
+
   const token = localStorage.getItem("token");
 
   useRaceSocket(
@@ -193,21 +249,33 @@ export function useRaces() {
         case "race:status_changed":
           setRaces(updater);
           setRangeRaces(updater);
+          setUpcomingRaces(updater);
           break;
         case "race:result_published":
           setRaces(updater);
           setRangeRaces(updater);
+          setUpcomingRaces(updater);
           break;
         case "race:result_updated":
           setRaces(updater);
           setRangeRaces(updater);
+          setUpcomingRaces(updater);
           break;
       }
     }, []),
     { token }
   );
 
-  return { races, rangeRaces, loading, loadRacesByMonth, loadRacesForRange };
+  return {
+    races,
+    rangeRaces,
+    loading,
+    upcomingRaces,
+    upcomingLoading,
+    loadRacesByMonth,
+    loadRacesForRange,
+    loadUpcomingRaces,
+  };
 }
 
 export function useRaceDetail(raceId: string | null) {

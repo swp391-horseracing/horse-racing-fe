@@ -1,25 +1,23 @@
 import { useState, useCallback, useEffect } from "react";
 import type {
-  CourseDetail,
-  CourseListItem,
-  CourseDistance,
+  TrackDetail,
+  TrackListItem,
+  TrackDistance,
   TrackShape,
   PaginatedResponse,
-} from "../types/course";
-import { CourseService } from "../services/CourseService";
+} from "../types/track";
+import { TrackService } from "../services/TrackService";
 
-export function useCourse(initialParams?: {
-  autoFetchCourses?: boolean;
+export function useTrack(initialParams?: {
+  autoFetchTracks?: boolean;
   autoFetchTrackShapes?: boolean;
-  courseId?: string;
+  trackId?: string;
 }) {
-  // List & Detail State
-  const [courses, setCourses] = useState<CourseListItem[]>([]);
-  const [courseDetail, setCourseDetail] = useState<CourseDetail | null>(null);
-  const [distances, setDistances] = useState<CourseDistance[]>([]);
+  const [tracks, setTracks] = useState<TrackListItem[]>([]);
+  const [trackDetail, setTrackDetail] = useState<TrackDetail | null>(null);
+  const [distances, setDistances] = useState<TrackDistance[]>([]);
   const [trackShapes, setTrackShapes] = useState<TrackShape[]>([]);
 
-  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -28,45 +26,38 @@ export function useCourse(initialParams?: {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  // ==================== FETCH ====================
-
-  const getCourses = useCallback(
+  const getTracks = useCallback(
     async (params?: { page?: number; limit?: number; status?: string }) => {
       try {
         setLoading(true);
         setError(null);
 
-        // Merge current state with passed params
         const requestParams = {
           page: params?.page ?? currentPage,
           limit: params?.limit ?? limit,
           status: params?.status,
         };
 
-        const response = await CourseService.getCourses(requestParams);
+        const response = await TrackService.getTracks(requestParams);
 
-        // Handle PaginatedResponse { data: [], pagination: {} }
         if (response && typeof response === "object" && "data" in response) {
           const paginated =
-            response as unknown as PaginatedResponse<CourseListItem>;
+            response as unknown as PaginatedResponse<TrackListItem>;
 
-          setCourses(paginated.data ?? []);
+          setTracks(paginated.data ?? []);
 
           if (paginated.pagination) {
             setCurrentPage(paginated.pagination.page);
             setLimit(paginated.pagination.limit);
             setTotalItems(paginated.pagination.total);
 
-            // Calculate totalPages if not explicitly provided by API
             const calculatedPages = Math.ceil(
               paginated.pagination.total / paginated.pagination.limit
             );
             setTotalPages(paginated.pagination.totalPages || calculatedPages);
           }
-        }
-        // Fallback for plain array responses
-        else if (Array.isArray(response)) {
-          setCourses(response);
+        } else if (Array.isArray(response)) {
+          setTracks(response);
           setTotalItems(response.length);
           setTotalPages(1);
         }
@@ -74,7 +65,7 @@ export function useCourse(initialParams?: {
         return response;
       } catch (err) {
         const error = err as Error;
-        console.error("Error fetching courses:", error);
+        console.error("Error fetching tracks:", error);
         setError(error);
         throw error;
       } finally {
@@ -84,16 +75,16 @@ export function useCourse(initialParams?: {
     [currentPage, limit]
   );
 
-  const getCourseById = useCallback(async (courseId: string) => {
+  const getTrackById = useCallback(async (trackId: string) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await CourseService.getCourseById(courseId);
-      setCourseDetail(response);
+      const response = await TrackService.getTrackById(trackId);
+      setTrackDetail(response);
       return response;
     } catch (err) {
       const error = err as Error;
-      console.error("Error fetching course detail:", error);
+      console.error("Error fetching track detail:", error);
       setError(error);
       throw error;
     } finally {
@@ -101,16 +92,16 @@ export function useCourse(initialParams?: {
     }
   }, []);
 
-  const getCourseDistances = useCallback(async (courseId: string) => {
+  const getTrackDistances = useCallback(async (trackId: string) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await CourseService.getCourseDistances(courseId);
+      const response = await TrackService.getTrackDistances(trackId);
       setDistances(response ?? []);
       return response;
     } catch (err) {
       const error = err as Error;
-      console.error("Error fetching course distances:", error);
+      console.error("Error fetching track distances:", error);
       setError(error);
       throw error;
     } finally {
@@ -122,7 +113,7 @@ export function useCourse(initialParams?: {
     try {
       setLoading(true);
       setError(null);
-      const response = await CourseService.getTrackShapes();
+      const response = await TrackService.getTrackShapes();
       console.log("track", response);
       setTrackShapes(response ?? []);
       return response;
@@ -136,137 +127,123 @@ export function useCourse(initialParams?: {
     }
   }, []);
 
-  // ==================== ADMIN CRUD ====================
-
-  const createCourse = useCallback(
+  const createTrack = useCallback(
     async (data: any) => {
       try {
         setLoading(true);
         setError(null);
-        const response = await CourseService.createCourse(data);
-        // Refresh list and go back to page 1 to see new item
-        await getCourses({ page: 1 });
+        const response = await TrackService.createTrack(data);
+        await getTracks({ page: 1 });
         return response;
       } catch (err) {
         const error = err as Error;
-        console.error("Error creating course:", error);
+        console.error("Error creating track:", error);
         setError(error);
         throw error;
       } finally {
         setLoading(false);
       }
     },
-    [getCourses]
+    [getTracks]
   );
 
-  const updateCourse = useCallback(
-    async (courseId: string, data: any) => {
+  const updateTrack = useCallback(
+    async (trackId: string, data: any) => {
       try {
         setLoading(true);
         setError(null);
-        const response = await CourseService.updateCourse(courseId, data);
+        const response = await TrackService.updateTrack(trackId, data);
 
-        // Optimistic update for detail
-        if (courseDetail?.id === courseId) {
-          setCourseDetail(response);
+        if (trackDetail?.id === trackId) {
+          setTrackDetail(response);
         }
 
-        // Update in list
-        setCourses((prev) =>
-          prev.map((course) =>
-            course.id === courseId ? { ...course, ...response } : course
+        setTracks((prev) =>
+          prev.map((track) =>
+            track.id === trackId ? { ...track, ...response } : track
           )
         );
 
         return response;
       } catch (err) {
         const error = err as Error;
-        console.error("Error updating course:", error);
+        console.error("Error updating track:", error);
         setError(error);
         throw error;
       } finally {
         setLoading(false);
       }
     },
-    [courseDetail]
+    [trackDetail]
   );
 
-  const updateCourseStatus = useCallback(
-    async (courseId: string, status: string) => {
+  const updateTrackStatus = useCallback(
+    async (trackId: string, status: string) => {
       try {
         setLoading(true);
         setError(null);
-        const response = await CourseService.updateCourseStatus(
-          courseId,
-          status
-        );
+        const response = await TrackService.updateTrackStatus(trackId, status);
 
-        // Update in list and detail
-        setCourses((prev) =>
-          prev.map((course) =>
-            course.id === courseId ? { ...course, status } : course
+        setTracks((prev) =>
+          prev.map((track) =>
+            track.id === trackId ? { ...track, status } : track
           )
         );
 
-        if (courseDetail?.id === courseId) {
-          setCourseDetail((prev) => (prev ? { ...prev, status } : null));
+        if (trackDetail?.id === trackId) {
+          setTrackDetail((prev) => (prev ? { ...prev, status } : null));
         }
 
         return response;
       } catch (err) {
         const error = err as Error;
-        console.error("Error updating course status:", error);
+        console.error("Error updating track status:", error);
         setError(error);
         throw error;
       } finally {
         setLoading(false);
       }
     },
-    [courseDetail]
+    [trackDetail]
   );
 
-  const createCourseDistance = useCallback(
-    async (courseId: string, data: any) => {
+  const createTrackDistance = useCallback(
+    async (trackId: string, data: any) => {
       try {
         setLoading(true);
         setError(null);
-        const response = await CourseService.createCourseDistance(
-          courseId,
-          data
-        );
+        const response = await TrackService.createTrackDistance(trackId, data);
 
-        // Refresh distances if current course
-        if (courseDetail?.id === courseId) {
-          await getCourseDistances(courseId);
+        if (trackDetail?.id === trackId) {
+          await getTrackDistances(trackId);
         }
 
         return response;
       } catch (err) {
         const error = err as Error;
-        console.error("Error creating course distance:", error);
+        console.error("Error creating track distance:", error);
         setError(error);
         throw error;
       } finally {
         setLoading(false);
       }
     },
-    [courseDetail, getCourseDistances]
+    [trackDetail, getTrackDistances]
   );
 
-  const deleteCourseDistance = useCallback(
-    async (courseId: string, distanceId: string) => {
+  const deleteTrackDistance = useCallback(
+    async (trackId: string, distanceId: string) => {
       try {
         setLoading(true);
         setError(null);
-        await CourseService.deleteCourseDistance(courseId, distanceId);
+        await TrackService.deleteTrackDistance(trackId, distanceId);
 
-        // Optimistic update
         setDistances((prev) => prev.filter((d) => d.id !== distanceId));
 
         return true;
       } catch (err) {
         const error = err as Error;
-        console.error("Error deleting course distance:", error);
+        console.error("Error deleting track distance:", error);
         setError(error);
         throw error;
       } finally {
@@ -276,15 +253,13 @@ export function useCourse(initialParams?: {
     []
   );
 
-  // ==================== PAGINATION ACTIONS ====================
-
   const goToPage = useCallback(
     (page: number) => {
       if (page < 1 || page > totalPages) return;
       setCurrentPage(page);
-      getCourses({ page });
+      getTracks({ page });
     },
-    [totalPages, getCourses]
+    [totalPages, getTracks]
   );
 
   const nextPage = useCallback(() => {
@@ -299,17 +274,13 @@ export function useCourse(initialParams?: {
     }
   }, [currentPage, goToPage]);
 
-  // ==================== EFFECTS ====================
-
-  // Auto-fetch courses on mount
   useEffect(() => {
-    if (initialParams?.autoFetchCourses) {
+    if (initialParams?.autoFetchTracks) {
       /* eslint-disable react-hooks/set-state-in-effect */
-      getCourses();
+      getTracks();
     }
-  }, [initialParams?.autoFetchCourses, getCourses]);
+  }, [initialParams?.autoFetchTracks, getTracks]);
 
-  // Auto-fetch track shapes on mount
   useEffect(() => {
     if (initialParams?.autoFetchTrackShapes) {
       /* eslint-disable react-hooks/set-state-in-effect */
@@ -317,31 +288,28 @@ export function useCourse(initialParams?: {
     }
   }, [initialParams?.autoFetchTrackShapes, getTrackShapes]);
 
-  // Fetch course detail when courseId changes
   useEffect(() => {
-    if (initialParams?.courseId) {
+    if (initialParams?.trackId) {
       /* eslint-disable react-hooks/set-state-in-effect */
-      getCourseById(initialParams.courseId);
+      getTrackById(initialParams.trackId);
     } else {
-      setCourseDetail(null);
+      setTrackDetail(null);
     }
-  }, [initialParams?.courseId, getCourseById]);
+  }, [initialParams?.trackId, getTrackById]);
 
-  // Fetch distances when course detail is loaded
   useEffect(() => {
-    if (courseDetail?.id) {
+    if (trackDetail?.id) {
       /* eslint-disable react-hooks/set-state-in-effect */
-      getCourseDistances(courseDetail.id);
+      getTrackDistances(trackDetail.id);
     } else {
       setDistances([]);
     }
-  }, [courseDetail?.id, getCourseDistances]);
+  }, [trackDetail?.id, getTrackDistances]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      setCourses([]);
-      setCourseDetail(null);
+      setTracks([]);
+      setTrackDetail(null);
       setDistances([]);
       setTrackShapes([]);
       setError(null);
@@ -349,41 +317,35 @@ export function useCourse(initialParams?: {
   }, []);
 
   return {
-    // State
-    courses,
-    courseDetail,
+    tracks,
+    trackDetail,
     distances,
     trackShapes,
     loading,
     error,
 
-    // Pagination State
     currentPage,
     totalPages,
     totalItems,
     limit,
 
-    // Actions
-    getCourses,
-    getCourseById,
-    getCourseDistances,
+    getTracks,
+    getTrackById,
+    getTrackDistances,
     getTrackShapes,
 
-    // Pagination Actions
     goToPage,
     nextPage,
     prevPage,
 
-    // Admin actions
-    createCourse,
-    updateCourse,
-    updateCourseStatus,
-    createCourseDistance,
-    deleteCourseDistance,
+    createTrack,
+    updateTrack,
+    updateTrackStatus,
+    createTrackDistance,
+    deleteTrackDistance,
 
-    // Setters
-    setCourses,
-    setCourseDetail,
+    setTracks,
+    setTrackDetail,
     setDistances,
     setTrackShapes,
   };

@@ -7,8 +7,8 @@ export interface ReportDetailRace {
   name: string;
   raceNumber: number | null;
   distanceMeters: number | null;
-  courseName: string | null;
-  courseCity: string | null;
+  trackName: string | null;
+  trackCity: string | null;
   surfaceType: string | null;
   scheduledAt: string | null;
   laneCount: number | null;

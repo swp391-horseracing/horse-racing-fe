@@ -1,4 +1,4 @@
-import type { RaceApiStatus, RaceCourse } from "./race.ts";
+import type { RaceApiStatus, RaceTrack } from "./race.ts";
 
 export interface LoginResponse {
   email: string;
@@ -113,7 +113,7 @@ export interface UserRace {
   createdAt: string;
   updatedAt: string;
 
-  course?: RaceCourse;
+  course?: RaceTrack;
   venue?: string;
   distanceMeters?: number;
 

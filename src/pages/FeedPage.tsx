@@ -5,6 +5,8 @@ import { useRaces } from "../hooks/useRaces";
 import useTournament from "../hooks/useTournament";
 import { ROUTES } from "../router/routes";
 import { formatTournamentStatus } from "../styles/schema/tournamentStatusFlow";
+import { getRaceStatusStyle } from "../utils/statusStyles";
+import { formatStatus } from "../utils/statusFormat";
 import {
   Trophy,
   Calendar,
@@ -27,32 +29,19 @@ export default function FeedPage() {
 
   const {
     races: apiRaces,
-    loading: racesLoading,
+    upcomingRaces,
+    upcomingLoading,
     loadRacesByMonth,
+    loadUpcomingRaces,
   } = useRaces();
 
   // Load tournaments
   const { tournaments, loadingList: tournamentsLoading } = useTournament();
 
   useEffect(() => {
-    loadRacesByMonth(currentYear, currentMonth + 1);
-  }, [currentYear, currentMonth, loadRacesByMonth]);
-
-  // Filter and sort races (Upcoming/Live first, then limit to 5)
-  const upcomingRaces = useMemo(() => {
-    return apiRaces
-      .filter(
-        (r) =>
-          r.status === "scheduled" ||
-          r.status === "pre_race" ||
-          r.status === "ongoing"
-      )
-      .sort(
-        (a, b) =>
-          new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
-      )
-      .slice(0, 5);
-  }, [apiRaces]);
+    loadRacesByMonth(currentYear, currentMonth);
+    loadUpcomingRaces(5);
+  }, [currentYear, currentMonth, loadRacesByMonth, loadUpcomingRaces]);
 
   // Filter active/registration/upcoming tournaments
   const activeTournaments = useMemo(() => {
@@ -270,7 +259,7 @@ export default function FeedPage() {
                 </button>
               </div>
 
-              {racesLoading ? (
+              {upcomingLoading ? (
                 <div className="py-8 text-center">
                   <p className="text-xs font-semibold text-slate-400">
                     Loading schedules...
@@ -302,9 +291,16 @@ export default function FeedPage() {
                           <h4 className="font-bold text-xs text-slate-700 truncate group-hover:text-[#064E3B] transition-colors">
                             {race.name}
                           </h4>
-                          {race.status === "ongoing" && (
-                            <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
-                          )}
+                          <span
+                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${getRaceStatusStyle(race.status)}`}
+                          >
+                            {race.status === "ongoing"
+                              ? "Live"
+                              : race.status === "scheduled" ||
+                                  race.status === "pre_race"
+                                ? "Upcoming"
+                                : formatStatus(race.status)}
+                          </span>
                         </div>
                         <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">
                           {formatTime(race.scheduledAt)} · {race.venue}

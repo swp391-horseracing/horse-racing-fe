@@ -1,14 +1,13 @@
-// src/types/course.ts
-
 export interface TrackShape {
   id: string;
   shape: string;
   createdAt?: string;
   updatedAt?: string;
+  description?: string;
   [key: string]: any;
 }
 
-export interface CourseListItem {
+export interface TrackListItem {
   id: string;
   name: string;
   country?: string;
@@ -35,25 +34,26 @@ export interface PaginatedResponse<T> {
   };
 }
 
-export interface CourseDistance {
+export interface TrackDistance {
   id: string;
-  courseId: string;
+  trackId: string;
   distance: number;
   name?: string;
   type?: string;
   status?: string;
   createdAt?: string;
   updatedAt?: string;
+  distanceMeters?: number;
   [key: string]: any;
 }
 
-export interface GetCoursesParams {
+export interface GetTracksParams {
   page?: number;
   limit?: number;
   status?: string;
 }
 
-export interface CreateCourseData {
+export interface CreateTrackData {
   name: string;
   country: string;
   city: string;
@@ -67,7 +67,7 @@ export interface CreateCourseData {
   address?: string;
 }
 
-export interface UpdateCourseData {
+export interface UpdateTrackData {
   name?: string;
   country?: string;
   city?: string;
@@ -81,25 +81,14 @@ export interface UpdateCourseData {
   address?: string;
 }
 
-export interface CreateCourseDistanceData {
+export interface CreateTrackDistanceData {
   distance: number;
   name?: string;
   type?: string;
   status?: string;
 }
 
-export interface TrackShape {
-  id: string;
-  shape: string;
-  description: string;
-}
-
-export interface CourseDistance {
-  id: string;
-  distanceMeters: number;
-}
-
-export interface CourseDetail {
+export interface TrackDetail {
   id: string;
   name: string;
   country: string;
@@ -113,5 +102,5 @@ export interface CourseDetail {
   trackShape: TrackShape;
   createdAt: string;
   updatedAt: string;
-  distances: CourseDistance[];
+  distances: TrackDistance[];
 }

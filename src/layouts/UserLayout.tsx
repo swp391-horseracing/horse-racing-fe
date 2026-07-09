@@ -169,7 +169,7 @@ export default function UserLayout({
         key: ROUTES.ADMIN_DASHBOARD,
       },
       { label: "Access Management", icon: UserCheck, key: "/admin/access" },
-      { label: "Course Management", icon: Flag, key: "/admin/course" },
+      { label: "Track Management", icon: Flag, key: "/admin/track" },
       {
         label: "Registry & Approvals",
         icon: Mail,
