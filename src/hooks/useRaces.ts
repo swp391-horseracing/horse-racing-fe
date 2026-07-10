@@ -185,51 +185,13 @@ export function useRaces() {
   const loadUpcomingRaces = useCallback(async (limit = 10) => {
     setUpcomingLoading(true);
     try {
-      const now = new Date();
-      const collected: RaceListItem[] = [];
-      const maxMonths = 6;
-      for (let i = 0; i < maxMonths && collected.length < limit; i++) {
-        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-        const data = await ScheduleService.getRacesByMonth(
-          d.getFullYear(),
-          d.getMonth() + 1
-        );
-        const upcoming = (Array.isArray(data) ? data : []).filter(
-          (r: RaceListItem) =>
-            (r.status === "scheduled" || r.status === "pre_race") &&
-            new Date(r.scheduledAt).getTime() >= now.getTime()
-        );
-        collected.push(...upcoming);
-      }
-      collected.sort(
-        (a, b) =>
-          new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
-      );
-      const topRaces = collected.slice(0, limit);
-
-      const [detailResults, entryResults] = await Promise.all([
-        Promise.allSettled(topRaces.map((r) => RaceService.getRaceById(r.id))),
-        Promise.allSettled(
-          topRaces.map((r) => RaceService.getRaceHorses(r.id))
-        ),
-      ]);
-      const enriched: RaceListItem[] = topRaces.map((race, i) => {
-        const detail = detailResults[i];
-        const entries = entryResults[i];
-        let enriched = { ...race };
-        if (detail.status === "fulfilled" && detail.value?.course) {
-          enriched = { ...enriched, course: detail.value.course };
-        }
-        if (entries.status === "fulfilled") {
-          const list = Array.isArray(entries.value)
-            ? entries.value
-            : (entries.value?.data ?? []);
-          enriched = { ...enriched, entryCount: list.length };
-        }
-        return enriched;
+      const data = await RaceService.getRaces({
+        status: "scheduled,pre_race",
+        limit,
+        sort: "scheduleAt",
+        order: "asc",
       });
-
-      setUpcomingRaces(enriched);
+      setUpcomingRaces(Array.isArray(data) ? data : []);
     } catch {
       setUpcomingRaces([]);
     } finally {
