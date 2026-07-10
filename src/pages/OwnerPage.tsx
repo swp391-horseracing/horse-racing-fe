@@ -3,6 +3,7 @@ import { useLocation, useNavigate, matchPath } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes";
 import { useOwner } from "../hooks/useOwner";
+import { RaceService } from "../services/RaceService";
 
 import type { Horse } from "../types/horse";
 import { Clock } from "lucide-react";
@@ -335,9 +336,13 @@ export default function OwnerPage() {
             registrations={registrations}
             entries={entries}
             onEnterRace={async (raceId, raceName, laneCount, tournamentId) => {
-              const currentEntryCount = entries.filter(
-                (e) => e.raceId === raceId
-              ).length;
+              let currentEntryCount = 0;
+              try {
+                const detail = await RaceService.getRaceById(raceId);
+                currentEntryCount = detail.entries?.length ?? 0;
+              } catch {
+                // fall back to 0 if detail fetch fails
+              }
               setEnterRaceTarget({
                 raceId,
                 raceName,
