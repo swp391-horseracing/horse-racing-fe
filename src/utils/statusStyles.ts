@@ -1,3 +1,5 @@
+import { formatStatus } from "./formatters";
+
 export const RACE_STATUS_STYLES: Record<string, string> = {
   draft: "bg-slate-100 text-slate-600 border-slate-200",
   scheduled: "bg-blue-50 text-blue-700 border-blue-200",
@@ -22,6 +24,15 @@ export const RACE_STATUS_DETAIL_STYLES: Record<string, string> = {
   cancelled: "bg-red-500/20 border-red-400/50 text-red-200",
 };
 
+export const ENTRY_STATUS_STYLES: Record<string, string> = {
+  pending: "border-amber-200 bg-amber-50 text-amber-800",
+  accepted: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  scheduled: "border-blue-200 bg-blue-50 text-blue-800",
+  confirmed: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  declined: "border-rose-200 bg-rose-50 text-rose-800",
+  withdrawn: "border-slate-200 bg-slate-50 text-slate-400",
+};
+
 export function getRaceStatusStyle(status: string): string {
   return (
     RACE_STATUS_STYLES[status] ?? "bg-slate-100 text-slate-600 border-slate-200"
@@ -33,4 +44,16 @@ export function getRaceStatusDetailStyle(status: string): string {
     RACE_STATUS_DETAIL_STYLES[status] ??
     "bg-slate-500/20 border-slate-400/50 text-slate-200"
   );
+}
+
+export function getEntryStatusStyle(status: string): string {
+  return (
+    ENTRY_STATUS_STYLES[status] ?? "border-slate-200 bg-slate-50 text-slate-400"
+  );
+}
+
+export function getRaceStatusLabel(status: string): string {
+  if (status === "ongoing" || status === "live") return "Live";
+  if (status === "scheduled" || status === "pre_race") return "Upcoming";
+  return formatStatus(status);
 }

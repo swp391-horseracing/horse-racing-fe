@@ -233,7 +233,7 @@ export default function RaceReportPanel({
   }, []);
 
   const allPositions = Array.from(
-    { length: activeLanes.length },
+    { length: activeLanes.filter((l) => !l.flag).length },
     (_, i) => i + 1
   );
   const positionTakenByOther = (laneId: string, pos: number) =>

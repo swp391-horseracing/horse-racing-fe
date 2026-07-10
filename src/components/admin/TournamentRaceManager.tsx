@@ -109,52 +109,60 @@ export default function TournamentRaceManager({
     data: RaceFormData
   ): Promise<string | null> => {
     if (!activeTournamentId) return "No active tournament.";
+    if (!data.scheduledAt) return "Schedule date is required.";
+    const scheduledDate = new Date(data.scheduledAt);
+    if (Number.isNaN(scheduledDate.getTime())) return "Invalid schedule date.";
+
     const payload: Record<string, unknown> = {
       name: data.name,
       raceNumber: data.raceNumber,
       roundName: data.roundName,
-      trackDistanceId: data.trackDistanceId,
+      courseDistanceId: data.trackDistanceId,
       distanceMeters: data.distanceMeters,
       trackCondition: data.trackCondition,
-      scheduledAt: new Date(data.scheduledAt).toISOString(),
+      scheduleAt: scheduledDate.toISOString(),
       venue: data.venue,
       laneCount: data.laneCount,
     };
     const res = await createRace(activeTournamentId, payload);
-    if (res.success) {
-      addToast("Race created successfully.", "success");
-      setView("tournament-detail");
-      void loadRaces(activeTournamentId);
-      return null;
+    if (res.success === false) {
+      addToast("Failed to create race.", "error");
+      return res.error ?? "Failed to create race.";
     }
-    addToast("Failed to create race.", "error");
-    return res.error ?? "Failed to create race.";
+    addToast("Race created successfully.", "success");
+    setView("tournament-detail");
+    void loadRaces(activeTournamentId);
+    return null;
   };
 
   const handleUpdateRace = async (
     data: RaceFormData
   ): Promise<string | null> => {
     if (!activeRaceId) return "No active race.";
+    if (!data.scheduledAt) return "Schedule date is required.";
+    const scheduledDate = new Date(data.scheduledAt);
+    if (Number.isNaN(scheduledDate.getTime())) return "Invalid schedule date.";
+
     const payload: Record<string, unknown> = {
       name: data.name,
       raceNumber: data.raceNumber,
       roundName: data.roundName,
-      trackDistanceId: data.trackDistanceId,
+      courseDistanceId: data.trackDistanceId,
       distanceMeters: data.distanceMeters,
       trackCondition: data.trackCondition,
-      scheduledAt: new Date(data.scheduledAt).toISOString(),
+      scheduleAt: scheduledDate.toISOString(),
       venue: data.venue,
       laneCount: data.laneCount,
     };
     const res = await updateRace(activeRaceId, payload);
-    if (res.success) {
-      addToast("Race updated successfully.", "success");
-      setRaceEditing(false);
-      await getRaceDetail(activeRaceId);
-      return null;
+    if (res.success === false) {
+      addToast("Failed to update race.", "error");
+      return res.error ?? "Failed to update race.";
     }
-    addToast("Failed to update race.", "error");
-    return res.error ?? "Failed to update race.";
+    addToast("Race updated successfully.", "success");
+    setRaceEditing(false);
+    await getRaceDetail(activeRaceId);
+    return null;
   };
 
   const handleRaceStatusChange = async (status: string) => {

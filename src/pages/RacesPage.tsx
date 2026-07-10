@@ -17,7 +17,7 @@ import {
   Target,
   Send,
 } from "lucide-react";
-import { ROUTES } from "../router/routes.tsx";
+import { ROUTES } from "../router/routes";
 
 import { useEvent } from "../hooks/useEvent";
 import { useRaces, useRaceDetail } from "../hooks/useRaces";
@@ -25,7 +25,7 @@ import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
 import type { DateRange } from "react-day-picker";
 import { useToast } from "../hooks/useToast";
 import { useOwner } from "../hooks/useOwner";
-import { formatStatus } from "../utils/statusFormat";
+import { formatStatus } from "../utils/formatters";
 import {
   getRaceStatusStyle,
   getRaceStatusDetailStyle,
@@ -391,9 +391,15 @@ export default function RacesPage() {
     );
   }, [filteredRaces, dateRangeStr, nextFiveRaces]);
 
+  const calendarRaces = useMemo(() => {
+    const source =
+      selectedRange?.from && selectedRange?.to ? rangeRaces : apiRaces;
+    return source.map(mapRaceToUi);
+  }, [selectedRange?.from, selectedRange?.to, rangeRaces, apiRaces]);
+
   const raceDays = useMemo(() => {
-    return allRaces.map((r) => parseLocalDate(r.date));
-  }, [allRaces]);
+    return calendarRaces.map((r) => parseLocalDate(r.date));
+  }, [calendarRaces]);
 
   const racesInRange = useMemo(() => {
     if (!dateRangeStr) return allRaces;
@@ -434,11 +440,11 @@ export default function RacesPage() {
   }, []);
 
   const uniqueDistances = useMemo(() => {
-    const distances = allRaces
+    const distances = racesInRange
       .map((r) => r.distance)
       .filter(Boolean) as string[];
     return [...new Set(distances)].sort((a, b) => parseInt(a) - parseInt(b));
-  }, [allRaces]);
+  }, [racesInRange]);
 
   const toggleDistance = useCallback((d: string) => {
     setSelectedDistances((prev) => {

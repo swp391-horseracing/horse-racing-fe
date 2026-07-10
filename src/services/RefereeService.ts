@@ -1,5 +1,5 @@
-import api from "../lib/api.ts";
-import type { RefereeReport } from "../types/referee.ts";
+import api from "../lib/api";
+import type { RefereeReport } from "../types/referee";
 
 export interface UpdatePlacementsPayload {
   placements: {

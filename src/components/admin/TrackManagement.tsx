@@ -140,8 +140,7 @@ export default function TrackManagement({
     return (
       track.name.toLowerCase().includes(searchLower) ||
       (track.city && track.city.toLowerCase().includes(searchLower)) ||
-      (track.country && track.country.toLowerCase().includes(searchLower)) ||
-      (track.address && track.address.toLowerCase().includes(searchLower))
+      (track.country && track.country.toLowerCase().includes(searchLower))
     );
   });
 
@@ -331,11 +330,11 @@ export default function TrackManagement({
                           <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                           <span
                             className="truncate"
-                            title={
-                              track.address || `${track.city}, ${track.country}`
-                            }
+                            title={`${track.city ?? ""}, ${track.country ?? ""}`}
                           >
-                            {track.address || `${track.city}, ${track.country}`}
+                            {track.city && track.country
+                              ? `${track.city}, ${track.country}`
+                              : (track.city ?? track.country ?? "—")}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 text-slate-500">

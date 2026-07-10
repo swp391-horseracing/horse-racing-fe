@@ -8,7 +8,7 @@ import {
   Gauge,
   HeartPulse,
 } from "lucide-react";
-import type { Horse } from "../../types/horse.ts";
+import type { Horse } from "../../types/horse";
 
 interface EditHorseModalProps {
   isOpen: boolean;

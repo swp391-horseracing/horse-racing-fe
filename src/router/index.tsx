@@ -1,29 +1,29 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { ROUTES } from "./routes";
 import LandingLayout from "../layouts/LandingLayout";
-import LoginLayout from "../layouts/LoginLayout.tsx";
-import MainLayout from "../layouts/MainLayout.tsx";
+import LoginLayout from "../layouts/LoginLayout";
+import MainLayout from "../layouts/MainLayout";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import MainPage from "../pages/MainPage";
 import LoginPage from "../pages/LoginPage";
-import FeedPage from "../pages/FeedPage.tsx";
-import CalendarPage from "../pages/CalendarPage.tsx";
-import HorsePage from "../pages/HorsePage.tsx";
-import TournamentsPage from "../pages/TournamentsPage.tsx";
-import RacesPage from "../pages/RacesPage.tsx";
-import JockeyPage from "../pages/JockeyPage.tsx";
-import AdminPage from "../pages/AdminPage.tsx";
-import AdminTournamentDetailPage from "../pages/AdminTournamentDetailPage.tsx";
-import AdminRaceDetailPage from "../pages/AdminRaceDetailPage.tsx";
+import FeedPage from "../pages/FeedPage";
+import CalendarPage from "../pages/CalendarPage";
+import HorsePage from "../pages/HorsePage";
+import TournamentsPage from "../pages/TournamentsPage";
+import RacesPage from "../pages/RacesPage";
+import JockeyPage from "../pages/JockeyPage";
+import AdminPage from "../pages/AdminPage";
+import AdminTournamentDetailPage from "../pages/AdminTournamentDetailPage";
+import AdminRaceDetailPage from "../pages/AdminRaceDetailPage";
 
-import UserPage from "../pages/UserPage.tsx";
-import OwnerPage from "../pages/OwnerPage.tsx";
-import SpectatorPage from "../pages/SpectatorPage.tsx";
-import RefereePage from "../pages/RefereePage.tsx";
-import LeaderBoardPage from "../pages/LeaderBoardPage.tsx";
-import NotFoundPage from "../pages/NotFoundPage.tsx";
-import HorseDetailPage from "../pages/HorseDetailPage.tsx";
-import TracksPage from "../pages/TracksPage.tsx";
+import UserPage from "../pages/UserPage";
+import OwnerPage from "../pages/OwnerPage";
+import SpectatorPage from "../pages/SpectatorPage";
+import RefereePage from "../pages/RefereePage";
+import LeaderBoardPage from "../pages/LeaderBoardPage";
+import NotFoundPage from "../pages/NotFoundPage";
+import HorseDetailPage from "../pages/HorseDetailPage";
+import TracksPage from "../pages/TracksPage";
 export const router = createBrowserRouter([
   {
     path: ROUTES.HOME,
@@ -129,10 +129,6 @@ export const router = createBrowserRouter([
           },
           {
             path: ROUTES.OWNER_ENTRIES,
-            element: <OwnerPage />,
-          },
-          {
-            path: ROUTES.OWNER_SEND_INVITES,
             element: <OwnerPage />,
           },
           {

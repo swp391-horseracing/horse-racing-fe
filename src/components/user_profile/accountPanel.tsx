@@ -1,9 +1,9 @@
 import { useState } from "react";
-import type { User } from "../../types/user.ts";
-import { FieldBox } from "../FieldBox.tsx";
-import useAuth from "../../hooks/auth/useAuth.ts";
-import EditProfileModal from "./EditProfileModal.tsx";
-import ChangePasswordModal from "./ChangePasswordModal.tsx";
+import type { User } from "../../types/user";
+import { FieldBox } from "../FieldBox";
+import useAuth from "../../hooks/auth/useAuth";
+import EditProfileModal from "./EditProfileModal";
+import ChangePasswordModal from "./ChangePasswordModal";
 
 type Props = {
   user: User;

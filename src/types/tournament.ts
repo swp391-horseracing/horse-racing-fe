@@ -1,5 +1,5 @@
-import type { Horse } from "./horse.ts";
-import type { RaceApiStatus } from "./race.ts";
+import type { Horse } from "./horse";
+import type { RaceApiStatus } from "./race";
 
 export type { RaceApiStatus };
 

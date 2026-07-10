@@ -1,6 +1,6 @@
-import type { Horse } from "./horse.ts";
-import type { Tournament } from "./tournament.ts";
-import type { Jockey } from "./jockey.ts";
+import type { Horse } from "./horse";
+import type { Tournament } from "./tournament";
+import type { Jockey } from "./jockey";
 
 export interface Invitation {
   id: string;

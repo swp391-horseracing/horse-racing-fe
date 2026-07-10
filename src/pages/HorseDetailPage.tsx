@@ -8,9 +8,9 @@ import {
   PlayCircle,
   ArrowLeft,
 } from "lucide-react";
-import useHorse from "../hooks/horse/useHorse.ts";
-import useAuth from "../hooks/auth/useAuth.ts";
-import { formatStatus } from "../utils/statusFormat";
+import useHorse from "../hooks/horse/useHorse";
+import useAuth from "../hooks/auth/useAuth";
+import { formatStatus } from "../utils/formatters";
 
 function getAge(birthDate?: string) {
   if (!birthDate) return "N/A";

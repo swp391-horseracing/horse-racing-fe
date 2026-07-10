@@ -8,7 +8,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "../../../lib/utils";
-import { formatStatus } from "../../../utils/statusFormat";
+import { formatStatus } from "../../../utils/formatters";
 import type { RaceReportListItem, Pagination } from "../../../types/race";
 import {
   STATUS_LABELS,

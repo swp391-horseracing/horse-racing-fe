@@ -1,5 +1,5 @@
-import api from "../lib/api.ts";
-import type { LoginResponse, User } from "../types/user.ts";
+import api from "../lib/api";
+import type { LoginResponse, User } from "../types/user";
 
 export const AuthService = {
   login: async (

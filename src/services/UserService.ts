@@ -6,7 +6,7 @@ import type {
   UserProfile,
   UserRaceDetail,
   UserRaceListResponse,
-} from "../types/user.ts";
+} from "../types/user";
 
 export const UserService = {
   //get current user

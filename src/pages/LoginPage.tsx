@@ -7,11 +7,11 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../components/ui/select.tsx";
-import { ROUTES } from "../router/routes.tsx";
+} from "../components/ui/select";
+import { ROUTES } from "../router/routes";
 import * as axios from "axios";
-import useAuth from "../hooks/auth/useAuth.ts";
-import ReCaptchaPanel from "../components/reCapchaPanel.tsx";
+import useAuth from "../hooks/auth/useAuth";
+import ReCaptchaPanel from "../components/reCapchaPanel";
 
 type Mode = "login" | "register";
 

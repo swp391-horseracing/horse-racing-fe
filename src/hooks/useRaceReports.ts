@@ -92,7 +92,20 @@ export function useRaceReports(addToast: (m: string, t?: ToastType) => void) {
     setDetailLoading(true);
     try {
       const data = await AdminService.getRaceReport(raceId);
-      setDetail(data as unknown as ReportDetailData);
+
+      // Map courseName/courseCity from API to trackName/trackCity in frontend type
+      const mappedData: ReportDetailData = {
+        ...data,
+        race: data.race
+          ? {
+              ...data.race,
+              trackName: data.race.courseName || data.race.trackName || null,
+              trackCity: data.race.courseCity || data.race.trackCity || null,
+            }
+          : null,
+      } as unknown as ReportDetailData;
+
+      setDetail(mappedData);
     } catch (e: unknown) {
       const msg =
         (e as { response?: { data?: { message?: string } } })?.response?.data

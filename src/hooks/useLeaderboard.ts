@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRef } from "react";
 import { HorseService } from "../services/HorseService";
 import type { TransformedHorseRow } from "../components/leaderboard/HorseLeaderboardView";
-import type { Horse } from "../types/horse.ts";
+import type { Horse } from "../types/horse";
 
 export type LeaderboardTab = "horses" | "jockeys";
 

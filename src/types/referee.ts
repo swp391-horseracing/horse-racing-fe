@@ -45,7 +45,7 @@ export interface MockRace {
   refereeCheckedIn: boolean;
 }
 
-import type { RaceDetail } from "./race.ts";
+import type { RaceDetail } from "./race";
 
 export interface TournamentSummary {
   id: string;

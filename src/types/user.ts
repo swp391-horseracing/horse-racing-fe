@@ -1,4 +1,4 @@
-import type { RaceApiStatus, RaceTrack } from "./race.ts";
+import type { RaceApiStatus, RaceTrack } from "./race";
 
 export interface LoginResponse {
   email: string;

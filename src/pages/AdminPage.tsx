@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
-import { ROUTES } from "../router/routes.tsx";
+import { ROUTES } from "../router/routes";
 import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "../components/ui/toast";
 
@@ -9,9 +9,9 @@ import AccessManagement from "../components/admin/AccessManagement";
 import RegistryApprovals from "../components/admin/RegistryApprovals";
 import TournamentRaceManager from "../components/admin/TournamentRaceManager";
 import VirtualEconomy from "../components/admin/VirtualEconomy";
-import ControlCenterOverview from "../components/admin/controlCenterOverview.tsx";
+import ControlCenterOverview from "../components/admin/controlCenterOverview";
 import RaceReportsManager from "../components/admin/RaceReportsManager";
-import TrackManagement from "../components/admin/TrackManagement.tsx";
+import TrackManagement from "../components/admin/TrackManagement";
 
 const TAB_ROUTE_MAP: Record<string, string> = {
   [ROUTES.ADMIN_DASHBOARD]: ROUTES.ADMIN_DASHBOARD,

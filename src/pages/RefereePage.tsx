@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
-import { ROUTES } from "../router/routes.tsx";
+import { ROUTES } from "../router/routes";
 import { cn } from "../lib/utils";
 import { ChevronLeft, Timer } from "lucide-react";
 import {
@@ -19,8 +19,8 @@ import RefereeRaceList from "../components/referee/RefereeRaceList";
 import PreRaceInspectionPanel from "../components/referee/PreRaceInspectionPanel";
 import LiveMonitorPanel from "../components/referee/LiveMonitorPanel";
 import RaceReportPanel from "../components/referee/RaceReportPanel";
-import { UserService } from "../services/UserService.ts";
-import { RefereeService } from "../services/RefereeService.ts";
+import { UserService } from "../services/UserService";
+import { RefereeService } from "../services/RefereeService";
 
 const formatTime = (seconds: number) => {
   const m = Math.floor(seconds / 60);
@@ -459,6 +459,7 @@ export default function RefereePage() {
       ...r,
       phase: "post_race",
       timerRunning: false,
+      reportStatus: r.reportStatus || "draft",
     }));
     addToast("Race ended. Enter finish placements.", "info");
   };

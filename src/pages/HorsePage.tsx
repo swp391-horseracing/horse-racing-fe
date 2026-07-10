@@ -1,8 +1,8 @@
 import { Star } from "lucide-react";
 import { useState, useMemo } from "react";
-import useHorse from "../hooks/horse/useHorse.ts";
-import NoInfoPage from "./NoInfoPage.tsx";
-import HorseSearch from "../components/horse/HorseSearch.tsx";
+import useHorse from "../hooks/horse/useHorse";
+import NoInfoPage from "./NoInfoPage";
+import HorseSearch from "../components/horse/HorseSearch";
 import {
   Select,
   SelectContent,
@@ -13,7 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import type { Horse } from "../types/horse";
 import banner from "../assets/images/horse-banner.png";
-import { formatStatus } from "../utils/statusFormat";
+import { formatStatus } from "../utils/formatters";
 
 function getAge(birthDate?: string) {
   if (!birthDate) return "N/A";

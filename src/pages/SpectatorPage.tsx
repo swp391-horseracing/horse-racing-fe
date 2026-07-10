@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
-import { ROUTES } from "../router/routes.tsx";
+import { ROUTES } from "../router/routes";
 import { SpectatorDashboard } from "../components/spectator/SpectatorDashboard";
 import { PredictionsHub } from "../components/spectator/PredictionsHub";
 

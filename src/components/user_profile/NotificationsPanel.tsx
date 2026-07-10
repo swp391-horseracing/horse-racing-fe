@@ -1,4 +1,4 @@
-import { useNotification } from "../../hooks/useNotification.ts";
+import { useNotification } from "../../hooks/useNotification";
 
 export default function NotificationsPanel() {
   const { NotificationList, handleRead } = useNotification();

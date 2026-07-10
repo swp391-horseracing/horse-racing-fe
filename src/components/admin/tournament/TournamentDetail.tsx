@@ -10,7 +10,7 @@ import {
   formatTournamentStatus,
   getAvailableStatuses,
 } from "../../../styles/schema/tournamentStatusFlow";
-import type { Tournament } from "../../../types/tournament.ts";
+import type { Tournament } from "../../../types/tournament";
 
 type Props = {
   tournament: Tournament;

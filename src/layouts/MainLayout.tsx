@@ -1,12 +1,12 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Button } from "../components/ui/button.tsx";
-import { ROUTES } from "../router/routes.tsx";
+import { Button } from "../components/ui/button";
+import { ROUTES } from "../router/routes";
 import { Bell, Newspaper } from "lucide-react";
 import React from "react";
-import NotificationTab from "../components/NotificationTab.tsx";
-import useAuth from "../hooks/auth/useAuth.ts";
-// import Footer from "../components/Footer.tsx";
-import { useUserProfile } from "../hooks/useUserProfile.ts";
+import NotificationTab from "../components/NotificationTab";
+import useAuth from "../hooks/auth/useAuth";
+// import Footer from "../components/Footer";
+import { useUserProfile } from "../hooks/useUserProfile";
 
 export default function MainLayout() {
   interface LinkItem {

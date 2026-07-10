@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { type MockRace } from "../../types/referee";
 import { cn } from "../../lib/utils";
-import { formatStatus } from "../../utils/statusFormat";
+import { formatStatus } from "../../utils/formatters";
 
 interface PreRaceInspectionPanelProps {
   race: MockRace;

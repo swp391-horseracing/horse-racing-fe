@@ -3,7 +3,7 @@ import type {
   Placement,
   RaceReport,
   TournamentSummary,
-} from "./referee.ts";
+} from "./referee";
 
 export type RaceApiStatus =
   | "draft"

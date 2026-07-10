@@ -1,4 +1,4 @@
-import type { Notification } from "../types/notification.ts";
+import type { Notification } from "../types/notification";
 
 const mockList: Notification[] = [
   {
