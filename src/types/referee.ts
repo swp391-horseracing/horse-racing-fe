@@ -19,7 +19,11 @@ export interface LaneEntry {
   id: string;
   laneNumber: number;
   horseName: string;
+  horseId?: string;
+  horseWeightKg?: number | null;
+  healthStatus?: string | null;
   jockeyName: string;
+  jockeyWeightKg?: number | null;
   inspectionStatus: InspectionStatus;
   inspectedAt: string | null;
   failReason: string | null;
@@ -43,6 +47,8 @@ export interface MockRace {
   reportNotes: string;
   reportStatus: "draft" | "referee_confirmed" | "published" | null;
   refereeCheckedIn: boolean;
+  tournamentId?: string;
+  carryWeight?: number | null;
 }
 
 import type { RaceDetail } from "./race";

@@ -86,6 +86,8 @@ export interface TournamentDetail {
 
   createdAt?: string;
   updatedAt?: string;
+
+  carryWeight?: number | null;
 }
 
 export interface TournamentRegistration {

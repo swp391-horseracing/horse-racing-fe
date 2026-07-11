@@ -1,4 +1,4 @@
-import { Flag, Clock, ShieldCheck } from "lucide-react";
+import { Flag, Clock, ShieldCheck, AlertTriangle } from "lucide-react";
 import { type MockRace, type RacePhase } from "../../types/referee";
 import { cn } from "../../lib/utils";
 
@@ -24,6 +24,13 @@ export default function RefereeRaceList({
       ? races
       : races.filter((r) => r.phase === filterPhase);
 
+  const counts = {
+    all: races.length,
+    scheduled: races.filter((r) => r.phase === "scheduled").length,
+    live: races.filter((r) => r.phase === "live").length,
+    post_race: races.filter((r) => r.phase === "post_race").length,
+  };
+
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
       <div className="border-b border-[#064E3B]/10 pb-4">
@@ -42,13 +49,23 @@ export default function RefereeRaceList({
             key={f}
             onClick={() => onFilterChange(f)}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border",
+              "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border flex items-center gap-1.5",
               filterPhase === f
                 ? "bg-[#064E3B] text-white border-[#064E3B]"
                 : "bg-white text-slate-600 border-slate-200 hover:border-[#064E3B]/30"
             )}
           >
             {f === "all" ? "All" : phaseLabel[f]}
+            <span
+              className={cn(
+                "text-[9px] px-1.5 py-0.5 rounded-full",
+                filterPhase === f
+                  ? "bg-white/20 text-white"
+                  : "bg-slate-100 text-slate-500"
+              )}
+            >
+              {counts[f]}
+            </span>
           </button>
         ))}
       </div>
@@ -64,7 +81,20 @@ export default function RefereeRaceList({
             const cleared = race.lanes.filter(
               (l) => l.inspectionStatus === "cleared"
             ).length;
+            const pending = race.lanes.filter(
+              (l) => l.inspectionStatus === "pending"
+            ).length;
+            const failed = race.lanes.filter(
+              (l) =>
+                l.inspectionStatus === "disqualified" ||
+                l.inspectionStatus === "withdrawn"
+            ).length;
             const total = race.lanes.length;
+
+            const unhealthyCount = race.lanes.filter(
+              (l) => l.healthStatus && l.healthStatus !== "healthy"
+            ).length;
+
             return (
               <div
                 key={race.id}
@@ -82,6 +112,8 @@ export default function RefereeRaceList({
                     <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
                       {race.venue} • {race.distanceMeters}m •{" "}
                       {race.trackCondition}
+                      {race.carryWeight != null &&
+                        ` • ${race.carryWeight} kg limit`}
                     </p>
                   </div>
                   <span
@@ -105,10 +137,32 @@ export default function RefereeRaceList({
                     <Clock className="w-3 h-3" />
                     {new Date(race.scheduledAt).toLocaleString()}
                   </span>
-                  <span className="flex items-center gap-1">
-                    <ShieldCheck className="w-3 h-3" />
-                    {cleared}/{total} cleared
-                  </span>
+                  {race.phase === "scheduled" && total > 0 && (
+                    <>
+                      <span className="flex items-center gap-1 text-emerald-600">
+                        <ShieldCheck className="w-3 h-3" />
+                        {cleared}/{total} cleared
+                      </span>
+                      {pending > 0 && (
+                        <span className="flex items-center gap-1 text-amber-600">
+                          <Clock className="w-3 h-3" />
+                          {pending} pending
+                        </span>
+                      )}
+                      {failed > 0 && (
+                        <span className="flex items-center gap-1 text-red-600">
+                          <AlertTriangle className="w-3 h-3" />
+                          {failed} failed
+                        </span>
+                      )}
+                      {unhealthyCount > 0 && (
+                        <span className="flex items-center gap-1 text-red-600">
+                          <AlertTriangle className="w-3 h-3" />
+                          {unhealthyCount} unfit
+                        </span>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             );
