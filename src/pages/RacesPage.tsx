@@ -316,8 +316,10 @@ export default function RacesPage() {
   }, [selectedRange?.from, selectedRange?.to, loadRacesForRange]);
 
   const effectiveRaces = useMemo(() => {
-    if (selectedRange?.from && selectedRange?.to) return rangeRaces;
-    if (isCalendarMode) return apiRaces;
+    if (isCalendarMode) {
+      if (selectedRange?.from && selectedRange?.to) return rangeRaces;
+      return apiRaces;
+    }
     return upcomingRaces;
   }, [
     selectedRange?.from,
