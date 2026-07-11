@@ -30,6 +30,10 @@ export interface Tournament {
   maximumParticipants?: number;
   minimumParticipants?: number;
 
+  minAge?: number;
+  maxAge?: number;
+  sex?: string;
+
   createdBy?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -73,6 +77,10 @@ export interface TournamentDetail {
 
   maximumParticipants?: number;
   minimumParticipants?: number;
+
+  minAge?: number;
+  maxAge?: number;
+  sex?: string;
 
   createdBy?: string;
 

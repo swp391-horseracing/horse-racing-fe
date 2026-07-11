@@ -340,6 +340,8 @@ export function useOwner() {
         const reasons: string[] = [];
         if (h.isRetired) reasons.push("Retired");
         if (h.isRacing) reasons.push("Currently racing in another event");
+        if (h.healthStatus && h.healthStatus !== "healthy")
+          reasons.push(`Health status: ${h.healthStatus}`);
 
         existing.push({
           id: h.id,

@@ -116,9 +116,12 @@ export function RegisterTournamentModal({
               </option>
               {horses.map((h) => {
                 const retired = isRetired(h);
+                const unhealthy =
+                  h.healthStatus && h.healthStatus !== "healthy";
                 return (
                   <option key={h.id} value={h.id} disabled={retired}>
                     {h.name} ({h.breed}){retired ? " — Retired" : ""}
+                    {unhealthy ? ` — ${h.healthStatus}` : ""}
                   </option>
                 );
               })}
