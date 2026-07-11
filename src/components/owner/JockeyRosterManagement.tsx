@@ -45,8 +45,10 @@ export function JockeyRosterManagement() {
     try {
       await confirmPairing(inv.raceId, inv.id);
       addToast("Pairing confirmed successfully.", "success");
-    } catch {
-      addToast("Failed to confirm pairing.", "error");
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message || "Failed to confirm pairing.";
+      addToast(message, "error");
     }
   };
 
