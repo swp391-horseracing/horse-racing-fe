@@ -34,6 +34,10 @@ const STATUS_OPTIONS = [
   { value: "under_maintainance", label: "Under maintenance" },
 ] as const;
 
+const STATUS_LABEL_MAP = Object.fromEntries(
+  STATUS_OPTIONS.map((o) => [o.value, o.label])
+);
+
 function formatDateOrFallback(value?: string) {
   if (!value) return "N/A";
   const d = new Date(value);
@@ -374,7 +378,9 @@ export default function TrackManagement({
                                 : "bg-rose-50 text-rose-700 border-rose-200"
                         )}
                       >
-                        {track.status || "Unknown"}
+                        {STATUS_LABEL_MAP[track.status] ||
+                          track.status ||
+                          "Unknown"}
                       </span>
                     </td>
 

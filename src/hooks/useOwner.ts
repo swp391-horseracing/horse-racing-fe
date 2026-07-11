@@ -287,8 +287,8 @@ export function useOwner() {
           prev.map((inv) =>
             inv.id === invitationId
               ? { ...inv, status: "cancelled" as const }
-              : inv,
-          ),
+              : inv
+          )
         );
         await loadEntries();
       } else {

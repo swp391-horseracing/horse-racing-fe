@@ -161,7 +161,14 @@ export default function RefereePage() {
           ]);
 
           const entries = entriesData?.entries || [];
-          const weightMap = new Map<string, { horseWeightKg: number | null; jockeyWeightKg: number | null; horseId: string | null }>();
+          const weightMap = new Map<
+            string,
+            {
+              horseWeightKg: number | null;
+              jockeyWeightKg: number | null;
+              horseId: string | null;
+            }
+          >();
           const horseIds: string[] = [];
 
           for (const e of entries) {
@@ -181,7 +188,9 @@ export default function RefereePage() {
               )
             ),
             race.tournamentId
-              ? TournamentService.getTournamentByID(race.tournamentId).catch(() => null)
+              ? TournamentService.getTournamentByID(race.tournamentId).catch(
+                  () => null
+                )
               : Promise.resolve(null),
           ]);
 
@@ -210,13 +219,19 @@ export default function RefereePage() {
                 entryStatus?: string
               ): InspectionStatus | null => {
                 switch (entryStatus) {
-                  case "confirmed": return "cleared";
-                  case "disqualified": return "disqualified";
+                  case "confirmed":
+                    return "cleared";
+                  case "disqualified":
+                    return "disqualified";
                   case "withdrawn":
-                  case "scratched": return "withdrawn";
-                  case "did_not_finish": return "cleared";
-                  case "pending": return "pending";
-                  default: return null;
+                  case "scratched":
+                    return "withdrawn";
+                  case "did_not_finish":
+                    return "cleared";
+                  case "pending":
+                    return "pending";
+                  default:
+                    return null;
                 }
               };
 
@@ -237,7 +252,9 @@ export default function RefereePage() {
                 return {
                   horseId: w?.horseId ?? undefined,
                   horseWeightKg: w?.horseWeightKg ?? null,
-                  healthStatus: w?.horseId ? (healthMap.get(w.horseId) ?? null) : null,
+                  healthStatus: w?.horseId
+                    ? (healthMap.get(w.horseId) ?? null)
+                    : null,
                   jockeyWeightKg: w?.jockeyWeightKg ?? null,
                 };
               };
@@ -255,16 +272,18 @@ export default function RefereePage() {
                 inspectedAt: null,
                 failReason: null,
                 violations: p.violation
-                  ? [{
-                      id: p.violation.id,
-                      entryId: p.entryId,
-                      refereeId: p.violation.refereeId,
-                      occurredAt: p.violation.occurredAt,
-                      violationType: p.violation.violationType,
-                      description: p.violation.description,
-                      severity: p.violation.severity as any,
-                      note: p.violation.note,
-                    }]
+                  ? [
+                      {
+                        id: p.violation.id,
+                        entryId: p.entryId,
+                        refereeId: p.violation.refereeId,
+                        occurredAt: p.violation.occurredAt,
+                        violationType: p.violation.violationType,
+                        description: p.violation.description,
+                        severity: p.violation.severity as any,
+                        note: p.violation.note,
+                      },
+                    ]
                   : [],
                 finishPosition: p.finishedPosition,
                 finishTime: formatSecondsToMSS(p.finishTime),
@@ -281,7 +300,8 @@ export default function RefereePage() {
                 for (const e of entriesData.entries) {
                   if (!placementIds.has(e.id)) {
                     const inspStatus: InspectionStatus =
-                      mapEntryStatusToInspectionStatus(e.entryStatus) ?? "pending";
+                      mapEntryStatusToInspectionStatus(e.entryStatus) ??
+                      "pending";
                     lanes.push({
                       id: e.id,
                       laneNumber: e.laneNumber,

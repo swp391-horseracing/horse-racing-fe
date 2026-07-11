@@ -155,8 +155,7 @@ function TournamentEntriesTab({
                 <div className="text-[10px] bg-white p-2 rounded border border-slate-100 font-label text-slate-600">
                   <p>Owner ID: {reg.horse.ownerId}</p>
                   <p>
-                    Submitted:{" "}
-                    {new Date(reg.submittedAt).toLocaleDateString()}
+                    Submitted: {new Date(reg.submittedAt).toLocaleDateString()}
                   </p>
                 </div>
 
@@ -322,7 +321,8 @@ function AssignRefereeTab({
   const assignableStatuses = new Set(["scheduled", "pre_race"]);
   const assignableRaces = races.filter((r) => assignableStatuses.has(r.status));
   const selectedRace = races.find((r) => r.id === selectedRaceId);
-  const selectedRaceAssignable = selectedRace && assignableStatuses.has(selectedRace.status);
+  const selectedRaceAssignable =
+    selectedRace && assignableStatuses.has(selectedRace.status);
 
   return (
     <div className="grid grid-cols-1 gap-6">
@@ -358,7 +358,8 @@ function AssignRefereeTab({
             )}
             {!loadingRaces && (
               <p className="text-[10px] text-slate-400 mt-1">
-                Showing {assignableRaces.length} of {races.length} races (only scheduled/pre-race are eligible).
+                Showing {assignableRaces.length} of {races.length} races (only
+                scheduled/pre-race are eligible).
               </p>
             )}
           </div>
@@ -416,9 +417,7 @@ function AssignRefereeTab({
               </select>
             )}
             {referees.length === 0 && !loadingReferees && (
-              <p className="text-xs text-slate-400 mt-1">
-                No referees found.
-              </p>
+              <p className="text-xs text-slate-400 mt-1">No referees found.</p>
             )}
           </div>
 

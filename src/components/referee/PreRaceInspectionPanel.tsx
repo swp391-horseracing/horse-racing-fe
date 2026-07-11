@@ -32,11 +32,30 @@ interface PreRaceInspectionPanelProps {
 
 type Step = "attendance" | "inspection" | "ready";
 
-const healthStatusConfig: Record<string, { label: string; color: string; bg: string }> = {
-  healthy: { label: "Healthy", color: "text-emerald-700", bg: "bg-emerald-100 border-emerald-200" },
-  injured: { label: "Injured", color: "text-red-700", bg: "bg-red-100 border-red-200" },
-  sick: { label: "Sick", color: "text-orange-700", bg: "bg-orange-100 border-orange-200" },
-  rest: { label: "Rest", color: "text-amber-700", bg: "bg-amber-100 border-amber-200" },
+const healthStatusConfig: Record<
+  string,
+  { label: string; color: string; bg: string }
+> = {
+  healthy: {
+    label: "Healthy",
+    color: "text-emerald-700",
+    bg: "bg-emerald-100 border-emerald-200",
+  },
+  injured: {
+    label: "Injured",
+    color: "text-red-700",
+    bg: "bg-red-100 border-red-200",
+  },
+  sick: {
+    label: "Sick",
+    color: "text-orange-700",
+    bg: "bg-orange-100 border-orange-200",
+  },
+  rest: {
+    label: "Rest",
+    color: "text-amber-700",
+    bg: "bg-amber-100 border-amber-200",
+  },
 };
 
 function getHealthConfig(status: string | null | undefined) {
@@ -60,13 +79,19 @@ export default function PreRaceInspectionPanel({
   preRaceDisqualifyReasons,
 }: PreRaceInspectionPanelProps) {
   const [inspectingLaneId, setInspectingLaneId] = useState<string | null>(null);
-  const [failReason, setFailReason] = useState<"disqualified" | "withdrawn">("withdrawn");
-  const [failCategory, setFailCategory] = useState<string>(preRaceWithdrawReasons[0] || "Other");
+  const [failReason, setFailReason] = useState<"disqualified" | "withdrawn">(
+    "withdrawn"
+  );
+  const [failCategory, setFailCategory] = useState<string>(
+    preRaceWithdrawReasons[0] || "Other"
+  );
   const [failNotes, setFailNotes] = useState<string>("");
   const [showCheckInConfirm, setShowCheckInConfirm] = useState(false);
 
   const isCheckedIn = race.refereeCheckedIn;
-  const pendingCount = race.lanes.filter((l) => l.inspectionStatus === "pending").length;
+  const pendingCount = race.lanes.filter(
+    (l) => l.inspectionStatus === "pending"
+  ).length;
   const allResolved = pendingCount === 0;
 
   const activeStep: Step = useMemo(() => {
@@ -93,7 +118,11 @@ export default function PreRaceInspectionPanel({
   const getClearDisabledReason = (lane: (typeof race.lanes)[0]) => {
     if (lane.healthStatus && lane.healthStatus !== "healthy")
       return "Horse is not fit to race";
-    if (carryWeight && lane.jockeyWeightKg && Number(lane.jockeyWeightKg) > Number(carryWeight))
+    if (
+      carryWeight &&
+      lane.jockeyWeightKg &&
+      Number(lane.jockeyWeightKg) > Number(carryWeight)
+    )
       return "Jockey exceeds carry weight limit";
     return null;
   };
@@ -109,17 +138,18 @@ export default function PreRaceInspectionPanel({
             const isPending = i > stepIndex;
             const Icon = s.icon;
             return (
-              <div key={s.key} className="flex items-center flex-1 last:flex-none">
+              <div
+                key={s.key}
+                className="flex items-center flex-1 last:flex-none"
+              >
                 <div className="flex flex-col items-center">
                   <div
                     className={cn(
                       "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300",
-                      isDone &&
-                        "bg-emerald-600 border-emerald-600 text-white",
+                      isDone && "bg-emerald-600 border-emerald-600 text-white",
                       isActive &&
                         "bg-[#064E3B] border-[#064E3B] text-white shadow-lg shadow-[#064E3B]/20",
-                      isPending &&
-                        "bg-white border-slate-300 text-slate-400"
+                      isPending && "bg-white border-slate-300 text-slate-400"
                     )}
                   >
                     {isDone ? (
@@ -343,8 +373,7 @@ export default function PreRaceInspectionPanel({
                       </div>
                       {disableReason && (
                         <p className="text-[9px] text-red-600 mt-1.5 font-semibold flex items-center gap-1">
-                          <AlertTriangle className="w-3 h-3" />{" "}
-                          {disableReason}
+                          <AlertTriangle className="w-3 h-3" /> {disableReason}
                         </p>
                       )}
                     </>
@@ -367,11 +396,12 @@ export default function PreRaceInspectionPanel({
                   All Lanes Inspected
                 </p>
                 <p className="text-[10px] font-semibold text-emerald-600 mt-0.5">
-                  {race.lanes.filter((l) => l.inspectionStatus === "cleared")
-                    .length}{" "}
+                  {
+                    race.lanes.filter((l) => l.inspectionStatus === "cleared")
+                      .length
+                  }{" "}
                   cleared
-                  {carryWeight != null &&
-                    ` • ${carryWeight} kg weight limit`}
+                  {carryWeight != null && ` • ${carryWeight} kg weight limit`}
                 </p>
               </div>
             </div>

@@ -105,13 +105,13 @@ export function SendInvitesPage({
       const errors = error?.response?.data?.errors;
       if (errors && Array.isArray(errors)) {
         errors.forEach((e: { message: string }) =>
-          addToast(e.message, "error"),
+          addToast(e.message, "error")
         );
       } else {
         addToast(
           error?.response?.data?.message ||
             "Failed to send invitation. Please try again.",
-          "error",
+          "error"
         );
       }
     } finally {
@@ -314,7 +314,7 @@ export function SendInvitesPage({
                   "w-full rounded-2xl border bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition",
                   titleError
                     ? "border-rose-300 focus:border-rose-500"
-                    : "border-slate-200 focus:border-[#064E3B]",
+                    : "border-slate-200 focus:border-[#064E3B]"
                 )}
               />
               {titleError && (
