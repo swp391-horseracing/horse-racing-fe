@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
-import { Calendar, Loader2, ArrowLeft, Plus } from "lucide-react";
-import type { ToastType } from "../../types/referee";
+import { Calendar, Loader2, ArrowLeft, Plus, User } from "lucide-react";
+import type { ToastType, AssignedReferee } from "../../types/referee";
 import { TournamentForm } from "./tournament/TournamentForm";
 import TournamentList from "./tournament/TournamentList";
 
@@ -8,6 +8,8 @@ import useAdminTournament from "../../hooks/admin/useAdminTournament";
 import useAdminRace from "../../hooks/admin/useAdminRace";
 import TournamentDetail from "./tournament/TournamentDetail";
 import { TournamentService } from "../../services/TournamentService";
+import { AdminService } from "../../services/AdminService";
+import { fetchRaceEntries } from "../../hooks/useRaces";
 import { STATUS_LABELS } from "./race/raceStatus";
 import { getRaceStatusStyle } from "../../utils/statusStyles";
 import RaceForm, { type RaceFormData } from "./race/RaceForm";
@@ -30,6 +32,8 @@ export default function TournamentRaceManager({
   const [racesLoading, setRacesLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [raceEditing, setRaceEditing] = useState(false);
+  const [raceReferee, setRaceReferee] = useState<AssignedReferee | null>(null);
+  const [raceEntries, setRaceEntries] = useState<RaceEntry[]>([]);
 
   const {
     pagination,
@@ -85,6 +89,25 @@ export default function TournamentRaceManager({
     loadRaces,
     getRaceDetail,
   ]);
+
+  useEffect(() => {
+    if (view === "race-detail" && activeRaceId) {
+      AdminService.getRaceReferee(activeRaceId)
+        .then((data) =>
+          setRaceReferee(
+            data?.referee ??
+              (data?.id ? data : null) ?? null
+          )
+        )
+        .catch(() => setRaceReferee(null));
+      fetchRaceEntries(activeRaceId)
+        .then((data) => setRaceEntries(data))
+        .catch(() => setRaceEntries([]));
+    } else {
+      setRaceReferee(null);
+      setRaceEntries([]);
+    }
+  }, [view, activeRaceId]);
 
   const handleManageRaces = (id: string) => {
     setActiveTournamentId(id);
@@ -383,42 +406,155 @@ export default function TournamentRaceManager({
               tournamentEndDate={selectedTournament?.endDate}
             />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm pt-2">
-              <div>
-                <strong>Status:</strong>{" "}
-                <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded capitalize ${getRaceStatusStyle(selectedRace.status)}`}
-                >
-                  {STATUS_LABELS[selectedRace.status] ??
-                    selectedRace.status.replaceAll("_", " ")}
-                </span>
+            <div className="pt-2 space-y-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    Status
+                  </p>
+                  <span
+                    className={`text-[11px] font-bold px-2 py-0.5 rounded capitalize ${getRaceStatusStyle(selectedRace.status)}`}
+                  >
+                    {STATUS_LABELS[selectedRace.status] ??
+                      selectedRace.status.replaceAll("_", " ")}
+                  </span>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    Scheduled
+                  </p>
+                  <p className="text-xs font-semibold">
+                    {selectedRace.scheduledAt
+                      ? new Date(selectedRace.scheduledAt).toLocaleString()
+                      : "-"}
+                  </p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    Lane Count
+                  </p>
+                  <p className="text-xs font-semibold">
+                    {selectedRace.laneCount ?? "-"}
+                  </p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    Round
+                  </p>
+                  <p className="text-xs font-semibold">
+                    {selectedRace.roundName ?? "-"}
+                  </p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    Distance
+                  </p>
+                  <p className="text-xs font-semibold">
+                    {selectedRace.course?.distanceMeters ?? selectedRace.distanceMeters
+                      ? `${(selectedRace.course?.distanceMeters ?? selectedRace.distanceMeters)}m`
+                      : "-"}
+                  </p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    Track
+                  </p>
+                  <p className="text-xs font-semibold capitalize">
+                    {selectedRace.trackCondition ??
+                      selectedRace.course?.surfaceType ??
+                      "-"}
+                  </p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    Venue
+                  </p>
+                  <p className="text-xs font-semibold">
+                    {selectedRace.venue ?? selectedRace.course?.name ?? "-"}
+                  </p>
+                </div>
               </div>
+
               <div>
-                <strong>Round:</strong> {selectedRace.roundName ?? "-"}
+                <h3 className="text-sm font-bold text-slate-800 mb-2">
+                  Race Entries
+                </h3>
+                {raceEntries.length > 0 ? (
+                  <div className="border rounded-xl overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 border-b text-slate-500 font-bold uppercase text-[9px] tracking-wider">
+                        <tr>
+                          <th className="p-3">Horse</th>
+                          <th className="p-3">Jockey</th>
+                          <th className="p-3">Lane</th>
+                          <th className="p-3">Status</th>
+                          <th className="p-3">Cloth #</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {raceEntries.map((entry) => (
+                          <tr
+                            key={entry.id}
+                            className="hover:bg-slate-50/50"
+                          >
+                            <td className="p-3 font-semibold text-slate-800">
+                              {entry.name}
+                            </td>
+                            <td className="p-3 text-slate-600">
+                              {entry.jockeyName || "-"}
+                            </td>
+                            <td className="p-3 text-slate-600">
+                              {entry.laneNumber || "-"}
+                            </td>
+                            <td className="p-3">
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded capitalize bg-slate-100 text-slate-600">
+                                {entry.entryStatus?.replaceAll("_", " ") ??
+                                  "-"}
+                              </span>
+                            </td>
+                            <td className="p-3 text-slate-600">
+                              {entry.clothNumber ?? "-"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 py-3">
+                    No entries yet.
+                  </p>
+                )}
               </div>
+
               <div>
-                <strong>Distance:</strong>{" "}
-                {selectedRace.distanceMeters
-                  ? `${selectedRace.distanceMeters}m`
-                  : "-"}
-              </div>
-              <div>
-                <strong>Track Condition:</strong>{" "}
-                <span className="capitalize">
-                  {selectedRace.trackCondition ?? "-"}
-                </span>
-              </div>
-              <div>
-                <strong>Venue:</strong> {selectedRace.venue ?? "-"}
-              </div>
-              <div>
-                <strong>Lane Count:</strong> {selectedRace.laneCount ?? "-"}
-              </div>
-              <div>
-                <strong>Scheduled:</strong>{" "}
-                {selectedRace.scheduledAt
-                  ? new Date(selectedRace.scheduledAt).toLocaleString()
-                  : "-"}
+                <h3 className="text-sm font-bold text-slate-800 mb-2">
+                  Referee
+                </h3>
+                {raceReferee ? (
+                  <div className="bg-slate-50 rounded-xl p-3 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">
+                      <User className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">
+                        {raceReferee.fullName}
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        Assigned:{" "}
+                        {raceReferee.assignedAt
+                          ? new Date(
+                              raceReferee.assignedAt
+                            ).toLocaleDateString()
+                          : "Recently"}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 py-3">
+                    No referee assigned.
+                  </p>
+                )}
               </div>
             </div>
           )}

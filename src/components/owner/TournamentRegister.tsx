@@ -641,6 +641,24 @@ export function TournamentRegister({
                                       })}
                                     </span>
                                     <span>{race.laneCount} lanes</span>
+                                    {race.distanceMeters ? (
+                                      <span>{race.distanceMeters}m</span>
+                                    ) : (race as any).course?.distanceMeters ? (
+                                      <span>
+                                        {(race as any).course.distanceMeters}m
+                                      </span>
+                                    ) : null}
+                                    {race.trackCondition ? (
+                                      <span className="capitalize">
+                                        {race.trackCondition.replaceAll(
+                                          "_",
+                                          " "
+                                        )}
+                                      </span>
+                                    ) : null}
+                                    {race.venue ? (
+                                      <span>{race.venue}</span>
+                                    ) : null}
                                   </div>
                                 </div>
                                 <div className="ml-3 shrink-0">
@@ -678,20 +696,46 @@ export function TournamentRegister({
                                         key={entry.entryId}
                                         className="flex items-center justify-between pl-2 pr-1 py-1.5 rounded-md bg-muted/20 border border-border/50"
                                       >
-                                        <span className="text-[11px] font-semibold text-foreground">
-                                          {horseName}
-                                        </span>
+                                        <div className="min-w-0 flex-1">
+                                          <span className="text-[11px] font-semibold text-foreground">
+                                            {horseName}
+                                          </span>
+                                          <div className="flex gap-2 text-[9px] text-muted-foreground mt-0.5">
+                                            {entry.laneNumber ? (
+                                              <span>
+                                                Lane {entry.laneNumber}
+                                              </span>
+                                            ) : null}
+                                            {hasJockey ? (
+                                              <span>
+                                                Jockey: {entry.jockeyName}
+                                              </span>
+                                            ) : (
+                                              <span className="text-amber-600">
+                                                No jockey
+                                              </span>
+                                            )}
+                                            {entry.entryStatus ? (
+                                              <span className="capitalize">
+                                                {entry.entryStatus.replaceAll(
+                                                  "_",
+                                                  " "
+                                                )}
+                                              </span>
+                                            ) : null}
+                                          </div>
+                                        </div>
                                         {!hasJockey && isScheduled ? (
                                           <button
                                             onClick={() =>
                                               onAssignJockey(entry.entryId)
                                             }
-                                            className="rounded-md border border-[#064E3B]/20 bg-[#064E3B]/5 text-[#064E3B] px-3 py-1.5 text-[10px] font-bold hover:bg-[#064E3B]/10 transition-colors"
+                                            className="rounded-md border border-[#064E3B]/20 bg-[#064E3B]/5 text-[#064E3B] px-3 py-1.5 text-[10px] font-bold hover:bg-[#064E3B]/10 transition-colors shrink-0"
                                           >
                                             Assign
                                           </button>
                                         ) : (
-                                          <span className="text-[10px] text-emerald-600 font-medium">
+                                          <span className="text-[10px] text-emerald-600 font-medium shrink-0">
                                             Assigned
                                           </span>
                                         )}
