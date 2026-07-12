@@ -387,7 +387,9 @@ function ReportDetailView({
               <User className="w-4 h-4 text-[#064E3B]" />
             </div>
             <p className="text-xs font-bold text-slate-800">
-              {report?.referee?.fullName || detail.referee?.fullName || "—"}
+              {(detail as any).referees?.[0]?.fullName ||
+                report?.referee?.fullName ||
+                "—"}
             </p>
           </div>
         </div>
