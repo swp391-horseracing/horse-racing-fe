@@ -129,7 +129,11 @@ export default function RefereeRaceList({
                       : race.phase === "post_race" &&
                           race.reportStatus === "draft"
                         ? "Results (Draft)"
-                        : phaseLabel[race.phase]}
+                        : race.status === "pre_race"
+                          ? "Pre-Race"
+                          : race.status === "scheduled"
+                            ? "Scheduled"
+                            : phaseLabel[race.phase]}
                   </span>
                 </div>
                 <div className="flex items-center gap-4 text-[10px] text-slate-500 font-bold">

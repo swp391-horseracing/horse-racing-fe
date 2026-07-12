@@ -165,6 +165,10 @@ export const router = createBrowserRouter([
             path: ROUTES.REFEREE_TRACKS,
             element: <RefereePage />,
           },
+          {
+            path: ROUTES.REFEREE_REVIEW_REPORT,
+            element: <RefereePage />,
+          },
         ],
       },
       {

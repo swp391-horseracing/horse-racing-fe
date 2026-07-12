@@ -19,6 +19,7 @@ import RefereeRaceList from "../components/referee/RefereeRaceList";
 import PreRaceInspectionPanel from "../components/referee/PreRaceInspectionPanel";
 import LiveMonitorPanel from "../components/referee/LiveMonitorPanel";
 import RaceReportPanel from "../components/referee/RaceReportPanel";
+import RefereeReviewReports from "../components/referee/RefereeReviewReports";
 import { UserService } from "../services/UserService";
 import { RefereeService } from "../services/RefereeService";
 import { HorseService } from "../services/HorseService";
@@ -140,6 +141,22 @@ export default function RefereePage() {
           carryWeight: null,
           lanes: [],
         }));
+        const phaseOrder: Record<string, number> = {
+          pre_race: 0,
+          scheduled: 1,
+          ongoing: 2,
+          live: 2,
+          post_race: 3,
+        };
+        races.sort((a, b) => {
+          const pa = phaseOrder[a.status] ?? 9;
+          const pb = phaseOrder[b.status] ?? 9;
+          if (pa !== pb) return pa - pb;
+          return (
+            new Date(a.scheduledAt).getTime() -
+            new Date(b.scheduledAt).getTime()
+          );
+        });
         setApiRaces(races);
       })
       .catch((e: any) => {
@@ -782,7 +799,7 @@ export default function RefereePage() {
                 />
               )}
               {race.phase === "scheduled" && race.status === "scheduled" && (
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-8 text-center">
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-8 text-center max-w-lg mx-auto">
                   <div className="text-amber-600 text-4xl mb-3">⏳</div>
                   <h3 className="text-lg font-bold text-amber-900 mb-1">
                     Race Not Yet in Pre-Race Phase
@@ -885,6 +902,8 @@ export default function RefereePage() {
             phaseLabel={phaseLabel}
           />
         );
+      case ROUTES.REFEREE_REVIEW_REPORT:
+        return <RefereeReviewReports addToast={addToast} />;
       default:
         return (
           <RefereeDashboard

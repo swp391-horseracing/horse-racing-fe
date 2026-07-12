@@ -201,6 +201,11 @@ export default function UserLayout({
         icon: Calendar,
         key: ROUTES.REFEREE_RACE_LIST,
       },
+      {
+        label: "Review Report",
+        icon: ClipboardList,
+        key: ROUTES.REFEREE_REVIEW_REPORT,
+      },
     ],
     UserProfile: [{ label: "Account", icon: UserCheck, key: "account" }],
   };
