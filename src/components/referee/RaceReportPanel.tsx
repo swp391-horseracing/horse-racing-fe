@@ -276,9 +276,7 @@ export default function RaceReportPanel({
     const matchedConfig = violationTypeConfigs.find(
       (c) => c.id === v.violationTypeConfigId
     );
-    setEditConfigId(
-      matchedConfig?.id || violationTypeConfigs[0]?.id || ""
-    );
+    setEditConfigId(matchedConfig?.id || violationTypeConfigs[0]?.id || "");
     setEditSeverity(v.severity || SEVERITY_OPTIONS[0].value);
     setEditNote(v.note);
   };

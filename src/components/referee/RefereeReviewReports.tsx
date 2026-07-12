@@ -304,7 +304,11 @@ function ReportDetailView({
   const { race, report, placements } = detail;
   const allViolations = (placements || []).flatMap(
     (p) =>
-      p.violations?.map((v) => ({ ...v, laneNumber: p.laneNumber, horseName: p.horse.name })) || []
+      p.violations?.map((v) => ({
+        ...v,
+        laneNumber: p.laneNumber,
+        horseName: p.horse.name,
+      })) || []
   );
 
   return (

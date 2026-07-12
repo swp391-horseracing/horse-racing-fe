@@ -67,8 +67,33 @@ export default function ViolationTypesManager({
   }, [page, addToast]);
 
   useEffect(() => {
-    fetchConfigs();
-  }, [fetchConfigs]);
+    let cancelled = false;
+
+    const load = async () => {
+      setLoading(true);
+      try {
+        const res = await AdminService.getViolationTypes({ page, limit });
+        if (cancelled) return;
+        setConfigs(res.data);
+        setTotalPages(res.pagination.totalPages);
+        setTotal(res.pagination.total);
+      } catch (e: any) {
+        if (cancelled) return;
+        addToast(
+          e.response?.data?.message || "Failed to load violation types",
+          "error"
+        );
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [page, addToast]);
 
   const openCreate = () => {
     setEditingId(null);
@@ -242,8 +267,7 @@ export default function ViolationTypesManager({
               <span className="font-bold text-slate-700">
                 {Math.min(page * limit, total)}
               </span>{" "}
-              of{" "}
-              <span className="font-bold text-slate-700">{total}</span> types
+              of <span className="font-bold text-slate-700">{total}</span> types
             </p>
             <div className="flex items-center gap-1">
               <button
@@ -253,34 +277,31 @@ export default function ViolationTypesManager({
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
-              {Array.from(
-                { length: Math.min(totalPages, 5) },
-                (_, i) => {
-                  let pageNum: number;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (page <= 3) {
-                    pageNum = i + 1;
-                  } else if (page >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = page - 2 + i;
-                  }
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setPage(pageNum)}
-                      className={`w-7 h-7 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-                        page === pageNum
-                          ? "bg-[#064E3B] text-white shadow-sm"
-                          : "text-slate-500 hover:bg-slate-100 border border-slate-200"
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                let pageNum: number;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (page <= 3) {
+                  pageNum = i + 1;
+                } else if (page >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = page - 2 + i;
                 }
-              )}
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setPage(pageNum)}
+                    className={`w-7 h-7 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                      page === pageNum
+                        ? "bg-[#064E3B] text-white shadow-sm"
+                        : "text-slate-500 hover:bg-slate-100 border border-slate-200"
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
               <button
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page >= totalPages}
@@ -304,9 +325,7 @@ export default function ViolationTypesManager({
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="font-bold font-headline text-[#064E3B] text-lg">
-              {editingId
-                ? "Edit Violation Type"
-                : "Create Violation Type"}
+              {editingId ? "Edit Violation Type" : "Create Violation Type"}
             </h3>
 
             <div className="space-y-3">
@@ -367,9 +386,7 @@ export default function ViolationTypesManager({
               <button
                 onClick={handleSave}
                 disabled={
-                  saving ||
-                  !form.violationType.trim() ||
-                  !form.pointsDeducted
+                  saving || !form.violationType.trim() || !form.pointsDeducted
                 }
                 className="text-xs font-bold px-4 py-2 rounded-lg bg-[#064E3B] text-white hover:bg-[#043E2F] transition disabled:opacity-50 disabled:cursor-not-allowed"
               >

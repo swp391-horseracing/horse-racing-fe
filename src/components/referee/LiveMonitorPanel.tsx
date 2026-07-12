@@ -60,7 +60,12 @@ export default function LiveMonitorPanel({
 
   const handleConfirmViolation = () => {
     if (!violationLaneId || !violationConfigId) return;
-    onLogViolation(violationLaneId, violationConfigId, violationSeverity, violationNote);
+    onLogViolation(
+      violationLaneId,
+      violationConfigId,
+      violationSeverity,
+      violationNote
+    );
     setViolationLaneId(null);
     setViolationConfigId(violationTypeConfigs[0]?.id || "");
     setViolationSeverity(SEVERITY_OPTIONS[0].value);

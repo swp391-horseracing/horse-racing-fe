@@ -44,7 +44,11 @@ export default function ReportDetailView({
   const { race, referees, report, placements } = detail;
   const allViolations = (placements || []).flatMap(
     (p) =>
-      p.violations?.map((v) => ({ ...v, laneNumber: p.laneNumber, horseName: p.horse.name })) || []
+      p.violations?.map((v) => ({
+        ...v,
+        laneNumber: p.laneNumber,
+        horseName: p.horse.name,
+      })) || []
   );
 
   // Normalize referees to an array

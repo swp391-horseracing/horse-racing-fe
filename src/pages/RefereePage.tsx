@@ -833,8 +833,19 @@ export default function RefereePage() {
                   onDelayRace={() => handleDelayRace(race.id)}
                   onResumeRace={() => handleResumeRace(race.id)}
                   onEndRace={() => handleEndRace(race.id)}
-                  onLogViolation={(laneId, violationTypeConfigId, severity, note) =>
-                    handleLogViolation(race.id, laneId, violationTypeConfigId, severity, note)
+                  onLogViolation={(
+                    laneId,
+                    violationTypeConfigId,
+                    severity,
+                    note
+                  ) =>
+                    handleLogViolation(
+                      race.id,
+                      laneId,
+                      violationTypeConfigId,
+                      severity,
+                      note
+                    )
                   }
                   violationTypeConfigs={violationTypeConfigs}
                 />
@@ -879,8 +890,19 @@ export default function RefereePage() {
                   onDeleteViolation={(laneId, violationId) =>
                     handleDeleteViolation(race.id, laneId, violationId)
                   }
-                  onCreateViolation={(laneId, violationTypeConfigId, severity, note) =>
-                    handleLogViolation(race.id, laneId, violationTypeConfigId, severity, note)
+                  onCreateViolation={(
+                    laneId,
+                    violationTypeConfigId,
+                    severity,
+                    note
+                  ) =>
+                    handleLogViolation(
+                      race.id,
+                      laneId,
+                      violationTypeConfigId,
+                      severity,
+                      note
+                    )
                   }
                   violationTypeConfigs={violationTypeConfigs}
                 />

@@ -18,6 +18,7 @@ import { cn } from "../../lib/utils";
 import type { ToastType } from "../../types/referee";
 import type { TrackDetail, TrackListItem, TrackShape } from "../../types/track";
 import { useTrack } from "../../hooks/useTrack";
+import { formatStatus } from "../../utils/formatters";
 
 type OpenMenuState = {
   id: string;
@@ -343,8 +344,8 @@ export default function TrackManagement({
                         </div>
                         <div className="flex items-center gap-1.5 text-slate-500">
                           <Activity className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span className="capitalize text-[10px] truncate">
-                            {track.trackShape?.shape || "Unknown"}
+                          <span className="text-[10px] truncate">
+                            {formatStatus(track.trackShape?.shape || "Unknown")}
                             {track.trackShape?.description &&
                               ` • ${track.trackShape.description}`}
                           </span>
@@ -540,10 +541,15 @@ export default function TrackManagement({
                       "px-2 py-0.5 rounded text-[9px] font-black uppercase border shrink-0",
                       selectedTrack.status === "active"
                         ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                        : "bg-slate-100 text-slate-600 border-slate-200"
+                        : selectedTrack.status === "maintenance" ||
+                            selectedTrack.status === "under_maintainance"
+                          ? "bg-amber-50 text-amber-700 border-amber-200"
+                          : "bg-slate-100 text-slate-600 border-slate-200"
                     )}
                   >
-                    {selectedTrack.status}
+                    {STATUS_LABEL_MAP[selectedTrack.status ?? ""] ||
+                      selectedTrack.status ||
+                      "Unknown"}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 flex items-center gap-1.5">
@@ -571,7 +577,7 @@ export default function TrackManagement({
                 />
                 <StatCard
                   label="Track Shape"
-                  value={selectedTrack.trackShape?.shape}
+                  value={formatStatus(selectedTrack.trackShape?.shape || "")}
                   icon={<Activity className="w-3.5 h-3.5" />}
                 />
                 <StatCard
@@ -734,7 +740,7 @@ export default function TrackManagement({
                 <option value="">Select shape...</option>
                 {trackShapes.map((ts: TrackShape) => (
                   <option key={ts.id} value={ts.id}>
-                    {ts.shape}
+                    {formatStatus(ts.shape)}
                   </option>
                 ))}
               </select>
