@@ -42,7 +42,7 @@ export interface RaceTrack {
 export interface RaceListItem {
   id: string;
   tournamentId: string;
-  courseDistanceId: string;
+  courseDistanceId?: string;
 
   name: string;
   raceNumber: number | null;
@@ -52,8 +52,8 @@ export interface RaceListItem {
 
   status: RaceApiStatus;
 
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 
   course?: RaceTrack;
   entryCount?: number;

@@ -3,14 +3,16 @@ import type { RaceDetail, RaceEntry, RaceListItem } from "../types/race";
 
 export const RaceService = {
   async getRaces(params?: {
+    status?: string;
+    limit?: number;
+    sort?: string;
+    order?: string;
+    page?: number;
     year?: number;
     month?: number;
-    status?: string;
-    page?: number;
-    limit?: number;
   }): Promise<RaceListItem[]> {
     const response = await api.get("/races", { params });
-    return response.data;
+    return response.data?.data ?? response.data ?? [];
   },
 
   async getRaceById(raceId: string): Promise<RaceDetail> {

@@ -125,7 +125,7 @@ function RaceRow({
   return (
     <button
       onClick={onClick}
-      className={`group w-full flex items-center justify-between px-5 py-4 text-left transition-all border-l-4 ${
+      className={`group w-full flex items-center justify-between px-3 py-3 text-left transition-all border-l-4 ${
         selected
           ? "bg-primary/5 border-l-primary"
           : isLive
@@ -227,6 +227,11 @@ export default function RacesPage() {
   const [distanceOpen, setDistanceOpen] = useState(false);
   const distanceRef = useRef<HTMLDivElement>(null);
 
+  const [activeTab, setActiveTab] = useState<"upcoming" | "calendar">(
+    "upcoming"
+  );
+  const isCalendarMode = activeTab === "calendar";
+
   const [selectedRange, setSelectedRange] = useState<DateRange | undefined>(
     routeState?.date
       ? (() => {
@@ -301,7 +306,7 @@ export default function RacesPage() {
   }, [viewYear, viewMonthIndex, loadRacesByMonth]);
 
   useEffect(() => {
-    loadUpcomingRaces(5);
+    loadUpcomingRaces(20);
   }, [loadUpcomingRaces]);
 
   useEffect(() => {
@@ -311,14 +316,18 @@ export default function RacesPage() {
   }, [selectedRange?.from, selectedRange?.to, loadRacesForRange]);
 
   const effectiveRaces = useMemo(() => {
-    if (selectedRange?.from && selectedRange?.to) return rangeRaces;
-    return upcomingRaces.length > 0 ? upcomingRaces : apiRaces;
+    if (isCalendarMode) {
+      if (selectedRange?.from && selectedRange?.to) return rangeRaces;
+      return apiRaces;
+    }
+    return upcomingRaces;
   }, [
     selectedRange?.from,
     selectedRange?.to,
     rangeRaces,
     upcomingRaces,
     apiRaces,
+    isCalendarMode,
   ]);
 
   const allRaces = useMemo(
@@ -423,7 +432,6 @@ export default function RacesPage() {
   }, [navigate]);
 
   const panelOpen = raceId !== null;
-  const isCalendarMode = true;
 
   const uniqueStatuses = useMemo(
     () => [...new Set(racesInRange.map((r) => r.status))],
@@ -506,6 +514,38 @@ export default function RacesPage() {
                 className="w-full h-11 rounded-xl bg-transparent pl-11 pr-4 text-sm font-medium outline-none transition focus:ring-1 focus:ring-primary placeholder:text-muted-foreground"
               />
             </div>
+          </div>
+
+          <div className="flex gap-1 mb-6 rounded-xl bg-muted/30 p-1 border border-border w-fit">
+            <button
+              onClick={() => setActiveTab("upcoming")}
+              className={cn(
+                "flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 border",
+                activeTab === "upcoming"
+                  ? "bg-[#064E3B] text-white border-[#064E3B]"
+                  : "bg-white text-slate-600 border-slate-200 hover:border-[#064E3B]/30"
+              )}
+            >
+              <Clock className="h-3.5 w-3.5" />
+              Upcoming Races
+              {upcomingRaces.length > 0 && (
+                <span className="ml-1 text-[10px] opacity-80">
+                  ({upcomingRaces.length})
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab("calendar")}
+              className={cn(
+                "flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 border",
+                activeTab === "calendar"
+                  ? "bg-[#064E3B] text-white border-[#064E3B]"
+                  : "bg-white text-slate-600 border-slate-200 hover:border-[#064E3B]/30"
+              )}
+            >
+              <CalendarDays className="h-3.5 w-3.5" />
+              Calendar
+            </button>
           </div>
 
           <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -682,35 +722,23 @@ export default function RacesPage() {
                   </div>
                 </div>
               ) : grouped.length > 0 ? (
-                <div className="space-y-6">
-                  {grouped.map(([date, races]) => (
-                    <div
-                      key={date}
-                      className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
-                    >
-                      <div className="border-b border-border bg-muted/20 px-5 py-3">
-                        <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
-                          {fmtShort(date)}
-                        </span>
-                      </div>
-                      <div className="divide-y divide-border">
-                        {races.map((race) => (
-                          <RaceRow
-                            key={race.id}
-                            race={race}
-                            selected={raceId === race.id}
-                            onClick={() => handleSelectRace(race.id)}
-                            showPredictBadge={isSpectator}
-                            canEnter={
-                              isOwner &&
-                              race.isOpenForPrediction &&
-                              approvedTournamentIds.has(race.tournamentId)
-                            }
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm flex flex-col">
+                  <div className="divide-y divide-border">
+                    {filteredRaces.map((race) => (
+                      <RaceRow
+                        key={race.id}
+                        race={race}
+                        selected={raceId === race.id}
+                        onClick={() => handleSelectRace(race.id)}
+                        showPredictBadge={isSpectator}
+                        canEnter={
+                          isOwner &&
+                          race.isOpenForPrediction &&
+                          approvedTournamentIds.has(race.tournamentId)
+                        }
+                      />
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
