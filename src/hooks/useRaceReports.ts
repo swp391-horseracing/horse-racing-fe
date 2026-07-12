@@ -41,7 +41,32 @@ export function useRaceReports(addToast: (m: string, t?: ToastType) => void) {
         const res = await AdminService.getReports(
           params as Parameters<typeof AdminService.getReports>[0]
         );
-        setReports(res.data);
+        const data = res.data;
+
+        // Fetch referee names from assignments for reports where refereeName is empty
+        const raceIdsNeedingReferee = data
+          .filter((r) => !r.refereeName)
+          .map((r) => r.raceId);
+
+        if (raceIdsNeedingReferee.length > 0) {
+          const results = await Promise.allSettled(
+            raceIdsNeedingReferee.map((id) =>
+              AdminService.getRaceReferee(id).catch(() => null)
+            )
+          );
+          results.forEach((result, i) => {
+            if (
+              result.status === "fulfilled" &&
+              result.value?.referee?.fullName
+            ) {
+              data.find(
+                (r) => r.raceId === raceIdsNeedingReferee[i]
+              )!.refereeName = result.value.referee.fullName;
+            }
+          });
+        }
+
+        setReports(data);
         setPagination(res.pagination);
       } catch (e: unknown) {
         const msg =
