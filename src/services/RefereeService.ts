@@ -14,14 +14,20 @@ export interface UpdatePlacementsPayload {
 export interface CreateViolationPayload {
   entryId: string;
   occurredAt: string;
-  violationType: string;
-  description: string;
+  violationTypeConfigId: string;
   severity:
     | "warning"
     | "disqualification"
     | "result_cancellation"
     | "point_deduction";
   note?: string;
+}
+
+export interface ViolationTypeConfig {
+  id: string;
+  violationType: string;
+  pointsDeducted: number;
+  description: string | null;
 }
 
 export interface SubmitReportPayload {
@@ -64,6 +70,13 @@ export const RefereeService = {
       `/referee/races/${raceId}/report/violations/${violationId}`
     );
     return response.data;
+  },
+
+  getViolationTypes: async (): Promise<ViolationTypeConfig[]> => {
+    const response = await api.get("/admin/violation-types", {
+      params: { limit: 100 },
+    });
+    return response.data.data;
   },
 
   submitReport: async (

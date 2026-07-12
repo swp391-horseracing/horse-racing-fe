@@ -15,6 +15,15 @@ export type ViolationCategory =
   | "Unsafe Riding"
   | "Refusal to Race / Bolting";
 
+export interface ViolationTypeConfig {
+  id: string;
+  violationType: string;
+  pointsDeducted: number;
+  description: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface LaneEntry {
   id: string;
   laneNumber: number;
@@ -72,8 +81,9 @@ export interface Violation {
 
   occurredAt: string;
 
+  violationTypeConfigId: string;
   violationType: string;
-  description: string;
+  description?: string;
 
   severity:
     | "warning"
@@ -82,6 +92,9 @@ export interface Violation {
     | "point_deduction";
 
   note: string;
+
+  pointsDeducted?: number;
+  previousFinishStatus?: string | null;
 }
 
 export const PRE_RACE_DISQUALIFY_REASONS = [
@@ -111,7 +124,9 @@ export interface Placement {
 
   points: number;
 
-  violation: Violation | null;
+  basePoints?: number;
+
+  violations: Violation[];
 }
 
 export interface JockeySummary {

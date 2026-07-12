@@ -180,8 +180,7 @@ function RaceRow({
           <span
             className={`text-[9px] font-bold px-2 py-0.5 rounded flex items-center gap-1 ${getRaceStatusStyle(race.status)}`}
           >
-            {(race.status === "completed" ||
-              race.status === "result_confirmed") && (
+            {(race.status === "completed") && (
               <span className="h-1.5 w-1.5 rounded-full bg-muted/80" />
             )}
             {formatStatus(race.status)}

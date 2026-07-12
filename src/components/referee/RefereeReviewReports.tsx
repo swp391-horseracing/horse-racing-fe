@@ -302,7 +302,10 @@ function ReportDetailView({
   onBack: () => void;
 }) {
   const { race, report, placements } = detail;
-  const violations = placements?.filter((p) => p.violation !== null) || [];
+  const allViolations = (placements || []).flatMap(
+    (p) =>
+      p.violations?.map((v) => ({ ...v, laneNumber: p.laneNumber, horseName: p.horse.name })) || []
+  );
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -525,41 +528,35 @@ function ReportDetailView({
         )}
       </div>
 
-      {violations.length > 0 && (
+      {allViolations.length > 0 && (
         <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 shadow-sm">
           <h3 className="font-bold font-headline text-md text-[#064E3B] flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
             <AlertTriangle className="w-4 h-4 text-orange-600" /> Violations (
-            {violations.length})
+            {allViolations.length})
           </h3>
           <div className="space-y-2">
-            {violations.map((p) => {
-              const v = p.violation!;
-              return (
-                <div
-                  key={v.id}
-                  className="flex items-center justify-between p-3 bg-orange-50/40 border border-orange-200/80 rounded-xl text-xs text-orange-950"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-orange-900">
-                      Lane {p.laneNumber} — {p.horse.name}
-                    </p>
-                    <p className="text-[10px] text-orange-800 mt-0.5">
-                      {v.violationType}
-                      {v.note ? ` • ${v.note}` : ""}
-                    </p>
-                    <p className="text-[9px] text-orange-600 mt-0.5">
-                      Severity:{" "}
-                      <span className="font-bold capitalize">
-                        {v.severity?.replace(/_/g, " ")}
-                      </span>
-                    </p>
-                  </div>
-                  <span className="text-[9px] font-label font-bold text-orange-700 ml-3 shrink-0">
-                    {formatDate(v.occurredAt)}
-                  </span>
+            {allViolations.map((v: any) => (
+              <div
+                key={v.id}
+                className="flex items-center justify-between p-3 bg-orange-50/40 border border-orange-200/80 rounded-xl text-xs text-orange-950"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-orange-900">
+                    Lane {v.laneNumber} — {v.horseName}
+                  </p>
+                  <p className="text-[10px] text-orange-800 mt-0.5">
+                    {v.violationType}
+                    {v.note ? ` • ${v.note}` : ""}
+                  </p>
+                  <p className="text-[9px] text-orange-600 mt-0.5 capitalize">
+                    {v.severity?.replace(/_/g, " ")}
+                  </p>
                 </div>
-              );
-            })}
+                <span className="text-[9px] font-label font-bold text-orange-700 ml-3 shrink-0">
+                  {formatDate(v.occurredAt)}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       )}

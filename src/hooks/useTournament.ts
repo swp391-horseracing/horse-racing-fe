@@ -41,7 +41,6 @@ const mapRaceToPreview = (race: RaceItem): RacePreview => {
       break;
 
     case "completed":
-    case "result_confirmed":
       status = "Completed";
       break;
 

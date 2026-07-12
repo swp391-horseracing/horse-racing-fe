@@ -10,6 +10,7 @@ import {
   ClipboardList,
   Flag,
   ListChecks,
+  AlertTriangle,
 } from "lucide-react";
 import {
   Sidebar,
@@ -188,6 +189,11 @@ export default function UserLayout({
         label: "Race Reports",
         icon: ClipboardList,
         key: ROUTES.ADMIN_REPORTS,
+      },
+      {
+        label: "Violation Types",
+        icon: AlertTriangle,
+        key: "/admin/violation-types",
       },
     ],
     Referee: [

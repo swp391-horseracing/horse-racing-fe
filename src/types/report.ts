@@ -43,6 +43,7 @@ export interface ReportDetailViolation {
   note: string | null;
   occurredAt: string;
   refereeId: string;
+  violationTypeConfigId: string;
 }
 
 export interface ReportDetailPlacement {
@@ -54,7 +55,8 @@ export interface ReportDetailPlacement {
   finishTime: string | null;
   finishStatus: string | null;
   points: number | null;
-  violation: ReportDetailViolation | null;
+  basePoints?: number | null;
+  violations: ReportDetailViolation[];
 }
 
 export interface ReportDetailData {
