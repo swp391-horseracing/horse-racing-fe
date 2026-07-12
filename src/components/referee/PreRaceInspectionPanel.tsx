@@ -116,8 +116,10 @@ export default function PreRaceInspectionPanel({
   };
 
   const getClearDisabledReason = (lane: (typeof race.lanes)[0]) => {
-    if (lane.healthStatus && lane.healthStatus !== "healthy")
-      return "Horse is not fit to race";
+    if (!lane.healthStatus || lane.healthStatus !== "healthy")
+      return !lane.healthStatus
+        ? "Health status unknown — must be healthy to proceed"
+        : "Horse is not fit to race";
     if (
       carryWeight &&
       lane.jockeyWeightKg &&

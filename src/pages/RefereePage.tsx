@@ -320,8 +320,8 @@ export default function RefereePage() {
                     });
                   }
                 }
-                lanes.sort((a, b) => a.laneNumber - b.laneNumber);
               }
+              lanes.sort((a, b) => a.laneNumber - b.laneNumber);
 
               return {
                 ...r,
@@ -330,6 +330,7 @@ export default function RefereePage() {
                 reportNotes: data.report?.notes || "",
                 reportStatus: data.report?.status ?? null,
                 phase: backendPhase,
+                status: data.race.status,
               };
             })
           );

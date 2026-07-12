@@ -411,14 +411,14 @@ export default function RacesPage() {
   }, [calendarRaces]);
 
   const racesInRange = useMemo(() => {
-    if (!dateRangeStr) return allRaces;
+    if (!isCalendarMode || !dateRangeStr) return allRaces;
     if (typeof dateRangeStr === "string") {
       return allRaces.filter((r) => r.date === dateRangeStr);
     }
     return allRaces.filter(
       (r) => r.date >= dateRangeStr.from && r.date <= dateRangeStr.to
     );
-  }, [allRaces, dateRangeStr]);
+  }, [allRaces, dateRangeStr, isCalendarMode]);
 
   const handleSelectRace = useCallback(
     (id: string) => {

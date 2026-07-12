@@ -725,7 +725,11 @@ export function TournamentRegister({
                                             ) : null}
                                           </div>
                                         </div>
-                                        {!hasJockey && isScheduled ? (
+                                        {hasJockey ? (
+                                          <span className="text-[10px] text-emerald-600 font-medium shrink-0">
+                                            Assigned
+                                          </span>
+                                        ) : isScheduled ? (
                                           <button
                                             onClick={() =>
                                               onAssignJockey(entry.entryId)
@@ -735,8 +739,8 @@ export function TournamentRegister({
                                             Assign
                                           </button>
                                         ) : (
-                                          <span className="text-[10px] text-emerald-600 font-medium shrink-0">
-                                            Assigned
+                                          <span className="text-[10px] text-slate-400 font-medium shrink-0">
+                                            Unassigned
                                           </span>
                                         )}
                                       </div>

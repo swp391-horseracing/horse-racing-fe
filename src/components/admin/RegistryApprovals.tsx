@@ -270,6 +270,8 @@ function AssignRefereeTab({
   useEffect(() => {
     if (!selectedRaceId) return;
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoadingAssignment(true);
     AdminService.getRaceReferee(selectedRaceId)
       .then((data: any) => {
         if (!cancelled) {

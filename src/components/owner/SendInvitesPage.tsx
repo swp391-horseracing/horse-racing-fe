@@ -103,7 +103,7 @@ export function SendInvitesPage({
       );
     } catch (error: any) {
       const errors = error?.response?.data?.errors;
-      if (errors && Array.isArray(errors)) {
+      if (Array.isArray(errors) && errors.length > 0) {
         errors.forEach((e: { message: string }) =>
           addToast(e.message, "error")
         );
