@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { Calendar, Loader2, ArrowLeft, Plus, User } from "lucide-react";
+import type { RaceEntry } from "../../types/race";
 import type { ToastType, AssignedReferee } from "../../types/referee";
 import { TournamentForm } from "./tournament/TournamentForm";
 import TournamentList from "./tournament/TournamentList";
@@ -91,22 +92,15 @@ export default function TournamentRaceManager({
   ]);
 
   useEffect(() => {
-    if (view === "race-detail" && activeRaceId) {
-      AdminService.getRaceReferee(activeRaceId)
-        .then((data) =>
-          setRaceReferee(
-            data?.referee ??
-              (data?.id ? data : null) ?? null
-          )
-        )
-        .catch(() => setRaceReferee(null));
-      fetchRaceEntries(activeRaceId)
-        .then((data) => setRaceEntries(data))
-        .catch(() => setRaceEntries([]));
-    } else {
-      setRaceReferee(null);
-      setRaceEntries([]);
-    }
+    if (view !== "race-detail" || !activeRaceId) return;
+    AdminService.getRaceReferee(activeRaceId)
+      .then((data) =>
+        setRaceReferee(data?.referee ?? (data?.id ? data : null) ?? null)
+      )
+      .catch(() => setRaceReferee(null));
+    fetchRaceEntries(activeRaceId)
+      .then((data) => setRaceEntries(data))
+      .catch(() => setRaceEntries([]));
   }, [view, activeRaceId]);
 
   const handleManageRaces = (id: string) => {
@@ -450,8 +444,9 @@ export default function TournamentRaceManager({
                     Distance
                   </p>
                   <p className="text-xs font-semibold">
-                    {selectedRace.course?.distanceMeters ?? selectedRace.distanceMeters
-                      ? `${(selectedRace.course?.distanceMeters ?? selectedRace.distanceMeters)}m`
+                    {(selectedRace.course?.distanceMeters ??
+                    selectedRace.distanceMeters)
+                      ? `${selectedRace.course?.distanceMeters ?? selectedRace.distanceMeters}m`
                       : "-"}
                   </p>
                 </div>
@@ -493,10 +488,7 @@ export default function TournamentRaceManager({
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {raceEntries.map((entry) => (
-                          <tr
-                            key={entry.id}
-                            className="hover:bg-slate-50/50"
-                          >
+                          <tr key={entry.id} className="hover:bg-slate-50/50">
                             <td className="p-3 font-semibold text-slate-800">
                               {entry.name}
                             </td>
@@ -508,8 +500,7 @@ export default function TournamentRaceManager({
                             </td>
                             <td className="p-3">
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded capitalize bg-slate-100 text-slate-600">
-                                {entry.entryStatus?.replaceAll("_", " ") ??
-                                  "-"}
+                                {entry.entryStatus?.replaceAll("_", " ") ?? "-"}
                               </span>
                             </td>
                             <td className="p-3 text-slate-600">
@@ -521,9 +512,7 @@ export default function TournamentRaceManager({
                     </table>
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-400 py-3">
-                    No entries yet.
-                  </p>
+                  <p className="text-xs text-slate-400 py-3">No entries yet.</p>
                 )}
               </div>
 

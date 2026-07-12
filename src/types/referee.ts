@@ -41,6 +41,7 @@ export interface MockRace {
   trackCondition: string;
   distanceMeters: number;
   phase: RacePhase;
+  status: string;
   lanes: LaneEntry[];
   elapsedSeconds: number;
   timerRunning: boolean;

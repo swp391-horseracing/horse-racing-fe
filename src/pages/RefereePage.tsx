@@ -67,7 +67,8 @@ const PRE_RACE_DISQUALIFY_REASONS = [
 
 const mapBackendStatusToPhase = (raceStatus: string): RacePhase => {
   if (raceStatus === "ongoing") return "live";
-  if (raceStatus === "scheduled" || raceStatus === "pre_race") return "scheduled";
+  if (raceStatus === "scheduled" || raceStatus === "pre_race")
+    return "scheduled";
   return "post_race";
 };
 
@@ -129,6 +130,7 @@ export default function RefereePage() {
           trackCondition: r.trackCondition || "dry",
           distanceMeters: r.distanceMeters || 0,
           phase: mapBackendStatusToPhase(r.status),
+          status: r.status,
           elapsedSeconds: 0,
           timerRunning: false,
           reportNotes: "",
@@ -762,7 +764,7 @@ export default function RefereePage() {
             </div>
           ) : (
             <>
-              {race.phase === "scheduled" && (
+              {race.phase === "scheduled" && race.status === "pre_race" && (
                 <PreRaceInspectionPanel
                   race={race}
                   carryWeight={race.carryWeight ?? null}
@@ -777,6 +779,19 @@ export default function RefereePage() {
                   preRaceWithdrawReasons={PRE_RACE_WITHDRAW_REASONS}
                   preRaceDisqualifyReasons={PRE_RACE_DISQUALIFY_REASONS}
                 />
+              )}
+              {race.phase === "scheduled" && race.status === "scheduled" && (
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-8 text-center">
+                  <div className="text-amber-600 text-4xl mb-3">⏳</div>
+                  <h3 className="text-lg font-bold text-amber-900 mb-1">
+                    Race Not Yet in Pre-Race Phase
+                  </h3>
+                  <p className="text-sm text-amber-700 max-w-md mx-auto">
+                    The race is currently scheduled. Inspections and check-in
+                    will be available once the race transitions to the pre-race
+                    phase.
+                  </p>
+                </div>
               )}
               {race.phase === "live" && (
                 <LiveMonitorPanel
