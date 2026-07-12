@@ -378,7 +378,7 @@ export default function TrackManagement({
                                 : "bg-rose-50 text-rose-700 border-rose-200"
                         )}
                       >
-                        {STATUS_LABEL_MAP[track.status] ||
+                        {STATUS_LABEL_MAP[track.status ?? ""] ||
                           track.status ||
                           "Unknown"}
                       </span>

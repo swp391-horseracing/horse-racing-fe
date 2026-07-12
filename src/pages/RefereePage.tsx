@@ -67,7 +67,7 @@ const PRE_RACE_DISQUALIFY_REASONS = [
 
 const mapBackendStatusToPhase = (raceStatus: string): RacePhase => {
   if (raceStatus === "ongoing") return "live";
-  if (raceStatus === "pre_race") return "scheduled";
+  if (raceStatus === "scheduled" || raceStatus === "pre_race") return "scheduled";
   return "post_race";
 };
 
