@@ -311,7 +311,7 @@ export default function RefereePage() {
                     : null,
               }));
 
-              if (backendPhase === "scheduled" && entriesData?.entries) {
+              if (entriesData?.entries) {
                 const placementIds = new Set(
                   data.placements.map((p: any) => p.entryId)
                 );
@@ -491,6 +491,7 @@ export default function RefereePage() {
     note: string
   ) => {
     try {
+      await RefereeService.getRefereeRaceReport(raceId);
       const config = violationTypeConfigs.find(
         (c) => c.id === violationTypeConfigId
       );
