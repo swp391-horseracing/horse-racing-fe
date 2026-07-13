@@ -193,7 +193,13 @@ export default function TracksPage() {
           />
           <StatFilterCard
             label="Maintenance"
-            value={safeTracks.filter((c) => c.status === "maintenance").length}
+            value={
+              safeTracks.filter(
+                (c) =>
+                  c.status === "maintenance" ||
+                  c.status === "under_maintainance"
+              ).length
+            }
             active={activeFilter === "maintenance"}
             onClick={() => {
               setActiveFilter("maintenance");

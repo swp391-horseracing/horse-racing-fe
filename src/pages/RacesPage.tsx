@@ -47,9 +47,9 @@ let _venueCachePromise: Promise<void> | null = null;
 function loadVenueCache(): Promise<void> {
   if (_venueCache) return Promise.resolve();
   if (!_venueCachePromise) {
-    _venueCachePromise = TrackService.getTracks({ limit: 100 })
+    _venueCachePromise = TrackService.getTracks({ limit: 500 })
       .then((res) => {
-        const items = (res as any)?.data ?? [];
+        const items = res.data ?? [];
         const map = new Map<string, { distance: string; surface: string }>();
         for (const c of items) {
           if (c.name && c.distanceMeters != null) {

@@ -34,6 +34,18 @@ export const HorseService = {
       formData.append("healthStatus", data.healthStatus);
       formData.append("image", data.image);
       const response = await api.post("/horses", formData);
+      const horseId = response.data?.horse?.id;
+
+      if (
+        horseId &&
+        (data.baseSpeed !== undefined || data.stamina !== undefined)
+      ) {
+        const stats: Record<string, number> = {};
+        if (data.baseSpeed !== undefined) stats.baseSpeed = data.baseSpeed;
+        if (data.stamina !== undefined) stats.stamina = data.stamina;
+        await api.patch(`/horses/${horseId}`, stats);
+      }
+
       return response.data;
     }
 
@@ -89,8 +101,17 @@ export const HorseService = {
       formData.append("weightKg", data.weightKg);
       formData.append("healthStatus", data.healthStatus);
       formData.append("image", data.image);
-      const response = await api.patch(`/horses/${id}`, formData);
-      return response.data;
+      const first = await api.patch(`/horses/${id}`, formData);
+
+      if (data.baseSpeed !== undefined || data.stamina !== undefined) {
+        const stats: Record<string, number> = {};
+        if (data.baseSpeed !== undefined) stats.baseSpeed = data.baseSpeed;
+        if (data.stamina !== undefined) stats.stamina = data.stamina;
+        const second = await api.patch(`/horses/${id}`, stats);
+        return second.data;
+      }
+
+      return first.data;
     }
 
     const response = await api.patch(`/horses/${id}`, {

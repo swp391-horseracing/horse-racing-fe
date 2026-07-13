@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   Calendar,
   FileText,
@@ -29,12 +29,24 @@ export function EditHorseModal({
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setImagePreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return initialData?.imageUrl || null;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, initialData?.id]);
+
   if (!isOpen || !initialData) return null;
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setImagePreview(URL.createObjectURL(file));
+    setImagePreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
   };
 
   const triggerFileInput = () => {
