@@ -117,6 +117,16 @@ export const AdminService = {
     return response.data;
   },
 
+  // ── Simulation ──
+
+  async startSimulation(raceId: string): Promise<void> {
+    await api.post(`/admin/races/${raceId}/simulate`);
+  },
+
+  async stopSimulation(raceId: string): Promise<void> {
+    await api.delete(`/admin/races/${raceId}/simulate`);
+  },
+
   // ── Registrations ──
 
   async getRegistrations(params?: {

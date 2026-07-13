@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
-import { Calendar, Loader2, ArrowLeft, Plus } from "lucide-react";
+import { Calendar, Loader2, ArrowLeft, Plus, Play } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { ToastType } from "../../types/referee";
 import { TournamentForm } from "./tournament/TournamentForm";
 import TournamentList from "./tournament/TournamentList";
@@ -30,6 +31,7 @@ export default function TournamentRaceManager({
   const [racesLoading, setRacesLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [raceEditing, setRaceEditing] = useState(false);
+  const navigate = useNavigate();
 
   const {
     pagination,
@@ -347,6 +349,14 @@ export default function TournamentRaceManager({
             </h2>
 
             <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => navigate(`/races/${activeRaceId}/live`)}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 text-white px-3 py-2 text-xs font-semibold hover:bg-emerald-700 transition"
+              >
+                <Play size={14} fill="currentColor" />
+                Simulate
+              </button>
               <button
                 type="button"
                 onClick={() => setRaceEditing((prev) => !prev)}

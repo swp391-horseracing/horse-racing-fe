@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RaceService } from "../services/RaceService";
 import { ScheduleService } from "../services/ScheduleService";
+import type { RaceTick } from "../types/live";
+import type { FeFinalPlacement } from "../types/live";
 import type { RaceDetail, RaceEntry, RaceListItem } from "../types/race";
 
 type SocketEventHandler = (type: string, data: any) => void;
@@ -21,6 +23,7 @@ export function useRaceSocket(
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shouldReconnectRef = useRef(false);
   const reconnectCountRef = useRef(0);
+  const subscribedRef = useRef(false);
 
   useEffect(() => {
     onEventRef.current = onEvent;
@@ -33,6 +36,7 @@ export function useRaceSocket(
     if (!topics || topics.length === 0) return;
 
     shouldReconnectRef.current = true;
+    subscribedRef.current = false;
 
     const WS_URL =
       import.meta.env.VITE_WS_URL || "wss://horse-racing-api.patohru.qzz.io";
@@ -47,37 +51,48 @@ export function useRaceSocket(
 
       ws.onopen = () => {
         reconnectCountRef.current = 0;
-        try {
-          ws.send(
-            JSON.stringify({
-              type: "subscribe",
-              topics,
-            })
-          );
-        } catch {
-          // ignore
-        }
+        console.log(`[WS] Connected to ${url.hostname}`);
       };
 
       ws.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          if (message?.type) {
-            console.group(`WS event: ${message.type}`);
-            console.groupEnd();
-            onEventRef.current(message.type, message.data);
+          if (!message?.type) return;
+
+          // Subscribe only after receiving connection:ack
+          if (message.type === "connection:ack") {
+            console.log(
+              `[WS] Authenticated as ${message.data?.role ?? "unknown"}`
+            );
+            subscribedRef.current = false;
           }
+
+          if (!subscribedRef.current && topics.length > 0) {
+            console.log(`[WS] Subscribing to [${topics.join(", ")}]`);
+            subscribedRef.current = true;
+            ws.send(
+              JSON.stringify({
+                type: "subscribe",
+                topics,
+              })
+            );
+          }
+
+          onEventRef.current(message.type, message.data);
         } catch {
           // ignore malformed message
         }
       };
 
       ws.onerror = () => {
-        console.warn(`WS error (will reconnect...)`);
+        console.warn(`[WS] Error (will reconnect...)`);
       };
 
       ws.onclose = (event) => {
-        console.warn(`WS closed (code=${event.code} reason="${event.reason}")`);
+        console.warn(
+          `[WS] Closed (code=${event.code} reason="${event.reason}")`
+        );
+        subscribedRef.current = false;
         if (!shouldReconnectRef.current) return;
 
         reconnectCountRef.current++;
@@ -119,6 +134,7 @@ export function useRaceSocket(
       }
 
       wsRef.current = null;
+      subscribedRef.current = false;
     };
   }, [
     topicsKey,
@@ -199,15 +215,21 @@ export function useRaces() {
     }
   }, []);
 
-  const token = localStorage.getItem("token");
+  const token = useMemo(() => localStorage.getItem("token"), []);
+  const raceTopics = useMemo(() => ["race:*"], []);
 
   useRaceSocket(
-    ["race:*"],
+    raceTopics,
     useCallback((type, data) => {
       const updater = (prev: RaceListItem[]) =>
         prev.map((r) => (r.id === data.raceId ? { ...r, ...data } : r));
       switch (type) {
         case "connection:ack":
+          break;
+        case "race:tick":
+          console.log(
+            `[useRaces] tick race=${data.raceId?.slice(0, 8)} idx=${data.tick?.tickIndex} horses=${data.tick?.horses?.length}`
+          );
           break;
         case "race:status_changed":
           setRaces(updater);
@@ -246,6 +268,10 @@ export function useRaceDetail(raceId: string | null) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refetchIndex, setRefetchIndex] = useState(0);
+  const [latestTick, setLatestTick] = useState<RaceTick | null>(null);
+  const [finalPlacements, setFinalPlacements] = useState<
+    FeFinalPlacement[] | null
+  >(null);
 
   const refetch = useCallback(() => setRefetchIndex((i) => i + 1), []);
   const clearDetail = useCallback(() => {
@@ -296,10 +322,14 @@ export function useRaceDetail(raceId: string | null) {
     };
   }, [raceId, refetchIndex]);
 
-  const detailToken = localStorage.getItem("token");
+  const detailToken = useMemo(() => localStorage.getItem("token"), []);
+  const detailTopics = useMemo(
+    () => (raceId ? [`race:${raceId}`] : null),
+    [raceId]
+  );
 
   useRaceSocket(
-    raceId ? [`race:${raceId}`] : null,
+    detailTopics,
     useCallback((type, data) => {
       switch (type) {
         case "connection:ack":
@@ -313,12 +343,31 @@ export function useRaceDetail(raceId: string | null) {
         case "race:result_updated":
           setDetail((prev) => (prev ? { ...prev, ...data } : prev));
           break;
+        case "race:tick":
+          console.log("response simulate tick", data);
+          setLatestTick(data.tick);
+          break;
+        case "race:finish":
+          console.log(
+            `[Race] Finished — ${data.raceId?.slice(0, 8)}...`,
+            data.finalResults
+          );
+          setFinalPlacements(data.finalResults);
+          break;
       }
     }, []),
     { token: detailToken }
   );
 
-  return { detail, loading, error, refetch, clearDetail };
+  return {
+    detail,
+    loading,
+    error,
+    refetch,
+    clearDetail,
+    latestTick,
+    finalPlacements,
+  };
 }
 
 export async function fetchRaceEntries(raceId: string): Promise<RaceEntry[]> {
