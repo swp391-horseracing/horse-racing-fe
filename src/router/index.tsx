@@ -24,6 +24,7 @@ import LeaderBoardPage from "../pages/LeaderBoardPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import HorseDetailPage from "../pages/HorseDetailPage";
 import TracksPage from "../pages/TracksPage";
+import RaceReplay from "../pages/RaceReplay.tsx";
 export const router = createBrowserRouter([
   {
     path: ROUTES.HOME,
@@ -53,6 +54,10 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.FEED,
         element: <FeedPage />,
+      },
+      {
+        path: ROUTES.RACE_LIVE,
+        element: <RaceReplay />,
       },
       {
         path: ROUTES.CALENDAR,

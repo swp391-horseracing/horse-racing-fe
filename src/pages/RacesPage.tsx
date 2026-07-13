@@ -146,6 +146,19 @@ const formatDateTime = (dateString: string | undefined) => {
   });
 };
 
+const formatTime = (seconds: number) => {
+  const d = Math.floor(seconds / 86400);
+  const h = Math.floor((seconds % 86400) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  const parts: string[] = [];
+  if (d > 0) parts.push(`${d}d`);
+  if (h > 0 || d > 0) parts.push(`${h}h`);
+  parts.push(`${m}m`);
+  parts.push(`${s}s`);
+  return parts.join(" ");
+};
+
 function RaceRow({
   race,
   selected,
@@ -328,6 +341,24 @@ export default function RacesPage() {
     error: detailError,
     refetch: loadDetail,
   } = useRaceDetail(raceId);
+
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  useEffect(() => {
+    if (raceDetail?.status !== "ongoing") return;
+    const tick = () => {
+      const elapsed = Math.max(
+        0,
+        Math.floor(
+          (Date.now() - new Date(raceDetail.scheduledAt).getTime()) / 1000
+        )
+      );
+      setElapsedSeconds(elapsed);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [raceDetail?.id, raceDetail?.status, raceDetail?.scheduledAt]);
 
   const currentPrediction = raceDetail
     ? myPredictions.get(raceDetail.id)
@@ -859,16 +890,28 @@ export default function RacesPage() {
                             ? `${raceDetail.laneCount} Lanes`
                             : "Lanes TBC"}
                         </span>
-                        <span
+                        <button
                           className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 font-bold ${getRaceStatusDetailStyle(raceDetail.status)}`}
                         >
                           {raceDetail.status === "ongoing" && (
                             <span className="h-1.5 w-1.5 rounded-full bg-rose-300 animate-pulse" />
                           )}
                           {raceDetail.status === "ongoing"
-                            ? "Live"
+                            ? formatTime(elapsedSeconds)
                             : formatStatus(raceDetail.status)}
-                        </span>
+                        </button>
+                        {raceDetail.status === "ongoing" && (
+                          <>
+                            <button
+                              onClick={() => {
+                                navigate(`/races/${raceDetail.id}/live`);
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-lg border bg-rose-500/20 border-rose-400/50 text-rose-200 px-3 py-1.5 font-bold hover:bg-red-600/50"
+                            >
+                              Watch Live
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   }

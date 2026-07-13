@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
+import { Calendar, Loader2, ArrowLeft, Plus, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Loader2, ArrowLeft, Plus } from "lucide-react";
 import type { ToastType } from "../../types/referee";
 import { TournamentForm } from "./tournament/TournamentForm";
 import TournamentList from "./tournament/TournamentList";
@@ -29,6 +29,8 @@ export default function TournamentRaceManager({
   const [races, setRaces] = useState<RaceItem[]>([]);
   const [racesLoading, setRacesLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [raceEditing, setRaceEditing] = useState(false);
+  const navigate = useNavigate();
 
   const {
     pagination,
@@ -243,6 +245,127 @@ export default function TournamentRaceManager({
             tournamentStartDate={selectedTournament?.startDate}
             tournamentEndDate={selectedTournament?.endDate}
           />
+        </div>
+      </div>
+    );
+  }
+
+  if (view === "race-detail" && activeRaceId) {
+    if (raceLoading || !selectedRace) {
+      return (
+        <div className="flex items-center justify-center h-full p-10">
+          <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+        </div>
+      );
+    }
+
+    return (
+      <div className="h-full w-full flex flex-col overflow-y-auto p-6 max-w-7xl mx-auto space-y-4">
+        <button
+          onClick={() => {
+            setView("tournament-detail");
+            setActiveRaceId(null);
+            clearSelectedRace();
+            if (activeTournamentId) {
+              void loadRaces(activeTournamentId);
+            }
+          }}
+          className="inline-flex items-center gap-2 text-sm font-semibold text-[#064E3B] mb-2 w-fit hover:underline"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Tournament
+        </button>
+
+        <div className="space-y-5 bg-white border rounded-2xl p-6 shadow-sm">
+          <div className="flex justify-between items-center gap-3 border-b pb-4">
+            <h2 className="text-xl font-bold text-[#064E3B]">
+              {selectedRace.name ?? "Race Detail"}
+            </h2>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => navigate(`/races/${activeRaceId}/live`)}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 text-white px-3 py-2 text-xs font-semibold hover:bg-emerald-700 transition"
+              >
+                <Play size={14} fill="currentColor" />
+                Simulate
+              </button>
+              <button
+                type="button"
+                onClick={() => setRaceEditing((prev) => !prev)}
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700"
+              >
+                {raceEditing ? "Cancel Edit" : "Edit Race"}
+              </button>
+              <RaceStatusButton
+                currentStatus={selectedRace.status}
+                onStatusChange={handleRaceStatusChange}
+                actionLoading={raceActionLoading}
+              />
+            </div>
+          </div>
+
+          {raceEditing ? (
+            <RaceForm
+              initial={{
+                name: selectedRace.name,
+                roundName: selectedRace.roundName ?? "",
+                distanceMeters: selectedRace.distanceMeters ?? 1200,
+                trackCondition: selectedRace.trackCondition ?? "good",
+                scheduledAt: selectedRace.scheduledAt ?? "",
+                venue: selectedRace.venue ?? "",
+                laneCount: selectedRace.laneCount ?? 8,
+                raceNumber: selectedRace.raceNumber ?? undefined,
+                trackDistanceId: selectedRace.courseDistanceId ?? "",
+              }}
+              initialTrackId={selectedRace.course?.id ?? ""}
+              onClose={() => setRaceEditing(false)}
+              onSubmit={handleUpdateRace}
+              actionLoading={raceActionLoading}
+              tournamentStartDate={selectedTournament?.startDate}
+              tournamentEndDate={selectedTournament?.endDate}
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm pt-2">
+              <div>
+                <strong>Status:</strong>{" "}
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded capitalize ${getRaceStatusStyle(selectedRace.status)}`}
+                >
+                  {STATUS_LABELS[selectedRace.status] ??
+                    selectedRace.status.replaceAll("_", " ")}
+                </span>
+              </div>
+              <div>
+                <strong>Round:</strong> {selectedRace.roundName ?? "-"}
+              </div>
+              <div>
+                <strong>Distance:</strong>{" "}
+                {selectedRace.distanceMeters
+                  ? `${selectedRace.distanceMeters}m`
+                  : "-"}
+              </div>
+              <div>
+                <strong>Track Condition:</strong>{" "}
+                <span className="capitalize">
+                  {selectedRace.trackCondition ?? "-"}
+                </span>
+              </div>
+              <div>
+                <strong>Venue:</strong> {selectedRace.venue ?? "-"}
+              </div>
+              <div>
+                <strong>Lane Count:</strong> {selectedRace.laneCount ?? "-"}
+              </div>
+              <div>
+                <strong>Scheduled:</strong>{" "}
+                {selectedRace.scheduledAt
+                  ? new Date(selectedRace.scheduledAt).toLocaleString()
+                  : "-"}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
