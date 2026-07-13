@@ -178,49 +178,12 @@ export function useOwner() {
     breed: string;
     birthDate: string;
     weightKg: string;
-    imageUrl: string;
     healthStatus: string;
     baseSpeed?: number;
     stamina?: number;
+    image?: File;
   }) => {
-    await HorseService.createHorse(
-      payload.name,
-      payload.breed,
-      payload.birthDate,
-      payload.weightKg,
-      payload.imageUrl,
-      payload.healthStatus,
-      payload.baseSpeed,
-      payload.stamina
-    );
-
-    await loadHorses();
-  };
-
-  const updateHorse = async (
-    id: string,
-    payload: {
-      name: string;
-      breed: string;
-      birthDate: string;
-      weightKg: string;
-      imageUrl: string;
-      healthStatus: string;
-      baseSpeed?: number;
-      stamina?: number;
-    }
-  ) => {
-    await HorseService.updateHorse(
-      id,
-      payload.name,
-      payload.breed,
-      payload.birthDate,
-      payload.weightKg,
-      payload.imageUrl,
-      payload.healthStatus,
-      payload.baseSpeed,
-      payload.stamina
-    );
+    await HorseService.createHorse(payload);
 
     await loadHorses();
   };
@@ -238,10 +201,10 @@ export function useOwner() {
       breed: string;
       birthDate: string;
       weightKg: string;
-      imageUrl: string;
       healthStatus: string;
       baseSpeed?: number;
       stamina?: number;
+      image?: File;
     }
   ) => {
     await HorseService.editHorse(id, payload);
@@ -547,7 +510,6 @@ export function useOwner() {
     entriesPagination,
 
     addHorse,
-    updateHorse,
     editHorse,
     retireHorse,
 
