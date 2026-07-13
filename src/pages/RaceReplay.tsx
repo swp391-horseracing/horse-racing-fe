@@ -9,27 +9,17 @@ import {
   ArrowDown,
   Minus,
   ChessKnight,
+  Hash,
+  Layers,
 } from "lucide-react";
 import { replay } from "../test/mockReplay.ts";
-
-interface HorseTimelinePoint {
-  time: number;
-  distance: number;
-}
-interface HorseData {
-  id: string;
-  name: string;
-  timeline: HorseTimelinePoint[];
-}
-interface HorseState extends HorseData {
-  currentDistance: number;
-  rank: number;
-  rankChange: number;
-  speed: number;
-  finished: boolean;
-  laneIndex: number;
-  color: string;
-}
+import type {
+  HorseData,
+  HorseState,
+  HorseTimelinePoint,
+} from "../types/live.ts";
+import { useRaceDetail } from "../hooks/useRaces.ts";
+import { useParams } from "react-router-dom";
 
 const RACE_DURATION = 80000;
 const RACE_DISTANCE = 600;
@@ -76,9 +66,11 @@ const pct = (d: number) =>
   Math.min(100, Math.max(0, (d / RACE_DISTANCE) * 100));
 
 export default function RaceReplay() {
+  const { id } = useParams<{ id: string }>();
+
+  const { detail: raceDetail } = useRaceDetail(id!);
 
   const animRef = useRef<number>(1);
-  const startRef = useRef<number | null>(null);
   const prevRanksRef = useRef<Map<string, number>>(new Map());
   const [time, setTime] = useState(0);
   const [playing, setPlaying] = useState(true);
@@ -132,36 +124,89 @@ export default function RaceReplay() {
     setStandings(sorted);
   };
 
+  const startTime = useRef<number>(0);
+
   useEffect(() => {
-    if (!playing || time >= RACE_DURATION) return;
-    const tick = (ts: number) => {
-      if (startRef.current === null) startRef.current = ts - time;
-      const elapsed = Math.min(ts - startRef.current, RACE_DURATION);
+    startTime.current = Date.now();
+  }, []);
+
+  const getRaceElapsed = () => {
+    return Date.now() - startTime.current;
+  };
+
+  useEffect(() => {
+    if (!raceDetail?.scheduledAt) return;
+
+    const tick = () => {
+      const elapsed = getRaceElapsed();
+
+      if (elapsed < 0) {
+        setTime(0);
+        return;
+      }
+
+      if (elapsed >= RACE_DURATION) {
+        setTime(RACE_DURATION);
+        update(RACE_DURATION);
+        setPlaying(false);
+        return;
+      }
+
       setTime(elapsed);
       update(elapsed);
-      if (elapsed < RACE_DURATION)
-        animRef.current = requestAnimationFrame(tick);
-      else setPlaying(false);
+
+      animRef.current = requestAnimationFrame(tick);
     };
+
     animRef.current = requestAnimationFrame(tick);
-    return () => {
-      if (animRef.current) {
-        cancelAnimationFrame(animRef.current);
-      }
-    };
-  }, [playing, time]);
+
+    return () => cancelAnimationFrame(animRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [raceDetail]);
 
   return (
-    <div className="w-full h-screen flex flex-col max-w-6xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden font-sans border border-slate-200">
+    <div className="w-full h-full flex flex-col max-w-[1400px] mx-auto bg-white rounded-xl shadow-2xl overflow-hidden font-sans border border-slate-200">
       <div className="shrink-0 bg-primary text-white px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <Flag className="w-7 h-7 text-[#D4AF37]" />
-          <div>
-            <div className="text-white text-4xl font-black tracking-tight uppercase">
-              Race 5
-            </div>
-            <div className="text-white/70 text-sm font-medium">
-              Distance: {RACE_DISTANCE}m · Surface: Turf
+          <div className="space-y-1">
+            {raceDetail?.name && (
+              <div className="text-[18px] font-bold uppercase tracking-widest text-white truncate">
+                {raceDetail?.name}
+              </div>
+            )}
+            <div className="flex flex-wrap w-full items-center gap-2 font-semibold text-xs text-white">
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
+                <Clock className="h-3.5 w-3.5" />
+                {formatDateTime(raceDetail?.scheduledAt)}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
+                <Flag className="h-3.5 w-3.5" />
+                {raceDetail?.course?.name || "Venue"}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
+                <Hash className="h-3.5 w-3.5" />
+                {raceDetail?.raceNumber != null
+                  ? `Race #${raceDetail?.raceNumber}`
+                  : "Race TBC"}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
+                <Trophy className="h-3.5 w-3.5" />
+                {raceDetail?.course?.distanceMeters
+                  ? `${raceDetail?.course.distanceMeters}m`
+                  : raceDetail?.distanceMeters
+                    ? `${raceDetail?.distanceMeters}m`
+                    : "Distance TBC"}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold capitalize">
+                {raceDetail?.course?.surfaceType || "Standard"}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
+                <Layers className="h-3.5 w-3.5" />
+                {raceDetail?.laneCount
+                  ? `${raceDetail?.laneCount} Lanes`
+                  : "Lanes TBC"}
+              </span>
             </div>
           </div>
         </div>
@@ -306,3 +351,16 @@ export default function RaceReplay() {
     </div>
   );
 }
+const formatDateTime = (dateString: string | undefined) => {
+  if (!dateString) return "TBC";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "Invalid Date";
+
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};

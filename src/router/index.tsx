@@ -43,7 +43,6 @@ export const router = createBrowserRouter([
     children: [{ index: true, element: <LoginPage /> }],
   },
 
-
   {
     path: "/",
     element: <Navigate to={ROUTES.HOME} replace />,
@@ -57,7 +56,7 @@ export const router = createBrowserRouter([
         element: <FeedPage />,
       },
       {
-        path: "/mock",
+        path: ROUTES.RACE_LIVE,
         element: <RaceReplay />,
       },
       {
