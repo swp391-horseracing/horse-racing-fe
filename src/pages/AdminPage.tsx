@@ -12,6 +12,7 @@ import VirtualEconomy from "../components/admin/VirtualEconomy";
 import ControlCenterOverview from "../components/admin/controlCenterOverview";
 import RaceReportsManager from "../components/admin/RaceReportsManager";
 import TrackManagement from "../components/admin/TrackManagement";
+import ViolationTypesManager from "../components/admin/ViolationTypesManager";
 
 const TAB_ROUTE_MAP: Record<string, string> = {
   [ROUTES.ADMIN_DASHBOARD]: ROUTES.ADMIN_DASHBOARD,
@@ -22,6 +23,7 @@ const TAB_ROUTE_MAP: Record<string, string> = {
   "/admin/economy": "/admin/economy",
   "/admin/track": "/admin/track",
   [ROUTES.ADMIN_REPORTS]: ROUTES.ADMIN_REPORTS,
+  "/admin/violation-types": "/admin/violation-types",
 };
 
 function getTabKey(pathname: string): string {
@@ -63,6 +65,8 @@ export default function AdminPage() {
         return <VirtualEconomy addToast={addToast} />;
       case ROUTES.ADMIN_REPORTS:
         return <RaceReportsManager addToast={addToast} />;
+      case "/admin/violation-types":
+        return <ViolationTypesManager addToast={addToast} />;
       case "/admin/track":
         return <TrackManagement addToast={addToast} />;
       default:

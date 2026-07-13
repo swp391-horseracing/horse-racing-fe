@@ -10,9 +10,16 @@ import {
 import {
   type MockRace,
   type Violation,
-  type ViolationCategory,
+  type ViolationTypeConfig,
 } from "../../types/referee";
 import { cn } from "../../lib/utils";
+
+const SEVERITY_OPTIONS = [
+  { value: "warning", label: "Warning" },
+  { value: "point_deduction", label: "Point Deduction" },
+  { value: "disqualification", label: "Disqualification" },
+  { value: "result_cancellation", label: "Result Cancellation" },
+];
 
 interface LiveMonitorPanelProps {
   race: MockRace;
@@ -22,10 +29,11 @@ interface LiveMonitorPanelProps {
   onEndRace: () => void;
   onLogViolation: (
     laneId: string,
-    violationType: ViolationCategory,
+    violationTypeConfigId: string,
+    severity: string,
     note: string
   ) => void;
-  violationCategories: ViolationCategory[];
+  violationTypeConfigs: ViolationTypeConfig[];
 }
 
 export default function LiveMonitorPanel({
@@ -35,11 +43,14 @@ export default function LiveMonitorPanel({
   onResumeRace,
   onEndRace,
   onLogViolation,
-  violationCategories,
+  violationTypeConfigs,
 }: LiveMonitorPanelProps) {
   const [violationLaneId, setViolationLaneId] = useState<string | null>(null);
-  const [violationType, setViolationType] = useState<ViolationCategory>(
-    violationCategories[0]
+  const [violationConfigId, setViolationConfigId] = useState<string>(
+    violationTypeConfigs[0]?.id || ""
+  );
+  const [violationSeverity, setViolationSeverity] = useState<string>(
+    SEVERITY_OPTIONS[0].value
   );
   const [violationNote, setViolationNote] = useState("");
 
@@ -48,9 +59,16 @@ export default function LiveMonitorPanel({
   );
 
   const handleConfirmViolation = () => {
-    if (!violationLaneId) return;
-    onLogViolation(violationLaneId, violationType, violationNote);
+    if (!violationLaneId || !violationConfigId) return;
+    onLogViolation(
+      violationLaneId,
+      violationConfigId,
+      violationSeverity,
+      violationNote
+    );
     setViolationLaneId(null);
+    setViolationConfigId(violationTypeConfigs[0]?.id || "");
+    setViolationSeverity(SEVERITY_OPTIONS[0].value);
     setViolationNote("");
   };
 
@@ -120,7 +138,8 @@ export default function LiveMonitorPanel({
               <button
                 onClick={() => {
                   setViolationLaneId(lane.id);
-                  setViolationType(violationCategories[0]);
+                  setViolationConfigId(violationTypeConfigs[0]?.id || "");
+                  setViolationSeverity(SEVERITY_OPTIONS[0].value);
                   setViolationNote("");
                 }}
                 className="mt-3 w-full text-[10px] font-bold bg-orange-600 text-white px-2 py-1.5 rounded-lg hover:bg-orange-700 transition flex items-center justify-center gap-1"
@@ -179,18 +198,32 @@ export default function LiveMonitorPanel({
             <div className="space-y-3">
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">
-                  Category
+                  Violation Type
                 </label>
                 <select
-                  value={violationType}
-                  onChange={(e) =>
-                    setViolationType(e.target.value as ViolationCategory)
-                  }
+                  value={violationConfigId}
+                  onChange={(e) => setViolationConfigId(e.target.value)}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
                 >
-                  {violationCategories.map((c: ViolationCategory) => (
-                    <option key={c} value={c}>
-                      {c}
+                  {violationTypeConfigs.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.violationType} ({c.pointsDeducted} pts)
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">
+                  Severity
+                </label>
+                <select
+                  value={violationSeverity}
+                  onChange={(e) => setViolationSeverity(e.target.value)}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
+                >
+                  {SEVERITY_OPTIONS.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
                     </option>
                   ))}
                 </select>

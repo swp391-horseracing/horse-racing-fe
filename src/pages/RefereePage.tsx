@@ -7,10 +7,10 @@ import { ChevronLeft, Timer } from "lucide-react";
 import {
   type RacePhase,
   type InspectionStatus,
-  type ViolationCategory,
   type LaneEntry,
   type Violation,
   type MockRace,
+  type ViolationTypeConfig,
 } from "../types/referee";
 import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "../components/ui/toast";
@@ -42,13 +42,6 @@ const phaseBadgeStyle: Record<RacePhase, string> = {
   live: "bg-emerald-100 text-emerald-800 border-emerald-200",
   post_race: "bg-indigo-100 text-indigo-800 border-indigo-200",
 };
-
-const VIOLATION_CATEGORIES: ViolationCategory[] = [
-  "Whip Limit Exceeded",
-  "Lane Interference",
-  "Unsafe Riding",
-  "Refusal to Race / Bolting",
-];
 
 const PRE_RACE_WITHDRAW_REASONS = [
   "Veterinary Scratch (Paddock / Gate Lameness)",
@@ -110,6 +103,9 @@ export default function RefereePage() {
   const [selectedRaceId, setSelectedRaceId] = useState<string | null>(null);
   const [filterPhase, setFilterPhase] = useState<RacePhase | "all">("all");
   const [loading, setLoading] = useState(false);
+  const [violationTypeConfigs, setViolationTypeConfigs] = useState<
+    ViolationTypeConfig[]
+  >([]);
 
   // Clear selected race when navigating away from the race list
   useEffect(() => {
@@ -166,6 +162,12 @@ export default function RefereePage() {
         );
       });
   }, [addToast]);
+
+  useEffect(() => {
+    RefereeService.getViolationTypes()
+      .then(setViolationTypeConfigs)
+      .catch(() => {});
+  }, []);
 
   const handleSelectRace = useCallback(
     async (id: string) => {
@@ -290,20 +292,17 @@ export default function RefereePage() {
                 ),
                 inspectedAt: null,
                 failReason: null,
-                violations: p.violation
-                  ? [
-                      {
-                        id: p.violation.id,
-                        entryId: p.entryId,
-                        refereeId: p.violation.refereeId,
-                        occurredAt: p.violation.occurredAt,
-                        violationType: p.violation.violationType,
-                        description: p.violation.description,
-                        severity: p.violation.severity as any,
-                        note: p.violation.note,
-                      },
-                    ]
-                  : [],
+                violations: (p.violations || []).map((v: any) => ({
+                  id: v.id,
+                  entryId: p.entryId,
+                  refereeId: v.refereeId,
+                  occurredAt: v.occurredAt,
+                  violationTypeConfigId: v.violationTypeConfigId,
+                  violationType: v.violationType,
+                  description: v.description,
+                  severity: v.severity,
+                  note: v.note || "",
+                })),
                 finishPosition: p.finishedPosition,
                 finishTime: formatSecondsToMSS(p.finishTime),
                 flag:
@@ -312,7 +311,7 @@ export default function RefereePage() {
                     : null,
               }));
 
-              if (backendPhase === "scheduled" && entriesData?.entries) {
+              if (entriesData?.entries) {
                 const placementIds = new Set(
                   data.placements.map((p: any) => p.entryId)
                 );
@@ -487,16 +486,20 @@ export default function RefereePage() {
   const handleLogViolation = async (
     raceId: string,
     laneId: string,
-    violationType: string,
+    violationTypeConfigId: string,
+    severity: string,
     note: string
   ) => {
     try {
+      await RefereeService.getRefereeRaceReport(raceId);
+      const config = violationTypeConfigs.find(
+        (c) => c.id === violationTypeConfigId
+      );
       const created = await RefereeService.createViolation(raceId, {
         entryId: laneId,
         occurredAt: new Date().toISOString(),
-        violationType,
-        description: violationType,
-        severity: "warning",
+        violationTypeConfigId,
+        severity: severity as any,
         note,
       });
 
@@ -508,9 +511,10 @@ export default function RefereePage() {
         id: (created as any).id,
         entryId: laneId,
         refereeId: (created as any).refereeId || "me",
-        violationType,
-        description: violationType,
-        severity: "warning",
+        violationTypeConfigId,
+        violationType: config?.violationType || "",
+        description: config?.description || "",
+        severity: severity as any,
         note,
         occurredAt: new Date().toISOString(),
       };
@@ -518,7 +522,7 @@ export default function RefereePage() {
         ...l,
         violations: [...l.violations, violation],
       }));
-      addToast(`Violation logged: ${violationType}`, "warning");
+      addToast(`Violation logged: ${config?.violationType || ""}`, "warning");
     } catch (e: any) {
       addToast(e.response?.data?.message || "Failed to log violation", "error");
     }
@@ -643,18 +647,22 @@ export default function RefereePage() {
     raceId: string,
     laneId: string,
     violationId: string,
-    violationType: ViolationCategory,
+    violationTypeConfigId: string,
+    severity: string,
     note: string
   ) => {
     let created: any = null;
     try {
+      const config = violationTypeConfigs.find(
+        (c) => c.id === violationTypeConfigId
+      );
+
       // 1. Create replacement violation first
       created = await RefereeService.createViolation(raceId, {
         entryId: laneId,
         occurredAt: new Date().toISOString(),
-        violationType,
-        description: violationType,
-        severity: "warning",
+        violationTypeConfigId,
+        severity: severity as any,
         note,
       });
 
@@ -673,7 +681,15 @@ export default function RefereePage() {
         ...l,
         violations: l.violations.map((v) =>
           v.id === violationId
-            ? { ...v, id: created.id, violationType, note }
+            ? {
+                ...v,
+                id: created.id,
+                violationTypeConfigId,
+                violationType: config?.violationType || "",
+                description: config?.description || "",
+                severity: severity as any,
+                note,
+              }
             : v
         ),
       }));
@@ -818,10 +834,21 @@ export default function RefereePage() {
                   onDelayRace={() => handleDelayRace(race.id)}
                   onResumeRace={() => handleResumeRace(race.id)}
                   onEndRace={() => handleEndRace(race.id)}
-                  onLogViolation={(laneId, violationType, note) =>
-                    handleLogViolation(race.id, laneId, violationType, note)
+                  onLogViolation={(
+                    laneId,
+                    violationTypeConfigId,
+                    severity,
+                    note
+                  ) =>
+                    handleLogViolation(
+                      race.id,
+                      laneId,
+                      violationTypeConfigId,
+                      severity,
+                      note
+                    )
                   }
-                  violationCategories={VIOLATION_CATEGORIES}
+                  violationTypeConfigs={violationTypeConfigs}
                 />
               )}
               {race.phase === "post_race" && (
@@ -848,24 +875,37 @@ export default function RefereePage() {
                   onUpdateViolation={(
                     laneId,
                     violationId,
-                    violationType,
+                    violationTypeConfigId,
+                    severity,
                     note
                   ) =>
                     handleUpdateViolation(
                       race.id,
                       laneId,
                       violationId,
-                      violationType,
+                      violationTypeConfigId,
+                      severity,
                       note
                     )
                   }
                   onDeleteViolation={(laneId, violationId) =>
                     handleDeleteViolation(race.id, laneId, violationId)
                   }
-                  onCreateViolation={(laneId, violationType, note) =>
-                    handleLogViolation(race.id, laneId, violationType, note)
+                  onCreateViolation={(
+                    laneId,
+                    violationTypeConfigId,
+                    severity,
+                    note
+                  ) =>
+                    handleLogViolation(
+                      race.id,
+                      laneId,
+                      violationTypeConfigId,
+                      severity,
+                      note
+                    )
                   }
-                  violationCategories={VIOLATION_CATEGORIES}
+                  violationTypeConfigs={violationTypeConfigs}
                 />
               )}
             </>

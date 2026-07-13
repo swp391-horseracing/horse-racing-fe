@@ -11,7 +11,6 @@ export type RaceApiStatus =
   | "pre_race"
   | "ongoing"
   | "under_review"
-  | "result_confirmed"
   | "completed"
   | "postponed"
   | "cancelled";

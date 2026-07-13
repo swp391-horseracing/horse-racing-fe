@@ -13,6 +13,7 @@ import {
   Home,
 } from "lucide-react";
 import { useTrack } from "../hooks/useTrack";
+import { formatStatus } from "../utils/formatters";
 
 function StatFilterCard({
   label,
@@ -48,9 +49,10 @@ function StatFilterCard({
 
 function StatusBadge({ status }: { status?: string }) {
   const styles: Record<string, string> = {
-    active: "bg-secondary/10 text-secondary border-secondary/30",
+    active: "bg-emerald-50 text-emerald-700 border-emerald-200",
     inactive: "bg-muted text-muted-foreground border-border",
     maintenance: "bg-amber-100 text-amber-700 border-amber-200",
+    under_maintainance: "bg-amber-100 text-amber-700 border-amber-200",
     draft: "bg-slate-100 text-slate-500 border-slate-200",
   };
 
@@ -58,6 +60,7 @@ function StatusBadge({ status }: { status?: string }) {
     active: "Active",
     inactive: "Inactive",
     maintenance: "Maintenance",
+    under_maintainance: "Under Maintenance",
     draft: "Draft",
   };
 
@@ -70,7 +73,7 @@ function StatusBadge({ status }: { status?: string }) {
       }`}
     >
       {currentStatus === "active" && (
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-secondary" />
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
       )}
       {labelMap[currentStatus] ?? currentStatus}
     </span>
@@ -368,8 +371,10 @@ export default function TracksPage() {
                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                             Shape
                           </p>
-                          <p className="text-base font-black text-foreground mt-1 capitalize">
-                            {trackDetail.trackShape?.shape || "Unknown"}
+                          <p className="text-base font-black text-foreground mt-1">
+                            {formatStatus(
+                              trackDetail.trackShape?.shape || "Unknown"
+                            )}
                           </p>
                         </div>
                       </div>
