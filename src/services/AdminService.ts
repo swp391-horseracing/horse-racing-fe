@@ -151,6 +151,13 @@ export const AdminService = {
     return response.data;
   },
 
+  async unassignRaceReferee(raceId: string, refereeId: string) {
+    const response = await api.delete(
+      `/admin/races/${raceId}/referee/${refereeId}`
+    );
+    return response.data;
+  },
+
   // ── Violation Type Configs ──
 
   async getViolationTypes(params?: {

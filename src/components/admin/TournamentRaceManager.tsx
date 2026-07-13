@@ -35,6 +35,12 @@ export default function TournamentRaceManager({
   const [raceEditing, setRaceEditing] = useState(false);
   const [raceReferee, setRaceReferee] = useState<AssignedReferee | null>(null);
   const [raceEntries, setRaceEntries] = useState<RaceEntry[]>([]);
+  const [showRefereePicker, setShowRefereePicker] = useState(false);
+  const [availableReferees, setAvailableReferees] = useState<
+    { id: string; fullName: string; email?: string }[]
+  >([]);
+  const [refereesLoading, setRefereesLoading] = useState(false);
+  const [selectedRefereeId, setSelectedRefereeId] = useState("");
 
   const {
     pagination,
@@ -92,16 +98,33 @@ export default function TournamentRaceManager({
   ]);
 
   useEffect(() => {
-    if (view !== "race-detail" || !activeRaceId) return;
+    if (view !== "race-detail" || !activeRaceId) {
+      setShowRefereePicker(false);
+      setSelectedRefereeId("");
+      return;
+    }
+    setShowRefereePicker(false);
+    setSelectedRefereeId("");
     AdminService.getRaceReferee(activeRaceId)
-      .then((data) =>
-        setRaceReferee(data?.referee ?? (data?.id ? data : null) ?? null)
-      )
+      .then((data) => {
+        const ref = data?.referee ?? (data?.id ? data : null) ?? null;
+        if (ref && data?.referee?.email) {
+          ref.email = data.referee.email;
+        }
+        setRaceReferee(ref);
+      })
       .catch(() => setRaceReferee(null));
     fetchRaceEntries(activeRaceId)
       .then((data) => setRaceEntries(data))
       .catch(() => setRaceEntries([]));
   }, [view, activeRaceId]);
+
+  useEffect(() => {
+    if (raceEditing) {
+      setShowRefereePicker(false);
+      setSelectedRefereeId("");
+    }
+  }, [raceEditing]);
 
   const handleManageRaces = (id: string) => {
     setActiveTournamentId(id);
@@ -190,6 +213,53 @@ export default function TournamentRaceManager({
       await getRaceDetail(activeRaceId);
     } else {
       addToast("Failed to update race status.", "error");
+    }
+  };
+
+  const loadReferees = async () => {
+    setRefereesLoading(true);
+    setSelectedRefereeId("");
+    try {
+      const res = await AdminService.getUsers(undefined, undefined, "referee", 1, 100);
+      const list = res?.data ?? [];
+      setAvailableReferees(
+        list.map((u: any) => ({
+          id: u.id,
+          fullName: u.fullName,
+          email: u.email,
+        }))
+      );
+    } catch {
+      setAvailableReferees([]);
+    } finally {
+      setRefereesLoading(false);
+    }
+  };
+
+  const handleAssignReferee = async () => {
+    if (!activeRaceId || !selectedRefereeId) return;
+    try {
+      await AdminService.assignRaceReferee(activeRaceId, selectedRefereeId);
+      addToast("Referee assigned successfully.", "success");
+      setShowRefereePicker(false);
+      setSelectedRefereeId("");
+      const data = await AdminService.getRaceReferee(activeRaceId);
+      setRaceReferee(data?.referee ?? (data?.id ? data : null) ?? null);
+    } catch {
+      addToast("Failed to assign referee.", "error");
+    }
+  };
+
+  const handleUnassignReferee = async () => {
+    if (!activeRaceId || !raceReferee) return;
+    try {
+      await AdminService.unassignRaceReferee(activeRaceId, raceReferee.id);
+      addToast("Referee unassigned successfully.", "success");
+      setRaceReferee(null);
+      setShowRefereePicker(false);
+      setSelectedRefereeId("");
+    } catch {
+      addToast("Failed to unassign referee.", "error");
     }
   };
 
@@ -517,19 +587,89 @@ export default function TournamentRaceManager({
               </div>
 
               <div>
-                <h3 className="text-sm font-bold text-slate-800 mb-2">
-                  Referee
-                </h3>
-                {raceReferee ? (
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-bold text-slate-800">
+                    Referee
+                  </h3>
+                  {!showRefereePicker && raceReferee && (
+                    <button
+                      onClick={() => {
+                        setShowRefereePicker(true);
+                        void loadReferees();
+                      }}
+                      className="text-[10px] font-bold text-[#064E3B] underline hover:no-underline"
+                    >
+                      Change
+                    </button>
+                  )}
+                </div>
+                {showRefereePicker ? (
+                  <div className="bg-slate-50 rounded-xl p-3 space-y-2">
+                    {refereesLoading ? (
+                      <div className="flex items-center gap-2 text-sm text-slate-500">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Loading referees...
+                      </div>
+                    ) : availableReferees.length === 0 ? (
+                      <p className="text-xs text-slate-400">
+                        No referees available.
+                      </p>
+                    ) : (
+                      <>
+                        <select
+                          value={selectedRefereeId}
+                          onChange={(e) =>
+                            setSelectedRefereeId(e.target.value)
+                          }
+                          className="w-full border rounded-lg px-3 py-2 text-xs"
+                        >
+                          <option value="" disabled>
+                            Select a referee...
+                          </option>
+                          {availableReferees.map((r) => (
+                            <option key={r.id} value={r.id}>
+                              {r.fullName}{r.email ? ` (${r.email})` : ""}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleAssignReferee}
+                            disabled={!selectedRefereeId}
+                            className="px-3 py-1.5 rounded-lg bg-[#064E3B] text-white text-[10px] font-bold hover:opacity-90 disabled:opacity-50"
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowRefereePicker(false);
+                              setSelectedRefereeId("");
+                            }}
+                            className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-100"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ) : raceReferee ? (
                   <div className="bg-slate-50 rounded-xl p-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">
+                    <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold shrink-0">
                       <User className="w-4 h-4" />
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-800">
-                        {raceReferee.fullName}
-                      </p>
-                      <p className="text-[10px] text-slate-500">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-slate-800 truncate">
+                          {raceReferee.fullName}
+                        </p>
+                        {raceReferee.email && (
+                          <span className="text-[11px] text-slate-500 truncate">
+                            {raceReferee.email}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-slate-400">
                         Assigned:{" "}
                         {raceReferee.assignedAt
                           ? new Date(
@@ -538,11 +678,24 @@ export default function TournamentRaceManager({
                           : "Recently"}
                       </p>
                     </div>
+                    <button
+                      onClick={handleUnassignReferee}
+                      className="text-[10px] font-bold text-rose-600 underline hover:no-underline shrink-0"
+                    >
+                      Remove
+                    </button>
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-400 py-3">
-                    No referee assigned.
-                  </p>
+                  <button
+                    onClick={() => {
+                      setShowRefereePicker(true);
+                      void loadReferees();
+                    }}
+                    className="w-full border-2 border-dashed border-[#064E3B]/30 rounded-xl py-4 text-sm font-bold text-[#064E3B] hover:bg-[#064E3B]/5 hover:border-[#064E3B]/50 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    Assign Referee
+                  </button>
                 )}
               </div>
             </div>
