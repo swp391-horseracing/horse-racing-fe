@@ -159,3 +159,20 @@ export interface AdminRace {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Frame {
+  time: number;
+  distance: number;
+}
+
+export interface HorseReplay {
+  id: string;
+  name: string;
+  timeline: Frame[];
+}
+
+export interface RaceReplay {
+  duration: number;
+  raceDistance: number;
+  horses: HorseReplay[];
+}
