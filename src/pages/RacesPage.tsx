@@ -16,6 +16,7 @@ import {
   Trophy,
   Target,
   Send,
+  Play,
 } from "lucide-react";
 import { ROUTES } from "../router/routes";
 
@@ -553,6 +554,7 @@ export default function RacesPage() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+  const user = JSON.parse(sessionStorage.getItem("user") ?? "null");
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
@@ -911,6 +913,17 @@ export default function RacesPage() {
                               Watch Live
                             </button>
                           </>
+                        )}
+                        {user?.role === "admin" && (
+                          <button
+                            onClick={() =>
+                              navigate(`/races/${raceDetail.id}/live`)
+                            }
+                            className="inline-flex items-center gap-1.5 rounded-lg border bg-emerald-500/20 border-emerald-400/50 text-emerald-200 px-3 py-1.5 font-bold hover:bg-emerald-600/50"
+                          >
+                            <Play size={12} fill="currentColor" />
+                            Simulate
+                          </button>
                         )}
                       </div>
                     </div>
