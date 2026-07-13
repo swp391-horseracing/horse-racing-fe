@@ -50,22 +50,45 @@ export default function AdminRaceDetailPage() {
     if (!id) return;
     clearSelectedRace();
     void getRaceDetail(id);
-  }, [id, clearSelectedRace, getRaceDetail]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   useEffect(() => {
     if (!id) return;
+    let ignore = false;
     AdminService.getRaceReferee(id)
       .then((data) => {
-        const ref = data?.referee ?? (data?.id ? data : null) ?? null;
-        if (ref && data?.referee?.email) {
-          ref.email = data.referee.email;
-        }
+        if (ignore) return;
+        const ref = data?.referee
+          ? {
+              id: data.referee.id,
+              fullName: data.referee.fullName,
+              email: data.referee.email,
+              assignedAt: data.assignedAt,
+            }
+          : data?.id
+            ? {
+                id: data.id,
+                fullName: data.fullName,
+                email: data.email,
+                assignedAt: data.assignedAt,
+              }
+            : null;
         setRaceReferee(ref);
       })
-      .catch(() => setRaceReferee(null));
+      .catch(() => {
+        if (!ignore) setRaceReferee(null);
+      });
     fetchRaceEntries(id)
-      .then((data) => setRaceEntries(data))
-      .catch(() => setRaceEntries([]));
+      .then((data) => {
+        if (!ignore) setRaceEntries(data);
+      })
+      .catch(() => {
+        if (!ignore) setRaceEntries([]);
+      });
+    return () => {
+      ignore = true;
+    };
   }, [id]);
 
   const handleUpdateRace = async (
