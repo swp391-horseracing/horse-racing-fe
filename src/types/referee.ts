@@ -141,6 +141,7 @@ export interface Referee {
 
 export interface AssignedReferee extends Referee {
   assignedAt: string;
+  email?: string;
 }
 
 export interface RaceReport {

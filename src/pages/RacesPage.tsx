@@ -49,7 +49,7 @@ function loadVenueCache(): Promise<void> {
   if (!_venueCachePromise) {
     _venueCachePromise = TrackService.getTracks({ limit: 100 })
       .then((res) => {
-        const items = (res as any)?.data ?? [];
+        const items = res.data ?? [];
         const map = new Map<string, { distance: string; surface: string }>();
         for (const c of items) {
           if (c.name && c.distanceMeters != null) {

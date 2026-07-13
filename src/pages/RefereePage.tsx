@@ -166,8 +166,10 @@ export default function RefereePage() {
   useEffect(() => {
     RefereeService.getViolationTypes()
       .then(setViolationTypeConfigs)
-      .catch(() => {});
-  }, []);
+      .catch(() => {
+        addToast("Failed to load violation types", "error");
+      });
+  }, [addToast]);
 
   const handleSelectRace = useCallback(
     async (id: string) => {

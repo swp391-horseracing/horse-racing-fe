@@ -44,9 +44,9 @@ export function useRaceReports(addToast: (m: string, t?: ToastType) => void) {
         const data = res.data;
 
         // Fetch referee names from assignments for reports where refereeName is empty
-        const raceIdsNeedingReferee = data
-          .filter((r) => !r.refereeName)
-          .map((r) => r.raceId);
+        const raceIdsNeedingReferee = [
+          ...new Set(data.filter((r) => !r.refereeName).map((r) => r.raceId)),
+        ];
 
         if (raceIdsNeedingReferee.length > 0) {
           const results = await Promise.allSettled(
@@ -59,9 +59,12 @@ export function useRaceReports(addToast: (m: string, t?: ToastType) => void) {
               result.status === "fulfilled" &&
               result.value?.referee?.fullName
             ) {
-              data.find(
+              const target = data.find(
                 (r) => r.raceId === raceIdsNeedingReferee[i]
-              )!.refereeName = result.value.referee.fullName;
+              );
+              if (target) {
+                target.refereeName = result.value.referee.fullName;
+              }
             }
           });
         }

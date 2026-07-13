@@ -112,12 +112,14 @@ export default function ViolationTypesManager({
   };
 
   const handleSave = async () => {
-    if (!form.violationType.trim() || !form.pointsDeducted) return;
+    const points = parseInt(form.pointsDeducted, 10);
+    if (!form.violationType.trim() || !Number.isFinite(points) || points < 1)
+      return;
     setSaving(true);
     try {
       const payload = {
         violationType: form.violationType.trim(),
-        pointsDeducted: parseInt(form.pointsDeducted, 10),
+        pointsDeducted: points,
         description: form.description.trim() || null,
       };
       if (editingId) {
@@ -129,7 +131,6 @@ export default function ViolationTypesManager({
       }
       setShowModal(false);
       setPage(1);
-      fetchConfigs();
     } catch (e: any) {
       addToast(
         e.response?.data?.message || "Failed to save violation type",
@@ -386,7 +387,10 @@ export default function ViolationTypesManager({
               <button
                 onClick={handleSave}
                 disabled={
-                  saving || !form.violationType.trim() || !form.pointsDeducted
+                  saving ||
+                  !form.violationType.trim() ||
+                  !form.pointsDeducted ||
+                  parseInt(form.pointsDeducted, 10) < 1
                 }
                 className="text-xs font-bold px-4 py-2 rounded-lg bg-[#064E3B] text-white hover:bg-[#043E2F] transition disabled:opacity-50 disabled:cursor-not-allowed"
               >

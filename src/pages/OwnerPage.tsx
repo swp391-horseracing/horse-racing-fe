@@ -26,6 +26,13 @@ import { SendInvitesPage } from "../components/owner/SendInvitesPage";
 import { OwnerEntries } from "../components/owner/OwnerEntries";
 import { EnterRaceModal } from "../components/owner/EnterRaceModal";
 
+const healthStatusMap: Record<string, string> = {
+  Healthy: "healthy",
+  Resting: "rest",
+  Injured: "injured",
+  Sick: "sick",
+};
+
 export default function OwnerPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -118,19 +125,22 @@ export default function OwnerPage() {
     }
     const rawBirthDate = data.get("birth_date") as string;
     const rawWeight = data.get("weight_kg") as string;
-    const healthStatusVal = (data.get("health_status") as string) || "Healthy";
+    const rawHealth = (data.get("health_status") as string) || "Healthy";
+    const healthStatusVal = healthStatusMap[rawHealth] || rawHealth;
     const baseSpeedRaw = data.get("base_speed") as string;
     const staminaRaw = data.get("stamina") as string;
+
+    const imageFile = data.get("image") as File | null;
 
     const payload = {
       name,
       breed: data.get("breed") as string,
       birthDate: rawBirthDate,
       weightKg: rawWeight,
-      imageUrl: "",
       healthStatus: healthStatusVal,
       baseSpeed: baseSpeedRaw ? Number(baseSpeedRaw) : undefined,
       stamina: staminaRaw ? Number(staminaRaw) : undefined,
+      image: imageFile?.size ? imageFile : undefined,
     };
 
     try {
@@ -178,15 +188,18 @@ export default function OwnerPage() {
     const baseSpeedRaw = data.get("base_speed") as string;
     const staminaRaw = data.get("stamina") as string;
 
+    const imageFile = data.get("image") as File | null;
+
     const payload = {
       name,
       breed: data.get("breed") as string,
       birthDate: data.get("birth_date") as string,
       weightKg: data.get("weight_kg") as string,
-      imageUrl: "",
-      healthStatus: (data.get("health_status") as string) || "Healthy",
+      healthStatus:
+        healthStatusMap[data.get("health_status") as string] || "healthy",
       baseSpeed: baseSpeedRaw ? Number(baseSpeedRaw) : undefined,
       stamina: staminaRaw ? Number(staminaRaw) : undefined,
+      image: imageFile?.size ? imageFile : undefined,
     };
 
     try {

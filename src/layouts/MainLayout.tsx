@@ -98,7 +98,8 @@ export default function MainLayout() {
               variant="ghost"
               className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-2 flex items-center
                 ${
-                  location.pathname === link.to
+                  location.pathname === link.to ||
+                  location.pathname.startsWith(link.to + "/")
                     ? "bg-emerald-50 text-emerald-800 font-bold border border-emerald-200"
                     : "text-gray-600 hover:text-gray-900 hover:bg-emerald-50 hover:border-emerald-200 border border-transparent"
                 }`}

@@ -15,27 +15,49 @@ export const HorseService = {
     return response.data;
   },
 
-  createHorse: async (
-    name: string,
-    breed: string,
-    birthDate: string,
-    weightKg: string,
-    imageUrl: string,
-    healthStatus: string,
-    baseSpeed?: number,
-    stamina?: number
-  ) => {
-    const response = await api.post("/horses", {
-      name,
-      breed,
-      birthDate,
-      weightKg,
-      imageUrl,
-      healthStatus,
-      baseSpeed,
-      stamina,
-    });
+  createHorse: async (data: {
+    name: string;
+    breed: string;
+    birthDate: string;
+    weightKg: string;
+    healthStatus: string;
+    baseSpeed?: number;
+    stamina?: number;
+    image?: File;
+  }) => {
+    if (data.image) {
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("breed", data.breed);
+      formData.append("birthDate", data.birthDate);
+      formData.append("weightKg", data.weightKg);
+      formData.append("healthStatus", data.healthStatus);
+      formData.append("image", data.image);
+      const response = await api.post("/horses", formData);
+      const horseId = response.data?.horse?.id;
 
+      if (
+        horseId &&
+        (data.baseSpeed !== undefined || data.stamina !== undefined)
+      ) {
+        const stats: Record<string, number> = {};
+        if (data.baseSpeed !== undefined) stats.baseSpeed = data.baseSpeed;
+        if (data.stamina !== undefined) stats.stamina = data.stamina;
+        await api.patch(`/horses/${horseId}`, stats);
+      }
+
+      return response.data;
+    }
+
+    const response = await api.post("/horses", {
+      name: data.name,
+      breed: data.breed,
+      birthDate: data.birthDate,
+      weightKg: data.weightKg,
+      healthStatus: data.healthStatus,
+      baseSpeed: data.baseSpeed,
+      stamina: data.stamina,
+    });
     return response.data;
   },
 
@@ -58,36 +80,6 @@ export const HorseService = {
     return response.data.horse;
   },
 
-  updateHorse: async (
-    id: string,
-    name: string,
-    breed: string,
-    birthDate: string,
-    weightKg: string,
-    imageUrl: string,
-    healthStatus: string,
-    baseSpeed?: number,
-    stamina?: number
-  ) => {
-    const response = await api.patch(`/horses/${id}`, {
-      name,
-      breed,
-      birthDate,
-      weightKg,
-      imageUrl,
-      healthStatus,
-      baseSpeed,
-      stamina,
-    });
-
-    return response.data;
-  },
-
-  async retireHorse(id: string): Promise<RetireHorseResponse> {
-    const response = await api.post(`/horses/${id}/retire`);
-    return response.data;
-  },
-
   editHorse: async (
     id: string,
     data: {
@@ -95,13 +87,47 @@ export const HorseService = {
       breed: string;
       birthDate: string;
       weightKg: string;
-      imageUrl: string;
       healthStatus: string;
       baseSpeed?: number;
       stamina?: number;
+      image?: File;
     }
   ) => {
-    const response = await api.patch(`/horses/${id}`, data);
+    if (data.image) {
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("breed", data.breed);
+      formData.append("birthDate", data.birthDate);
+      formData.append("weightKg", data.weightKg);
+      formData.append("healthStatus", data.healthStatus);
+      formData.append("image", data.image);
+      const first = await api.patch(`/horses/${id}`, formData);
+
+      if (data.baseSpeed !== undefined || data.stamina !== undefined) {
+        const stats: Record<string, number> = {};
+        if (data.baseSpeed !== undefined) stats.baseSpeed = data.baseSpeed;
+        if (data.stamina !== undefined) stats.stamina = data.stamina;
+        const second = await api.patch(`/horses/${id}`, stats);
+        return second.data;
+      }
+
+      return first.data;
+    }
+
+    const response = await api.patch(`/horses/${id}`, {
+      name: data.name,
+      breed: data.breed,
+      birthDate: data.birthDate,
+      weightKg: data.weightKg,
+      healthStatus: data.healthStatus,
+      baseSpeed: data.baseSpeed,
+      stamina: data.stamina,
+    });
+    return response.data;
+  },
+
+  async retireHorse(id: string): Promise<RetireHorseResponse> {
+    const response = await api.post(`/horses/${id}/retire`);
     return response.data;
   },
 };
