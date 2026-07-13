@@ -195,7 +195,8 @@ export default function OwnerPage() {
       breed: data.get("breed") as string,
       birthDate: data.get("birth_date") as string,
       weightKg: data.get("weight_kg") as string,
-      healthStatus: healthStatusMap[data.get("health_status") as string] || "healthy",
+      healthStatus:
+        healthStatusMap[data.get("health_status") as string] || "healthy",
       baseSpeed: baseSpeedRaw ? Number(baseSpeedRaw) : undefined,
       stamina: staminaRaw ? Number(staminaRaw) : undefined,
       image: imageFile?.size ? imageFile : undefined,

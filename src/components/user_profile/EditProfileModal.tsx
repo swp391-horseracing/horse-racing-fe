@@ -51,13 +51,17 @@ export default function EditProfileModal({
       }
 
       const payload: Record<string, string> = {};
-      if (fullName.trim() !== user.full_name) payload.full_name = fullName.trim();
+      if (fullName.trim() !== user.full_name)
+        payload.full_name = fullName.trim();
       if (email.trim() !== user.email) payload.email = email.trim();
       if (phone.trim() !== user.phone) payload.phone = phone.trim();
       if (address.trim() !== user.address) payload.address = address.trim();
 
       if (Object.keys(payload).length > 0) {
-        const res: UpdateProfileResponse = await UserService.updateUser(userId, payload);
+        const res: UpdateProfileResponse = await UserService.updateUser(
+          userId,
+          payload
+        );
 
         if (res.token) {
           localStorage.setItem("token", res.token);
@@ -76,7 +80,9 @@ export default function EditProfileModal({
       onSaved();
       onClose();
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { status?: number; data?: { message?: string } } };
+      const axiosErr = err as {
+        response?: { status?: number; data?: { message?: string } };
+      };
       const status = axiosErr?.response?.status;
       if (status === 401) {
         localStorage.removeItem("token");
@@ -90,8 +96,7 @@ export default function EditProfileModal({
     }
   };
 
-  const currentAvatarSrc =
-    avatarPreview || user.avatar_url || null;
+  const currentAvatarSrc = avatarPreview || user.avatar_url || null;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
