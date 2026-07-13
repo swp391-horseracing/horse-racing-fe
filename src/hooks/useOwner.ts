@@ -276,11 +276,28 @@ export function useOwner() {
   };
 
   const confirmPairing = async (raceId: string, invitationId: string) => {
-    await UserService.confirmInvitation(raceId, invitationId);
+    try {
+      await UserService.confirmInvitation(raceId, invitationId);
+    } catch (error: any) {
+      if (
+        error?.response?.data?.message ===
+        "A jockey has already been confirmed for this horse"
+      ) {
+        setInvitations((prev) =>
+          prev.map((inv) =>
+            inv.id === invitationId
+              ? { ...inv, status: "cancelled" as const }
+              : inv
+          )
+        );
+        await loadEntries();
+      } else {
+        await Promise.all([loadInvitations(raceId), loadEntries()]);
+      }
+      throw error;
+    }
 
-    await loadInvitations(raceId);
-
-    return true;
+    await Promise.all([loadInvitations(raceId), loadEntries()]);
   };
 
   const loadRegistration = useCallback(async (id: string, regId: string) => {

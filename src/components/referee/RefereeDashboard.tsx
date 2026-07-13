@@ -107,7 +107,7 @@ export default function RefereeDashboard({
           </button>
         </div>
         <div className="space-y-2">
-          {races.slice(0, 3).map((race) => (
+          {races.slice(0, 5).map((race) => (
             <div
               key={race.id}
               onClick={() => onSelectRace(race.id)}
@@ -131,7 +131,11 @@ export default function RefereeDashboard({
                   ? "Finalized"
                   : race.phase === "post_race" && race.reportStatus === "draft"
                     ? "Results (Draft)"
-                    : phaseLabel[race.phase]}
+                    : race.status === "pre_race"
+                      ? "Pre-Race"
+                      : race.status === "scheduled"
+                        ? "Scheduled"
+                        : phaseLabel[race.phase]}
               </span>
             </div>
           ))}

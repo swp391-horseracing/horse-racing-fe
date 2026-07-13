@@ -85,11 +85,14 @@ export const RefereeService = {
   inspectEntry: async (
     raceId: string,
     entryId: string,
-    result: "cleared" | "disqualified" | "withdrawn"
+    result: "cleared" | "disqualified" | "withdrawn",
+    healthStatus?: string
   ): Promise<any> => {
+    const payload: Record<string, string> = { result };
+    if (healthStatus) payload.healthStatus = healthStatus;
     const response = await api.patch(
       `/referee/races/${raceId}/entries/${entryId}/inspection`,
-      { result }
+      payload
     );
     return response.data;
   },

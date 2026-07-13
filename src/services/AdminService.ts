@@ -136,4 +136,18 @@ export const AdminService = {
     const response = await api.patch(`/admin/registrations/${regId}`, data);
     return response.data;
   },
+
+  // ── Referee Assignments ──
+
+  async getRaceReferee(raceId: string) {
+    const response = await api.get(`/admin/races/${raceId}/referee`);
+    return response.data;
+  },
+
+  async assignRaceReferee(raceId: string, refereeId: string) {
+    const response = await api.put(`/admin/races/${raceId}/referee`, {
+      refereeId,
+    });
+    return response.data;
+  },
 };
