@@ -40,6 +40,7 @@ jobs:
       REGISTRY: ghcr.io/${{ github.repository }}
 
       PORT: ${{ secrets.PORT }}
+      TZ: ${{ secrets.TZ }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
