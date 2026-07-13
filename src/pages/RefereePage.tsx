@@ -7,10 +7,10 @@ import { ChevronLeft, Timer } from "lucide-react";
 import {
   type RacePhase,
   type InspectionStatus,
-  type ViolationCategory,
   type LaneEntry,
   type Violation,
   type MockRace,
+  type ViolationTypeConfig,
 } from "../types/referee";
 import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "../components/ui/toast";
@@ -19,8 +19,11 @@ import RefereeRaceList from "../components/referee/RefereeRaceList";
 import PreRaceInspectionPanel from "../components/referee/PreRaceInspectionPanel";
 import LiveMonitorPanel from "../components/referee/LiveMonitorPanel";
 import RaceReportPanel from "../components/referee/RaceReportPanel";
+import RefereeReviewReports from "../components/referee/RefereeReviewReports";
 import { UserService } from "../services/UserService";
 import { RefereeService } from "../services/RefereeService";
+import { HorseService } from "../services/HorseService";
+import { TournamentService } from "../services/TournamentService";
 
 const formatTime = (seconds: number) => {
   const m = Math.floor(seconds / 60);
@@ -40,13 +43,6 @@ const phaseBadgeStyle: Record<RacePhase, string> = {
   post_race: "bg-indigo-100 text-indigo-800 border-indigo-200",
 };
 
-const VIOLATION_CATEGORIES: ViolationCategory[] = [
-  "Whip Limit Exceeded",
-  "Lane Interference",
-  "Unsafe Riding",
-  "Refusal to Race / Bolting",
-];
-
 const PRE_RACE_WITHDRAW_REASONS = [
   "Veterinary Scratch (Paddock / Gate Lameness)",
   "Gate Behavior / Refusal to Load",
@@ -65,7 +61,8 @@ const PRE_RACE_DISQUALIFY_REASONS = [
 
 const mapBackendStatusToPhase = (raceStatus: string): RacePhase => {
   if (raceStatus === "ongoing") return "live";
-  if (raceStatus === "pre_race") return "scheduled";
+  if (raceStatus === "scheduled" || raceStatus === "pre_race")
+    return "scheduled";
   return "post_race";
 };
 
@@ -106,6 +103,9 @@ export default function RefereePage() {
   const [selectedRaceId, setSelectedRaceId] = useState<string | null>(null);
   const [filterPhase, setFilterPhase] = useState<RacePhase | "all">("all");
   const [loading, setLoading] = useState(false);
+  const [violationTypeConfigs, setViolationTypeConfigs] = useState<
+    ViolationTypeConfig[]
+  >([]);
 
   // Clear selected race when navigating away from the race list
   useEffect(() => {
@@ -127,13 +127,32 @@ export default function RefereePage() {
           trackCondition: r.trackCondition || "dry",
           distanceMeters: r.distanceMeters || 0,
           phase: mapBackendStatusToPhase(r.status),
+          status: r.status,
           elapsedSeconds: 0,
           timerRunning: false,
           reportNotes: "",
           reportStatus: r.resultStatus ?? null,
           refereeCheckedIn: false,
+          tournamentId: r.tournamentId,
+          carryWeight: null,
           lanes: [],
         }));
+        const phaseOrder: Record<string, number> = {
+          pre_race: 0,
+          scheduled: 1,
+          ongoing: 2,
+          live: 2,
+          post_race: 3,
+        };
+        races.sort((a, b) => {
+          const pa = phaseOrder[a.status] ?? 9;
+          const pb = phaseOrder[b.status] ?? 9;
+          if (pa !== pb) return pa - pb;
+          return (
+            new Date(a.scheduledAt).getTime() -
+            new Date(b.scheduledAt).getTime()
+          );
+        });
         setApiRaces(races);
       })
       .catch((e: any) => {
@@ -144,146 +163,203 @@ export default function RefereePage() {
       });
   }, [addToast]);
 
+  useEffect(() => {
+    RefereeService.getViolationTypes()
+      .then(setViolationTypeConfigs)
+      .catch(() => {
+        addToast("Failed to load violation types", "error");
+      });
+  }, [addToast]);
+
   const handleSelectRace = useCallback(
-    (id: string) => {
+    async (id: string) => {
       setSelectedRaceId(id);
       const race = apiRaces.find((r) => r.id === id);
       if (race && race.lanes.length === 0 && !loading) {
         setLoading(true);
+        try {
+          const [data, entriesData] = await Promise.all([
+            RefereeService.getRefereeRaceReport(id),
+            RefereeService.getRefereeRaceEntries(id),
+          ]);
 
-        const reportPromise = RefereeService.getRefereeRaceReport(id);
-        const entriesPromise = RefereeService.getRefereeRaceEntries(id);
+          const entries = entriesData?.entries || [];
+          const weightMap = new Map<
+            string,
+            {
+              horseWeightKg: number | null;
+              jockeyWeightKg: number | null;
+              horseId: string | null;
+            }
+          >();
+          const horseIds: string[] = [];
 
-        Promise.all([reportPromise, entriesPromise])
-          .then(([data, entriesData]) => {
-            setApiRaces((prev) =>
-              prev.map((r) => {
-                if (r.id !== id) return r;
+          for (const e of entries) {
+            const hid = e.horse?.id;
+            if (hid && !horseIds.includes(hid)) horseIds.push(hid);
+            weightMap.set(e.id, {
+              horseWeightKg: e.horse?.weightKg ?? null,
+              jockeyWeightKg: e.jockey?.weightKg ?? null,
+              horseId: hid ?? null,
+            });
+          }
 
-                const backendPhase = mapBackendStatusToPhase(data.race.status);
+          const [healthResults, tournamentData] = await Promise.all([
+            Promise.all(
+              horseIds.map((hid) =>
+                HorseService.getHorseById(hid).catch(() => null)
+              )
+            ),
+            race.tournamentId
+              ? TournamentService.getTournamentByID(race.tournamentId).catch(
+                  () => null
+                )
+              : Promise.resolve(null),
+          ]);
 
-                // Build an entryStatus lookup from the entries endpoint
-                const entryStatusMap = new Map<string, string>();
-                if (entriesData?.entries) {
-                  for (const e of entriesData.entries) {
-                    entryStatusMap.set(e.id, e.entryStatus);
-                  }
+          const healthMap = new Map<string, string | null>();
+          for (let i = 0; i < horseIds.length; i++) {
+            const h = healthResults[i];
+            healthMap.set(horseIds[i], h?.healthStatus ?? null);
+          }
+
+          const carryWeight = tournamentData?.carryWeight ?? null;
+
+          setApiRaces((prev) =>
+            prev.map((r) => {
+              if (r.id !== id) return r;
+
+              const backendPhase = mapBackendStatusToPhase(data.race.status);
+
+              const entryStatusMap = new Map<string, string>();
+              if (entriesData?.entries) {
+                for (const e of entriesData.entries) {
+                  entryStatusMap.set(e.id, e.entryStatus);
                 }
+              }
 
-                const mapEntryStatusToInspectionStatus = (
-                  entryStatus?: string
-                ): InspectionStatus | null => {
-                  switch (entryStatus) {
-                    case "confirmed":
-                      return "cleared";
-                    case "disqualified":
-                      return "disqualified";
-                    case "withdrawn":
-                    case "scratched":
-                      return "withdrawn";
-                    case "did_not_finish":
-                      return "cleared";
-                    case "pending":
-                      return "pending";
-                    default:
-                      return null;
-                  }
-                };
-
-                const mapEntryStatusToInspection = (
-                  entryId: string,
-                  finishStatus: string
-                ): InspectionStatus => {
-                  const mapped = mapEntryStatusToInspectionStatus(
-                    entryStatusMap.get(entryId)
-                  );
-                  if (mapped) return mapped;
-                  // Fallback for non-scheduled phases
-                  if (finishStatus === "dns") return "withdrawn";
-                  return backendPhase === "scheduled" ? "pending" : "cleared";
-                };
-
-                const lanes: LaneEntry[] = data.placements.map((p) => ({
-                  id: p.entryId,
-                  laneNumber: p.laneNumber,
-                  horseName: p.horse.name,
-                  jockeyName: p.jockey?.fullName || "No Jockey",
-                  inspectionStatus: mapEntryStatusToInspection(
-                    p.entryId,
-                    p.finishStatus
-                  ),
-                  inspectedAt: null,
-                  failReason: null,
-                  violations: p.violation
-                    ? [
-                        {
-                          id: p.violation.id,
-                          entryId: p.entryId,
-                          refereeId: p.violation.refereeId,
-                          occurredAt: p.violation.occurredAt,
-                          violationType: p.violation.violationType,
-                          description: p.violation.description,
-                          severity: p.violation.severity as any,
-                          note: p.violation.note,
-                        },
-                      ]
-                    : [],
-                  finishPosition: p.finishedPosition,
-                  finishTime: formatSecondsToMSS(p.finishTime),
-                  flag:
-                    p.finishStatus === "dnf" || p.finishStatus === "dsq"
-                      ? p.finishStatus
-                      : null,
-                }));
-
-                // If in scheduled phase and entries endpoint returned entries
-                // that aren't in placements yet, add them as lanes
-                if (backendPhase === "scheduled" && entriesData?.entries) {
-                  const placementIds = new Set(
-                    data.placements.map((p: any) => p.entryId)
-                  );
-                  for (const e of entriesData.entries) {
-                    if (!placementIds.has(e.id)) {
-                      const inspStatus: InspectionStatus =
-                        mapEntryStatusToInspectionStatus(e.entryStatus) ??
-                        "pending";
-                      lanes.push({
-                        id: e.id,
-                        laneNumber: e.laneNumber,
-                        horseName: e.horse.name,
-                        jockeyName: e.jockey?.fullName || "No Jockey",
-                        inspectionStatus: inspStatus,
-                        inspectedAt: null,
-                        failReason: null,
-                        violations: [],
-                        finishPosition: null,
-                        finishTime: "",
-                        flag: null,
-                      });
-                    }
-                  }
-                  lanes.sort((a, b) => a.laneNumber - b.laneNumber);
+              const mapEntryStatusToInspectionStatus = (
+                entryStatus?: string
+              ): InspectionStatus | null => {
+                switch (entryStatus) {
+                  case "confirmed":
+                    return "cleared";
+                  case "disqualified":
+                    return "disqualified";
+                  case "withdrawn":
+                  case "scratched":
+                    return "withdrawn";
+                  case "did_not_finish":
+                    return "cleared";
+                  case "pending":
+                    return "pending";
+                  default:
+                    return null;
                 }
+              };
 
+              const mapEntryStatusToInspection = (
+                entryId: string,
+                finishStatus: string
+              ): InspectionStatus => {
+                const mapped = mapEntryStatusToInspectionStatus(
+                  entryStatusMap.get(entryId)
+                );
+                if (mapped) return mapped;
+                if (finishStatus === "dns") return "withdrawn";
+                return backendPhase === "scheduled" ? "pending" : "cleared";
+              };
+
+              const enrichLane = (entryId: string) => {
+                const w = weightMap.get(entryId);
                 return {
-                  ...r,
-                  lanes,
-                  reportNotes: data.report?.notes || "",
-                  reportStatus: data.report?.status ?? null,
-                  phase: backendPhase,
+                  horseId: w?.horseId ?? undefined,
+                  horseWeightKg: w?.horseWeightKg ?? null,
+                  healthStatus: w?.horseId
+                    ? (healthMap.get(w.horseId) ?? null)
+                    : null,
+                  jockeyWeightKg: w?.jockeyWeightKg ?? null,
                 };
-              })
-            );
-          })
-          .catch((e: any) => {
-            addToast(
-              e.response?.data?.message || "Failed to load race report details",
-              "error"
-            );
-          })
-          .finally(() => {
-            setLoading(false);
-          });
+              };
+
+              const lanes: LaneEntry[] = data.placements.map((p) => ({
+                id: p.entryId,
+                laneNumber: p.laneNumber,
+                horseName: p.horse.name,
+                ...enrichLane(p.entryId),
+                jockeyName: p.jockey?.fullName || "No Jockey",
+                inspectionStatus: mapEntryStatusToInspection(
+                  p.entryId,
+                  p.finishStatus
+                ),
+                inspectedAt: null,
+                failReason: null,
+                violations: (p.violations || []).map((v: any) => ({
+                  id: v.id,
+                  entryId: p.entryId,
+                  refereeId: v.refereeId,
+                  occurredAt: v.occurredAt,
+                  violationTypeConfigId: v.violationTypeConfigId,
+                  violationType: v.violationType,
+                  description: v.description,
+                  severity: v.severity,
+                  note: v.note || "",
+                })),
+                finishPosition: p.finishedPosition,
+                finishTime: formatSecondsToMSS(p.finishTime),
+                flag:
+                  p.finishStatus === "dnf" || p.finishStatus === "dsq"
+                    ? p.finishStatus
+                    : null,
+              }));
+
+              if (entriesData?.entries) {
+                const placementIds = new Set(
+                  data.placements.map((p: any) => p.entryId)
+                );
+                for (const e of entriesData.entries) {
+                  if (!placementIds.has(e.id)) {
+                    const inspStatus: InspectionStatus =
+                      mapEntryStatusToInspectionStatus(e.entryStatus) ??
+                      "pending";
+                    lanes.push({
+                      id: e.id,
+                      laneNumber: e.laneNumber,
+                      horseName: e.horse.name,
+                      ...enrichLane(e.id),
+                      jockeyName: e.jockey?.fullName || "No Jockey",
+                      inspectionStatus: inspStatus,
+                      inspectedAt: null,
+                      failReason: null,
+                      violations: [],
+                      finishPosition: null,
+                      finishTime: "",
+                      flag: null,
+                    });
+                  }
+                }
+              }
+              lanes.sort((a, b) => a.laneNumber - b.laneNumber);
+
+              return {
+                ...r,
+                lanes,
+                carryWeight,
+                reportNotes: data.report?.notes || "",
+                reportStatus: data.report?.status ?? null,
+                phase: backendPhase,
+                status: data.race.status,
+              };
+            })
+          );
+        } catch (e: any) {
+          addToast(
+            e.response?.data?.message || "Failed to load race report details",
+            "error"
+          );
+        } finally {
+          setLoading(false);
+        }
       }
     },
     [apiRaces, loading, addToast]
@@ -336,7 +412,7 @@ export default function RefereePage() {
 
   const handleClearLane = async (raceId: string, laneId: string) => {
     try {
-      await RefereeService.inspectEntry(raceId, laneId, "cleared");
+      await RefereeService.inspectEntry(raceId, laneId, "cleared", "healthy");
       updateLane(raceId, laneId, (l) => ({
         ...l,
         inspectionStatus: "cleared",
@@ -412,16 +488,20 @@ export default function RefereePage() {
   const handleLogViolation = async (
     raceId: string,
     laneId: string,
-    violationType: string,
+    violationTypeConfigId: string,
+    severity: string,
     note: string
   ) => {
     try {
+      await RefereeService.getRefereeRaceReport(raceId);
+      const config = violationTypeConfigs.find(
+        (c) => c.id === violationTypeConfigId
+      );
       const created = await RefereeService.createViolation(raceId, {
         entryId: laneId,
         occurredAt: new Date().toISOString(),
-        violationType,
-        description: violationType,
-        severity: "warning",
+        violationTypeConfigId,
+        severity: severity as any,
         note,
       });
 
@@ -433,9 +513,10 @@ export default function RefereePage() {
         id: (created as any).id,
         entryId: laneId,
         refereeId: (created as any).refereeId || "me",
-        violationType,
-        description: violationType,
-        severity: "warning",
+        violationTypeConfigId,
+        violationType: config?.violationType || "",
+        description: config?.description || "",
+        severity: severity as any,
         note,
         occurredAt: new Date().toISOString(),
       };
@@ -443,7 +524,7 @@ export default function RefereePage() {
         ...l,
         violations: [...l.violations, violation],
       }));
-      addToast(`Violation logged: ${violationType}`, "warning");
+      addToast(`Violation logged: ${config?.violationType || ""}`, "warning");
     } catch (e: any) {
       addToast(e.response?.data?.message || "Failed to log violation", "error");
     }
@@ -568,18 +649,22 @@ export default function RefereePage() {
     raceId: string,
     laneId: string,
     violationId: string,
-    violationType: ViolationCategory,
+    violationTypeConfigId: string,
+    severity: string,
     note: string
   ) => {
     let created: any = null;
     try {
+      const config = violationTypeConfigs.find(
+        (c) => c.id === violationTypeConfigId
+      );
+
       // 1. Create replacement violation first
       created = await RefereeService.createViolation(raceId, {
         entryId: laneId,
         occurredAt: new Date().toISOString(),
-        violationType,
-        description: violationType,
-        severity: "warning",
+        violationTypeConfigId,
+        severity: severity as any,
         note,
       });
 
@@ -598,7 +683,15 @@ export default function RefereePage() {
         ...l,
         violations: l.violations.map((v) =>
           v.id === violationId
-            ? { ...v, id: created.id, violationType, note }
+            ? {
+                ...v,
+                id: created.id,
+                violationTypeConfigId,
+                violationType: config?.violationType || "",
+                description: config?.description || "",
+                severity: severity as any,
+                note,
+              }
             : v
         ),
       }));
@@ -707,9 +800,10 @@ export default function RefereePage() {
             </div>
           ) : (
             <>
-              {race.phase === "scheduled" && (
+              {race.phase === "scheduled" && race.status === "pre_race" && (
                 <PreRaceInspectionPanel
                   race={race}
+                  carryWeight={race.carryWeight ?? null}
                   onClearLane={(laneId) => handleClearLane(race.id, laneId)}
                   onFailLane={(laneId, status, violationType, note) =>
                     handleFailLane(race.id, laneId, status, violationType, note)
@@ -722,6 +816,19 @@ export default function RefereePage() {
                   preRaceDisqualifyReasons={PRE_RACE_DISQUALIFY_REASONS}
                 />
               )}
+              {race.phase === "scheduled" && race.status === "scheduled" && (
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-8 text-center max-w-lg mx-auto">
+                  <div className="text-amber-600 text-4xl mb-3">⏳</div>
+                  <h3 className="text-lg font-bold text-amber-900 mb-1">
+                    Race Not Yet in Pre-Race Phase
+                  </h3>
+                  <p className="text-sm text-amber-700 max-w-md mx-auto">
+                    The race is currently scheduled. Inspections and check-in
+                    will be available once the race transitions to the pre-race
+                    phase.
+                  </p>
+                </div>
+              )}
               {race.phase === "live" && (
                 <LiveMonitorPanel
                   race={race}
@@ -729,10 +836,21 @@ export default function RefereePage() {
                   onDelayRace={() => handleDelayRace(race.id)}
                   onResumeRace={() => handleResumeRace(race.id)}
                   onEndRace={() => handleEndRace(race.id)}
-                  onLogViolation={(laneId, violationType, note) =>
-                    handleLogViolation(race.id, laneId, violationType, note)
+                  onLogViolation={(
+                    laneId,
+                    violationTypeConfigId,
+                    severity,
+                    note
+                  ) =>
+                    handleLogViolation(
+                      race.id,
+                      laneId,
+                      violationTypeConfigId,
+                      severity,
+                      note
+                    )
                   }
-                  violationCategories={VIOLATION_CATEGORIES}
+                  violationTypeConfigs={violationTypeConfigs}
                 />
               )}
               {race.phase === "post_race" && (
@@ -759,24 +877,37 @@ export default function RefereePage() {
                   onUpdateViolation={(
                     laneId,
                     violationId,
-                    violationType,
+                    violationTypeConfigId,
+                    severity,
                     note
                   ) =>
                     handleUpdateViolation(
                       race.id,
                       laneId,
                       violationId,
-                      violationType,
+                      violationTypeConfigId,
+                      severity,
                       note
                     )
                   }
                   onDeleteViolation={(laneId, violationId) =>
                     handleDeleteViolation(race.id, laneId, violationId)
                   }
-                  onCreateViolation={(laneId, violationType, note) =>
-                    handleLogViolation(race.id, laneId, violationType, note)
+                  onCreateViolation={(
+                    laneId,
+                    violationTypeConfigId,
+                    severity,
+                    note
+                  ) =>
+                    handleLogViolation(
+                      race.id,
+                      laneId,
+                      violationTypeConfigId,
+                      severity,
+                      note
+                    )
                   }
-                  violationCategories={VIOLATION_CATEGORIES}
+                  violationTypeConfigs={violationTypeConfigs}
                 />
               )}
             </>
@@ -813,6 +944,8 @@ export default function RefereePage() {
             phaseLabel={phaseLabel}
           />
         );
+      case ROUTES.REFEREE_REVIEW_REPORT:
+        return <RefereeReviewReports addToast={addToast} />;
       default:
         return (
           <RefereeDashboard

@@ -178,49 +178,12 @@ export function useOwner() {
     breed: string;
     birthDate: string;
     weightKg: string;
-    imageUrl: string;
     healthStatus: string;
     baseSpeed?: number;
     stamina?: number;
+    image?: File;
   }) => {
-    await HorseService.createHorse(
-      payload.name,
-      payload.breed,
-      payload.birthDate,
-      payload.weightKg,
-      payload.imageUrl,
-      payload.healthStatus,
-      payload.baseSpeed,
-      payload.stamina
-    );
-
-    await loadHorses();
-  };
-
-  const updateHorse = async (
-    id: string,
-    payload: {
-      name: string;
-      breed: string;
-      birthDate: string;
-      weightKg: string;
-      imageUrl: string;
-      healthStatus: string;
-      baseSpeed?: number;
-      stamina?: number;
-    }
-  ) => {
-    await HorseService.updateHorse(
-      id,
-      payload.name,
-      payload.breed,
-      payload.birthDate,
-      payload.weightKg,
-      payload.imageUrl,
-      payload.healthStatus,
-      payload.baseSpeed,
-      payload.stamina
-    );
+    await HorseService.createHorse(payload);
 
     await loadHorses();
   };
@@ -238,10 +201,10 @@ export function useOwner() {
       breed: string;
       birthDate: string;
       weightKg: string;
-      imageUrl: string;
       healthStatus: string;
       baseSpeed?: number;
       stamina?: number;
+      image?: File;
     }
   ) => {
     await HorseService.editHorse(id, payload);
@@ -276,11 +239,28 @@ export function useOwner() {
   };
 
   const confirmPairing = async (raceId: string, invitationId: string) => {
-    await UserService.confirmInvitation(raceId, invitationId);
+    try {
+      await UserService.confirmInvitation(raceId, invitationId);
+    } catch (error: any) {
+      if (
+        error?.response?.data?.message ===
+        "A jockey has already been confirmed for this horse"
+      ) {
+        setInvitations((prev) =>
+          prev.map((inv) =>
+            inv.id === invitationId
+              ? { ...inv, status: "cancelled" as const }
+              : inv
+          )
+        );
+        await loadEntries();
+      } else {
+        await Promise.all([loadInvitations(raceId), loadEntries()]);
+      }
+      throw error;
+    }
 
-    await loadInvitations(raceId);
-
-    return true;
+    await Promise.all([loadInvitations(raceId), loadEntries()]);
   };
 
   const loadRegistration = useCallback(async (id: string, regId: string) => {
@@ -530,7 +510,6 @@ export function useOwner() {
     entriesPagination,
 
     addHorse,
-    updateHorse,
     editHorse,
     retireHorse,
 

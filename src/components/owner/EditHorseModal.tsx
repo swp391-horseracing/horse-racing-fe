@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   Calendar,
   FileText,
@@ -7,6 +7,7 @@ import {
   Sparkles,
   Gauge,
   HeartPulse,
+  Upload,
 } from "lucide-react";
 import type { Horse } from "../../types/horse";
 
@@ -23,7 +24,34 @@ export function EditHorseModal({
   onSubmit,
   initialData,
 }: EditHorseModalProps) {
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    initialData?.imageUrl || null
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setImagePreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return initialData?.imageUrl || null;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, initialData?.id]);
+
   if (!isOpen || !initialData) return null;
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImagePreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
@@ -168,6 +196,41 @@ export function EditHorseModal({
             </div>
 
             <input type="hidden" name="status" value="active" />
+          </div>
+
+          {/* Image upload */}
+          <div className="flex items-center gap-4 pt-2">
+            {imagePreview ? (
+              <img
+                src={imagePreview}
+                alt="Horse preview"
+                className="w-16 h-16 rounded-xl object-cover border-2 border-slate-200"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400">
+                <Upload className="w-6 h-6" />
+              </div>
+            )}
+            <div>
+              <button
+                type="button"
+                onClick={triggerFileInput}
+                className="px-4 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                Change Photo
+              </button>
+              <p className="text-[10px] text-slate-400 mt-1">
+                PNG, JPG up to 5MB
+              </p>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              name="image"
+              accept="image/png,image/jpeg,image/jpg"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
           </div>
 
           {/* Action Buttons */}

@@ -146,4 +146,61 @@ export const AdminService = {
     const response = await api.patch(`/admin/registrations/${regId}`, data);
     return response.data;
   },
+
+  // ── Referee Assignments ──
+
+  async getRaceReferee(raceId: string) {
+    const response = await api.get(`/admin/races/${raceId}/referee`);
+    return response.data;
+  },
+
+  async assignRaceReferee(raceId: string, refereeId: string) {
+    const response = await api.put(`/admin/races/${raceId}/referee`, {
+      refereeId,
+    });
+    return response.data;
+  },
+
+  async unassignRaceReferee(raceId: string, refereeId: string) {
+    const response = await api.delete(
+      `/admin/races/${raceId}/referee/${refereeId}`
+    );
+    return response.data;
+  },
+
+  // ── Violation Type Configs ──
+
+  async getViolationTypes(params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<any> {
+    const response = await api.get("/admin/violation-types", { params });
+    return response.data;
+  },
+
+  async createViolationType(data: {
+    violationType: string;
+    pointsDeducted: number;
+    description?: string | null;
+  }): Promise<any> {
+    const response = await api.post("/admin/violation-types", data);
+    return response.data;
+  },
+
+  async updateViolationType(
+    id: string,
+    data: {
+      violationType?: string;
+      pointsDeducted?: number;
+      description?: string | null;
+    }
+  ): Promise<any> {
+    const response = await api.patch(`/admin/violation-types/${id}`, data);
+    return response.data;
+  },
+
+  async deleteViolationType(id: string): Promise<void> {
+    const response = await api.delete(`/admin/violation-types/${id}`);
+    return response.data;
+  },
 };

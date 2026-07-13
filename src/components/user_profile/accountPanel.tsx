@@ -19,9 +19,17 @@ export default function AccountPanel({ user, refreshUser }: Props) {
     <div className="flex gap-5 flex-wrap p-5">
       {/* Profile card */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-3 w-56 shrink-0">
-        <div className="w-16 h-16 rounded-full bg-[#064E3B]/10 flex items-center justify-center text-2xl font-bold text-[#064E3B]">
-          {user.full_name?.charAt(0).toUpperCase()}
-        </div>
+        {user.avatar_url ? (
+          <img
+            src={user.avatar_url}
+            alt={user.full_name}
+            className="w-16 h-16 rounded-full object-cover border-2 border-[#064E3B]/20"
+          />
+        ) : (
+          <div className="w-16 h-16 rounded-full bg-[#064E3B]/10 flex items-center justify-center text-2xl font-bold text-[#064E3B]">
+            {user.full_name?.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="text-center">
           <p className="font-bold text-sm text-slate-900">{user.full_name}</p>
           <p className="text-xs text-slate-500 mt-0.5">{user.email}</p>

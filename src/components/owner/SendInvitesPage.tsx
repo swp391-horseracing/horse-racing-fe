@@ -58,6 +58,7 @@ export function SendInvitesPage({
   const [inviting, setInviting] = useState(false);
   const [keyword, setKeyword] = useState("");
   const [step, setStep] = useState<"select" | "write">("select");
+  const [titleError, setTitleError] = useState("");
 
   const filteredJockeys = (() => {
     if (!keyword.trim()) return jockeys;
@@ -79,6 +80,13 @@ export function SendInvitesPage({
   const handleSend = async () => {
     if (!entry || !selectedJockey) return;
 
+    if (inviteTitle.trim().length < 5) {
+      setTitleError("Title must be at least 5 characters");
+      addToast("Title must be at least 5 characters", "error");
+      return;
+    }
+    setTitleError("");
+
     setInviting(true);
     try {
       await inviteJockey(
@@ -93,8 +101,19 @@ export function SendInvitesPage({
         returnTo ||
           "/owner/jockeys?selected=" + entry.entryId + "&tab=invitation"
       );
-    } catch {
-      addToast("Failed to send invitation. Please try again.", "error");
+    } catch (error: any) {
+      const errors = error?.response?.data?.errors;
+      if (Array.isArray(errors) && errors.length > 0) {
+        errors.forEach((e: { message: string }) =>
+          addToast(e.message, "error")
+        );
+      } else {
+        addToast(
+          error?.response?.data?.message ||
+            "Failed to send invitation. Please try again.",
+          "error"
+        );
+      }
     } finally {
       setInviting(false);
     }
@@ -286,10 +305,23 @@ export function SendInvitesPage({
               </label>
               <input
                 value={inviteTitle}
-                onChange={(e) => setInviteTitle(e.target.value)}
+                onChange={(e) => {
+                  setInviteTitle(e.target.value);
+                  if (titleError) setTitleError("");
+                }}
                 placeholder={`Invitation for ${entry.raceName}`}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-[#064E3B]"
+                className={cn(
+                  "w-full rounded-2xl border bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition",
+                  titleError
+                    ? "border-rose-300 focus:border-rose-500"
+                    : "border-slate-200 focus:border-[#064E3B]"
+                )}
               />
+              {titleError && (
+                <p className="mt-1 text-xs text-rose-500 font-medium">
+                  {titleError}
+                </p>
+              )}
             </div>
 
             <div>

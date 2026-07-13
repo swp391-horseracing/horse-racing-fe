@@ -14,7 +14,7 @@ import type {
   MockRace,
   LaneEntry,
   Violation,
-  ViolationCategory,
+  ViolationTypeConfig,
 } from "../../types/referee";
 import { cn } from "../../lib/utils";
 import {
@@ -24,6 +24,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+
+const SEVERITY_OPTIONS = [
+  { value: "warning", label: "Warning" },
+  { value: "point_deduction", label: "Point Deduction" },
+  { value: "disqualification", label: "Disqualification" },
+  { value: "result_cancellation", label: "Result Cancellation" },
+];
 
 interface RaceReportPanelProps {
   race: MockRace;
@@ -42,16 +49,18 @@ interface RaceReportPanelProps {
   onUpdateViolation: (
     laneId: string,
     violationId: string,
-    violationType: ViolationCategory,
+    violationTypeConfigId: string,
+    severity: string,
     note: string
   ) => Promise<void>;
   onDeleteViolation: (laneId: string, violationId: string) => Promise<void>;
   onCreateViolation: (
     laneId: string,
-    violationType: ViolationCategory,
+    violationTypeConfigId: string,
+    severity: string,
     note: string
   ) => Promise<void>;
-  violationCategories: ViolationCategory[];
+  violationTypeConfigs: ViolationTypeConfig[];
 }
 
 function parseAndFormatTime(value: string): string {
@@ -207,7 +216,7 @@ export default function RaceReportPanel({
   onUpdateViolation,
   onDeleteViolation,
   onCreateViolation,
-  violationCategories,
+  violationTypeConfigs,
 }: RaceReportPanelProps) {
   const isEditable = race.reportStatus === "draft";
 
@@ -217,9 +226,10 @@ export default function RaceReportPanel({
   >(null);
   const [addingViolation, setAddingViolation] = useState(false);
   const [newViolationLaneId, setNewViolationLaneId] = useState("");
-  const [editType, setEditType] = useState<ViolationCategory>(
-    violationCategories[0]
+  const [editConfigId, setEditConfigId] = useState(
+    violationTypeConfigs[0]?.id || ""
   );
+  const [editSeverity, setEditSeverity] = useState(SEVERITY_OPTIONS[0].value);
   const [editNote, setEditNote] = useState("");
   const [isViolationMutationPending, setIsViolationMutationPending] =
     useState(false);
@@ -262,13 +272,12 @@ export default function RaceReportPanel({
   const openEditModal = (
     v: Violation & { laneId: string; horseName: string; laneNumber: number }
   ) => {
-    const matchedType = violationCategories.find(
-      (category) => category === v.violationType
-    );
     setEditingViolation(v);
-    if (matchedType) {
-      setEditType(matchedType);
-    }
+    const matchedConfig = violationTypeConfigs.find(
+      (c) => c.id === v.violationTypeConfigId
+    );
+    setEditConfigId(matchedConfig?.id || violationTypeConfigs[0]?.id || "");
+    setEditSeverity(v.severity || SEVERITY_OPTIONS[0].value);
     setEditNote(v.note);
   };
 
@@ -279,7 +288,8 @@ export default function RaceReportPanel({
       await onUpdateViolation(
         editingViolation.laneId,
         editingViolation.id,
-        editType,
+        editConfigId,
+        editSeverity,
         editNote
       );
       setEditingViolation(null);
@@ -581,7 +591,8 @@ export default function RaceReportPanel({
             <button
               onClick={() => {
                 setAddingViolation(true);
-                setEditType(violationCategories[0]);
+                setEditConfigId(violationTypeConfigs[0]?.id || "");
+                setEditSeverity(SEVERITY_OPTIONS[0].value);
                 setEditNote("");
                 setNewViolationLaneId(
                   race.lanes.find((l) => l.inspectionStatus === "cleared")
@@ -612,6 +623,9 @@ export default function RaceReportPanel({
                   <p className="text-[10px] text-orange-900 mt-0.5">
                     {v.violationType}
                     {v.note ? ` • ${v.note}` : ""}
+                  </p>
+                  <p className="text-[9px] text-orange-600 mt-0.5">
+                    {v.severity?.replace(/_/g, " ")}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 ml-3 shrink-0">
@@ -707,18 +721,33 @@ export default function RaceReportPanel({
 
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">
-                  Category
+                  Violation Type
                 </label>
                 <select
-                  value={editType}
-                  onChange={(e) =>
-                    setEditType(e.target.value as ViolationCategory)
-                  }
+                  value={editConfigId}
+                  onChange={(e) => setEditConfigId(e.target.value)}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
                 >
-                  {violationCategories.map((cat: ViolationCategory) => (
-                    <option key={cat} value={cat}>
-                      {cat}
+                  {violationTypeConfigs.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.violationType} ({c.pointsDeducted} pts)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">
+                  Severity
+                </label>
+                <select
+                  value={editSeverity}
+                  onChange={(e) => setEditSeverity(e.target.value)}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
+                >
+                  {SEVERITY_OPTIONS.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
                     </option>
                   ))}
                 </select>
@@ -751,7 +780,8 @@ export default function RaceReportPanel({
                   try {
                     await onCreateViolation(
                       newViolationLaneId,
-                      editType,
+                      editConfigId,
+                      editSeverity,
                       editNote
                     );
                     setAddingViolation(false);
@@ -793,18 +823,33 @@ export default function RaceReportPanel({
             <div className="space-y-3">
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">
-                  Category
+                  Violation Type
                 </label>
                 <select
-                  value={editType}
-                  onChange={(e) =>
-                    setEditType(e.target.value as ViolationCategory)
-                  }
+                  value={editConfigId}
+                  onChange={(e) => setEditConfigId(e.target.value)}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
                 >
-                  {violationCategories.map((cat: ViolationCategory) => (
-                    <option key={cat} value={cat}>
-                      {cat}
+                  {violationTypeConfigs.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.violationType} ({c.pointsDeducted} pts)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">
+                  Severity
+                </label>
+                <select
+                  value={editSeverity}
+                  onChange={(e) => setEditSeverity(e.target.value)}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
+                >
+                  {SEVERITY_OPTIONS.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
                     </option>
                   ))}
                 </select>

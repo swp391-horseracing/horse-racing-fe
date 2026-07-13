@@ -42,7 +42,7 @@ export function useJockey() {
         : (race.venue ?? ""),
 
       status:
-        race.status === "completed" || race.status === "result_confirmed"
+        race.status === "completed"
           ? "completed"
           : race.status === "ongoing"
             ? "live"

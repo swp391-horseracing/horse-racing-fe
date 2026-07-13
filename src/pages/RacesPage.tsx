@@ -38,6 +38,37 @@ import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
 import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
 import { PlacePredictionModal } from "../components/spectator/PlacePredictionModal";
 import { EnterRaceModal } from "../components/owner/EnterRaceModal";
+import { TrackService } from "../services/TrackService";
+
+let _venueCache: Map<string, { distance: string; surface: string }> | null =
+  null;
+let _venueCachePromise: Promise<void> | null = null;
+
+function loadVenueCache(): Promise<void> {
+  if (_venueCache) return Promise.resolve();
+  if (!_venueCachePromise) {
+    _venueCachePromise = TrackService.getTracks({ limit: 100 })
+      .then((res) => {
+        const items = res.data ?? [];
+        const map = new Map<string, { distance: string; surface: string }>();
+        for (const c of items) {
+          if (c.name && c.distanceMeters != null) {
+            map.set(c.name, {
+              distance: `${c.distanceMeters}m`,
+              surface: c.surfaceType
+                ? c.surfaceType.charAt(0).toUpperCase() + c.surfaceType.slice(1)
+                : "",
+            });
+          }
+        }
+        _venueCache = map;
+      })
+      .catch(() => {
+        _venueCache = new Map();
+      });
+  }
+  return _venueCachePromise;
+}
 
 interface RaceUI extends Omit<RaceListItem, "status"> {
   title: string;
@@ -52,8 +83,6 @@ interface RaceUI extends Omit<RaceListItem, "status"> {
 
 const mapRaceToUi = (race: RaceListItem): RaceUI => {
   const scheduled = new Date(race.scheduledAt);
-  console.log(race.venue);
-  console.log("mapRaceToUi", scheduled);
 
   const yyyy = scheduled.getUTCFullYear();
   const mm = String(scheduled.getUTCMonth() + 1).padStart(2, "0");
@@ -61,20 +90,29 @@ const mapRaceToUi = (race: RaceListItem): RaceUI => {
   const hh = String(scheduled.getUTCHours()).padStart(2, "0");
   const min = String(scheduled.getUTCMinutes()).padStart(2, "0");
 
-  console.log(yyyy + "-" + mm + "-" + dd);
+  let distance = race.course?.distanceMeters
+    ? `${race.course.distanceMeters}m`
+    : "";
+  let surface = race.course?.surfaceType
+    ? race.course.surfaceType.charAt(0).toUpperCase() +
+      race.course.surfaceType.slice(1)
+    : "";
+
+  if (!distance && _venueCache) {
+    const match = _venueCache.get(race.venue);
+    if (match) {
+      distance = match.distance;
+      surface = match.surface || surface;
+    }
+  }
 
   return {
     ...race,
     title: race.name,
     date: `${yyyy}-${mm}-${dd}`,
     time: `${hh}:${min}`,
-    distance: race.course?.distanceMeters
-      ? `${race.course.distanceMeters}m`
-      : "",
-    surface: race.course?.surfaceType
-      ? race.course.surfaceType.charAt(0).toUpperCase() +
-        race.course.surfaceType.slice(1)
-      : "",
+    distance,
+    surface,
     className: "Standard",
     status: race.status,
     isOpenForPrediction:
@@ -164,7 +202,11 @@ function RaceRow({
               race.surface,
               race.venue,
               race.date,
-              race.entryCount ? `${race.entryCount} entries` : "",
+              race.entryCount
+                ? `${race.entryCount} entries`
+                : race.laneCount
+                  ? `${race.laneCount} lanes`
+                  : "",
             ]
               .filter(Boolean)
               .join(" · ")}
@@ -193,8 +235,7 @@ function RaceRow({
           <span
             className={`text-[9px] font-bold px-2 py-0.5 rounded flex items-center gap-1 ${getRaceStatusStyle(race.status)}`}
           >
-            {(race.status === "completed" ||
-              race.status === "result_confirmed") && (
+            {race.status === "completed" && (
               <span className="h-1.5 w-1.5 rounded-full bg-muted/80" />
             )}
             {formatStatus(race.status)}
@@ -239,6 +280,7 @@ export default function RacesPage() {
   );
   const [distanceOpen, setDistanceOpen] = useState(false);
   const distanceRef = useRef<HTMLDivElement>(null);
+  const [venueCacheReady, setVenueCacheReady] = useState(!!_venueCache);
 
   const [activeTab, setActiveTab] = useState<"upcoming" | "calendar">(
     "upcoming"
@@ -346,6 +388,10 @@ export default function RacesPage() {
     }
   }, [selectedRange?.from, selectedRange?.to, loadRacesForRange]);
 
+  useEffect(() => {
+    loadVenueCache().then(() => setVenueCacheReady(true));
+  }, []);
+
   const effectiveRaces = useMemo(() => {
     if (isCalendarMode) {
       if (selectedRange?.from && selectedRange?.to) return rangeRaces;
@@ -363,7 +409,8 @@ export default function RacesPage() {
 
   const allRaces = useMemo(
     () => effectiveRaces.map(mapRaceToUi),
-    [effectiveRaces]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [effectiveRaces, venueCacheReady]
   );
 
   const tournamentName = useMemo(() => {
@@ -442,14 +489,14 @@ export default function RacesPage() {
   }, [calendarRaces]);
 
   const racesInRange = useMemo(() => {
-    if (!dateRangeStr) return allRaces;
+    if (!isCalendarMode || !dateRangeStr) return allRaces;
     if (typeof dateRangeStr === "string") {
       return allRaces.filter((r) => r.date === dateRangeStr);
     }
     return allRaces.filter(
       (r) => r.date >= dateRangeStr.from && r.date <= dateRangeStr.to
     );
-  }, [allRaces, dateRangeStr]);
+  }, [allRaces, dateRangeStr, isCalendarMode]);
 
   const handleSelectRace = useCallback(
     (id: string) => {

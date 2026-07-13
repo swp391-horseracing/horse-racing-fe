@@ -14,14 +14,20 @@ export interface UpdatePlacementsPayload {
 export interface CreateViolationPayload {
   entryId: string;
   occurredAt: string;
-  violationType: string;
-  description: string;
+  violationTypeConfigId: string;
   severity:
     | "warning"
     | "disqualification"
     | "result_cancellation"
     | "point_deduction";
   note?: string;
+}
+
+export interface ViolationTypeConfig {
+  id: string;
+  violationType: string;
+  pointsDeducted: number;
+  description: string | null;
 }
 
 export interface SubmitReportPayload {
@@ -66,6 +72,13 @@ export const RefereeService = {
     return response.data;
   },
 
+  getViolationTypes: async (): Promise<ViolationTypeConfig[]> => {
+    const response = await api.get("/admin/violation-types", {
+      params: { limit: 100 },
+    });
+    return response.data.data;
+  },
+
   submitReport: async (
     raceId: string,
     payload: SubmitReportPayload
@@ -85,11 +98,14 @@ export const RefereeService = {
   inspectEntry: async (
     raceId: string,
     entryId: string,
-    result: "cleared" | "disqualified" | "withdrawn"
+    result: "cleared" | "disqualified" | "withdrawn",
+    healthStatus?: string
   ): Promise<any> => {
+    const payload: Record<string, string> = { result };
+    if (healthStatus) payload.healthStatus = healthStatus;
     const response = await api.patch(
       `/referee/races/${raceId}/entries/${entryId}/inspection`,
-      { result }
+      payload
     );
     return response.data;
   },

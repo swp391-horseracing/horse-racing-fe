@@ -15,11 +15,24 @@ export type ViolationCategory =
   | "Unsafe Riding"
   | "Refusal to Race / Bolting";
 
+export interface ViolationTypeConfig {
+  id: string;
+  violationType: string;
+  pointsDeducted: number;
+  description: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface LaneEntry {
   id: string;
   laneNumber: number;
   horseName: string;
+  horseId?: string;
+  horseWeightKg?: number | null;
+  healthStatus?: string | null;
   jockeyName: string;
+  jockeyWeightKg?: number | null;
   inspectionStatus: InspectionStatus;
   inspectedAt: string | null;
   failReason: string | null;
@@ -37,12 +50,15 @@ export interface MockRace {
   trackCondition: string;
   distanceMeters: number;
   phase: RacePhase;
+  status: string;
   lanes: LaneEntry[];
   elapsedSeconds: number;
   timerRunning: boolean;
   reportNotes: string;
   reportStatus: "draft" | "referee_confirmed" | "published" | null;
   refereeCheckedIn: boolean;
+  tournamentId?: string;
+  carryWeight?: number | null;
 }
 
 import type { RaceDetail } from "./race";
@@ -65,8 +81,9 @@ export interface Violation {
 
   occurredAt: string;
 
+  violationTypeConfigId: string;
   violationType: string;
-  description: string;
+  description?: string;
 
   severity:
     | "warning"
@@ -75,6 +92,9 @@ export interface Violation {
     | "point_deduction";
 
   note: string;
+
+  pointsDeducted?: number;
+  previousFinishStatus?: string | null;
 }
 
 export const PRE_RACE_DISQUALIFY_REASONS = [
@@ -104,7 +124,9 @@ export interface Placement {
 
   points: number;
 
-  violation: Violation | null;
+  basePoints?: number;
+
+  violations: Violation[];
 }
 
 export interface JockeySummary {
@@ -119,6 +141,7 @@ export interface Referee {
 
 export interface AssignedReferee extends Referee {
   assignedAt: string;
+  email?: string;
 }
 
 export interface RaceReport {

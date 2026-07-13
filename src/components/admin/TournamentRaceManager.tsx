@@ -12,7 +12,6 @@ import { TournamentService } from "../../services/TournamentService";
 import { STATUS_LABELS } from "./race/raceStatus";
 import { getRaceStatusStyle } from "../../utils/statusStyles";
 import RaceForm, { type RaceFormData } from "./race/RaceForm";
-import RaceStatusButton from "./race/RaceStatusButton";
 import type { RaceItem } from "../../types/tournament";
 
 export default function TournamentRaceManager({
@@ -20,13 +19,13 @@ export default function TournamentRaceManager({
 }: {
   addToast: (m: string, t?: ToastType) => void;
 }) {
+  const navigate = useNavigate();
   const [view, setView] = useState<
-    "list" | "tournament-detail" | "create-race" | "race-detail"
+    "list" | "tournament-detail" | "create-race"
   >("list");
   const [activeTournamentId, setActiveTournamentId] = useState<string | null>(
     null
   );
-  const [activeRaceId, setActiveRaceId] = useState<string | null>(null);
   const [races, setRaces] = useState<RaceItem[]>([]);
   const [racesLoading, setRacesLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -48,16 +47,7 @@ export default function TournamentRaceManager({
     clearSelectedTournament,
   } = useAdminTournament();
 
-  const {
-    selectedRace,
-    loading: raceLoading,
-    actionLoading: raceActionLoading,
-    getRaceDetail,
-    createRace,
-    updateRace,
-    updateRaceStatus,
-    clearSelectedRace,
-  } = useAdminRace();
+  const { actionLoading: raceActionLoading, createRace } = useAdminRace();
 
   const loadRaces = useCallback(async (tourId: string) => {
     try {
@@ -71,22 +61,12 @@ export default function TournamentRaceManager({
     }
   }, []);
 
-  // Fetch data on view changes
   useEffect(() => {
     if (view === "tournament-detail" && activeTournamentId) {
       void getTournamentDetail(activeTournamentId);
       Promise.resolve().then(() => loadRaces(activeTournamentId));
-    } else if (view === "race-detail" && activeRaceId) {
-      void getRaceDetail(activeRaceId);
     }
-  }, [
-    view,
-    activeTournamentId,
-    activeRaceId,
-    getTournamentDetail,
-    loadRaces,
-    getRaceDetail,
-  ]);
+  }, [view, activeTournamentId, getTournamentDetail, loadRaces]);
 
   const handleManageRaces = (id: string) => {
     setActiveTournamentId(id);
@@ -135,47 +115,6 @@ export default function TournamentRaceManager({
     setView("tournament-detail");
     void loadRaces(activeTournamentId);
     return null;
-  };
-
-  const handleUpdateRace = async (
-    data: RaceFormData
-  ): Promise<string | null> => {
-    if (!activeRaceId) return "No active race.";
-    if (!data.scheduledAt) return "Schedule date is required.";
-    const scheduledDate = new Date(data.scheduledAt);
-    if (Number.isNaN(scheduledDate.getTime())) return "Invalid schedule date.";
-
-    const payload: Record<string, unknown> = {
-      name: data.name,
-      raceNumber: data.raceNumber,
-      roundName: data.roundName,
-      courseDistanceId: data.trackDistanceId,
-      distanceMeters: data.distanceMeters,
-      trackCondition: data.trackCondition,
-      scheduleAt: scheduledDate.toISOString(),
-      venue: data.venue,
-      laneCount: data.laneCount,
-    };
-    const res = await updateRace(activeRaceId, payload);
-    if (res.success === false) {
-      addToast("Failed to update race.", "error");
-      return res.error ?? "Failed to update race.";
-    }
-    addToast("Race updated successfully.", "success");
-    setRaceEditing(false);
-    await getRaceDetail(activeRaceId);
-    return null;
-  };
-
-  const handleRaceStatusChange = async (status: string) => {
-    if (!activeRaceId) return;
-    const ok = await updateRaceStatus(activeRaceId, status);
-    if (ok) {
-      addToast("Race status updated.", "success");
-      await getRaceDetail(activeRaceId);
-    } else {
-      addToast("Failed to update race status.", "error");
-    }
   };
 
   // RENDER SUB-VIEWS
@@ -269,12 +208,7 @@ export default function TournamentRaceManager({
                       </td>
                       <td className="p-3 text-right">
                         <button
-                          onClick={() => {
-                            setActiveRaceId(race.id);
-                            setView("race-detail");
-                            setRaceEditing(false);
-                            clearSelectedRace();
-                          }}
+                          onClick={() => navigate(`/admin/races/${race.id}`)}
                           className="text-[10px] font-bold text-[#064E3B] underline hover:no-underline"
                         >
                           View / Edit

@@ -42,6 +42,7 @@ export const ROUTES = {
   REFEREE_DASHBOARD: "/referee",
   REFEREE_RACE_LIST: "/referee/races",
   REFEREE_TRACKS: "/referee/race/:id/monitor",
+  REFEREE_REVIEW_REPORT: "/referee/review",
 
   // ADMIN
   ADMIN_DASHBOARD: "/admin/dashboard",

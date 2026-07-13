@@ -4,6 +4,7 @@ services:
     container_name: horse-racing-fe
     restart: on-failure:5
     environment:
+      TZ: ${TZ}
       PORT: ${PORT}
     ports:
       - ${PORT}:${PORT}

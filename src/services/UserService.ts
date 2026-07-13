@@ -164,4 +164,11 @@ export const UserService = {
     const response = await api.get("/me/profile");
     return response.data;
   },
+
+  uploadAvatar: async (file: File): Promise<{ avatar_url: string }> => {
+    const formData = new FormData();
+    formData.append("avatar", file);
+    const response = await api.patch("/me/avatar", formData);
+    return response.data;
+  },
 };

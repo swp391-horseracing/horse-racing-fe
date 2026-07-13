@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { UserService } from "../../services/UserService";
-import type { User } from "../../types/user";
+import type { UpdateProfileResponse, User } from "../../types/user";
 
 type Props = {
   isOpen: boolean;
@@ -22,33 +22,81 @@ export default function EditProfileModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   if (!isOpen) return null;
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
 
   const handleSave = async () => {
     setError(null);
-
     setSaving(true);
     try {
       const userId = sessionStorage.getItem("userId");
       if (!userId) throw new Error("Missing userId");
 
-      const payload: Record<string, string> = {
-        full_name: fullName.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        address: address.trim(),
-      };
+      if (avatarFile) {
+        await UserService.uploadAvatar(avatarFile);
+      }
 
-      await UserService.updateUser(userId, payload);
+      const payload: Record<string, string> = {};
+      if (fullName.trim() !== user.full_name)
+        payload.full_name = fullName.trim();
+      if (email.trim() !== user.email) payload.email = email.trim();
+      if (phone.trim() !== user.phone) payload.phone = phone.trim();
+      if (address.trim() !== user.address) payload.address = address.trim();
+
+      if (Object.keys(payload).length > 0) {
+        const res: UpdateProfileResponse = await UserService.updateUser(
+          userId,
+          payload
+        );
+
+        if (res.token) {
+          localStorage.setItem("token", res.token);
+        }
+
+        sessionStorage.setItem(
+          "user",
+          JSON.stringify({
+            id: res.user.id,
+            role: res.user.role,
+            full_name: res.user.full_name,
+          })
+        );
+      }
+
       onSaved();
       onClose();
     } catch (err: unknown) {
-      const error = err as { response?: { data?: { message?: string } } };
-      setError(error?.response?.data?.message || "Failed to update profile");
+      const axiosErr = err as {
+        response?: { status?: number; data?: { message?: string } };
+      };
+      const status = axiosErr?.response?.status;
+      if (status === 401) {
+        localStorage.removeItem("token");
+        sessionStorage.clear();
+        window.location.href = "/login";
+        return;
+      }
+      setError(axiosErr?.response?.data?.message || "Failed to update profile");
     } finally {
       setSaving(false);
     }
   };
+
+  const currentAvatarSrc = avatarPreview || user.avatar_url || null;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
@@ -63,6 +111,40 @@ export default function EditProfileModal({
         </div>
 
         <div className="p-6 space-y-4">
+          {/* Avatar upload */}
+          <div className="flex items-center gap-4">
+            {currentAvatarSrc ? (
+              <img
+                src={currentAvatarSrc}
+                alt="Avatar"
+                className="w-16 h-16 rounded-full object-cover border-2 border-slate-200"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-[#064E3B]/10 flex items-center justify-center text-2xl font-bold text-[#064E3B]">
+                {user.full_name?.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div>
+              <button
+                type="button"
+                onClick={triggerFileInput}
+                className="px-4 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                Change Photo
+              </button>
+              <p className="text-[10px] text-slate-400 mt-1">
+                PNG, JPG up to 5MB
+              </p>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="col-span-2 sm:col-span-1 space-y-1.5">
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
