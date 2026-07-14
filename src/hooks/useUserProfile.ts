@@ -20,13 +20,11 @@ export function useUserProfile() {
   const [activeTab, setActiveTab] = useState<ProfileTab>("account");
   const [error, setError] = useState<string | null>(null);
 
-  // Helper to handle 401 Unauthorized errors (Replaced 'any' with 'unknown')
   const handleAuthError = useCallback((err: unknown) => {
     const error = err as ApiError;
     if (error?.response?.status === 401) {
       sessionStorage.clear();
       localStorage.removeItem("token");
-      window.location.href = "/login";
     }
   }, []);
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { ROUTES } from "../router/routes";
@@ -311,13 +311,6 @@ export default function MainPage() {
     }
     return false;
   });
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      navigate(ROUTES.FEED, { replace: true });
-    }
-  }, [navigate]);
 
   const toggleTheme = () => {
     const html = document.documentElement;

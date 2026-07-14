@@ -15,7 +15,7 @@ export default function MainLayout() {
     icon?: React.ReactNode;
   }
 
-  const { user } = useUserProfile();
+  const { user, loading } = useUserProfile();
 
   const generalLinks: LinkItem[] = [
     {
@@ -68,9 +68,7 @@ export default function MainLayout() {
   const location = useLocation();
 
   const token = useAuth().getToken();
-  if (token == null) {
-    navigate(ROUTES.LOGIN);
-  }
+  const isAuthenticated = loading ? !!token : !!(token && user);
 
   return (
     <div className="flex flex-col h-screen w-screen bg-gray-200 pb-2 px-2 pt-4 overflow-hidden">
@@ -110,9 +108,11 @@ export default function MainLayout() {
           </div>
         ))}
 
-        <div className="flex justify-center items-center h-8 text-gray-300 px-1 shrink-0 font-light">
-          |
-        </div>
+        {roleLinks.length > 0 && (
+          <div className="flex justify-center items-center h-8 text-gray-300 px-1 shrink-0 font-light">
+            |
+          </div>
+        )}
 
         {/* Role Portals */}
         {roleLinks.map((link) => (
@@ -157,18 +157,28 @@ export default function MainLayout() {
             )}
           </div>
 
-          <Button
-            onClick={() => navigate(ROUTES.USER_PROFILE)}
-            variant="ghost"
-            className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-4 ml-1 py-2
-              ${
-                location.pathname === ROUTES.USER_PROFILE
-                  ? "bg-gray-100 text-gray-800 font-bold"
-                  : "text-gray-500 hover:text-gray-900"
-              }`}
-          >
-            My Profile
-          </Button>
+          {isAuthenticated ? (
+            <Button
+              onClick={() => navigate(ROUTES.USER_PROFILE)}
+              variant="ghost"
+              className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-4 ml-1 py-2
+                ${
+                  location.pathname === ROUTES.USER_PROFILE
+                    ? "bg-gray-100 text-gray-800 font-bold"
+                    : "text-gray-500 hover:text-gray-900"
+                }`}
+            >
+              My Profile
+            </Button>
+          ) : (
+            <Button
+              onClick={() => navigate(ROUTES.LOGIN)}
+              variant="ghost"
+              className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-4 ml-1 py-2 text-gray-500 hover:text-gray-900"
+            >
+              Login
+            </Button>
+          )}
         </div>
       </div>
 
