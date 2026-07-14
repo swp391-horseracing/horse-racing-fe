@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ArrowLeft,
   Flag,
   Trophy,
   Clock,
@@ -12,7 +13,7 @@ import {
   Play,
   Square,
 } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import type { RaceTick } from "../types/live";
 import { useRaceDetail } from "../hooks/useRaces";
 import { AdminService } from "../services/AdminService";
@@ -42,6 +43,7 @@ const formatTime = (ms: number) => {
 };
 
 export default function RaceReplay() {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { detail: raceDetail, latestTick } = useRaceDetail(id!);
 
@@ -215,6 +217,13 @@ export default function RaceReplay() {
       {/* Header */}
       <div className="shrink-0 bg-primary text-white px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 text-xs font-bold text-white hover:bg-white/25 transition"
+          >
+            <ArrowLeft size={14} />
+            Exit
+          </button>
           <Flag className="w-7 h-7 text-[#D4AF37]" />
           <div className="space-y-1">
             {raceDetail?.name && (
