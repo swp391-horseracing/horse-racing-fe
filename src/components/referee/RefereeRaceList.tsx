@@ -1,5 +1,6 @@
 import { Flag, Clock, ShieldCheck, AlertTriangle } from "lucide-react";
 import { type MockRace, type RacePhase } from "../../types/referee";
+import { StatusBadge } from "../ui/StatusBadge";
 import { cn } from "../../lib/utils";
 
 interface RefereeRaceListProps {
@@ -116,25 +117,25 @@ export default function RefereeRaceList({
                         ` • ${race.carryWeight} kg limit`}
                     </p>
                   </div>
-                  <span
-                    className={cn(
-                      "text-[9px] font-black uppercase px-2 py-0.5 rounded-full border",
-                      phaseBadgeStyle[race.phase]
-                    )}
-                  >
-                    {race.phase === "post_race" &&
-                    (race.reportStatus === "published" ||
-                      race.reportStatus === "referee_confirmed")
-                      ? "Finalized"
-                      : race.phase === "post_race" &&
-                          race.reportStatus === "draft"
-                        ? "Results (Draft)"
-                        : race.status === "pre_race"
-                          ? "Pre-Race"
-                          : race.status === "scheduled"
-                            ? "Scheduled"
-                            : phaseLabel[race.phase]}
-                  </span>
+                  <StatusBadge
+                    status={race.phase}
+                    styleMap={phaseBadgeStyle}
+                    label={
+                      race.phase === "post_race" &&
+                      (race.reportStatus === "published" ||
+                        race.reportStatus === "referee_confirmed")
+                        ? "Finalized"
+                        : race.phase === "post_race" &&
+                            race.reportStatus === "draft"
+                          ? "Results (Draft)"
+                          : race.status === "pre_race"
+                            ? "Pre-Race"
+                            : race.status === "scheduled"
+                              ? "Scheduled"
+                              : phaseLabel[race.phase]
+                    }
+                    className="uppercase"
+                  />
                 </div>
                 <div className="flex items-center gap-4 text-[10px] text-slate-500 font-bold">
                   <span className="flex items-center gap-1">

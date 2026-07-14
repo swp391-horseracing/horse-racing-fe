@@ -8,7 +8,7 @@ import useAdminRace from "../hooks/admin/useAdminRace";
 import { AdminService } from "../services/AdminService";
 import { fetchRaceEntries } from "../hooks/useRaces";
 import { STATUS_LABELS } from "../components/admin/race/raceStatus";
-import { getRaceStatusStyle } from "../utils/statusStyles";
+import { StatusBadge, RACE_STATUS_STYLES } from "../components/ui/StatusBadge";
 import RaceForm, { type RaceFormData } from "../components/admin/race/RaceForm";
 import RaceStatusButton from "../components/admin/race/RaceStatusButton";
 
@@ -271,12 +271,12 @@ export default function AdminRaceDetailPage() {
                   <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
                     Status
                   </p>
-                  <span
-                    className={`text-[11px] font-bold px-2 py-0.5 rounded capitalize ${getRaceStatusStyle(selectedRace.status)}`}
-                  >
-                    {STATUS_LABELS[selectedRace.status] ??
-                      selectedRace.status.replaceAll("_", " ")}
-                  </span>
+                  <StatusBadge
+                    status={selectedRace.status}
+                    styleMap={RACE_STATUS_STYLES}
+                    label={STATUS_LABELS[selectedRace.status] ?? selectedRace.status.replaceAll("_", " ")}
+                    className="rounded capitalize font-bold"
+                  />
                 </div>
                 <div className="bg-slate-50 rounded-xl p-3">
                   <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">

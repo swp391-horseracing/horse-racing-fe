@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useTrack } from "../hooks/useTrack";
 import { formatStatus } from "../utils/formatters";
+import { StatusBadge, TRACK_STATUS_STYLES } from "../components/ui/StatusBadge";
 
 function StatFilterCard({
   label,
@@ -47,15 +48,7 @@ function StatFilterCard({
   );
 }
 
-function StatusBadge({ status }: { status?: string }) {
-  const styles: Record<string, string> = {
-    active: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    inactive: "bg-muted text-muted-foreground border-border",
-    maintenance: "bg-amber-100 text-amber-700 border-amber-200",
-    under_maintainance: "bg-amber-100 text-amber-700 border-amber-200",
-    draft: "bg-slate-100 text-slate-500 border-slate-200",
-  };
-
+function TrackBadge({ status }: { status?: string }) {
   const labelMap: Record<string, string> = {
     active: "Active",
     inactive: "Inactive",
@@ -67,16 +60,13 @@ function StatusBadge({ status }: { status?: string }) {
   const currentStatus = status || "inactive";
 
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-black tracking-wider ${
-        styles[currentStatus] ?? "bg-muted text-muted-foreground border-border"
-      }`}
-    >
-      {currentStatus === "active" && (
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-      )}
-      {labelMap[currentStatus] ?? currentStatus}
-    </span>
+    <StatusBadge
+      status={currentStatus}
+      styleMap={TRACK_STATUS_STYLES}
+      labelMap={labelMap}
+      showDot={currentStatus === "active"}
+      dotClassName="bg-emerald-500"
+    />
   );
 }
 
@@ -252,7 +242,7 @@ export default function TracksPage() {
                           <h3 className="text-sm font-black font-headline text-primary tracking-tight leading-tight truncate">
                             {track.name}
                           </h3>
-                          <StatusBadge status={track.status} />
+                          <TrackBadge status={track.status} />
                         </div>
                         <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
                           <span className="flex items-center gap-1">
@@ -500,7 +490,7 @@ export default function TracksPage() {
                                 </p>
                               </div>
                             </div>
-                            <StatusBadge status={dist.status} />
+                            <TrackBadge status={dist.status} />
                           </div>
                         ))}
                       </div>

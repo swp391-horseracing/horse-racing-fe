@@ -10,7 +10,7 @@ import useAdminRace from "../../hooks/admin/useAdminRace";
 import TournamentDetail from "./tournament/TournamentDetail";
 import { TournamentService } from "../../services/TournamentService";
 import { STATUS_LABELS } from "./race/raceStatus";
-import { getRaceStatusStyle } from "../../utils/statusStyles";
+import { StatusBadge, RACE_STATUS_STYLES } from "../ui/StatusBadge";
 import RaceForm, { type RaceFormData } from "./race/RaceForm";
 import RaceStatusButton from "./race/RaceStatusButton";
 import type { RaceItem } from "../../types/tournament";
@@ -259,12 +259,12 @@ export default function TournamentRaceManager({
                         {race.venue ?? "-"}
                       </td>
                       <td className="p-3">
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded capitalize ${getRaceStatusStyle(race.status)}`}
-                        >
-                          {STATUS_LABELS[race.status] ??
-                            race.status.replaceAll("_", " ")}
-                        </span>
+                        <StatusBadge
+                          status={race.status}
+                          styleMap={RACE_STATUS_STYLES}
+                          label={STATUS_LABELS[race.status] ?? race.status.replaceAll("_", " ")}
+                          className="rounded capitalize font-bold"
+                        />
                       </td>
                       <td className="p-3 text-right">
                         <div className="flex items-center justify-end gap-2">
@@ -398,12 +398,12 @@ export default function TournamentRaceManager({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm pt-2">
               <div>
                 <strong>Status:</strong>{" "}
-                <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded capitalize ${getRaceStatusStyle(selectedRace.status)}`}
-                >
-                  {STATUS_LABELS[selectedRace.status] ??
-                    selectedRace.status.replaceAll("_", " ")}
-                </span>
+                <StatusBadge
+                  status={selectedRace.status}
+                  styleMap={RACE_STATUS_STYLES}
+                  label={STATUS_LABELS[selectedRace.status] ?? selectedRace.status.replaceAll("_", " ")}
+                  className="rounded capitalize font-bold"
+                />
               </div>
               <div>
                 <strong>Round:</strong> {selectedRace.roundName ?? "-"}

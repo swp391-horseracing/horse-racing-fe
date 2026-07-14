@@ -28,9 +28,10 @@ import { useToast } from "../hooks/useToast";
 import { useOwner } from "../hooks/useOwner";
 import { formatStatus } from "../utils/formatters";
 import {
-  getRaceStatusStyle,
-  getRaceStatusDetailStyle,
-} from "../utils/statusStyles";
+  StatusBadge,
+  RACE_STATUS_STYLES,
+  RACE_STATUS_DETAIL_STYLES,
+} from "../components/ui/StatusBadge";
 import { ToastContainer } from "../components/ui/toast";
 import { friendlyErrorMessage } from "../utils/errorMessages";
 import { cn } from "../lib/utils";
@@ -226,21 +227,22 @@ function RaceRow({
           </span>
         )}
         {isLive ? (
-          <span
-            className={`text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 ${getRaceStatusStyle(race.status)}`}
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
-            Live
-          </span>
+          <StatusBadge
+            status={race.status}
+            styleMap={RACE_STATUS_STYLES}
+            label="Live"
+            size="sm"
+            showDot
+            className="rounded gap-1 font-bold"
+          />
         ) : (
-          <span
-            className={`text-[9px] font-bold px-2 py-0.5 rounded flex items-center gap-1 ${getRaceStatusStyle(race.status)}`}
-          >
-            {race.status === "completed" && (
-              <span className="h-1.5 w-1.5 rounded-full bg-muted/80" />
-            )}
-            {formatStatus(race.status)}
-          </span>
+          <StatusBadge
+            status={race.status}
+            styleMap={RACE_STATUS_STYLES}
+            label={formatStatus(race.status)}
+            size="sm"
+            className="rounded gap-1 font-bold"
+          />
         )}
       </div>
     </button>
@@ -892,16 +894,18 @@ export default function RacesPage() {
                             ? `${raceDetail.laneCount} Lanes`
                             : "Lanes TBC"}
                         </span>
-                        <button
-                          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 font-bold ${getRaceStatusDetailStyle(raceDetail.status)}`}
-                        >
-                          {raceDetail.status === "ongoing" && (
-                            <span className="h-1.5 w-1.5 rounded-full bg-rose-300 animate-pulse" />
-                          )}
-                          {raceDetail.status === "ongoing"
-                            ? formatTime(elapsedSeconds)
-                            : formatStatus(raceDetail.status)}
-                        </button>
+                        <StatusBadge
+                          status={raceDetail.status}
+                          styleMap={RACE_STATUS_DETAIL_STYLES}
+                          label={
+                            raceDetail.status === "ongoing"
+                              ? formatTime(elapsedSeconds)
+                              : formatStatus(raceDetail.status)
+                          }
+                          showDot={raceDetail.status === "ongoing"}
+                          dotClassName="bg-rose-300"
+                          className="rounded-lg px-3 py-1.5 font-bold gap-1.5"
+                        />
                         {raceDetail.status === "ongoing" && (
                           <>
                             <button

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { cn } from "../../lib/utils";
+import { StatusBadge, INVITATION_STATUS_STYLES } from "../ui/StatusBadge";
 import {
   Clock,
   CheckCircle,
@@ -238,16 +239,14 @@ export function InvitationsView({
                       <p className="font-bold font-headline text-[#064E3B] truncate text-sm">
                         {inv.horse.name}
                       </p>
-                      <span
-                        className={cn(
-                          "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[8px] font-black uppercase shrink-0",
-                          cfg.color,
-                          cfg.bg,
-                          cfg.border
-                        )}
-                      >
-                        <StatusIcon /> {cfg.label}
-                      </span>
+                      <StatusBadge
+                        status={inv.status}
+                        styleMap={INVITATION_STATUS_STYLES}
+                        label={cfg.label}
+                        size="xs"
+                        icon={<StatusIcon />}
+                        className="rounded-full gap-1 uppercase shrink-0"
+                      />
                     </div>
                     <p className="text-xs text-slate-555 font-semibold truncate">
                       {safeStr(inv.tournament)}
@@ -317,16 +316,13 @@ function InvitationDetail({
             {safeStr(inv.tournament)}
           </p>
         </div>
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[10px] font-black uppercase",
-            cfg.color,
-            cfg.bg,
-            cfg.border
-          )}
-        >
-          <StatusIcon /> {cfg.label}
-        </span>
+        <StatusBadge
+          status={inv.status}
+          styleMap={INVITATION_STATUS_STYLES}
+          label={cfg.label}
+          icon={<StatusIcon />}
+          className="px-3.5 py-1.5 uppercase"
+        />
       </div>
 
       <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-5 space-y-4 shadow-sm">

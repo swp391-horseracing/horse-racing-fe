@@ -19,6 +19,7 @@ import type { PredictionStatus } from "../../types/prediction";
 import type { RaceEntry, RaceListItem } from "../../types/race";
 import type { DateRange } from "react-day-picker";
 import { cn } from "../../lib/utils";
+import { StatusBadge, PREDICTION_STATUS_STYLES } from "../ui/StatusBadge";
 import { useToast } from "../../hooks/useToast";
 import { ToastContainer } from "../../components/ui/toast";
 
@@ -523,14 +524,12 @@ function MyPredictionsTab() {
                         )}
                       </td>
                       <td className="py-4 px-6 text-center">
-                        <span
-                          className={cn(
-                            "inline-flex items-center justify-center px-2.5 py-0.5 rounded-full font-label text-[9px] font-bold uppercase border",
-                            badge.class
-                          )}
-                        >
-                          {badge.label}
-                        </span>
+                        <StatusBadge
+                          status={status}
+                          styleMap={PREDICTION_STATUS_STYLES}
+                          label={badge.label}
+                          className="font-label"
+                        />
                       </td>
                       <td className="py-4 px-6 text-right text-slate-400 hidden md:table-cell">
                         {formatDate(prediction.placedAt)}
