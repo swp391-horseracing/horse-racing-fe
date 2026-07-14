@@ -97,8 +97,6 @@ function TournamentEntriesTab({
     }
   };
 
-  const pendingEntries = registrations.filter((r) => r.status === "pending");
-
   return (
     <div className="grid grid-cols-1 gap-6">
       <div className="bg-white border rounded-2xl p-5 shadow-sm space-y-4">
@@ -124,14 +122,14 @@ function TournamentEntriesTab({
           </div>
         )}
 
-        {!loading && !error && pendingEntries.length === 0 && (
+        {!loading && !error && registrations.length === 0 && (
           <p className="text-xs text-slate-400 text-center py-8">
             No pending entries.
           </p>
         )}
 
         <div className="space-y-3">
-          {pendingEntries.map((reg) => {
+          {registrations.map((reg) => {
             const isProcessing = processingIds.has(reg.id);
             return (
               <div
