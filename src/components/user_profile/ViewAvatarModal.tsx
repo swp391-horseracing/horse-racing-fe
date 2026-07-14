@@ -42,9 +42,7 @@ export default function ViewAvatarModal({
         window.location.href = "/login";
         return;
       }
-      setError(
-        axiosErr?.response?.data?.message || "Failed to upload avatar"
-      );
+      setError(axiosErr?.response?.data?.message || "Failed to upload avatar");
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";

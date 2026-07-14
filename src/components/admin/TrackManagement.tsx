@@ -42,7 +42,7 @@ const STATUS_LABEL_MAP = Object.fromEntries(
 function formatDateOrFallback(value?: string) {
   if (!value) return "N/A";
   const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "N/A" : d.toLocaleDateString();
+  return Number.isNaN(d.getTime()) ? "N/A" : d.toLocaleDateString("en-GB");
 }
 
 interface FormModalProps {

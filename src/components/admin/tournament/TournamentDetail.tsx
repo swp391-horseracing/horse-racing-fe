@@ -392,28 +392,32 @@ export default function TournamentDetail({
             <div>
               <strong>Start Date:</strong>{" "}
               {tournament.startDate
-                ? new Date(tournament.startDate).toLocaleString()
+                ? new Date(tournament.startDate).toLocaleString("en-GB")
                 : "-"}
             </div>
 
             <div>
               <strong>End Date:</strong>{" "}
               {tournament.endDate
-                ? new Date(tournament.endDate).toLocaleString()
+                ? new Date(tournament.endDate).toLocaleString("en-GB")
                 : "-"}
             </div>
 
             <div>
               <strong>Registration Open:</strong>{" "}
               {tournament.registrationOpenDate
-                ? new Date(tournament.registrationOpenDate).toLocaleString()
+                ? new Date(tournament.registrationOpenDate).toLocaleString(
+                    "en-GB"
+                  )
                 : "-"}
             </div>
 
             <div>
               <strong>Registration Close:</strong>{" "}
               {tournament.registrationCloseDate
-                ? new Date(tournament.registrationCloseDate).toLocaleString()
+                ? new Date(tournament.registrationCloseDate).toLocaleString(
+                    "en-GB"
+                  )
                 : "-"}
             </div>
 

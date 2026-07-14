@@ -250,7 +250,9 @@ export default function TournamentRaceManager({
                       </td>
                       <td className="p-3 text-slate-600">
                         {race.scheduledAt
-                          ? new Date(race.scheduledAt).toLocaleDateString()
+                          ? new Date(race.scheduledAt).toLocaleDateString(
+                              "en-GB"
+                            )
                           : "-"}
                       </td>
                       <td className="p-3 text-slate-600">
@@ -427,7 +429,7 @@ export default function TournamentRaceManager({
               <div>
                 <strong>Scheduled:</strong>{" "}
                 {selectedRace.scheduledAt
-                  ? new Date(selectedRace.scheduledAt).toLocaleString()
+                  ? new Date(selectedRace.scheduledAt).toLocaleString("en-GB")
                   : "-"}
               </div>
             </div>

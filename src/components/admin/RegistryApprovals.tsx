@@ -153,7 +153,8 @@ function TournamentEntriesTab({
                 <div className="text-[10px] bg-white p-2 rounded border border-slate-100 font-label text-slate-600">
                   <p>Owner ID: {reg.horse.ownerId}</p>
                   <p>
-                    Submitted: {new Date(reg.submittedAt).toLocaleDateString()}
+                    Submitted:{" "}
+                    {new Date(reg.submittedAt).toLocaleDateString("en-GB")}
                   </p>
                 </div>
 
@@ -378,9 +379,9 @@ function AssignRefereeTab({
                   </span>
                   <span className="text-slate-400">
                     (since{" "}
-                    {new Date(
-                      currentAssignment.assignedAt
-                    ).toLocaleDateString()}
+                    {new Date(currentAssignment.assignedAt).toLocaleDateString(
+                      "en-GB"
+                    )}
                     )
                   </span>
                 </div>
@@ -390,7 +391,9 @@ function AssignRefereeTab({
               {selectedRace && (
                 <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-200">
                   {selectedRace.name} — {selectedRace.venue} —{" "}
-                  {new Date(selectedRace.scheduledAt).toLocaleDateString()}
+                  {new Date(selectedRace.scheduledAt).toLocaleDateString(
+                    "en-GB"
+                  )}
                 </div>
               )}
             </div>

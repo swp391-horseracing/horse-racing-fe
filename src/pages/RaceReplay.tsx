@@ -452,7 +452,7 @@ const formatDateTime = (dateString?: string) => {
   if (!dateString) return "TBC";
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return "Invalid Date";
-  return date.toLocaleString("en-US", {
+  return date.toLocaleString("en-GB", {
     month: "short",
     day: "numeric",
     year: "numeric",

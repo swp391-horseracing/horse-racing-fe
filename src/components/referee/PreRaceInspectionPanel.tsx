@@ -334,7 +334,7 @@ export default function PreRaceInspectionPanel({
 
                   {lane.inspectedAt && (
                     <p className="text-[9px] text-slate-400 mt-1 font-label">
-                      {new Date(lane.inspectedAt).toLocaleTimeString()}
+                      {new Date(lane.inspectedAt).toLocaleTimeString("en-GB")}
                     </p>
                   )}
                   {lane.failReason && (

@@ -116,7 +116,8 @@ export default function RefereeDashboard({
               <div>
                 <p className="text-xs font-bold text-slate-800">{race.name}</p>
                 <p className="text-[10px] text-slate-400 mt-0.5">
-                  {race.venue} • {new Date(race.scheduledAt).toLocaleString()}
+                  {race.venue} •{" "}
+                  {new Date(race.scheduledAt).toLocaleString("en-GB")}
                 </p>
               </div>
               <span

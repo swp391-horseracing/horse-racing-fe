@@ -269,8 +269,10 @@ export function JockeyRosterManagement() {
                         {selectedEntry.raceName}
                       </div>
                       <div className="text-xs text-slate-500 mt-1">
-                        {new Date(selectedEntry.scheduleAt).toLocaleString()} •{" "}
-                        {selectedEntry.venue}
+                        {new Date(selectedEntry.scheduleAt).toLocaleString(
+                          "en-GB"
+                        )}{" "}
+                        • {selectedEntry.venue}
                       </div>
                     </div>
                     <button
@@ -365,9 +367,9 @@ export function JockeyRosterManagement() {
                             {toPascalCase("scheduled")}
                           </span>
                           <span className="font-semibold text-slate-800">
-                            {new Date(
-                              selectedEntry.scheduleAt
-                            ).toLocaleString()}
+                            {new Date(selectedEntry.scheduleAt).toLocaleString(
+                              "en-GB"
+                            )}
                           </span>
                         </div>
                         <div className="flex justify-between pb-1">
@@ -442,7 +444,7 @@ export function JockeyRosterManagement() {
                             <div className="font-semibold text-slate-800 mt-0.5">
                               {new Date(
                                 selectedEntry.confirmedAt
-                              ).toLocaleDateString()}
+                              ).toLocaleDateString("en-GB")}
                             </div>
                           </div>
                         )}
@@ -487,7 +489,7 @@ export function JockeyRosterManagement() {
                               {inv.raceName && `${inv.raceName} • `}
                               {inv.tournament}
                               {inv.raceTime &&
-                                ` • ${new Date(inv.raceTime).toLocaleString()}`}
+                                ` • ${new Date(inv.raceTime).toLocaleString("en-GB")}`}
                             </div>
                           </div>
                           <div className="flex items-center gap-3 shrink-0">

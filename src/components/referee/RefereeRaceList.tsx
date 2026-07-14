@@ -139,7 +139,7 @@ export default function RefereeRaceList({
                 <div className="flex items-center gap-4 text-[10px] text-slate-500 font-bold">
                   <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    {new Date(race.scheduledAt).toLocaleString()}
+                    {new Date(race.scheduledAt).toLocaleString("en-GB")}
                   </span>
                   {race.phase === "scheduled" && total > 0 && (
                     <>

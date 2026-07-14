@@ -46,7 +46,7 @@ function formatDate(value?: string) {
   if (!value) return "Not specified";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "Not specified";
-  return d.toLocaleDateString("en-US", {
+  return d.toLocaleDateString("en-GB", {
     year: "numeric",
     month: "short",
     day: "2-digit",
@@ -57,7 +57,7 @@ function formatDateFull(value?: string) {
   if (!value) return "Not specified";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "Not specified";
-  return d.toLocaleDateString("en-US", {
+  return d.toLocaleDateString("en-GB", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -633,7 +633,7 @@ export function TournamentRegister({
                                     <span>
                                       {new Date(
                                         race.scheduledAt
-                                      ).toLocaleString("en-US", {
+                                      ).toLocaleString("en-GB", {
                                         month: "short",
                                         day: "numeric",
                                         hour: "2-digit",

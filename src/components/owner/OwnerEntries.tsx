@@ -119,7 +119,7 @@ export function OwnerEntries() {
                           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                             <CalendarDays className="h-3 w-3" />
                             {new Date(entry.scheduleAt).toLocaleString(
-                              "en-US",
+                              "en-GB",
                               {
                                 month: "short",
                                 day: "numeric",

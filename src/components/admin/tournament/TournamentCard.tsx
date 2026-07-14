@@ -31,7 +31,7 @@ export default function TournamentCard({ tournament, onManage }: Props) {
 
             <div className="flex items-center gap-1">
               <Calendar size={14} />
-              {new Date(tournament.startDate).toLocaleDateString()}
+              {new Date(tournament.startDate).toLocaleDateString("en-GB")}
             </div>
           </div>
         </div>

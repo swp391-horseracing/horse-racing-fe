@@ -284,7 +284,9 @@ export default function AdminRaceDetailPage() {
                   </p>
                   <p className="text-xs font-semibold">
                     {selectedRace.scheduledAt
-                      ? new Date(selectedRace.scheduledAt).toLocaleString()
+                      ? new Date(selectedRace.scheduledAt).toLocaleString(
+                          "en-GB"
+                        )
                       : "-"}
                   </p>
                 </div>
@@ -464,9 +466,9 @@ export default function AdminRaceDetailPage() {
                       <p className="text-[10px] text-slate-400">
                         Assigned:{" "}
                         {raceReferee.assignedAt
-                          ? new Date(
-                              raceReferee.assignedAt
-                            ).toLocaleDateString()
+                          ? new Date(raceReferee.assignedAt).toLocaleDateString(
+                              "en-GB"
+                            )
                           : "Recently"}
                       </p>
                     </div>

@@ -396,8 +396,8 @@ export default function RaceForm({
             {tournamentStartDate && tournamentEndDate && (
               <p className="text-[11px] text-slate-500 mb-2">
                 Tournament period:{" "}
-                {new Date(tournamentStartDate).toLocaleDateString()} –{" "}
-                {new Date(tournamentEndDate).toLocaleDateString()}
+                {new Date(tournamentStartDate).toLocaleDateString("en-GB")} –{" "}
+                {new Date(tournamentEndDate).toLocaleDateString("en-GB")}
               </p>
             )}
             <input

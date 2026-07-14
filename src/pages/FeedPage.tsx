@@ -56,7 +56,7 @@ export default function FeedPage() {
 
   const formatTime = (dateString: string) => {
     const d = new Date(dateString);
-    return d.toLocaleTimeString("en-US", {
+    return d.toLocaleTimeString("en-GB", {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -64,7 +64,7 @@ export default function FeedPage() {
 
   const formatDate = (dateString: string) => {
     const d = new Date(dateString);
-    return d.toLocaleDateString("en-US", {
+    return d.toLocaleDateString("en-GB", {
       month: "short",
       day: "numeric",
     });

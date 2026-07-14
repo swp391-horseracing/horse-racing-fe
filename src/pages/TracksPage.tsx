@@ -394,8 +394,9 @@ export default function TracksPage() {
                             Capacity
                           </p>
                           <p className="text-base font-black text-foreground mt-1">
-                            {trackDetail.grandstandCapacity?.toLocaleString() ||
-                              0}
+                            {trackDetail.grandstandCapacity?.toLocaleString(
+                              "en-GB"
+                            ) || 0}
                           </p>
                         </div>
                       </div>
@@ -440,7 +441,7 @@ export default function TracksPage() {
                           </p>
                           <p className="text-sm font-bold text-foreground mt-1">
                             {trackDetail.distanceMeters
-                              ? `${trackDetail.distanceMeters.toLocaleString()}m`
+                              ? `${trackDetail.distanceMeters.toLocaleString("en-GB")}m`
                               : "N/A"}
                           </p>
                         </div>
@@ -454,7 +455,7 @@ export default function TracksPage() {
                         {new Date(
                           // eslint-disable-next-line react-hooks/purity
                           trackDetail.updatedAt || Date.now()
-                        ).toLocaleDateString()}
+                        ).toLocaleDateString("en-GB")}
                       </span>
                     </div>
                   </div>
@@ -489,7 +490,7 @@ export default function TracksPage() {
                                     dist.distanceMeters ??
                                     dist.distance ??
                                     0
-                                  ).toLocaleString()}
+                                  ).toLocaleString("en-GB")}
                                   m
                                 </p>
                                 <p className="text-[11px] text-muted-foreground">

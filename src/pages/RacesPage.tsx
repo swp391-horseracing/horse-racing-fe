@@ -122,7 +122,7 @@ const mapRaceToUi = (race: RaceListItem): RaceUI => {
 };
 
 const fmtShort = (d: string) =>
-  new Date(d).toLocaleDateString("en-US", {
+  new Date(d).toLocaleDateString("en-GB", {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -138,7 +138,7 @@ const formatDateTime = (dateString: string | undefined) => {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return "Invalid Date";
 
-  return date.toLocaleString("en-US", {
+  return date.toLocaleString("en-GB", {
     month: "short",
     day: "numeric",
     year: "numeric",
