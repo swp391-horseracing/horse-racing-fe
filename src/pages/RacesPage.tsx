@@ -765,7 +765,7 @@ export default function RacesPage() {
                   </p>
                 </div>
               ) : isCalendarMode ? (
-                <div className="h-140 rounded-2xl border border-border bg-card shadow-sm overflow-y-auto flex flex-col">
+                <div className="h-full h-msx-140 rounded-2xl border border-border bg-card shadow-sm overflow-y-auto flex flex-col">
                   <div className="border-b border-border bg-muted/20 px-6 py-4 flex items-center gap-2">
                     <CalendarDays className="h-4 w-4 text-muted-foreground" />
                     <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
