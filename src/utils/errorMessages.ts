@@ -1,3 +1,24 @@
+export function extractApiErrorMessage(
+  err: unknown,
+  fallback = "An unexpected error occurred."
+): string {
+  if (!err) return fallback;
+
+  const axiosErr = err as {
+    response?: { data?: Record<string, unknown> };
+    message?: string;
+  };
+  const data = axiosErr?.response?.data;
+
+  if (data) {
+    if (typeof data.message === "string") return data.message;
+    if (typeof data.error === "string") return data.error;
+  }
+
+  if (err instanceof Error) return err.message;
+  return fallback;
+}
+
 const API_ERROR_MAP: Record<string, string> = {
   "Race is no longer accepting entries":
     "This race is no longer accepting entries.",

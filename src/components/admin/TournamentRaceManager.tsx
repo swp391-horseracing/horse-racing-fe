@@ -94,13 +94,13 @@ export default function TournamentRaceManager({
   const handleCreateTournament = async (data: any) => {
     const result = await createTournament(data);
 
-    if (result) {
+    if (result === true) {
       addToast("Tournament created successfully.", "success");
       setShowForm(false);
       return result;
     }
 
-    addToast("Failed to create tournament.", "error");
+    addToast(result || "Failed to create tournament.", "error");
     return null;
   };
 
@@ -125,7 +125,7 @@ export default function TournamentRaceManager({
     };
     const res = await createRace(activeTournamentId, payload);
     if (res.success === false) {
-      addToast("Failed to create race.", "error");
+      addToast(res.error || "Failed to create race.", "error");
       return res.error ?? "Failed to create race.";
     }
     addToast("Race created successfully.", "success");
@@ -155,7 +155,7 @@ export default function TournamentRaceManager({
     };
     const res = await updateRace(activeRaceId, payload);
     if (res.success === false) {
-      addToast("Failed to update race.", "error");
+      addToast(res.error || "Failed to update race.", "error");
       return res.error ?? "Failed to update race.";
     }
     addToast("Race updated successfully.", "success");
@@ -166,12 +166,12 @@ export default function TournamentRaceManager({
 
   const handleRaceStatusChange = async (status: string) => {
     if (!activeRaceId) return;
-    const ok = await updateRaceStatus(activeRaceId, status);
-    if (ok) {
+    const result = await updateRaceStatus(activeRaceId, status);
+    if (result === true) {
       addToast("Race status updated.", "success");
       await getRaceDetail(activeRaceId);
     } else {
-      addToast("Failed to update race status.", "error");
+      addToast(result || "Failed to update race status.", "error");
     }
   };
 

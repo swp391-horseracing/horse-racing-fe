@@ -7,6 +7,7 @@ import type {
   TournamentListResponse,
 } from "../../types/tournament";
 import { TournamentService } from "../../services/TournamentService";
+import { extractApiErrorMessage } from "../../utils/errorMessages";
 
 export default function useAdminTournament() {
   const [tournaments, setTournaments] = useState<TournamentListResponse>();
@@ -44,7 +45,7 @@ export default function useAdminTournament() {
         ...res.pagination,
       }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Load tournaments failed");
+      setError(extractApiErrorMessage(err, "Load tournaments failed"));
     } finally {
       setLoading(false);
     }
@@ -56,7 +57,7 @@ export default function useAdminTournament() {
   }, [loadTournaments]);
 
   const createTournament = useCallback(
-    async (data: Tournament) => {
+    async (data: Tournament): Promise<true | string> => {
       try {
         setActionLoading(true);
         setError(null);
@@ -67,11 +68,10 @@ export default function useAdminTournament() {
 
         return true;
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Create tournament failed"
-        );
+        const message = extractApiErrorMessage(err, "Create tournament failed");
+        setError(message);
 
-        return null;
+        return message;
       } finally {
         setActionLoading(false);
       }
@@ -80,7 +80,7 @@ export default function useAdminTournament() {
   );
 
   const updateTournament = useCallback(
-    async (id: string, data: Tournament) => {
+    async (id: string, data: Tournament): Promise<true | string> => {
       try {
         setActionLoading(true);
         setError(null);
@@ -91,11 +91,10 @@ export default function useAdminTournament() {
 
         return true;
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Update tournament failed"
-        );
+        const message = extractApiErrorMessage(err, "Update tournament failed");
+        setError(message);
 
-        return false;
+        return message;
       } finally {
         setActionLoading(false);
       }
@@ -104,7 +103,7 @@ export default function useAdminTournament() {
   );
 
   const updateTournamentStatus = useCallback(
-    async (id: string, status: string) => {
+    async (id: string, status: string): Promise<true | string> => {
       try {
         setActionLoading(true);
         setError(null);
@@ -115,9 +114,10 @@ export default function useAdminTournament() {
 
         return true;
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Update status failed");
+        const message = extractApiErrorMessage(err, "Update status failed");
+        setError(message);
 
-        return false;
+        return message;
       } finally {
         setActionLoading(false);
       }
@@ -138,7 +138,7 @@ export default function useAdminTournament() {
       return data;
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Load tournament detail failed"
+        extractApiErrorMessage(err, "Load tournament detail failed")
       );
 
       return null;

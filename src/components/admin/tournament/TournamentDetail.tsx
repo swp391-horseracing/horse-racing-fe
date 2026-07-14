@@ -53,6 +53,7 @@ export default function TournamentDetail({
   onStatusChange,
 }: Props) {
   const [editing, setEditing] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
   const [status, setStatus] = useState(tournament.status);
 
   useEffect(() => {
@@ -83,6 +84,7 @@ export default function TournamentDetail({
     validationSchema: toFormikValidationSchema(tournamentSchema),
     onSubmit: async (values) => {
       if (!onUpdate) return;
+      setServerError(null);
 
       const payload: TournamentFormValues = {
         ...values,
@@ -92,17 +94,23 @@ export default function TournamentDetail({
         registrationCloseDate: toISO(values.registrationCloseDate),
       };
 
-      const success = await onUpdate(tournament.id, payload);
+      const result = await onUpdate(tournament.id, payload);
 
-      if (success) {
+      if (result === true) {
         setEditing(false);
+      } else {
+        setServerError(result || "Failed to update tournament.");
       }
     },
   });
 
   const handleStatusUpdate = async () => {
     if (!onStatusChange) return;
-    await onStatusChange(tournament.id, status);
+    setServerError(null);
+    const result = await onStatusChange(tournament.id, status);
+    if (result !== true) {
+      setServerError(result || "Failed to update status.");
+    }
   };
 
   return (
@@ -155,6 +163,11 @@ export default function TournamentDetail({
           onSubmit={formik.handleSubmit}
           className="space-y-4 border rounded-xl p-4 bg-slate-50"
         >
+          {serverError && (
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              {serverError}
+            </div>
+          )}
           <div>
             <label className="font-medium text-sm">Name</label>
             <input

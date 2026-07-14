@@ -56,9 +56,11 @@ export function TournamentForm({
 
       const result = await createTournament(payload);
 
-      if (result) {
+      if (result === true) {
         formik.resetForm();
         onClose();
+      } else {
+        setServerError(result || "Failed to create tournament.");
       }
     },
   });

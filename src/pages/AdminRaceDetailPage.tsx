@@ -112,7 +112,7 @@ export default function AdminRaceDetailPage() {
     };
     const res = await updateRace(id, payload);
     if (res.success === false) {
-      addToast("Failed to update race.", "error");
+      addToast(res.error || "Failed to update race.", "error");
       return res.error ?? "Failed to update race.";
     }
     addToast("Race updated successfully.", "success");
@@ -123,12 +123,12 @@ export default function AdminRaceDetailPage() {
 
   const handleRaceStatusChange = async (status: string) => {
     if (!id) return;
-    const ok = await updateRaceStatus(id, status);
-    if (ok) {
+    const result = await updateRaceStatus(id, status);
+    if (result === true) {
       addToast("Race status updated.", "success");
       await getRaceDetail(id);
     } else {
-      addToast("Failed to update race status.", "error");
+      addToast(result || "Failed to update race status.", "error");
     }
   };
 
