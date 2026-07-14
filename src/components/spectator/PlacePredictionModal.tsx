@@ -65,7 +65,9 @@ export function PlacePredictionModal({
       .then((data) => {
         if (!cancelled) setLocalEntries(data);
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error("Failed to fetch race entries for prediction:", err);
+      });
     return () => {
       cancelled = true;
     };

@@ -152,7 +152,7 @@ export default function ViolationTypesManager({
     } catch (e: any) {
       const msg =
         e.response?.status === 409
-          ? "Cannot delete: this violation type is in use by existing violations."
+          ? e.response?.data?.message || "Cannot delete: this violation type is in use by existing violations."
           : e.response?.data?.message || "Failed to delete violation type";
       addToast(msg, "error");
     } finally {

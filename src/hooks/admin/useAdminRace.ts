@@ -3,6 +3,11 @@ import { AdminService } from "../../services/AdminService";
 import { RaceService } from "../../services/RaceService";
 import type { Race, RaceDetail, RaceListItem } from "../../types/race";
 
+function getAxiosMessage(err: unknown, fallback: string): string {
+  const axiosErr = err as { response?: { data?: { message?: string } } };
+  return axiosErr?.response?.data?.message || (err instanceof Error ? err.message : fallback);
+}
+
 export default function useAdminRace() {
   const [races, setRaces] = useState<RaceListItem[]>([]);
   const [selectedRace, setSelectedRace] = useState<RaceDetail | null>(null);
@@ -26,7 +31,7 @@ export default function useAdminRace() {
         const data = await RaceService.getRaces(params);
         setRaces(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Load races failed");
+        setError(getAxiosMessage(err, "Load races failed"));
       } finally {
         setLoading(false);
       }
@@ -44,7 +49,7 @@ export default function useAdminRace() {
 
       return data;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Load race detail failed");
+      setError(getAxiosMessage(err, "Load race detail failed"));
 
       return null;
     } finally {
@@ -67,8 +72,7 @@ export default function useAdminRace() {
 
         return { success: true, data: res };
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Create race failed";
+        const message = getAxiosMessage(err, "Create race failed");
         setError(message);
 
         return { success: false, error: message };
@@ -92,8 +96,7 @@ export default function useAdminRace() {
 
         return { success: true };
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Update race failed";
+        const message = getAxiosMessage(err, "Update race failed");
         setError(message);
 
         return { success: false, error: message };
@@ -114,9 +117,7 @@ export default function useAdminRace() {
 
         return true;
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Update race status failed"
-        );
+        setError(getAxiosMessage(err, "Update race status failed"));
 
         return false;
       } finally {

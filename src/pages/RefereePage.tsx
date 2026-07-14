@@ -202,12 +202,18 @@ export default function RefereePage() {
           const [healthResults, tournamentData] = await Promise.all([
             Promise.all(
               horseIds.map((hid) =>
-                HorseService.getHorseById(hid).catch(() => null)
+                HorseService.getHorseById(hid).catch((err) => {
+                  console.error("Failed to load horse:", hid, err);
+                  return null;
+                })
               )
             ),
             race.tournamentId
               ? TournamentService.getTournamentByID(race.tournamentId).catch(
-                  () => null
+                  (err) => {
+                    console.error("Failed to load tournament:", race.tournamentId, err);
+                    return null;
+                  }
                 )
               : Promise.resolve(null),
           ]);

@@ -294,14 +294,14 @@ export function useRaceDetail(raceId: string | null) {
       setError(null);
       try {
         const data = await RaceService.getRaceById(raceId);
-        console.log("RaceDetail API:", data);
         let entries: RaceEntry[] | undefined;
         try {
           const horsesResponse = await RaceService.getRaceHorses(raceId);
           entries = Array.isArray(horsesResponse)
             ? horsesResponse
             : (horsesResponse?.data ?? []);
-        } catch {
+        } catch (err) {
+          console.error("Failed to load race horses:", err);
           entries = undefined;
         }
         if (!cancelled) setDetail({ ...data, entries } as RaceDetail);

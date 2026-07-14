@@ -37,6 +37,7 @@ export default function ViewAvatarModal({
         response?: { status?: number; data?: { message?: string } };
       };
       if (axiosErr?.response?.status === 401) {
+        setError(axiosErr?.response?.data?.message || "Session expired. Please log in again.");
         localStorage.removeItem("token");
         sessionStorage.clear();
         window.location.href = "/login";

@@ -20,9 +20,11 @@ export function useUserProfile() {
   const [activeTab, setActiveTab] = useState<ProfileTab>("account");
   const [error, setError] = useState<string | null>(null);
 
-  const handleAuthError = useCallback((err: unknown) => {
+  const handleAuthError = useCallback((err: unknown, setErrorFn?: (msg: string) => void) => {
     const error = err as ApiError;
     if (error?.response?.status === 401) {
+      const msg = error?.response?.data?.message || "Session expired. Please log in again.";
+      if (setErrorFn) setErrorFn(msg);
       sessionStorage.clear();
       localStorage.removeItem("token");
     }
@@ -30,9 +32,6 @@ export function useUserProfile() {
 
   const loadUser = useCallback(async () => {
     try {
-      // 2. CRITICAL FIX: Removed synchronous setLoading(true) and setError(null).
-      // Calling setState before the first 'await' triggers the react-hooks/set-state-in-effect rule.
-
       const userId = sessionStorage.getItem("userId");
       if (!userId) throw new Error("Missing userId");
 
@@ -47,7 +46,7 @@ export function useUserProfile() {
       const msg =
         error?.response?.data?.message || "Failed to load user profile";
       setError(msg);
-      handleAuthError(err);
+      handleAuthError(err, setError);
     } finally {
       setLoading(false);
     }

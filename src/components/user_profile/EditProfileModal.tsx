@@ -81,16 +81,22 @@ export default function EditProfileModal({
       onClose();
     } catch (err: unknown) {
       const axiosErr = err as {
-        response?: { status?: number; data?: { message?: string } };
+        response?: { status?: number; data?: { message?: string; errors?: { field: string; message: string }[] } };
       };
       const status = axiosErr?.response?.status;
       if (status === 401) {
+        setError(axiosErr?.response?.data?.message || "Session expired. Please log in again.");
         localStorage.removeItem("token");
         sessionStorage.clear();
         window.location.href = "/login";
         return;
       }
-      setError(axiosErr?.response?.data?.message || "Failed to update profile");
+      const fieldErrors = axiosErr?.response?.data?.errors;
+      if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
+        setError(fieldErrors.map((e) => `• ${e.message}`).join("\n"));
+      } else {
+        setError(axiosErr?.response?.data?.message || "Failed to update profile");
+      }
     } finally {
       setSaving(false);
     }
