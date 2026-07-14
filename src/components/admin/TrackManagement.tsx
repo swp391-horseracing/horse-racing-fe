@@ -322,9 +322,6 @@ export default function TrackManagement({
                           >
                             {track.name}
                           </p>
-                          <p className="text-[10px] text-slate-400 font-mono">
-                            {track.id.slice(0, 8)}...
-                          </p>
                         </div>
                       </div>
                     </td>
@@ -692,10 +689,6 @@ export default function TrackManagement({
               </div>
 
               <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-x-6 gap-y-2 text-[10px] text-slate-400 font-mono">
-                <p>
-                  <span className="text-slate-500 font-bold">ID:</span>{" "}
-                  {selectedTrack.id}
-                </p>
                 <p>
                   <span className="text-slate-500 font-bold">Created:</span>{" "}
                   {formatDateOrFallback(selectedTrack.createdAt)}
