@@ -1,35 +1,9 @@
+import {
+  RACE_STATUS_STYLES,
+  RACE_STATUS_DETAIL_STYLES,
+  ENTRY_STATUS_STYLES,
+} from "../components/ui/StatusBadge";
 import { formatStatus } from "./formatters";
-
-export const RACE_STATUS_STYLES: Record<string, string> = {
-  draft: "bg-slate-100 text-slate-600 border-slate-200",
-  scheduled: "bg-blue-50 text-blue-700 border-blue-200",
-  pre_race: "bg-violet-50 text-violet-700 border-violet-200",
-  ongoing: "bg-rose-50 text-rose-700 border-rose-200",
-  under_review: "bg-amber-50 text-amber-700 border-amber-200",
-  completed: "bg-teal-50 text-teal-700 border-teal-200",
-  postponed: "bg-orange-50 text-orange-700 border-orange-200",
-  cancelled: "bg-red-50 text-red-700 border-red-200",
-};
-
-export const RACE_STATUS_DETAIL_STYLES: Record<string, string> = {
-  draft: "bg-slate-500/20 border-slate-400/50 text-slate-200",
-  scheduled: "bg-blue-500/20 border-blue-400/50 text-blue-200",
-  pre_race: "bg-violet-500/20 border-violet-400/50 text-violet-200",
-  ongoing: "bg-rose-500/20 border-rose-400/50 text-rose-200",
-  under_review: "bg-amber-500/20 border-amber-400/50 text-amber-200",
-  completed: "bg-teal-500/20 border-teal-400/50 text-teal-200",
-  postponed: "bg-orange-500/20 border-orange-400/50 text-orange-200",
-  cancelled: "bg-red-500/20 border-red-400/50 text-red-200",
-};
-
-export const ENTRY_STATUS_STYLES: Record<string, string> = {
-  pending: "border-amber-200 bg-amber-50 text-amber-800",
-  accepted: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  scheduled: "border-blue-200 bg-blue-50 text-blue-800",
-  confirmed: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  declined: "border-rose-200 bg-rose-50 text-rose-800",
-  withdrawn: "border-slate-200 bg-slate-50 text-slate-400",
-};
 
 export function getRaceStatusStyle(status: string): string {
   return (

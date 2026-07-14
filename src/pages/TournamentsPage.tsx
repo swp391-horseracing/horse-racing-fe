@@ -20,8 +20,7 @@ import useTournament from "../hooks/useTournament";
 import { useOwner } from "../hooks/useOwner";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { formatStatus, formatAge } from "../utils/formatters";
-import { getRaceStatusStyle } from "../utils/statusStyles";
-import { TOURNAMENT_STATUS_STYLES } from "../styles/schema/tournamentStatusFlow";
+import { StatusBadge, TOURNAMENT_STATUS_STYLES, RACE_STATUS_STYLES } from "../components/ui/StatusBadge";
 import { HorseStatusIndicator } from "../components/owner/HorseStatusIndicator";
 
 function StatFilterCard({
@@ -65,7 +64,7 @@ function StatFilterCard({
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+function TournamentBadge({ status }: { status: string }) {
   const labelMap: Record<string, string> = {
     draft: "Draft",
     upcoming: "Upcoming",
@@ -77,17 +76,12 @@ function StatusBadge({ status }: { status: string }) {
   };
 
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-black tracking-wider ${
-        TOURNAMENT_STATUS_STYLES[status] ??
-        "bg-slate-100 text-slate-600 border-slate-200"
-      }`}
-    >
-      {status === "ongoing" && (
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-rose-500" />
-      )}
-      {labelMap[status] ?? status}
-    </span>
+    <StatusBadge
+      status={status}
+      styleMap={TOURNAMENT_STATUS_STYLES}
+      labelMap={labelMap}
+      showDot={status === "ongoing"}
+    />
   );
 }
 
@@ -346,7 +340,7 @@ export default function TournamentsPage() {
                           <h3 className="text-sm font-black font-headline text-primary tracking-tight leading-tight truncate">
                             {t.name}
                           </h3>
-                          <StatusBadge status={t.status} />
+                          <TournamentBadge status={t.status} />
                         </div>
                         <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
                           <span className="flex items-center gap-1">
@@ -520,28 +514,34 @@ export default function TournamentsPage() {
                                   </div>
                                 </div>
 
-                                <div className="flex items-center gap-3 shrink-0 pl-3">
+                                 <div className="flex items-center gap-3 shrink-0 pl-3">
                                   {isRaceLive ? (
-                                    <span
-                                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[9px] font-bold ${getRaceStatusStyle("ongoing")}`}
-                                    >
-                                      <Play className="h-2 w-2 animate-pulse" />
-                                      Live
-                                    </span>
+                                    <StatusBadge
+                                      status="ongoing"
+                                      styleMap={RACE_STATUS_STYLES}
+                                      label="Live"
+                                      size="sm"
+                                      icon={<Play className="h-2 w-2 animate-pulse" />}
+                                      className="gap-1 font-bold"
+                                    />
                                   ) : isCompleted ? (
-                                    <span
-                                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[9px] font-bold ${getRaceStatusStyle("completed")}`}
-                                    >
-                                      <CheckCircle2 className="h-2.5 w-2.5" />
-                                      Ended
-                                    </span>
+                                    <StatusBadge
+                                      status="completed"
+                                      styleMap={RACE_STATUS_STYLES}
+                                      label="Ended"
+                                      size="sm"
+                                      icon={<CheckCircle2 className="h-2.5 w-2.5" />}
+                                      className="gap-1 font-bold"
+                                    />
                                   ) : (
-                                    <span
-                                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[9px] font-bold ${getRaceStatusStyle(race.status)}`}
-                                    >
-                                      <Clock className="h-2.5 w-2.5" />
-                                      {formatStatus(race.status)}
-                                    </span>
+                                    <StatusBadge
+                                      status={race.status}
+                                      styleMap={RACE_STATUS_STYLES}
+                                      label={formatStatus(race.status)}
+                                      size="sm"
+                                      icon={<Clock className="h-2.5 w-2.5" />}
+                                      className="gap-1 font-bold"
+                                    />
                                   )}
 
                                   <button

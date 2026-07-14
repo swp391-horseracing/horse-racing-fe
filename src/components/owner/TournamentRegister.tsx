@@ -10,7 +10,8 @@ import {
   Flag,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { formatTournamentStatus, TOURNAMENT_STATUS_STYLES } from "../../styles/schema/tournamentStatusFlow";
+import { formatTournamentStatus } from "../../styles/schema/tournamentStatusFlow";
+import { StatusBadge, TOURNAMENT_STATUS_STYLES } from "../ui/StatusBadge";
 import type {
   Tournament,
   TournamentRegistrationResponse,
@@ -66,21 +67,14 @@ function formatDateFull(value?: string) {
 
 function TournamentStatusBadge({ status }: { status: string }) {
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider",
-        TOURNAMENT_STATUS_STYLES[status] ??
-          "bg-slate-100 text-slate-600 border-slate-200"
-      )}
-    >
-      {status === "live_now" && (
-        <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
-      )}
-      {status === "ongoing" && (
-        <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
-      )}
-      {formatTournamentStatus(status)}
-    </span>
+    <StatusBadge
+      status={status}
+      styleMap={TOURNAMENT_STATUS_STYLES}
+      label={formatTournamentStatus(status)}
+      showDot={status === "live_now" || status === "ongoing"}
+      size="md"
+      className="uppercase"
+    />
   );
 }
 

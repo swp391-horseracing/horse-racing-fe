@@ -1,4 +1,5 @@
-import { formatTournamentStatus, TOURNAMENT_STATUS_STYLES } from "../../../styles/schema/tournamentStatusFlow";
+import { formatTournamentStatus } from "../../../styles/schema/tournamentStatusFlow";
+import { StatusBadge, TOURNAMENT_STATUS_STYLES } from "../../ui/StatusBadge";
 
 type Props = {
   status: string;
@@ -6,13 +7,11 @@ type Props = {
 
 export default function TournamentStatus({ status }: Props) {
   return (
-    <span
-      className={`px-3 py-1 rounded-full border text-xs font-bold ${
-        TOURNAMENT_STATUS_STYLES[status.toLowerCase()] ??
-        "bg-slate-50 text-slate-600 border-slate-200"
-      }`}
-    >
-      {formatTournamentStatus(status)}
-    </span>
+    <StatusBadge
+      status={status}
+      styleMap={TOURNAMENT_STATUS_STYLES}
+      label={formatTournamentStatus(status)}
+      size="lg"
+    />
   );
 }
