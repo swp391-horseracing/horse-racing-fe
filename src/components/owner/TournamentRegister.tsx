@@ -10,7 +10,7 @@ import {
   Flag,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { formatTournamentStatus } from "../../styles/schema/tournamentStatusFlow";
+import { formatTournamentStatus, TOURNAMENT_STATUS_STYLES } from "../../styles/schema/tournamentStatusFlow";
 import type {
   Tournament,
   TournamentRegistrationResponse,
@@ -65,27 +65,19 @@ function formatDateFull(value?: string) {
 }
 
 function TournamentStatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    live_now: "bg-rose-100 text-rose-700 border-rose-200",
-    registration_open: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    upcoming: "bg-amber-100 text-amber-700 border-amber-200",
-    ongoing: "bg-secondary/10 text-secondary border-secondary/30",
-    completed: "bg-slate-100 text-slate-600 border-slate-200",
-    cancelled: "bg-destructive/10 text-destructive border-destructive/20",
-  };
-
   return (
     <span
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider",
-        styles[status] ?? "bg-slate-100 text-slate-600 border-slate-200"
+        TOURNAMENT_STATUS_STYLES[status] ??
+          "bg-slate-100 text-slate-600 border-slate-200"
       )}
     >
       {status === "live_now" && (
         <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
       )}
       {status === "ongoing" && (
-        <span className="h-1.5 w-1.5 rounded-full bg-secondary animate-pulse" />
+        <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
       )}
       {formatTournamentStatus(status)}
     </span>

@@ -21,6 +21,7 @@ import { useOwner } from "../hooks/useOwner";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { formatStatus, formatAge } from "../utils/formatters";
 import { getRaceStatusStyle } from "../utils/statusStyles";
+import { TOURNAMENT_STATUS_STYLES } from "../styles/schema/tournamentStatusFlow";
 import { HorseStatusIndicator } from "../components/owner/HorseStatusIndicator";
 
 function StatFilterCard({
@@ -65,16 +66,6 @@ function StatFilterCard({
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    draft: "bg-slate-100 text-slate-600 border-slate-200",
-    upcoming: "bg-muted text-muted-foreground border-border",
-    registration_open: "bg-secondary/10 text-secondary border-secondary/30",
-    registration_closed: "bg-muted text-muted-foreground border-border",
-    ongoing: "bg-secondary/10 text-secondary border-secondary/30",
-    completed: "bg-primary/10 text-primary border-primary/20",
-    cancelled: "bg-destructive/10 text-destructive border-destructive/20",
-  };
-
   const labelMap: Record<string, string> = {
     draft: "Draft",
     upcoming: "Upcoming",
@@ -88,11 +79,12 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-black tracking-wider ${
-        styles[status] ?? "bg-muted text-muted-foreground border-border"
+        TOURNAMENT_STATUS_STYLES[status] ??
+        "bg-slate-100 text-slate-600 border-slate-200"
       }`}
     >
       {status === "ongoing" && (
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-secondary" />
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-rose-500" />
       )}
       {labelMap[status] ?? status}
     </span>
