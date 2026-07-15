@@ -254,7 +254,7 @@ export default function HorseDetailPage() {
                   label="Base Speed"
                   value={
                     selectedHorse.baseSpeed != null
-                      ? String(selectedHorse.baseSpeed)
+                      ? `${selectedHorse.baseSpeed} m/s`
                       : "N/A"
                   }
                 />
@@ -278,18 +278,7 @@ export default function HorseDetailPage() {
                       : "No Info"
                   }
                 />
-                <InfoRow
-                  label="Created"
-                  value={
-                    formatDate((selectedHorse as any).createdAt) ?? "No Info"
-                  }
-                />
-                <InfoRow
-                  label="Updated"
-                  value={
-                    formatDate((selectedHorse as any).updatedAt) ?? "No Info"
-                  }
-                />
+
               </div>
             </section>
 
