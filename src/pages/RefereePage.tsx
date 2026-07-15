@@ -2,7 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes";
-import { StatusBadge, REFEREE_PHASE_STYLES } from "../components/ui/StatusBadge";
+import {
+  StatusBadge,
+  REFEREE_PHASE_STYLES,
+} from "../components/ui/StatusBadge";
 import { ChevronLeft, Timer } from "lucide-react";
 import {
   type RacePhase,
@@ -210,7 +213,11 @@ export default function RefereePage() {
             race.tournamentId
               ? TournamentService.getTournamentByID(race.tournamentId).catch(
                   (err) => {
-                    console.error("Failed to load tournament:", race.tournamentId, err);
+                    console.error(
+                      "Failed to load tournament:",
+                      race.tournamentId,
+                      err
+                    );
                     return null;
                   }
                 )
@@ -780,7 +787,8 @@ export default function RefereePage() {
                   (race.reportStatus === "published" ||
                     race.reportStatus === "referee_confirmed")
                     ? "Finalized"
-                    : race.phase === "post_race" && race.reportStatus === "draft"
+                    : race.phase === "post_race" &&
+                        race.reportStatus === "draft"
                       ? "Results (Draft)"
                       : phaseLabel[race.phase]
                 }

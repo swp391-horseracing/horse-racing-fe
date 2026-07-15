@@ -46,7 +46,12 @@ const formatTime = (ms: number) => {
 export default function RaceReplay() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { detail: raceDetail, loading: detailLoading, error: detailError, latestTick } = useRaceDetail(id!);
+  const {
+    detail: raceDetail,
+    loading: detailLoading,
+    error: detailError,
+    latestTick,
+  } = useRaceDetail(id!);
 
   const prevRanksRef = useRef<Map<string, number>>(new Map());
 
@@ -224,11 +229,25 @@ export default function RaceReplay() {
   }
 
   if (detailError) {
-    return <NotFoundContent title="Error" message={detailError} actionLabel="Go Back" onAction={() => navigate(-1)} />;
+    return (
+      <NotFoundContent
+        title="Error"
+        message={detailError}
+        actionLabel="Go Back"
+        onAction={() => navigate(-1)}
+      />
+    );
   }
 
   if (!raceDetail) {
-    return <NotFoundContent title="Race not found" message="We couldn't find the race you're looking for." actionLabel="Go Back" onAction={() => navigate(-1)} />;
+    return (
+      <NotFoundContent
+        title="Race not found"
+        message="We couldn't find the race you're looking for."
+        actionLabel="Go Back"
+        onAction={() => navigate(-1)}
+      />
+    );
   }
 
   return (

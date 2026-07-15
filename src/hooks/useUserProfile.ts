@@ -21,16 +21,21 @@ export function useUserProfile() {
   const [activeTab, setActiveTab] = useState<ProfileTab>("account");
   const [error, setError] = useState<string | null>(null);
 
-  const handleAuthError = useCallback((err: unknown, setErrorFn?: (msg: string) => void) => {
-    const error = err as ApiError;
-    if (error?.response?.status === 401) {
-      const msg = error?.response?.data?.message || "Session expired. Please log in again.";
-      if (setErrorFn) setErrorFn(msg);
-      localStorage.removeItem("token");
-      localStorage.removeItem("userId");
-      localStorage.removeItem("user");
-    }
-  }, []);
+  const handleAuthError = useCallback(
+    (err: unknown, setErrorFn?: (msg: string) => void) => {
+      const error = err as ApiError;
+      if (error?.response?.status === 401) {
+        const msg =
+          error?.response?.data?.message ||
+          "Session expired. Please log in again.";
+        if (setErrorFn) setErrorFn(msg);
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("user");
+      }
+    },
+    []
+  );
 
   const loadUser = useCallback(async () => {
     try {

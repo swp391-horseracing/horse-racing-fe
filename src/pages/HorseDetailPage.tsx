@@ -89,7 +89,14 @@ export default function HorseDetailPage() {
   );
 
   if (error) {
-    return <NotFoundContent title="Error" message={error} actionLabel="Go Back" onAction={() => navigate(-1)} />;
+    return (
+      <NotFoundContent
+        title="Error"
+        message={error}
+        actionLabel="Go Back"
+        onAction={() => navigate(-1)}
+      />
+    );
   }
 
   if (detailLoading) {
@@ -101,7 +108,14 @@ export default function HorseDetailPage() {
   }
 
   if (!selectedHorse) {
-    return <NotFoundContent title="Horse not found" message="We couldn't find the horse you're looking for." actionLabel="Go Back" onAction={() => navigate(-1)} />;
+    return (
+      <NotFoundContent
+        title="Horse not found"
+        message="We couldn't find the horse you're looking for."
+        actionLabel="Go Back"
+        onAction={() => navigate(-1)}
+      />
+    );
   }
 
   const performanceRows = [
@@ -278,7 +292,6 @@ export default function HorseDetailPage() {
                       : "No Info"
                   }
                 />
-
               </div>
             </section>
 
@@ -301,4 +314,3 @@ export default function HorseDetailPage() {
     </div>
   );
 }
-

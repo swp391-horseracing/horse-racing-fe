@@ -33,18 +33,14 @@ const API_ERROR_MAP: Record<string, string> = {
     "A horse with this name already exists. Please choose another name.",
   "Invalid email or password":
     "The email or password you entered is incorrect.",
-  "Token expired":
-    "Your session has expired. Please log in again.",
-  "Unauthorized":
-    "You do not have permission to perform this action.",
-  "Not found":
-    "The requested resource was not found.",
+  "Token expired": "Your session has expired. Please log in again.",
+  Unauthorized: "You do not have permission to perform this action.",
+  "Not found": "The requested resource was not found.",
   "Validation failed":
     "Some of the information provided is invalid. Please check and try again.",
   "Email already in use":
     "This email address is already registered. Please use a different email.",
-  "Tournament is full":
-    "This tournament has reached its maximum capacity.",
+  "Tournament is full": "This tournament has reached its maximum capacity.",
   "Race is already in progress":
     "This race has already started and cannot be modified.",
   "Prediction already placed":

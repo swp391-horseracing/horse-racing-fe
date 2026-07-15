@@ -129,7 +129,8 @@ export default function RefereeDashboard({
                   (race.reportStatus === "published" ||
                     race.reportStatus === "referee_confirmed")
                     ? "Finalized"
-                    : race.phase === "post_race" && race.reportStatus === "draft"
+                    : race.phase === "post_race" &&
+                        race.reportStatus === "draft"
                       ? "Results (Draft)"
                       : race.status === "pre_race"
                         ? "Pre-Race"

@@ -121,7 +121,10 @@ export default function useAdminRace() {
 
         return true;
       } catch (err) {
-        const message = extractApiErrorMessage(err, "Update race status failed");
+        const message = extractApiErrorMessage(
+          err,
+          "Update race status failed"
+        );
         setError(message);
 
         return message;

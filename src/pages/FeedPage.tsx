@@ -6,7 +6,11 @@ import useTournament from "../hooks/useTournament";
 import { ROUTES } from "../router/routes";
 import { formatTournamentStatus } from "../styles/schema/tournamentStatusFlow";
 import { getRaceStatusLabel } from "../utils/statusStyles";
-import { StatusBadge, RACE_STATUS_STYLES, TOURNAMENT_STATUS_STYLES } from "../components/ui/StatusBadge";
+import {
+  StatusBadge,
+  RACE_STATUS_STYLES,
+  TOURNAMENT_STATUS_STYLES,
+} from "../components/ui/StatusBadge";
 import {
   Trophy,
   Calendar,

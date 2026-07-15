@@ -137,9 +137,7 @@ export default function useAdminTournament() {
 
       return data;
     } catch (err) {
-      setError(
-        extractApiErrorMessage(err, "Load tournament detail failed")
-      );
+      setError(extractApiErrorMessage(err, "Load tournament detail failed"));
 
       return null;
     } finally {

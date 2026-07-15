@@ -81,11 +81,20 @@ export default function EditProfileModal({
       onClose();
     } catch (err: unknown) {
       const axiosErr = err as {
-        response?: { status?: number; data?: { message?: string; errors?: { field: string; message: string }[] } };
+        response?: {
+          status?: number;
+          data?: {
+            message?: string;
+            errors?: { field: string; message: string }[];
+          };
+        };
       };
       const status = axiosErr?.response?.status;
       if (status === 401) {
-        setError(axiosErr?.response?.data?.message || "Session expired. Please log in again.");
+        setError(
+          axiosErr?.response?.data?.message ||
+            "Session expired. Please log in again."
+        );
         localStorage.removeItem("token");
         localStorage.removeItem("userId");
         localStorage.removeItem("user");
@@ -96,7 +105,9 @@ export default function EditProfileModal({
       if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
         setError(fieldErrors.map((e) => `• ${e.message}`).join("\n"));
       } else {
-        setError(axiosErr?.response?.data?.message || "Failed to update profile");
+        setError(
+          axiosErr?.response?.data?.message || "Failed to update profile"
+        );
       }
     } finally {
       setSaving(false);

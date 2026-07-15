@@ -30,7 +30,13 @@ import {
 import { UserService } from "../../services/UserService";
 import type { RaceEntry } from "../../types/race";
 import { formatStatus } from "../../utils/formatters";
-import { StatusBadge, RACE_STATUS_STYLES, RACE_STATUS_DETAIL_STYLES, RIDE_STATUS_STYLES, RIDE_STATUS_DARK_STYLES } from "../ui/StatusBadge";
+import {
+  StatusBadge,
+  RACE_STATUS_STYLES,
+  RACE_STATUS_DETAIL_STYLES,
+  RIDE_STATUS_STYLES,
+  RIDE_STATUS_DARK_STYLES,
+} from "../ui/StatusBadge";
 
 type RideDetailTab = "info" | "runners";
 
@@ -346,7 +352,9 @@ export function RidingSchedule({
                             </p>
                           </div>
                           <StatusBadge
-                            status={ride.status === "live" ? "ongoing" : ride.status}
+                            status={
+                              ride.status === "live" ? "ongoing" : ride.status
+                            }
                             styleMap={RACE_STATUS_STYLES}
                             label={formatStatus(ride.status)}
                             className="rounded uppercase font-bold"

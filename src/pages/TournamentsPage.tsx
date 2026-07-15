@@ -20,7 +20,11 @@ import useTournament from "../hooks/useTournament";
 import { useOwner } from "../hooks/useOwner";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { formatStatus, formatAge } from "../utils/formatters";
-import { StatusBadge, TOURNAMENT_STATUS_STYLES, RACE_STATUS_STYLES } from "../components/ui/StatusBadge";
+import {
+  StatusBadge,
+  TOURNAMENT_STATUS_STYLES,
+  RACE_STATUS_STYLES,
+} from "../components/ui/StatusBadge";
 import { HorseStatusIndicator } from "../components/owner/HorseStatusIndicator";
 
 function StatFilterCard({
@@ -514,14 +518,16 @@ export default function TournamentsPage() {
                                   </div>
                                 </div>
 
-                                 <div className="flex items-center gap-3 shrink-0 pl-3">
+                                <div className="flex items-center gap-3 shrink-0 pl-3">
                                   {isRaceLive ? (
                                     <StatusBadge
                                       status="ongoing"
                                       styleMap={RACE_STATUS_STYLES}
                                       label="Live"
                                       size="sm"
-                                      icon={<Play className="h-2 w-2 animate-pulse" />}
+                                      icon={
+                                        <Play className="h-2 w-2 animate-pulse" />
+                                      }
                                       className="gap-1 font-bold"
                                     />
                                   ) : isCompleted ? (
@@ -530,7 +536,9 @@ export default function TournamentsPage() {
                                       styleMap={RACE_STATUS_STYLES}
                                       label="Ended"
                                       size="sm"
-                                      icon={<CheckCircle2 className="h-2.5 w-2.5" />}
+                                      icon={
+                                        <CheckCircle2 className="h-2.5 w-2.5" />
+                                      }
                                       className="gap-1 font-bold"
                                     />
                                   ) : (

@@ -146,15 +146,12 @@ export function StatusBadge({
         "inline-flex items-center gap-1.5 rounded-full border font-black tracking-wider",
         SIZE_CLASSES[size],
         styleClass,
-        className,
+        className
       )}
     >
       {showDot && (
         <span
-          className={cn(
-            "h-1.5 w-1.5 animate-pulse rounded-full",
-            dotClassName
-          )}
+          className={cn("h-1.5 w-1.5 animate-pulse rounded-full", dotClassName)}
         />
       )}
       {icon}

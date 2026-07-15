@@ -12,7 +12,12 @@ declare global {
 }
 
 export default function useAuth() {
-  const { token, login: ctxLogin, logout: ctxLogout, register: ctxRegister } = useAuthContext();
+  const {
+    token,
+    login: ctxLogin,
+    logout: ctxLogout,
+    register: ctxRegister,
+  } = useAuthContext();
 
   const getToken = (): string | null => {
     return localStorage.getItem("token");

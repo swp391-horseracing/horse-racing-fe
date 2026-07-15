@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Loader2, User } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
 import type { RaceEntry } from "../types/race";
@@ -14,8 +14,20 @@ import RaceStatusButton from "../components/admin/race/RaceStatusButton";
 import NotFoundContent from "../components/ui/NotFoundContent";
 
 export default function AdminRaceDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id, tournamentId: urlTournamentId } = useParams<{
+    id: string;
+    tournamentId: string;
+  }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const stateTournamentId = (location.state as { tournamentId?: string })
+    ?.tournamentId;
+
+  const getBackUrl = () => {
+    const tid =
+      stateTournamentId || urlTournamentId || selectedRace?.tournamentId;
+    return tid ? `/admin/tournaments/${tid}` : "/admin/tournaments";
+  };
 
   const [toast, setToast] = useState<{
     message: string;
@@ -187,7 +199,20 @@ export default function AdminRaceDetailPage() {
   };
 
   if (error) {
-    return <NotFoundContent title="Error" message={error} actionLabel="Go Back" onAction={() => navigate("/admin/tournaments")} />;
+    return (
+      <NotFoundContent
+        title="Error"
+        message={error}
+        actionLabel="Go Back"
+        onAction={() =>
+          navigate(
+            urlTournamentId
+              ? `/admin/tournaments/${urlTournamentId}`
+              : "/admin/tournaments"
+          )
+        }
+      />
+    );
   }
 
   if (loading || !selectedRace) {
@@ -214,11 +239,11 @@ export default function AdminRaceDetailPage() {
         )}
 
         <button
-          onClick={() => navigate("/admin/tournaments")}
+          onClick={() => navigate(getBackUrl())}
           className="inline-flex items-center gap-2 text-sm font-semibold text-[#064E3B] mb-2 w-fit hover:underline"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Tournaments
+          Back to Tournament
         </button>
 
         <div className="space-y-5 bg-white border rounded-2xl p-6 shadow-sm">
@@ -278,7 +303,10 @@ export default function AdminRaceDetailPage() {
                   <StatusBadge
                     status={selectedRace.status}
                     styleMap={RACE_STATUS_STYLES}
-                    label={STATUS_LABELS[selectedRace.status] ?? selectedRace.status.replaceAll("_", " ")}
+                    label={
+                      STATUS_LABELS[selectedRace.status] ??
+                      selectedRace.status.replaceAll("_", " ")
+                    }
                     className="rounded capitalize font-bold"
                   />
                 </div>

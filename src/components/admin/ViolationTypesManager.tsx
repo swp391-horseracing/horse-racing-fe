@@ -155,7 +155,8 @@ export default function ViolationTypesManager({
     } catch (e: any) {
       const msg =
         e.response?.status === 409
-          ? e.response?.data?.message || "Cannot delete: this violation type is in use by existing violations."
+          ? e.response?.data?.message ||
+            "Cannot delete: this violation type is in use by existing violations."
           : e.response?.data?.message || "Failed to delete violation type";
       addToast(msg, "error");
     } finally {
@@ -226,7 +227,10 @@ export default function ViolationTypesManager({
                     <td className="py-3 px-4 font-bold text-slate-800">
                       {c.violationType
                         .split("_")
-                        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                        .map(
+                          (w) =>
+                            w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+                        )
                         .join(" ")}
                     </td>
                     <td className="py-3 px-4">
@@ -348,7 +352,10 @@ export default function ViolationTypesManager({
                       ...form,
                       violationType: e.target.value
                         .split("_")
-                        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                        .map(
+                          (w) =>
+                            w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+                        )
                         .join(" "),
                     })
                   }
@@ -430,9 +437,11 @@ export default function ViolationTypesManager({
               Are you sure you want to delete{" "}
               <span className="font-bold text-slate-800">
                 {deleteTarget.violationType
-                .split("_")
-                .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-                .join(" ")}
+                  .split("_")
+                  .map(
+                    (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+                  )
+                  .join(" ")}
               </span>
               ? This action cannot be undone. If it is already in use by
               existing violations, the deletion will be blocked.
