@@ -86,11 +86,11 @@ interface RaceUI extends Omit<RaceListItem, "status"> {
 const mapRaceToUi = (race: RaceListItem): RaceUI => {
   const scheduled = new Date(race.scheduledAt);
 
-  const yyyy = scheduled.getUTCFullYear();
-  const mm = String(scheduled.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(scheduled.getUTCDate()).padStart(2, "0");
-  const hh = String(scheduled.getUTCHours()).padStart(2, "0");
-  const min = String(scheduled.getUTCMinutes()).padStart(2, "0");
+  const yyyy = scheduled.getFullYear();
+  const mm = String(scheduled.getMonth() + 1).padStart(2, "0");
+  const dd = String(scheduled.getDate()).padStart(2, "0");
+  const hh = String(scheduled.getHours()).padStart(2, "0");
+  const min = String(scheduled.getMinutes()).padStart(2, "0");
 
   let distance = race.course?.distanceMeters
     ? `${race.course.distanceMeters}m`
