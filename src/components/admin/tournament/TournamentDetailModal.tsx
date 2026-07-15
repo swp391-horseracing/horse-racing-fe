@@ -7,8 +7,8 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   tournament: Tournament;
-  onUpdate?: (id: string, data: TournamentFormValues) => Promise<boolean>;
-  onStatusChange?: (id: string, status: string) => Promise<boolean>;
+  onUpdate?: (id: string, data: TournamentFormValues) => Promise<true | string>;
+  onStatusChange?: (id: string, status: string) => Promise<true | string>;
   onManageRaces?: (id: string) => void;
 };
 

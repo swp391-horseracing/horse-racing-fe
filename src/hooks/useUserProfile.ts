@@ -56,10 +56,12 @@ export function useUserProfile() {
 
   useEffect(() => {
     if (!token) {
-      setLoading(false);
+      queueMicrotask(() => setLoading(false));
       return;
     }
-    void loadUser();
+    queueMicrotask(() => {
+      void loadUser();
+    });
   }, [token, loadUser]);
 
   const refreshUser = useCallback(async () => {

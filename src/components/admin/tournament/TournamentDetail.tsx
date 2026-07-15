@@ -14,8 +14,8 @@ import type { Tournament } from "../../../types/tournament";
 
 type Props = {
   tournament: Tournament;
-  onUpdate?: (id: string, data: TournamentFormValues) => Promise<boolean>;
-  onStatusChange?: (id: string, status: string) => Promise<boolean>;
+  onUpdate?: (id: string, data: TournamentFormValues) => Promise<true | string>;
+  onStatusChange?: (id: string, status: string) => Promise<true | string>;
 };
 
 function pad(value: number) {
@@ -99,7 +99,7 @@ export default function TournamentDetail({
       if (result === true) {
         setEditing(false);
       } else {
-        setServerError(result || "Failed to update tournament.");
+        setServerError(result);
       }
     },
   });
@@ -109,7 +109,7 @@ export default function TournamentDetail({
     setServerError(null);
     const result = await onStatusChange(tournament.id, status);
     if (result !== true) {
-      setServerError(result || "Failed to update status.");
+      setServerError(result);
     }
   };
 

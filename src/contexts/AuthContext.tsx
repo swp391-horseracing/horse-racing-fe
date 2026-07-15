@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import {
   createContext,
   useContext,
@@ -52,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const existingToken = localStorage.getItem("token");
     if (!existingToken) {
-      setLoading(false);
+      queueMicrotask(() => setLoading(false));
       return;
     }
 

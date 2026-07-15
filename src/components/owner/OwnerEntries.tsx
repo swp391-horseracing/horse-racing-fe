@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Clock, Trophy, MapPin, CalendarDays, X } from "lucide-react";
 import { useOwner, type Entry } from "../../hooks/useOwner";
-import { cn } from "../../lib/utils";
 import { StatusBadge, ENTRY_STATUS_STYLES } from "../ui/StatusBadge";
 import { useToast } from "../../hooks/useToast";
 import { ToastContainer } from "../ui/toast";

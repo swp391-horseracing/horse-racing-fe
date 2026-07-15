@@ -60,7 +60,7 @@ export function TournamentForm({
         formik.resetForm();
         onClose();
       } else {
-        setServerError(result || "Failed to create tournament.");
+        setServerError(typeof result === "string" ? result : "Failed to create tournament.");
       }
     },
   });

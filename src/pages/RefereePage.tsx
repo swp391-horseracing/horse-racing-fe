@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes";
-import { cn } from "../lib/utils";
 import { StatusBadge, REFEREE_PHASE_STYLES } from "../components/ui/StatusBadge";
 import { ChevronLeft, Timer } from "lucide-react";
 import {
