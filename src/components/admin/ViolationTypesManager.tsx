@@ -104,7 +104,10 @@ export default function ViolationTypesManager({
   const openEdit = (c: ViolationTypeConfig) => {
     setEditingId(c.id);
     setForm({
-      violationType: c.violationType,
+      violationType: c.violationType
+        .split("_")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(" "),
       pointsDeducted: String(c.pointsDeducted),
       description: c.description || "",
     });
@@ -221,7 +224,10 @@ export default function ViolationTypesManager({
                     className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors"
                   >
                     <td className="py-3 px-4 font-bold text-slate-800">
-                      {c.violationType}
+                      {c.violationType
+                        .split("_")
+                        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                        .join(" ")}
                     </td>
                     <td className="py-3 px-4">
                       <span className="font-label font-bold text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-md">
@@ -338,10 +344,16 @@ export default function ViolationTypesManager({
                   type="text"
                   value={form.violationType}
                   onChange={(e) =>
-                    setForm({ ...form, violationType: e.target.value })
+                    setForm({
+                      ...form,
+                      violationType: e.target.value
+                        .split("_")
+                        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                        .join(" "),
+                    })
                   }
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
-                  placeholder="e.g. false_start"
+                  placeholder="e.g. False Start"
                 />
               </div>
 
@@ -417,7 +429,10 @@ export default function ViolationTypesManager({
             <p className="text-xs text-slate-600">
               Are you sure you want to delete{" "}
               <span className="font-bold text-slate-800">
-                {deleteTarget.violationType}
+                {deleteTarget.violationType
+                .split("_")
+                .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                .join(" ")}
               </span>
               ? This action cannot be undone. If it is already in use by
               existing violations, the deletion will be blocked.
