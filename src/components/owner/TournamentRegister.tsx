@@ -615,7 +615,6 @@ export function TournamentRegister({
                                     {race.name}
                                   </p>
                                   <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground mt-0.5">
-                                    <span>{race.roundName}</span>
                                     <span>
                                       {new Date(
                                         race.scheduledAt

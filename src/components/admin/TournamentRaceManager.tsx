@@ -115,7 +115,6 @@ export default function TournamentRaceManager({
     const payload: Record<string, unknown> = {
       name: data.name,
       raceNumber: data.raceNumber,
-      roundName: data.roundName,
       courseDistanceId: data.trackDistanceId,
       distanceMeters: data.distanceMeters,
       trackCondition: data.trackCondition,
@@ -145,7 +144,6 @@ export default function TournamentRaceManager({
     const payload: Record<string, unknown> = {
       name: data.name,
       raceNumber: data.raceNumber,
-      roundName: data.roundName,
       courseDistanceId: data.trackDistanceId,
       distanceMeters: data.distanceMeters,
       trackCondition: data.trackCondition,
@@ -232,7 +230,6 @@ export default function TournamentRaceManager({
                 <thead className="bg-slate-50 border-b text-slate-500 font-bold uppercase text-[9px] tracking-wider">
                   <tr>
                     <th className="p-3">Name</th>
-                    <th className="p-3">Round</th>
                     <th className="p-3">Date</th>
                     <th className="p-3">Venue</th>
                     <th className="p-3">Status</th>
@@ -244,9 +241,6 @@ export default function TournamentRaceManager({
                     <tr key={race.id} className="hover:bg-slate-50/50">
                       <td className="p-3 font-semibold text-slate-800">
                         {race.name}
-                      </td>
-                      <td className="p-3 text-slate-600">
-                        {race.roundName ?? "-"}
                       </td>
                       <td className="p-3 text-slate-600">
                         {race.scheduledAt
@@ -378,7 +372,6 @@ export default function TournamentRaceManager({
             <RaceForm
               initial={{
                 name: selectedRace.name,
-                roundName: selectedRace.roundName ?? "",
                 distanceMeters: selectedRace.distanceMeters ?? 1200,
                 trackCondition: selectedRace.trackCondition ?? "good",
                 scheduledAt: selectedRace.scheduledAt ?? "",
@@ -404,9 +397,6 @@ export default function TournamentRaceManager({
                   label={STATUS_LABELS[selectedRace.status] ?? selectedRace.status.replaceAll("_", " ")}
                   className="rounded capitalize font-bold"
                 />
-              </div>
-              <div>
-                <strong>Round:</strong> {selectedRace.roundName ?? "-"}
               </div>
               <div>
                 <strong>Distance:</strong>{" "}

@@ -1004,9 +1004,7 @@ export default function RacesPage() {
                             ? `Race #${raceDetail.raceNumber}`
                             : "TBC"}
                         </span>
-                        <span className="text-xs text-slate-500 mt-0.5 block">
-                          {raceDetail.roundName || "Standard"} round
-                        </span>
+
                       </div>
                       <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">

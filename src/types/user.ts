@@ -117,8 +117,6 @@ export interface UserRace {
   venue?: string;
   distanceMeters?: number;
 
-  // optional nếu backend trả thêm
-  roundName?: string;
   trackCondition?: string;
 
   horse?: string;
@@ -175,7 +173,6 @@ export type UserRaceDetail = {
   id: string;
   tournamentId: string;
   name: string;
-  roundName: string;
   distanceMeters: number;
   scheduledAt: string;
   venue: string;

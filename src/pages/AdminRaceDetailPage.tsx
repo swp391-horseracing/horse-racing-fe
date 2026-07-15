@@ -102,7 +102,6 @@ export default function AdminRaceDetailPage() {
     const payload: Record<string, unknown> = {
       name: data.name,
       raceNumber: data.raceNumber,
-      roundName: data.roundName,
       courseDistanceId: data.trackDistanceId,
       distanceMeters: data.distanceMeters,
       trackCondition: data.trackCondition,
@@ -250,7 +249,6 @@ export default function AdminRaceDetailPage() {
             <RaceForm
               initial={{
                 name: selectedRace.name,
-                roundName: selectedRace.roundName ?? "",
                 distanceMeters: selectedRace.distanceMeters ?? 1200,
                 trackCondition: selectedRace.trackCondition ?? "good",
                 scheduledAt: selectedRace.scheduledAt ?? "",
@@ -298,14 +296,7 @@ export default function AdminRaceDetailPage() {
                     {selectedRace.laneCount ?? "-"}
                   </p>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-3">
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                    Round
-                  </p>
-                  <p className="text-xs font-semibold">
-                    {selectedRace.roundName ?? "-"}
-                  </p>
-                </div>
+
                 <div className="bg-slate-50 rounded-xl p-3">
                   <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
                     Distance

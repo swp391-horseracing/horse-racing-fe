@@ -406,7 +406,6 @@ export function useOwner() {
           id: entry.raceId,
           tournamentId: race?.tournamentId ?? "",
           name: race?.name ?? "",
-          roundName: race?.roundName ?? "",
           distanceMeters: race?.distanceMeters ?? 0,
           scheduledAt: race?.scheduledAt ?? "",
           venue: race?.venue ?? "",
