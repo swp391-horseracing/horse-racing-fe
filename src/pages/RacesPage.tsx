@@ -308,7 +308,7 @@ export default function RacesPage() {
     fullName: string;
   } | null>(() => {
     try {
-      const raw = sessionStorage.getItem("user");
+      const raw = localStorage.getItem("user");
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
@@ -556,7 +556,7 @@ export default function RacesPage() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
-  const user = JSON.parse(sessionStorage.getItem("user") ?? "null");
+  const user = JSON.parse(localStorage.getItem("user") ?? "null");
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">

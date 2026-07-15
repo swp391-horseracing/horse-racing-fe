@@ -42,7 +42,7 @@ export default function ChangePasswordModal({
 
     setSaving(true);
     try {
-      const userId = sessionStorage.getItem("userId");
+      const userId = localStorage.getItem("userId");
       if (!userId) throw new Error("Missing userId");
 
       await UserService.updateUser(userId, { password: newPassword.trim() });

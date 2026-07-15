@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { UserService } from "../services/UserService";
 import type { User } from "../types/user";
+import { useAuthContext } from "../contexts/AuthContext";
 
 export type ProfileTab = "account" | "notifications";
 
-// 1. Define a strict type for API errors to replace 'any'
 interface ApiError {
   response?: {
     status?: number;
@@ -15,6 +15,7 @@ interface ApiError {
 }
 
 export function useUserProfile() {
+  const { token } = useAuthContext();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ProfileTab>("account");
@@ -25,19 +26,20 @@ export function useUserProfile() {
     if (error?.response?.status === 401) {
       const msg = error?.response?.data?.message || "Session expired. Please log in again.";
       if (setErrorFn) setErrorFn(msg);
-      sessionStorage.clear();
       localStorage.removeItem("token");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("user");
     }
   }, []);
 
   const loadUser = useCallback(async () => {
     try {
-      const userId = sessionStorage.getItem("userId");
+      const userId = localStorage.getItem("userId");
       if (!userId) throw new Error("Missing userId");
 
       const u = await UserService.getUser(userId);
       setUser(u);
-      sessionStorage.setItem(
+      localStorage.setItem(
         "user",
         JSON.stringify({ id: u.id, role: u.role, full_name: u.full_name })
       );
@@ -53,9 +55,12 @@ export function useUserProfile() {
   }, [handleAuthError]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     void loadUser();
-  }, [loadUser]);
+  }, [token, loadUser]);
 
   const refreshUser = useCallback(async () => {
     await loadUser();

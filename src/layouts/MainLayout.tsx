@@ -4,9 +4,7 @@ import { ROUTES } from "../router/routes";
 import { Bell, Newspaper } from "lucide-react";
 import React from "react";
 import NotificationTab from "../components/NotificationTab";
-import useAuth from "../hooks/auth/useAuth";
-// import Footer from "../components/Footer";
-import { useUserProfile } from "../hooks/useUserProfile";
+import { useAuthContext } from "../contexts/AuthContext";
 
 export default function MainLayout() {
   interface LinkItem {
@@ -15,7 +13,7 @@ export default function MainLayout() {
     icon?: React.ReactNode;
   }
 
-  const { user, loading } = useUserProfile();
+  const { user, token, loading } = useAuthContext();
 
   const generalLinks: LinkItem[] = [
     {
@@ -67,7 +65,6 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const token = useAuth().getToken();
   const isAuthenticated = loading ? !!token : !!(token && user);
 
   return (

@@ -76,7 +76,7 @@ export function useOwner() {
   const [jockeyPage, setJockeyPage] = useState(1);
 
   const loadHorses = useCallback(async () => {
-    const ownerId = sessionStorage.getItem("userId");
+    const ownerId = localStorage.getItem("userId");
 
     if (!ownerId) return;
     try {

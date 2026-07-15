@@ -21,7 +21,8 @@ api.interceptors.response.use(
     if (error?.response?.status === 401) {
       console.warn("API 401 Unauthorized — clearing session");
       localStorage.removeItem("token");
-      sessionStorage.clear();
+      localStorage.removeItem("userId");
+      localStorage.removeItem("user");
       window.location.href = "/login";
     }
     return Promise.reject(error);

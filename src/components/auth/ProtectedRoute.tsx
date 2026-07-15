@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { useUserProfile } from "../../hooks/useUserProfile";
-import useAuth from "../../hooks/auth/useAuth";
+import { useAuthContext } from "../../contexts/AuthContext";
 import { ROUTES } from "../../router/routes";
 
 const ROLE_HOME: Record<string, string> = {
@@ -17,9 +16,8 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
-  const { user, loading } = useUserProfile();
+  const { user, token, loading } = useAuthContext();
   const navigate = useNavigate();
-  const token = useAuth().getToken();
 
   useEffect(() => {
     if (!token) {

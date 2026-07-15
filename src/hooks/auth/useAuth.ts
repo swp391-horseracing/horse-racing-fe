@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { AuthService } from "../../services/AuthService";
+import { useAuthContext } from "../../contexts/AuthContext";
 import { UserService } from "../../services/UserService";
 
 declare global {
@@ -13,12 +12,10 @@ declare global {
 }
 
 export default function useAuth() {
-  const [token, setToken] = useState<string | null>(null);
+  const { token, login: ctxLogin, logout: ctxLogout, register: ctxRegister } = useAuthContext();
 
-  const resetCaptcha = () => {
-    if (typeof window !== "undefined" && window.grecaptcha) {
-      window.grecaptcha.reset();
-    }
+  const getToken = (): string | null => {
+    return localStorage.getItem("token");
   };
 
   const login = async (
@@ -27,38 +24,11 @@ export default function useAuth() {
     captchaToken: string
   ) => {
     try {
-      const user = await AuthService.login(email, password, captchaToken);
-
-      const jwt = user.token;
-      const userId = user.user.id;
-
-      if (jwt) {
-        localStorage.setItem("token", jwt);
-        sessionStorage.setItem("userId", userId);
-        sessionStorage.setItem(
-          "user",
-          JSON.stringify({
-            id: user.user.id,
-            role: user.user.role,
-            full_name: user.user.full_name,
-          })
-        );
-        setToken(jwt);
-      }
-
-      return user;
+      return await ctxLogin(email, password, captchaToken);
     } catch (error) {
       resetCaptcha();
       throw error;
     }
-  };
-
-  const getToken = (): string | null => {
-    const token = localStorage.getItem("token");
-    if (token === null) {
-      return null;
-    }
-    return token;
   };
 
   const register = async (
@@ -69,41 +39,25 @@ export default function useAuth() {
     captchaToken: string
   ) => {
     try {
-      const user = await AuthService.register(
-        fullName,
-        email,
-        password,
-        role,
-        captchaToken
-      );
-      console.log(user);
+      await ctxRegister(fullName, email, password, role, captchaToken);
     } catch (error) {
       resetCaptcha();
-      console.log(error);
+      throw error;
     }
   };
 
   const logout = async () => {
-    try {
-      await AuthService.logout();
-    } catch (error) {
-      console.error(
-        "Backend logout failed, proceeding with client-side cleanup:",
-        error
-      );
-    } finally {
-      localStorage.removeItem("token");
-      sessionStorage.clear();
-      setToken(null);
-      if (typeof window !== "undefined") {
-        window.location.href = "/login";
-      }
-    }
+    await ctxLogout();
   };
 
   const getUserByID = async (id: string) => {
-    const user = await UserService.getUser(id);
-    return user;
+    return UserService.getUser(id);
+  };
+
+  const resetCaptcha = () => {
+    if (typeof window !== "undefined" && window.grecaptcha) {
+      window.grecaptcha.reset();
+    }
   };
 
   return { token, login, logout, register, getToken, getUserByID };
