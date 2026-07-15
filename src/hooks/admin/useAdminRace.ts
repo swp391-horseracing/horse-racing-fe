@@ -45,7 +45,15 @@ export default function useAdminRace() {
 
       return data;
     } catch (err) {
-      setError(extractApiErrorMessage(err, "Load race detail failed"));
+      setSelectedRace(null);
+      const axiosErr = err as { response?: { status?: number } };
+      if (axiosErr?.response?.status === 404) {
+        setError("Race not found");
+      } else if (axiosErr?.response?.status === 400) {
+        setError("Invalid race");
+      } else {
+        setError(extractApiErrorMessage(err, "Load race detail failed"));
+      }
 
       return null;
     } finally {

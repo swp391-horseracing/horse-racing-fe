@@ -4,6 +4,7 @@ import { ScheduleService } from "../services/ScheduleService";
 import type { RaceTick } from "../types/live";
 import type { FeFinalPlacement } from "../types/live";
 import type { RaceDetail, RaceEntry, RaceListItem } from "../types/race";
+import { extractApiErrorMessage } from "../utils/errorMessages";
 
 type SocketEventHandler = (type: string, data: any) => void;
 
@@ -307,7 +308,14 @@ export function useRaceDetail(raceId: string | null) {
         if (!cancelled) setDetail({ ...data, entries } as RaceDetail);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load race");
+          const axiosErr = err as { response?: { status?: number } };
+          if (axiosErr?.response?.status === 404) {
+            setError("Race not found");
+          } else if (axiosErr?.response?.status === 400) {
+            setError("Invalid race");
+          } else {
+            setError(extractApiErrorMessage(err, "Failed to load race"));
+          }
           setDetail(null);
         }
       } finally {

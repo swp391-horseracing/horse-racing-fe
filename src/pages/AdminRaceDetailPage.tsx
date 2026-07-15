@@ -11,6 +11,7 @@ import { STATUS_LABELS } from "../components/admin/race/raceStatus";
 import { StatusBadge, RACE_STATUS_STYLES } from "../components/ui/StatusBadge";
 import RaceForm, { type RaceFormData } from "../components/admin/race/RaceForm";
 import RaceStatusButton from "../components/admin/race/RaceStatusButton";
+import NotFoundContent from "../components/ui/NotFoundContent";
 
 export default function AdminRaceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -30,6 +31,7 @@ export default function AdminRaceDetailPage() {
     selectedRace,
     loading,
     actionLoading,
+    error,
     getRaceDetail,
     updateRace,
     updateRaceStatus,
@@ -183,6 +185,10 @@ export default function AdminRaceDetailPage() {
       addToast("Failed to unassign referee.", "error");
     }
   };
+
+  if (error) {
+    return <NotFoundContent title="Error" message={error} actionLabel="Go Back" onAction={() => navigate("/admin/tournaments")} />;
+  }
 
   if (loading || !selectedRace) {
     return (

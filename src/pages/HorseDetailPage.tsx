@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowRight,
   Calendar,
-  ChevronLeft,
   Heart,
   PlayCircle,
   ArrowLeft,
@@ -11,6 +10,7 @@ import {
 import useHorse from "../hooks/horse/useHorse";
 import useAuth from "../hooks/auth/useAuth";
 import { formatStatus } from "../utils/formatters";
+import NotFoundContent from "../components/ui/NotFoundContent";
 
 function getAge(birthDate?: string) {
   if (!birthDate) return "N/A";
@@ -55,7 +55,7 @@ function SectionTitle({
 export default function HorseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { selectedHorse, detailLoading, openHorse } = useHorse();
+  const { selectedHorse, detailLoading, error, openHorse } = useHorse();
   const { getUserByID } = useAuth();
 
   const [ownerName, setOwnerName] = useState("Unknown");
@@ -88,7 +88,11 @@ export default function HorseDetailPage() {
     [selectedHorse?.birthDate]
   );
 
-  if (detailLoading || (!selectedHorse && id)) {
+  if (error) {
+    return <NotFoundContent title="Error" message={error} actionLabel="Go Back" onAction={() => navigate(-1)} />;
+  }
+
+  if (detailLoading) {
     return (
       <div className="min-h-screen bg-[#f2f4f1] px-3 py-3">
         <div className="">Loading horse detail...</div>
@@ -97,22 +101,7 @@ export default function HorseDetailPage() {
   }
 
   if (!selectedHorse) {
-    return (
-      <div className="min-h-screen bg-[#f2f4f1] px-3 py-3">
-        <div className="mx-auto max-w-[1440px] rounded-[18px] border-4 border-[#6d61e8] bg-white p-8 shadow-sm">
-          Horse not found.
-          <div className="mt-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold text-[#173a35]"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Go Back
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+    return <NotFoundContent title="Horse not found" message="We couldn't find the horse you're looking for." actionLabel="Go Back" onAction={() => navigate(-1)} />;
   }
 
   const performanceRows = [

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { HorseService } from "../../services/HorseService";
 import type { Horse } from "../../types/horse";
+import { extractApiErrorMessage } from "../../utils/errorMessages";
 
 export default function useHorse() {
   const [horses, setHorses] = useState<Horse[]>([]);
@@ -67,7 +68,15 @@ export default function useHorse() {
 
       setSelectedHorse(horse);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Load detail failed");
+      setSelectedHorse(null);
+      const axiosErr = err as { response?: { status?: number } };
+      if (axiosErr?.response?.status === 404) {
+        setError("Horse not found");
+      } else if (axiosErr?.response?.status === 400) {
+        setError("Invalid horse");
+      } else {
+        setError(extractApiErrorMessage(err, "Load detail failed"));
+      }
     } finally {
       setDetailLoading(false);
     }
