@@ -795,7 +795,7 @@ export default function RefereePage() {
                 className={
                   race.reportStatus === "published" ||
                   race.reportStatus === "referee_confirmed"
-                    ? "!bg-emerald-50 !text-emerald-800 !border-emerald-200"
+                    ? "bg-emerald-50! text-emerald-800! border-emerald-200!"
                     : undefined
                 }
               />

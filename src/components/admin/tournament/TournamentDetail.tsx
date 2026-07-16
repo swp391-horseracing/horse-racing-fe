@@ -158,16 +158,17 @@ export default function TournamentDetail({
         </div>
       </div>
 
+      {serverError && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {serverError}
+        </div>
+      )}
+
       {editing ? (
         <form
           onSubmit={formik.handleSubmit}
           className="space-y-4 border rounded-xl p-4 bg-slate-50"
         >
-          {serverError && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-              {serverError}
-            </div>
-          )}
           <div>
             <label className="font-medium text-sm">Name</label>
             <input

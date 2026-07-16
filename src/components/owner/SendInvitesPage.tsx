@@ -159,7 +159,7 @@ export function SendInvitesPage({
         <>
           <div className="flex items-center justify-between mb-8 border-b pb-6">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight !text-primary">
+              <h2 className="text-3xl font-bold tracking-tight text-primary!">
                 {toPascalCase("choose jockey")}
               </h2>
               <p className="text-muted-foreground mt-1 text-sm">
@@ -267,7 +267,7 @@ export function SendInvitesPage({
         <>
           <div className="flex items-center justify-between mb-8 border-b pb-6">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight !text-primary">
+              <h2 className="text-3xl font-bold tracking-tight text-primary!">
                 {toPascalCase("write invitation")}
               </h2>
               <p className="text-muted-foreground mt-1 text-sm">

@@ -2,13 +2,17 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Loader2, Plus } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
-import useAdminTournament from "../hooks/admin/useAdminTournament";
 import TournamentDetail from "../components/admin/tournament/TournamentDetail";
 import { TournamentService } from "../services/TournamentService";
+import { AdminService } from "../services/AdminService";
 import NotFoundContent from "../components/ui/NotFoundContent";
 import { StatusBadge, RACE_STATUS_STYLES } from "../components/ui/StatusBadge";
 import { STATUS_LABELS } from "../components/admin/race/raceStatus";
-import type { RaceItem } from "../types/tournament";
+import { extractApiErrorMessage } from "../utils/errorMessages";
+import type {
+  RaceItem,
+  TournamentDetail as TournamentDetailType,
+} from "../types/tournament";
 
 export default function AdminTournamentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -24,61 +28,70 @@ export default function AdminTournamentDetailPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const {
-    selectedTournament,
-    loading,
-    error,
-    getTournamentDetail,
-    updateTournament,
-    updateTournamentStatus,
-    clearSelectedTournament,
-  } = useAdminTournament();
+  const [selectedTournament, setSelectedTournament] =
+    useState<TournamentDetailType | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [races, setRaces] = useState<RaceItem[]>([]);
-  const [racesLoading, setRacesLoading] = useState(false);
+  const [racesLoading, setRacesLoading] = useState(true);
+  const [racesError, setRacesError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
-    clearSelectedTournament();
-    void getTournamentDetail(id);
-    Promise.resolve().then(() => {
-      setRacesLoading(true);
-      TournamentService.getTournamentRaces(id)
-        .then((res) => setRaces(res.data ?? []))
-        .catch(() => setRaces([]))
-        .finally(() => setRacesLoading(false));
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    TournamentService.getTournamentByID(id)
+      .then((data) => setSelectedTournament(data))
+      .catch((err) =>
+        setError(extractApiErrorMessage(err, "Failed to load tournament"))
+      )
+      .finally(() => setLoading(false));
+    TournamentService.getTournamentRaces(id)
+      .then((res) => setRaces(res.data ?? []))
+      .catch(() => {
+        setRaces([]);
+        setRacesError("Failed to load races.");
+      })
+      .finally(() => setRacesLoading(false));
   }, [id]);
 
   const handleUpdate = async (
     tournamentId: string,
     data: Record<string, unknown>
   ): Promise<true | string> => {
-    const result = await updateTournament(tournamentId, data as any);
-    if (result === true) {
+    try {
+      await AdminService.updateTournament(tournamentId, data as any);
+      const updated = await TournamentService.getTournamentByID(tournamentId);
+      setSelectedTournament(updated);
       addToast("Tournament updated successfully.", "success");
       return true;
+    } catch (err) {
+      const msg = extractApiErrorMessage(err, "Failed to update tournament");
+      addToast(msg, "error");
+      return msg;
     }
-    addToast(result || "Failed to update tournament.", "error");
-    return result;
   };
 
   const handleStatusChange = async (
     tournamentId: string,
     status: string
   ): Promise<true | string> => {
-    const result = await updateTournamentStatus(tournamentId, status);
-    if (result === true) {
+    try {
+      await AdminService.updateTournamentStatus(tournamentId, status);
+      const updated = await TournamentService.getTournamentByID(tournamentId);
+      setSelectedTournament(updated);
       addToast("Tournament status updated.", "success");
-      await getTournamentDetail(tournamentId);
       return true;
+    } catch (err) {
+      const msg = extractApiErrorMessage(
+        err,
+        "Failed to update tournament status"
+      );
+      addToast(msg, "error");
+      return msg;
     }
-    addToast(result || "Failed to update tournament status.", "error");
-    return result;
   };
 
-  if (error) {
+  if (error && !selectedTournament) {
     return (
       <NotFoundContent
         title="Error"
@@ -141,6 +154,10 @@ export default function AdminTournamentDetailPage() {
               <Loader2 className="w-5 h-5 animate-spin mr-2" />
               Loading races...
             </div>
+          ) : racesError ? (
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              {racesError}
+            </div>
           ) : races.length === 0 ? (
             <p className="text-sm text-slate-500 py-4">
               No races in this tournament.
@@ -186,7 +203,11 @@ export default function AdminTournamentDetailPage() {
                       </td>
                       <td className="p-3 text-right">
                         <button
-                          onClick={() => navigate(`/admin/races/${race.id}`)}
+                          onClick={() =>
+                            navigate(`/admin/races/${race.id}`, {
+                              state: { tournamentId: race.tournamentId },
+                            })
+                          }
                           className="text-[10px] font-bold text-[#064E3B] underline hover:no-underline"
                         >
                           View / Edit

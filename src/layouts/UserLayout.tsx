@@ -277,7 +277,7 @@ export default function UserLayout({
                         <span>{item.label}</span>
                       </SidebarMenuButton>
                       {item.badge !== undefined && item.badge > 0 && (
-                        <SidebarMenuBadge className="bg-[#EAB308] !text-[#064E3B] font-black px-2 py-0.5 text-[9px] rounded-full mr-2 font-label">
+                        <SidebarMenuBadge className="bg-[#EAB308] text-[#064E3B]! font-black px-2 py-0.5 text-[9px] rounded-full mr-2 font-label">
                           {item.badge}
                         </SidebarMenuBadge>
                       )}

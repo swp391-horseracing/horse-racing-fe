@@ -67,11 +67,12 @@ export function PlacePredictionModal({
       })
       .catch((err) => {
         console.error("Failed to fetch race entries for prediction:", err);
+        addToast("Failed to fetch race entries.", "error");
       });
     return () => {
       cancelled = true;
     };
-  }, [open, raceId, entries]);
+  }, [open, raceId, entries, addToast]);
 
   const entryMap = useMemo(
     () => new Map(localEntries.map((e) => [e.id, e.name])),

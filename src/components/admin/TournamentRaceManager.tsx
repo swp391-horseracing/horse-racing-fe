@@ -39,7 +39,7 @@ export default function TournamentRaceManager({
     }
 
     addToast(result || "Failed to create tournament.", "error");
-    return null;
+    return result;
   };
 
   return (

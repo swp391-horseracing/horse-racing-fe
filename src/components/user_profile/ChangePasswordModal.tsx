@@ -60,7 +60,7 @@ export default function ChangePasswordModal({
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl border border-slate-100 max-w-lg w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-8">
         <div className="bg-gradient-to-r from-[#064E3B] to-[#0b634c] p-6 text-white relative">
-          <h3 className="font-bold text-lg font-headline !text-white">
+          <h3 className="font-bold text-lg font-headline text-white!">
             Change Password
           </h3>
           <p className="text-xs text-emerald-100/80 mt-1">

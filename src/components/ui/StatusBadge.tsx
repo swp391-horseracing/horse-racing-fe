@@ -71,12 +71,12 @@ export const RIDE_STATUS_STYLES: Record<string, string> = {
 };
 
 export const RIDE_STATUS_DARK_STYLES: Record<string, string> = {
-  pending: "bg-[#D97706] !text-white border-transparent",
-  accepted: "bg-emerald-600 !text-white border-transparent",
-  declined: "bg-rose-600 !text-white border-transparent",
-  did_not_finish: "bg-slate-600 !text-white border-transparent",
-  disqualified: "bg-red-600 !text-white border-transparent",
-  scratched: "bg-amber-600 !text-white border-transparent",
+  pending: "bg-[#D97706] text-white! border-transparent",
+  accepted: "bg-emerald-600 text-white! border-transparent",
+  declined: "bg-rose-600 text-white! border-transparent",
+  did_not_finish: "bg-slate-600 text-white! border-transparent",
+  disqualified: "bg-red-600 text-white! border-transparent",
+  scratched: "bg-amber-600 text-white! border-transparent",
 };
 
 export const INVITATION_STATUS_STYLES: Record<string, string> = {

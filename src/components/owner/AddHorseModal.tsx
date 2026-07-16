@@ -58,7 +58,7 @@ export function AddHorseModal({
             <Sparkles className="w-5 h-5" />
           </div>
           <h3
-            className="font-bold text-lg font-headline !text-white"
+            className="font-bold text-lg font-headline text-white!"
             style={{ color: "#ffffff" }}
           >
             Register New Horse

@@ -89,7 +89,7 @@ export default function FeedPage() {
                 <Sparkles className="w-3.5 h-3.5 text-[#EAB308] animate-pulse" />
                 Live Arena Central
               </div>
-              <h1 className="text-3xl md:text-4xl font-black font-headline tracking-tight leading-tight !text-white">
+              <h1 className="text-3xl md:text-4xl font-black font-headline tracking-tight leading-tight text-white!">
                 Racetrack Live Feed
               </h1>
               <p className="text-slate-200 text-sm max-w-xl mt-2 font-medium">
@@ -320,7 +320,7 @@ export default function FeedPage() {
               <div className="relative z-10 space-y-4">
                 <div className="flex items-center gap-2">
                   <Flame className="w-4 h-4 text-[#EAB308]" />
-                  <h4 className="font-headline font-bold text-sm !text-[#EAB308]">
+                  <h4 className="font-headline font-bold text-sm text-[#EAB308]!">
                     Championship Stats
                   </h4>
                 </div>

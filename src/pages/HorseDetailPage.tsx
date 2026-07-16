@@ -55,7 +55,7 @@ function SectionTitle({
 export default function HorseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { selectedHorse, detailLoading, error, openHorse } = useHorse();
+  const { selectedHorse, detailLoading, detailError, openHorse } = useHorse();
   const { getUserByID } = useAuth();
 
   const [ownerName, setOwnerName] = useState("Unknown");
@@ -88,11 +88,11 @@ export default function HorseDetailPage() {
     [selectedHorse?.birthDate]
   );
 
-  if (error) {
+  if (detailError) {
     return (
       <NotFoundContent
         title="Error"
-        message={error}
+        message={detailError}
         actionLabel="Go Back"
         onAction={() => navigate(-1)}
       />
@@ -165,7 +165,7 @@ export default function HorseDetailPage() {
                     </span>
                   </div>
 
-                  <h1 className="text-4xl font-semibold tracking-tight !text-[#F4F6F5] md:text-5xl">
+                  <h1 className="text-4xl font-semibold tracking-tight text-[#F4F6F5]! md:text-5xl">
                     {selectedHorse.name}
                   </h1>
 

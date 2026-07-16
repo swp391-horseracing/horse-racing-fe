@@ -204,13 +204,7 @@ export default function AdminRaceDetailPage() {
         title="Error"
         message={error}
         actionLabel="Go Back"
-        onAction={() =>
-          navigate(
-            urlTournamentId
-              ? `/admin/tournaments/${urlTournamentId}`
-              : "/admin/tournaments"
-          )
-        }
+        onAction={() => navigate(getBackUrl())}
       />
     );
   }

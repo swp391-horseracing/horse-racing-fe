@@ -116,7 +116,7 @@ export function JockeyRosterManagement() {
     <div className="max-w-6xl mx-auto p-5 h-full flex flex-col">
       <div className="flex items-center justify-between mb-8 border-b pb-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight !text-primary">
+          <h2 className="text-3xl font-bold tracking-tight text-primary!">
             {toPascalCase("jockey roster")}
           </h2>
           <p className="text-muted-foreground mt-1 text-sm">

@@ -105,7 +105,7 @@ export default function ViolationTypesManager({
     setEditingId(c.id);
     setForm({
       violationType: c.violationType
-        .split("_")
+        .split(/[_\s]+/)
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
         .join(" "),
       pointsDeducted: String(c.pointsDeducted),
@@ -226,7 +226,7 @@ export default function ViolationTypesManager({
                   >
                     <td className="py-3 px-4 font-bold text-slate-800">
                       {c.violationType
-                        .split("_")
+                        .split(/[_\s]+/)
                         .map(
                           (w) =>
                             w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
@@ -350,13 +350,7 @@ export default function ViolationTypesManager({
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      violationType: e.target.value
-                        .split("_")
-                        .map(
-                          (w) =>
-                            w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
-                        )
-                        .join(" "),
+                      violationType: e.target.value,
                     })
                   }
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
@@ -437,7 +431,7 @@ export default function ViolationTypesManager({
               Are you sure you want to delete{" "}
               <span className="font-bold text-slate-800">
                 {deleteTarget.violationType
-                  .split("_")
+                  .split(/[_\s]+/)
                   .map(
                     (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
                   )
