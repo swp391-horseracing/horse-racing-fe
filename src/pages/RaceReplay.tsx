@@ -17,6 +17,8 @@ import type { RaceTick } from "../types/live";
 import { useRaceDetail } from "../hooks/useRaces";
 import { AdminService } from "../services/AdminService";
 import NotFoundContent from "../components/ui/NotFoundContent";
+import { ToastContainer } from "../components/ui/toast";
+import { useToast } from "../hooks/useToast";
 import { ResultModal } from "../components/race/ResultModal";
 
 const HORSE_COLORS = [
@@ -79,6 +81,8 @@ export default function RaceReplay() {
   const [showResultModal, setShowResultModal] = useState(false);
   const dismissedResultRef = useRef(false);
 
+  const { toasts, addToast } = useToast();
+
   const currentTick: RaceTick | null = latestTick;
   const time = currentTick?.elapsedMs ?? 0;
 
@@ -87,8 +91,17 @@ export default function RaceReplay() {
     try {
       await AdminService.startSimulation(id!);
       setSimulating(true);
-    } catch {
-      // ignore
+    } catch (err: unknown) {
+      const error = err as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+      addToast(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to start simulation",
+        "error"
+      );
     } finally {
       setSimLoading(false);
     }
@@ -99,8 +112,17 @@ export default function RaceReplay() {
     try {
       await AdminService.stopSimulation(id!);
       setSimulating(false);
-    } catch {
-      // ignore
+    } catch (err: unknown) {
+      const error = err as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+      addToast(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to stop simulation",
+        "error"
+      );
     } finally {
       setSimLoading(false);
     }
@@ -522,6 +544,8 @@ export default function RaceReplay() {
         status={RaceDetail?.status ?? "draft"}
         placements={finalPlacements}
       />
+
+      <ToastContainer toasts={toasts} />
     </div>
   );
 }
