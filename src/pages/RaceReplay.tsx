@@ -7,7 +7,6 @@ import {
   ArrowUp,
   ArrowDown,
   Minus,
-  ChessKnight,
   Hash,
   Layers,
   Play,
@@ -18,6 +17,7 @@ import type { RaceTick } from "../types/live";
 import { useRaceDetail } from "../hooks/useRaces";
 import { AdminService } from "../services/AdminService";
 import NotFoundContent from "../components/ui/NotFoundContent";
+import { ResultModal } from "../components/race/ResultModal";
 
 const HORSE_COLORS = [
   "#064E3B",
@@ -34,6 +34,20 @@ const HORSE_COLORS = [
   "#9F1239",
 ];
 
+const HORSE_FILTERS: Record<string, string> = {
+  "#064E3B": "hue-rotate(120deg) saturate(250%) brightness(70%)",
+  "#D4AF37": "hue-rotate(25deg) saturate(220%) brightness(130%)",
+  "#0F766E": "hue-rotate(150deg) saturate(220%) brightness(90%)",
+  "#B45309": "hue-rotate(5deg) saturate(260%) brightness(95%)",
+  "#334155": "hue-rotate(200deg) saturate(40%) brightness(75%)",
+  "#7C2D12": "hue-rotate(-10deg) saturate(260%) brightness(75%)",
+  "#166534": "hue-rotate(110deg) saturate(220%) brightness(85%)",
+  "#92400E": "hue-rotate(10deg) saturate(240%) brightness(95%)",
+  "#1E3A8A": "hue-rotate(220deg) saturate(240%) brightness(85%)",
+  "#4D7C0F": "hue-rotate(80deg) saturate(220%) brightness(90%)",
+  "#065F46": "hue-rotate(145deg) saturate(200%) brightness(80%)",
+  "#9F1239": "hue-rotate(310deg) saturate(260%) brightness(90%)",
+};
 const RANK_CHANGE_DURATION_MS = 2500;
 
 const formatTime = (ms: number) => {
@@ -51,6 +65,7 @@ export default function RaceReplay() {
     loading: detailLoading,
     error: detailError,
     latestTick,
+    finalPlacements,
   } = useRaceDetail(id!);
 
   const prevRanksRef = useRef<Map<string, number>>(new Map());
@@ -61,6 +76,8 @@ export default function RaceReplay() {
 
   const [simulating, setSimulating] = useState(false);
   const [simLoading, setSimLoading] = useState(false);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const dismissedResultRef = useRef(false);
 
   const currentTick: RaceTick | null = latestTick;
   const time = currentTick?.elapsedMs ?? 0;
@@ -173,28 +190,40 @@ export default function RaceReplay() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (
+      !dismissedResultRef.current &&
+      (RaceDetail?.status === "under_review" ||
+        RaceDetail?.status === "completed")
+    ) {
+      setShowResultModal(true);
+      setSimulating(false);
+    }
+  }, [RaceDetail?.status]);
+
   const rankedHorses = useMemo(() => {
     if (!currentTick) return [];
     return [...currentTick.horses].sort((a, b) => b.positionM - a.positionM);
   }, [currentTick]);
 
+  const OVERRUN_PCT = 2;
+
   const laneHorses = useMemo(() => {
     if (!currentTick) return [];
     return horseMeta.map((meta) => {
       const horse = currentTick.horses.find((h) => h.horseId === meta.id);
+      const progressPct = horse?.progressPct ?? 0;
+      const finished = horse?.finished ?? false;
 
-      console.log({
-        metaId: meta.id,
-        metaName: meta.name,
-        tickHorseIds: currentTick.horses.map((h) => h.horseId),
-        found: horse,
-      });
       return {
         ...meta,
         positionM: horse?.positionM ?? 0,
-        progressPct: horse?.progressPct ?? 0,
+        progressPct,
+        displayPct: finished
+          ? Math.min(100 + OVERRUN_PCT, progressPct + OVERRUN_PCT)
+          : progressPct,
         speedMs: horse?.speedMs ?? 0,
-        finished: horse?.finished ?? false,
+        finished,
         rank: rankedHorses.findIndex((h) => h.horseId === meta.id) + 1,
       };
     });
@@ -317,23 +346,23 @@ export default function RaceReplay() {
       <div className="shrink-0 relative bg-green-800">
         <div
           className="relative w-full"
-          style={{ height: horseMeta.length * 44 }}
+          style={{ height: horseMeta.length * 60 }}
         >
           <div
-            className="absolute top-0 bottom-0 right-2 w-2 z-20"
+            className="absolute top-0 bottom-0 right-0 w-15 z-20"
             style={{
               backgroundImage:
                 "repeating-conic-gradient(#fff 0% 25%, #111 0% 50%)",
-              backgroundSize: "8px 20px",
+              backgroundSize: "30px 30px",
             }}
           />
           {laneHorses.map((horse) => (
             <div
               key={horse.id}
-              className={`relative flex items-center mr-8 border-b border-slate-200 ${
+              className={`relative flex items-center mr-8 ${
                 horse.laneIndex % 2 ? "bg-green-700" : "bg-green-600"
               }`}
-              style={{ height: 44 }}
+              style={{ height: 60 }}
             >
               <div
                 className="absolute left-3 z-20 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
@@ -341,17 +370,24 @@ export default function RaceReplay() {
               >
                 {horse.laneIndex}
               </div>
+
               <div
-                className="absolute z-20 transition-all duration-200 linear"
+                className={`absolute z-20 horse-runner pr-8 ${horse.finished ? "finished" : ""}`}
                 style={{
-                  left: `${horse.progressPct}%`,
+                  left: `${horse.displayPct}%`,
                   transform: "translateX(-50%)",
-                  transition: "left 450ms linear",
+                  transition: horse.finished
+                    ? "left 900ms cubic-bezier(0.16, 1, 0.3, 1)"
+                    : "left 450ms linear",
                 }}
               >
-                <div className="w-10 flex items-center justify-end">
+                <div className="horse-body w-10 flex items-center justify-end">
+                  <div className="dust" />
+                  <div className="dust delay-1" />
+                  <div className="dust delay-2" />
+
                   <div
-                    className="flex-shrink-0 rounded px-2 py-0.5 text-[10px] font-bold text-white"
+                    className="shrink-0 rounded px-2 py-0.5 text-[10px] font-bold text-white"
                     style={{ backgroundColor: horse.color }}
                   >
                     {horse.name} - {horse.positionM.toFixed(1)}m
@@ -361,11 +397,22 @@ export default function RaceReplay() {
                       </span>
                     )}
                   </div>
-                  <ChessKnight
-                    size={20}
-                    fill={horse.color}
-                    className="flex-shrink-0 scale-x-[-1]"
-                  />
+
+                  <div
+                    className="inline-block"
+                    style={{
+                      transform: "scaleX(-1)",
+                      filter: HORSE_FILTERS[horse.color] ?? "none",
+                    }}
+                  >
+                    <div
+                      className={`horse-emoji gallop text-4xl inline-block ${
+                        horse.finished ? "finished" : ""
+                      }`}
+                    >
+                      🐎
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -464,6 +511,17 @@ export default function RaceReplay() {
           })}
         </div>
       </div>
+
+      <ResultModal
+        open={showResultModal}
+        onClose={() => {
+          setShowResultModal(false);
+          dismissedResultRef.current = true;
+        }}
+        raceName={RaceDetail?.name ?? "Race"}
+        status={RaceDetail?.status ?? "draft"}
+        placements={finalPlacements}
+      />
     </div>
   );
 }
