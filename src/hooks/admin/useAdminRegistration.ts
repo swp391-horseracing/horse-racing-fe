@@ -17,7 +17,7 @@ export default function useAdminRegistration() {
     totalPages: 0,
   });
 
-  const [filterStatus, setFilterStatus] = useState<string>();
+  const [filterStatus, setFilterStatus] = useState<string>("pending");
   const [search, setSearch] = useState<string>();
 
   const loadRegistrations = useCallback(async () => {

@@ -15,7 +15,9 @@ export function useAdminBadges(currentRole: string, pathname: string) {
           setPendingRegistrationsCount(res.pagination.total);
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error("Failed to load pending registrations:", err);
+      });
 
     return () => {
       cancelled = true;

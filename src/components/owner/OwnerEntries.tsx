@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Clock, Trophy, MapPin, CalendarDays, X } from "lucide-react";
 import { useOwner, type Entry } from "../../hooks/useOwner";
-import { cn } from "../../lib/utils";
-import { getEntryStatusStyle } from "../../utils/statusStyles";
+import { StatusBadge, ENTRY_STATUS_STYLES } from "../ui/StatusBadge";
 import { useToast } from "../../hooks/useToast";
 import { ToastContainer } from "../ui/toast";
 
@@ -38,11 +37,8 @@ export function OwnerEntries() {
     }
   };
 
-  const statusBadgeClass = (status: string) =>
-    cn(
-      "rounded border px-1.5 py-0.5 text-[8px] font-black uppercase",
-      getEntryStatusStyle(status)
-    );
+  const entryStatusLabel = (status: string) =>
+    status.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
@@ -119,7 +115,7 @@ export function OwnerEntries() {
                           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                             <CalendarDays className="h-3 w-3" />
                             {new Date(entry.scheduleAt).toLocaleString(
-                              "en-US",
+                              "en-GB",
                               {
                                 month: "short",
                                 day: "numeric",
@@ -136,9 +132,13 @@ export function OwnerEntries() {
                           </span>
                         </td>
                         <td className="px-5 py-4">
-                          <span className={statusBadgeClass(entry.entryStatus)}>
-                            {entry.entryStatus}
-                          </span>
+                          <StatusBadge
+                            status={entry.entryStatus}
+                            styleMap={ENTRY_STATUS_STYLES}
+                            label={entryStatusLabel(entry.entryStatus)}
+                            size="xs"
+                            className="rounded uppercase"
+                          />
                         </td>
                         <td className="px-5 py-4 text-right">
                           {isScheduled && (

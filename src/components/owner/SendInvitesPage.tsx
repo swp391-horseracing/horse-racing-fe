@@ -159,7 +159,7 @@ export function SendInvitesPage({
         <>
           <div className="flex items-center justify-between mb-8 border-b pb-6">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight !text-primary">
+              <h2 className="text-3xl font-bold tracking-tight text-primary!">
                 {toPascalCase("choose jockey")}
               </h2>
               <p className="text-muted-foreground mt-1 text-sm">
@@ -180,7 +180,8 @@ export function SendInvitesPage({
             </div>
             <div className="text-sm text-slate-500 mt-1">{entry.raceName}</div>
             <div className="text-xs text-slate-400 mt-2">
-              {new Date(entry.scheduleAt).toLocaleString()} • {entry.venue}
+              {new Date(entry.scheduleAt).toLocaleString("en-GB")} •{" "}
+              {entry.venue}
             </div>
           </div>
 
@@ -266,7 +267,7 @@ export function SendInvitesPage({
         <>
           <div className="flex items-center justify-between mb-8 border-b pb-6">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight !text-primary">
+              <h2 className="text-3xl font-bold tracking-tight text-primary!">
                 {toPascalCase("write invitation")}
               </h2>
               <p className="text-muted-foreground mt-1 text-sm">
@@ -288,7 +289,8 @@ export function SendInvitesPage({
             </div>
             <div className="text-sm text-slate-500 mt-1">{entry.raceName}</div>
             <div className="text-xs text-slate-400 mt-2">
-              {new Date(entry.scheduleAt).toLocaleString()} • {entry.venue}
+              {new Date(entry.scheduleAt).toLocaleString("en-GB")} •{" "}
+              {entry.venue}
             </div>
             <div className="mt-3 flex items-center gap-2 text-sm">
               <span className="text-slate-400">Jockey:</span>

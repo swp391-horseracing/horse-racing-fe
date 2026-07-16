@@ -31,9 +31,12 @@ import { UserService } from "../../services/UserService";
 import type { RaceEntry } from "../../types/race";
 import { formatStatus } from "../../utils/formatters";
 import {
-  getRaceStatusStyle,
-  getRaceStatusDetailStyle,
-} from "../../utils/statusStyles";
+  StatusBadge,
+  RACE_STATUS_STYLES,
+  RACE_STATUS_DETAIL_STYLES,
+  RIDE_STATUS_STYLES,
+  RIDE_STATUS_DARK_STYLES,
+} from "../ui/StatusBadge";
 
 type RideDetailTab = "info" | "runners";
 
@@ -51,25 +54,6 @@ const formatOrdinal = (num: number) => {
   return num + (suffixes[(val - 20) % 10] || suffixes[val] || suffixes[0]);
 };
 
-const getStatusBadgeStyles = (status: string) => {
-  switch (status) {
-    case "pending":
-      return "bg-[#D97706]/10 text-[#D97706] border-[#D97706]/30";
-    case "accepted":
-      return "bg-[#064E3B]/10 text-[#064E3B] border-[#064E3B]/30";
-    case "declined":
-      return "bg-rose-500/10 text-rose-700 border-rose-500/30";
-    case "did_not_finish":
-      return "bg-slate-100 text-slate-700 border-slate-300";
-    case "disqualified":
-      return "bg-red-50 text-red-800 border-red-300";
-    case "scratched":
-      return "bg-amber-50 text-amber-800 border-amber-300";
-    default:
-      return "bg-slate-500/10 text-slate-600 border-slate-500/30";
-  }
-};
-
 function RideStatusBadge({
   status,
   onDark,
@@ -77,35 +61,14 @@ function RideStatusBadge({
   status: string;
   onDark?: boolean;
 }) {
-  if (onDark) {
-    const styles: Record<string, string> = {
-      pending: "bg-[#D97706] !text-white border-transparent",
-      accepted: "bg-emerald-600 !text-white border-transparent",
-      declined: "bg-rose-600 !text-white border-transparent",
-      did_not_finish: "bg-slate-600 !text-white border-transparent",
-      disqualified: "bg-red-600 !text-white border-transparent",
-      scratched: "bg-amber-600 !text-white border-transparent",
-    };
-    return (
-      <span
-        className={cn(
-          "px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm !text-white",
-          styles[status] ?? "bg-slate-600 !text-white border-transparent"
-        )}
-      >
-        {formatStatus(status)}
-      </span>
-    );
-  }
   return (
-    <span
-      className={cn(
-        "px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm",
-        getStatusBadgeStyles(status)
-      )}
-    >
-      {formatStatus(status)}
-    </span>
+    <StatusBadge
+      status={status}
+      styleMap={onDark ? RIDE_STATUS_DARK_STYLES : RIDE_STATUS_STYLES}
+      label={formatStatus(status)}
+      size="sm"
+      className="rounded-[4px] uppercase shadow-sm"
+    />
   );
 }
 
@@ -313,7 +276,7 @@ export function RidingSchedule({
                 <CalendarDays className="h-4 w-4 text-slate-400" />
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
                   {selectedRange?.from
-                    ? `Schedule: ${selectedRange.from.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}${selectedRange.to ? ` – ${selectedRange.to.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` : ""}`
+                    ? `Schedule: ${selectedRange.from.toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" })}${selectedRange.to ? ` – ${selectedRange.to.toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" })}` : ""}`
                     : isJockey
                       ? "All Scheduled Assignments"
                       : "All Races"}
@@ -350,7 +313,7 @@ export function RidingSchedule({
                               )}
                             >
                               {new Date(ride.scheduledAt).toLocaleTimeString(
-                                "en-US",
+                                "en-GB",
                                 { hour: "2-digit", minute: "2-digit" }
                               )}
                             </span>
@@ -388,16 +351,14 @@ export function RidingSchedule({
                               {ride.distanceMeters}m • Lane {ride.laneNumber}
                             </p>
                           </div>
-                          <span
-                            className={cn(
-                              "text-[10px] font-bold px-2 py-0.5 rounded uppercase",
-                              getRaceStatusStyle(
-                                ride.status === "live" ? "ongoing" : ride.status
-                              )
-                            )}
-                          >
-                            {formatStatus(ride.status)}
-                          </span>
+                          <StatusBadge
+                            status={
+                              ride.status === "live" ? "ongoing" : ride.status
+                            }
+                            styleMap={RACE_STATUS_STYLES}
+                            label={formatStatus(ride.status)}
+                            className="rounded uppercase font-bold"
+                          />
                         </div>
                       )}
                     </button>
@@ -506,13 +467,13 @@ function JockeyDetailPanel({
         <div className="flex flex-wrap items-center gap-2 mt-4 font-semibold text-xs text-white">
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
             <CalendarDays className="w-3.5 h-3.5" />
-            {new Date(ride.scheduledAt).toLocaleDateString("en-US", {
+            {new Date(ride.scheduledAt).toLocaleDateString("en-GB", {
               weekday: "short",
               month: "short",
               day: "numeric",
             })}{" "}
             ·{" "}
-            {new Date(ride.scheduledAt).toLocaleTimeString("en-US", {
+            {new Date(ride.scheduledAt).toLocaleTimeString("en-GB", {
               hour: "2-digit",
               minute: "2-digit",
             })}
@@ -810,16 +771,13 @@ function OwnerDetailPanel({
         </div>
       }
       headerRight={
-        <span
-          className={cn(
-            "px-2.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider border shadow-sm",
-            getRaceStatusDetailStyle(
-              ride.status === "live" ? "ongoing" : ride.status
-            )
-          )}
-        >
-          {formatStatus(ride.status)}
-        </span>
+        <StatusBadge
+          status={ride.status === "live" ? "ongoing" : ride.status}
+          styleMap={RACE_STATUS_DETAIL_STYLES}
+          label={formatStatus(ride.status)}
+          size="sm"
+          className="rounded-[4px] uppercase shadow-sm"
+        />
       }
       onClose={onClose}
     >

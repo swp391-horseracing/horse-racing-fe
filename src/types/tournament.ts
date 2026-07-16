@@ -114,7 +114,6 @@ export interface RaceItem {
   id: string;
   tournamentId: string;
   name: string;
-  roundName: string;
   distanceMeters: number;
   trackCondition: string;
   scheduledAt: string;

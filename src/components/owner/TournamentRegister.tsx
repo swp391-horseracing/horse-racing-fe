@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { formatTournamentStatus } from "../../styles/schema/tournamentStatusFlow";
+import { StatusBadge, TOURNAMENT_STATUS_STYLES } from "../ui/StatusBadge";
 import type {
   Tournament,
   TournamentRegistrationResponse,
@@ -46,7 +47,7 @@ function formatDate(value?: string) {
   if (!value) return "Not specified";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "Not specified";
-  return d.toLocaleDateString("en-US", {
+  return d.toLocaleDateString("en-GB", {
     year: "numeric",
     month: "short",
     day: "2-digit",
@@ -57,7 +58,7 @@ function formatDateFull(value?: string) {
   if (!value) return "Not specified";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "Not specified";
-  return d.toLocaleDateString("en-US", {
+  return d.toLocaleDateString("en-GB", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -65,30 +66,15 @@ function formatDateFull(value?: string) {
 }
 
 function TournamentStatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    live_now: "bg-rose-100 text-rose-700 border-rose-200",
-    registration_open: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    upcoming: "bg-amber-100 text-amber-700 border-amber-200",
-    ongoing: "bg-secondary/10 text-secondary border-secondary/30",
-    completed: "bg-slate-100 text-slate-600 border-slate-200",
-    cancelled: "bg-destructive/10 text-destructive border-destructive/20",
-  };
-
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider",
-        styles[status] ?? "bg-slate-100 text-slate-600 border-slate-200"
-      )}
-    >
-      {status === "live_now" && (
-        <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
-      )}
-      {status === "ongoing" && (
-        <span className="h-1.5 w-1.5 rounded-full bg-secondary animate-pulse" />
-      )}
-      {formatTournamentStatus(status)}
-    </span>
+    <StatusBadge
+      status={status}
+      styleMap={TOURNAMENT_STATUS_STYLES}
+      label={formatTournamentStatus(status)}
+      showDot={status === "live_now" || status === "ongoing"}
+      size="md"
+      className="uppercase"
+    />
   );
 }
 
@@ -629,11 +615,10 @@ export function TournamentRegister({
                                     {race.name}
                                   </p>
                                   <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground mt-0.5">
-                                    <span>{race.roundName}</span>
                                     <span>
                                       {new Date(
                                         race.scheduledAt
-                                      ).toLocaleString("en-US", {
+                                      ).toLocaleString("en-GB", {
                                         month: "short",
                                         day: "numeric",
                                         hour: "2-digit",

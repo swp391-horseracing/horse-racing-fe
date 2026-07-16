@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { cn } from "../../lib/utils";
 import { type Entry, type Invitation, useOwner } from "../../hooks/useOwner";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { StatusBadge, JOCKEY_ROSTER_STATUS_STYLES } from "../ui/StatusBadge";
 import { ToastContainer } from "../ui/toast";
 import { useToast } from "../../hooks/useToast";
 
@@ -61,17 +62,6 @@ export function JockeyRosterManagement() {
     }
   };
 
-  const statusBadgeClass = (status: string) =>
-    cn(
-      "rounded border px-1.5 py-0.5 text-[8px] font-black uppercase",
-      status === "confirmed" &&
-        "border-emerald-200 bg-emerald-50 text-emerald-800",
-      status === "accepted" && "border-blue-200 bg-blue-50 text-blue-800",
-      status === "pending" && "border-amber-200 bg-amber-50 text-amber-800",
-      status === "declined" && "border-rose-200 bg-rose-50 text-rose-800",
-      status === "superseded" && "border-slate-200 bg-slate-50 text-slate-400"
-    );
-
   const toPascalCase = (str: string): string => {
     if (!str) return "";
     return str
@@ -126,7 +116,7 @@ export function JockeyRosterManagement() {
     <div className="max-w-6xl mx-auto p-5 h-full flex flex-col">
       <div className="flex items-center justify-between mb-8 border-b pb-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight !text-primary">
+          <h2 className="text-3xl font-bold tracking-tight text-primary!">
             {toPascalCase("jockey roster")}
           </h2>
           <p className="text-muted-foreground mt-1 text-sm">
@@ -269,8 +259,10 @@ export function JockeyRosterManagement() {
                         {selectedEntry.raceName}
                       </div>
                       <div className="text-xs text-slate-500 mt-1">
-                        {new Date(selectedEntry.scheduleAt).toLocaleString()} •{" "}
-                        {selectedEntry.venue}
+                        {new Date(selectedEntry.scheduleAt).toLocaleString(
+                          "en-GB"
+                        )}{" "}
+                        • {selectedEntry.venue}
                       </div>
                     </div>
                     <button
@@ -365,9 +357,9 @@ export function JockeyRosterManagement() {
                             {toPascalCase("scheduled")}
                           </span>
                           <span className="font-semibold text-slate-800">
-                            {new Date(
-                              selectedEntry.scheduleAt
-                            ).toLocaleString()}
+                            {new Date(selectedEntry.scheduleAt).toLocaleString(
+                              "en-GB"
+                            )}
                           </span>
                         </div>
                         <div className="flex justify-between pb-1">
@@ -442,7 +434,7 @@ export function JockeyRosterManagement() {
                             <div className="font-semibold text-slate-800 mt-0.5">
                               {new Date(
                                 selectedEntry.confirmedAt
-                              ).toLocaleDateString()}
+                              ).toLocaleDateString("en-GB")}
                             </div>
                           </div>
                         )}
@@ -487,13 +479,17 @@ export function JockeyRosterManagement() {
                               {inv.raceName && `${inv.raceName} • `}
                               {inv.tournament}
                               {inv.raceTime &&
-                                ` • ${new Date(inv.raceTime).toLocaleString()}`}
+                                ` • ${new Date(inv.raceTime).toLocaleString("en-GB")}`}
                             </div>
                           </div>
                           <div className="flex items-center gap-3 shrink-0">
-                            <span className={statusBadgeClass(inv.status)}>
-                              {toPascalCase(inv.status)}
-                            </span>
+                            <StatusBadge
+                              status={inv.status}
+                              styleMap={JOCKEY_ROSTER_STATUS_STYLES}
+                              label={toPascalCase(inv.status)}
+                              size="xs"
+                              className="rounded uppercase"
+                            />
                             {inv.status === "accepted" && (
                               <button
                                 onClick={() => handleConfirm(inv)}

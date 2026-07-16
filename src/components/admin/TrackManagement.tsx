@@ -42,7 +42,7 @@ const STATUS_LABEL_MAP = Object.fromEntries(
 function formatDateOrFallback(value?: string) {
   if (!value) return "N/A";
   const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "N/A" : d.toLocaleDateString();
+  return Number.isNaN(d.getTime()) ? "N/A" : d.toLocaleDateString("en-GB");
 }
 
 interface FormModalProps {
@@ -321,9 +321,6 @@ export default function TrackManagement({
                             title={track.name}
                           >
                             {track.name}
-                          </p>
-                          <p className="text-[10px] text-slate-400 font-mono">
-                            {track.id.slice(0, 8)}...
                           </p>
                         </div>
                       </div>
@@ -692,10 +689,6 @@ export default function TrackManagement({
               </div>
 
               <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-x-6 gap-y-2 text-[10px] text-slate-400 font-mono">
-                <p>
-                  <span className="text-slate-500 font-bold">ID:</span>{" "}
-                  {selectedTrack.id}
-                </p>
                 <p>
                   <span className="text-slate-500 font-bold">Created:</span>{" "}
                   {formatDateOrFallback(selectedTrack.createdAt)}

@@ -2,7 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes";
-import { cn } from "../lib/utils";
+import {
+  StatusBadge,
+  REFEREE_PHASE_STYLES,
+} from "../components/ui/StatusBadge";
 import { ChevronLeft, Timer } from "lucide-react";
 import {
   type RacePhase,
@@ -35,12 +38,6 @@ const phaseLabel: Record<RacePhase, string> = {
   scheduled: "Pre-Race",
   live: "Live",
   post_race: "Results",
-};
-
-const phaseBadgeStyle: Record<RacePhase, string> = {
-  scheduled: "bg-amber-50 text-amber-900 border-amber-300 font-bold",
-  live: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  post_race: "bg-indigo-100 text-indigo-800 border-indigo-200",
 };
 
 const PRE_RACE_WITHDRAW_REASONS = [
@@ -207,12 +204,22 @@ export default function RefereePage() {
           const [healthResults, tournamentData] = await Promise.all([
             Promise.all(
               horseIds.map((hid) =>
-                HorseService.getHorseById(hid).catch(() => null)
+                HorseService.getHorseById(hid).catch((err) => {
+                  console.error("Failed to load horse:", hid, err);
+                  return null;
+                })
               )
             ),
             race.tournamentId
               ? TournamentService.getTournamentByID(race.tournamentId).catch(
-                  () => null
+                  (err) => {
+                    console.error(
+                      "Failed to load tournament:",
+                      race.tournamentId,
+                      err
+                    );
+                    return null;
+                  }
                 )
               : Promise.resolve(null),
           ]);
@@ -772,25 +779,26 @@ export default function RefereePage() {
                   </span>
                 </div>
               )}
-              <span
-                className={cn(
-                  "text-[10px] font-black uppercase px-2.5 py-1 rounded-full border",
-                  phaseBadgeStyle[race.phase],
+              <StatusBadge
+                status={race.phase}
+                styleMap={REFEREE_PHASE_STYLES}
+                label={
+                  race.phase === "post_race" &&
                   (race.reportStatus === "published" ||
-                    race.reportStatus === "referee_confirmed") &&
-                    "!bg-emerald-50 !text-emerald-800 !border-emerald-200"
-                )}
-              >
-                {race.phase === "post_race" && race.reportStatus === "published"
-                  ? "Finalized"
-                  : race.phase === "post_race" &&
-                      race.reportStatus === "referee_confirmed"
+                    race.reportStatus === "referee_confirmed")
                     ? "Finalized"
                     : race.phase === "post_race" &&
                         race.reportStatus === "draft"
                       ? "Results (Draft)"
-                      : phaseLabel[race.phase]}
-              </span>
+                      : phaseLabel[race.phase]
+                }
+                className={
+                  race.reportStatus === "published" ||
+                  race.reportStatus === "referee_confirmed"
+                    ? "bg-emerald-50! text-emerald-800! border-emerald-200!"
+                    : undefined
+                }
+              />
             </div>
           </div>
 
@@ -929,7 +937,7 @@ export default function RefereePage() {
               handleSelectRace(id);
               navigate(ROUTES.REFEREE_RACE_LIST);
             }}
-            phaseBadgeStyle={phaseBadgeStyle}
+            phaseBadgeStyle={REFEREE_PHASE_STYLES}
             phaseLabel={phaseLabel}
           />
         );
@@ -940,7 +948,7 @@ export default function RefereePage() {
             filterPhase={filterPhase}
             onFilterChange={setFilterPhase}
             onSelectRace={handleSelectRace}
-            phaseBadgeStyle={phaseBadgeStyle}
+            phaseBadgeStyle={REFEREE_PHASE_STYLES}
             phaseLabel={phaseLabel}
           />
         );
@@ -958,7 +966,7 @@ export default function RefereePage() {
               handleSelectRace(id);
               navigate(ROUTES.REFEREE_RACE_LIST);
             }}
-            phaseBadgeStyle={phaseBadgeStyle}
+            phaseBadgeStyle={REFEREE_PHASE_STYLES}
             phaseLabel={phaseLabel}
           />
         );

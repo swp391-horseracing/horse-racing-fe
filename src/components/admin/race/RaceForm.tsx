@@ -19,7 +19,6 @@ type TrackDistanceType = {
 
 export type RaceFormData = {
   name: string;
-  roundName: string;
   distanceMeters: number;
   trackCondition: string;
   scheduledAt: string;
@@ -31,7 +30,6 @@ export type RaceFormData = {
 
 const initialForm: RaceFormData = {
   name: "",
-  roundName: "",
   distanceMeters: 1200,
   trackCondition: "dry",
   scheduledAt: "",
@@ -227,44 +225,25 @@ export default function RaceForm({
             />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold mb-2">
-                Race Number
-              </label>
-              <input
-                type="number"
-                min={1}
-                value={form.raceNumber ?? ""}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    raceNumber: e.target.value
-                      ? Number(e.target.value)
-                      : undefined,
-                  }))
-                }
-                placeholder="e.g. 1"
-                className="w-full border rounded-xl px-4 py-3"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2">
-                Round Name
-              </label>
-              <input
-                type="text"
-                value={form.roundName}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    roundName: e.target.value,
-                  }))
-                }
-                placeholder="e.g. Round 1"
-                className="w-full border rounded-xl px-4 py-3"
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">
+              Race Number
+            </label>
+            <input
+              type="number"
+              min={1}
+              value={form.raceNumber ?? ""}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  raceNumber: e.target.value
+                    ? Number(e.target.value)
+                    : undefined,
+                }))
+              }
+              placeholder="e.g. 1"
+              className="w-full border rounded-xl px-4 py-3"
+            />
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
@@ -396,8 +375,8 @@ export default function RaceForm({
             {tournamentStartDate && tournamentEndDate && (
               <p className="text-[11px] text-slate-500 mb-2">
                 Tournament period:{" "}
-                {new Date(tournamentStartDate).toLocaleDateString()} –{" "}
-                {new Date(tournamentEndDate).toLocaleDateString()}
+                {new Date(tournamentStartDate).toLocaleDateString("en-GB")} –{" "}
+                {new Date(tournamentEndDate).toLocaleDateString("en-GB")}
               </p>
             )}
             <input

@@ -28,9 +28,10 @@ import { useToast } from "../hooks/useToast";
 import { useOwner } from "../hooks/useOwner";
 import { formatStatus } from "../utils/formatters";
 import {
-  getRaceStatusStyle,
-  getRaceStatusDetailStyle,
-} from "../utils/statusStyles";
+  StatusBadge,
+  RACE_STATUS_STYLES,
+  RACE_STATUS_DETAIL_STYLES,
+} from "../components/ui/StatusBadge";
 import { ToastContainer } from "../components/ui/toast";
 import { friendlyErrorMessage } from "../utils/errorMessages";
 import { cn } from "../lib/utils";
@@ -85,11 +86,11 @@ interface RaceUI extends Omit<RaceListItem, "status"> {
 const mapRaceToUi = (race: RaceListItem): RaceUI => {
   const scheduled = new Date(race.scheduledAt);
 
-  const yyyy = scheduled.getUTCFullYear();
-  const mm = String(scheduled.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(scheduled.getUTCDate()).padStart(2, "0");
-  const hh = String(scheduled.getUTCHours()).padStart(2, "0");
-  const min = String(scheduled.getUTCMinutes()).padStart(2, "0");
+  const yyyy = scheduled.getFullYear();
+  const mm = String(scheduled.getMonth() + 1).padStart(2, "0");
+  const dd = String(scheduled.getDate()).padStart(2, "0");
+  const hh = String(scheduled.getHours()).padStart(2, "0");
+  const min = String(scheduled.getMinutes()).padStart(2, "0");
 
   let distance = race.course?.distanceMeters
     ? `${race.course.distanceMeters}m`
@@ -122,7 +123,7 @@ const mapRaceToUi = (race: RaceListItem): RaceUI => {
 };
 
 const fmtShort = (d: string) =>
-  new Date(d).toLocaleDateString("en-US", {
+  new Date(d).toLocaleDateString("en-GB", {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -138,7 +139,7 @@ const formatDateTime = (dateString: string | undefined) => {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return "Invalid Date";
 
-  return date.toLocaleString("en-US", {
+  return date.toLocaleString("en-GB", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -226,21 +227,22 @@ function RaceRow({
           </span>
         )}
         {isLive ? (
-          <span
-            className={`text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 ${getRaceStatusStyle(race.status)}`}
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
-            Live
-          </span>
+          <StatusBadge
+            status={race.status}
+            styleMap={RACE_STATUS_STYLES}
+            label="Live"
+            size="sm"
+            showDot
+            className="rounded gap-1 font-bold"
+          />
         ) : (
-          <span
-            className={`text-[9px] font-bold px-2 py-0.5 rounded flex items-center gap-1 ${getRaceStatusStyle(race.status)}`}
-          >
-            {race.status === "completed" && (
-              <span className="h-1.5 w-1.5 rounded-full bg-muted/80" />
-            )}
-            {formatStatus(race.status)}
-          </span>
+          <StatusBadge
+            status={race.status}
+            styleMap={RACE_STATUS_STYLES}
+            label={formatStatus(race.status)}
+            size="sm"
+            className="rounded gap-1 font-bold"
+          />
         )}
       </div>
     </button>
@@ -306,7 +308,7 @@ export default function RacesPage() {
     fullName: string;
   } | null>(() => {
     try {
-      const raw = sessionStorage.getItem("user");
+      const raw = localStorage.getItem("user");
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
@@ -554,7 +556,7 @@ export default function RacesPage() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
-  const user = JSON.parse(sessionStorage.getItem("user") ?? "null");
+  const user = JSON.parse(localStorage.getItem("user") ?? "null");
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
@@ -765,7 +767,7 @@ export default function RacesPage() {
                   </p>
                 </div>
               ) : isCalendarMode ? (
-                <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
+                <div className="h-full h-msx-140 rounded-2xl border border-border bg-card shadow-sm overflow-y-auto flex flex-col">
                   <div className="border-b border-border bg-muted/20 px-6 py-4 flex items-center gap-2">
                     <CalendarDays className="h-4 w-4 text-muted-foreground" />
                     <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
@@ -892,16 +894,18 @@ export default function RacesPage() {
                             ? `${raceDetail.laneCount} Lanes`
                             : "Lanes TBC"}
                         </span>
-                        <button
-                          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 font-bold ${getRaceStatusDetailStyle(raceDetail.status)}`}
-                        >
-                          {raceDetail.status === "ongoing" && (
-                            <span className="h-1.5 w-1.5 rounded-full bg-rose-300 animate-pulse" />
-                          )}
-                          {raceDetail.status === "ongoing"
-                            ? formatTime(elapsedSeconds)
-                            : formatStatus(raceDetail.status)}
-                        </button>
+                        <StatusBadge
+                          status={raceDetail.status}
+                          styleMap={RACE_STATUS_DETAIL_STYLES}
+                          label={
+                            raceDetail.status === "ongoing"
+                              ? formatTime(elapsedSeconds)
+                              : formatStatus(raceDetail.status)
+                          }
+                          showDot={raceDetail.status === "ongoing"}
+                          dotClassName="bg-rose-300"
+                          className="rounded-lg px-3 py-1.5 font-bold gap-1.5"
+                        />
                         {raceDetail.status === "ongoing" && (
                           <>
                             <button
@@ -999,9 +1003,6 @@ export default function RacesPage() {
                           {raceDetail.raceNumber != null
                             ? `Race #${raceDetail.raceNumber}`
                             : "TBC"}
-                        </span>
-                        <span className="text-xs text-slate-500 mt-0.5 block">
-                          {raceDetail.roundName || "Standard"} round
                         </span>
                       </div>
                       <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">

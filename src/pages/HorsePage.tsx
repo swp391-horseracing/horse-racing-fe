@@ -125,7 +125,7 @@ export default function HorsePage() {
           <div className="flex flex-row items-center justify-between h-30">
             <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
               <div className="max-w-2xl">
-                <h1 className="font-serif text-4xl font-bold tracking-tight !text-white sm:text-5xl">
+                <h1 className="font-serif text-4xl font-bold tracking-tight text-white! sm:text-5xl">
                   Horse List
                 </h1>
                 <p className="mt-4 max-w-xl text-base leading-7 text-emerald-50/90 sm:text-lg">

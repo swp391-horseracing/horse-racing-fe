@@ -630,7 +630,7 @@ export default function RaceReportPanel({
                 </div>
                 <div className="flex items-center gap-2 ml-3 shrink-0">
                   <span className="text-[9px] font-label font-bold text-orange-700">
-                    {new Date(v.occurredAt).toLocaleTimeString()}
+                    {new Date(v.occurredAt).toLocaleTimeString("en-GB")}
                   </span>
                   {isEditable && (
                     <button

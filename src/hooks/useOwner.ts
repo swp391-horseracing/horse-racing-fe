@@ -76,7 +76,7 @@ export function useOwner() {
   const [jockeyPage, setJockeyPage] = useState(1);
 
   const loadHorses = useCallback(async () => {
-    const ownerId = sessionStorage.getItem("userId");
+    const ownerId = localStorage.getItem("userId");
 
     if (!ownerId) return;
     try {
@@ -406,7 +406,6 @@ export function useOwner() {
           id: entry.raceId,
           tournamentId: race?.tournamentId ?? "",
           name: race?.name ?? "",
-          roundName: race?.roundName ?? "",
           distanceMeters: race?.distanceMeters ?? 0,
           scheduledAt: race?.scheduledAt ?? "",
           venue: race?.venue ?? "",

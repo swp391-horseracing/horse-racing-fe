@@ -43,7 +43,7 @@ export default function EditProfileModal({
     setError(null);
     setSaving(true);
     try {
-      const userId = sessionStorage.getItem("userId");
+      const userId = localStorage.getItem("userId");
       if (!userId) throw new Error("Missing userId");
 
       if (avatarFile) {
@@ -67,7 +67,7 @@ export default function EditProfileModal({
           localStorage.setItem("token", res.token);
         }
 
-        sessionStorage.setItem(
+        localStorage.setItem(
           "user",
           JSON.stringify({
             id: res.user.id,
@@ -81,16 +81,34 @@ export default function EditProfileModal({
       onClose();
     } catch (err: unknown) {
       const axiosErr = err as {
-        response?: { status?: number; data?: { message?: string } };
+        response?: {
+          status?: number;
+          data?: {
+            message?: string;
+            errors?: { field: string; message: string }[];
+          };
+        };
       };
       const status = axiosErr?.response?.status;
       if (status === 401) {
+        setError(
+          axiosErr?.response?.data?.message ||
+            "Session expired. Please log in again."
+        );
         localStorage.removeItem("token");
-        sessionStorage.clear();
+        localStorage.removeItem("userId");
+        localStorage.removeItem("user");
         window.location.href = "/login";
         return;
       }
-      setError(axiosErr?.response?.data?.message || "Failed to update profile");
+      const fieldErrors = axiosErr?.response?.data?.errors;
+      if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
+        setError(fieldErrors.map((e) => `• ${e.message}`).join("\n"));
+      } else {
+        setError(
+          axiosErr?.response?.data?.message || "Failed to update profile"
+        );
+      }
     } finally {
       setSaving(false);
     }
@@ -102,7 +120,7 @@ export default function EditProfileModal({
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl border border-slate-100 max-w-lg w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-8">
         <div className="bg-gradient-to-r from-[#064E3B] to-[#0b634c] p-6 text-white relative">
-          <h3 className="font-bold text-lg font-headline !text-white">
+          <h3 className="font-bold text-lg font-headline text-white!">
             Edit Profile
           </h3>
           <p className="text-xs text-emerald-100/80 mt-1">

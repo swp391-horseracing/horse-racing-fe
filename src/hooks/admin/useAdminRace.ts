@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { AdminService } from "../../services/AdminService";
 import { RaceService } from "../../services/RaceService";
 import type { Race, RaceDetail, RaceListItem } from "../../types/race";
+import { extractApiErrorMessage } from "../../utils/errorMessages";
 
 export default function useAdminRace() {
   const [races, setRaces] = useState<RaceListItem[]>([]);
@@ -26,7 +27,7 @@ export default function useAdminRace() {
         const data = await RaceService.getRaces(params);
         setRaces(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Load races failed");
+        setError(extractApiErrorMessage(err, "Load races failed"));
       } finally {
         setLoading(false);
       }
@@ -44,7 +45,15 @@ export default function useAdminRace() {
 
       return data;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Load race detail failed");
+      setSelectedRace(null);
+      const axiosErr = err as { response?: { status?: number } };
+      if (axiosErr?.response?.status === 404) {
+        setError("Race not found");
+      } else if (axiosErr?.response?.status === 400) {
+        setError("Invalid race");
+      } else {
+        setError(extractApiErrorMessage(err, "Load race detail failed"));
+      }
 
       return null;
     } finally {
@@ -67,8 +76,7 @@ export default function useAdminRace() {
 
         return { success: true, data: res };
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Create race failed";
+        const message = extractApiErrorMessage(err, "Create race failed");
         setError(message);
 
         return { success: false, error: message };
@@ -92,8 +100,7 @@ export default function useAdminRace() {
 
         return { success: true };
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Update race failed";
+        const message = extractApiErrorMessage(err, "Update race failed");
         setError(message);
 
         return { success: false, error: message };
@@ -105,7 +112,7 @@ export default function useAdminRace() {
   );
 
   const updateRaceStatus = useCallback(
-    async (raceId: string, status: string) => {
+    async (raceId: string, status: string): Promise<true | string> => {
       try {
         setActionLoading(true);
         setError(null);
@@ -114,11 +121,13 @@ export default function useAdminRace() {
 
         return true;
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Update race status failed"
+        const message = extractApiErrorMessage(
+          err,
+          "Update race status failed"
         );
+        setError(message);
 
-        return false;
+        return message;
       } finally {
         setActionLoading(false);
       }

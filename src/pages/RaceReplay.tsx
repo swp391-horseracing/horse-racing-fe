@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ArrowLeft,
   Flag,
   Trophy,
   Clock,
@@ -12,10 +13,11 @@ import {
   Play,
   Square,
 } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import type { RaceTick } from "../types/live";
 import { useRaceDetail } from "../hooks/useRaces";
 import { AdminService } from "../services/AdminService";
+import NotFoundContent from "../components/ui/NotFoundContent";
 
 const HORSE_COLORS = [
   "#064E3B",
@@ -42,8 +44,14 @@ const formatTime = (ms: number) => {
 };
 
 export default function RaceReplay() {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { detail: raceDetail, latestTick } = useRaceDetail(id!);
+  const {
+    detail: raceDetail,
+    loading: detailLoading,
+    error: detailError,
+    latestTick,
+  } = useRaceDetail(id!);
 
   const prevRanksRef = useRef<Map<string, number>>(new Map());
 
@@ -210,11 +218,50 @@ export default function RaceReplay() {
     });
   }, [horseMeta, currentTick, rankedHorses]);
 
+  if (detailLoading) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <p className="text-sm font-semibold text-muted-foreground">
+          Loading race replay...
+        </p>
+      </div>
+    );
+  }
+
+  if (detailError) {
+    return (
+      <NotFoundContent
+        title="Error"
+        message={detailError}
+        actionLabel="Go Back"
+        onAction={() => navigate(-1)}
+      />
+    );
+  }
+
+  if (!raceDetail) {
+    return (
+      <NotFoundContent
+        title="Race not found"
+        message="We couldn't find the race you're looking for."
+        actionLabel="Go Back"
+        onAction={() => navigate(-1)}
+      />
+    );
+  }
+
   return (
     <div className="w-full h-full flex flex-col max-w-[1400px] mx-auto bg-white rounded-xl shadow-2xl overflow-hidden font-sans border border-slate-200">
       {/* Header */}
       <div className="shrink-0 bg-primary text-white px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 text-xs font-bold text-white hover:bg-white/25 transition"
+          >
+            <ArrowLeft size={14} />
+            Exit
+          </button>
           <Flag className="w-7 h-7 text-[#D4AF37]" />
           <div className="space-y-1">
             {raceDetail?.name && (
@@ -443,7 +490,7 @@ const formatDateTime = (dateString?: string) => {
   if (!dateString) return "TBC";
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return "Invalid Date";
-  return date.toLocaleString("en-US", {
+  return date.toLocaleString("en-GB", {
     month: "short",
     day: "numeric",
     year: "numeric",

@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { UserService } from "../services/UserService";
 import type { User } from "../types/user";
+import { useAuthContext } from "../contexts/AuthContext";
 
 export type ProfileTab = "account" | "notifications";
 
-// 1. Define a strict type for API errors to replace 'any'
 interface ApiError {
   response?: {
     status?: number;
@@ -15,32 +15,36 @@ interface ApiError {
 }
 
 export function useUserProfile() {
+  const { token } = useAuthContext();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ProfileTab>("account");
   const [error, setError] = useState<string | null>(null);
 
-  // Helper to handle 401 Unauthorized errors (Replaced 'any' with 'unknown')
-  const handleAuthError = useCallback((err: unknown) => {
-    const error = err as ApiError;
-    if (error?.response?.status === 401) {
-      sessionStorage.clear();
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    }
-  }, []);
+  const handleAuthError = useCallback(
+    (err: unknown, setErrorFn?: (msg: string) => void) => {
+      const error = err as ApiError;
+      if (error?.response?.status === 401) {
+        const msg =
+          error?.response?.data?.message ||
+          "Session expired. Please log in again.";
+        if (setErrorFn) setErrorFn(msg);
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("user");
+      }
+    },
+    []
+  );
 
   const loadUser = useCallback(async () => {
     try {
-      // 2. CRITICAL FIX: Removed synchronous setLoading(true) and setError(null).
-      // Calling setState before the first 'await' triggers the react-hooks/set-state-in-effect rule.
-
-      const userId = sessionStorage.getItem("userId");
+      const userId = localStorage.getItem("userId");
       if (!userId) throw new Error("Missing userId");
 
       const u = await UserService.getUser(userId);
       setUser(u);
-      sessionStorage.setItem(
+      localStorage.setItem(
         "user",
         JSON.stringify({ id: u.id, role: u.role, full_name: u.full_name })
       );
@@ -49,16 +53,21 @@ export function useUserProfile() {
       const msg =
         error?.response?.data?.message || "Failed to load user profile";
       setError(msg);
-      handleAuthError(err);
+      handleAuthError(err, setError);
     } finally {
       setLoading(false);
     }
   }, [handleAuthError]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadUser();
-  }, [loadUser]);
+    if (!token) {
+      queueMicrotask(() => setLoading(false));
+      return;
+    }
+    queueMicrotask(() => {
+      void loadUser();
+    });
+  }, [token, loadUser]);
 
   const refreshUser = useCallback(async () => {
     await loadUser();

@@ -174,7 +174,7 @@ export default function LiveMonitorPanel({
                   </p>
                 </div>
                 <span className="text-[9px] font-label font-bold text-orange-700">
-                  {new Date(v.occurredAt).toLocaleTimeString()}
+                  {new Date(v.occurredAt).toLocaleTimeString("en-GB")}
                 </span>
               </div>
             ))}

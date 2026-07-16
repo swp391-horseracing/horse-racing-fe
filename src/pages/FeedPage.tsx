@@ -5,7 +5,12 @@ import { useRaces } from "../hooks/useRaces";
 import useTournament from "../hooks/useTournament";
 import { ROUTES } from "../router/routes";
 import { formatTournamentStatus } from "../styles/schema/tournamentStatusFlow";
-import { getRaceStatusStyle, getRaceStatusLabel } from "../utils/statusStyles";
+import { getRaceStatusLabel } from "../utils/statusStyles";
+import {
+  StatusBadge,
+  RACE_STATUS_STYLES,
+  TOURNAMENT_STATUS_STYLES,
+} from "../components/ui/StatusBadge";
 import {
   Trophy,
   Calendar,
@@ -56,7 +61,7 @@ export default function FeedPage() {
 
   const formatTime = (dateString: string) => {
     const d = new Date(dateString);
-    return d.toLocaleTimeString("en-US", {
+    return d.toLocaleTimeString("en-GB", {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -64,7 +69,7 @@ export default function FeedPage() {
 
   const formatDate = (dateString: string) => {
     const d = new Date(dateString);
-    return d.toLocaleDateString("en-US", {
+    return d.toLocaleDateString("en-GB", {
       month: "short",
       day: "numeric",
     });
@@ -84,7 +89,7 @@ export default function FeedPage() {
                 <Sparkles className="w-3.5 h-3.5 text-[#EAB308] animate-pulse" />
                 Live Arena Central
               </div>
-              <h1 className="text-3xl md:text-4xl font-black font-headline tracking-tight leading-tight !text-white">
+              <h1 className="text-3xl md:text-4xl font-black font-headline tracking-tight leading-tight text-white!">
                 Racetrack Live Feed
               </h1>
               <p className="text-slate-200 text-sm max-w-xl mt-2 font-medium">
@@ -179,17 +184,12 @@ export default function FeedPage() {
                     >
                       <div>
                         <div className="flex justify-between items-start gap-2 mb-3">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border ${
-                              tournament.status === "ongoing"
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                : tournament.status === "registration_open"
-                                  ? "bg-amber-50 text-amber-700 border-amber-200"
-                                  : "bg-blue-50 text-blue-700 border-blue-200"
-                            }`}
-                          >
-                            {formatTournamentStatus(tournament.status)}
-                          </span>
+                          <StatusBadge
+                            status={tournament.status}
+                            styleMap={TOURNAMENT_STATUS_STYLES}
+                            label={formatTournamentStatus(tournament.status)}
+                            className="rounded-md uppercase"
+                          />
                           <span className="text-[10px] font-bold text-slate-400 font-label">
                             ID: {tournament.id.substring(0, 6)}...
                           </span>
@@ -290,11 +290,13 @@ export default function FeedPage() {
                           <h4 className="font-bold text-xs text-slate-700 truncate group-hover:text-[#064E3B] transition-colors">
                             {race.name}
                           </h4>
-                          <span
-                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${getRaceStatusStyle(race.status)}`}
-                          >
-                            {getRaceStatusLabel(race.status)}
-                          </span>
+                          <StatusBadge
+                            status={race.status}
+                            styleMap={RACE_STATUS_STYLES}
+                            label={getRaceStatusLabel(race.status)}
+                            size="xs"
+                            className="rounded font-bold shrink-0"
+                          />
                         </div>
                         <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">
                           {formatTime(race.scheduledAt)} · {race.venue}
@@ -318,7 +320,7 @@ export default function FeedPage() {
               <div className="relative z-10 space-y-4">
                 <div className="flex items-center gap-2">
                   <Flame className="w-4 h-4 text-[#EAB308]" />
-                  <h4 className="font-headline font-bold text-sm !text-[#EAB308]">
+                  <h4 className="font-headline font-bold text-sm text-[#EAB308]!">
                     Championship Stats
                   </h4>
                 </div>

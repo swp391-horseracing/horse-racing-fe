@@ -31,7 +31,6 @@ export function useJockey() {
       tournamentId: race.tournamentId,
 
       name: race.name,
-      roundName: race.roundName ?? "",
 
       distanceMeters: race.course?.distanceMeters ?? race.distanceMeters ?? 0,
 

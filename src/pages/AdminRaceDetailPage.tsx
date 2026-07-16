@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Loader2, User } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
 import type { RaceEntry } from "../types/race";
@@ -8,13 +8,26 @@ import useAdminRace from "../hooks/admin/useAdminRace";
 import { AdminService } from "../services/AdminService";
 import { fetchRaceEntries } from "../hooks/useRaces";
 import { STATUS_LABELS } from "../components/admin/race/raceStatus";
-import { getRaceStatusStyle } from "../utils/statusStyles";
+import { StatusBadge, RACE_STATUS_STYLES } from "../components/ui/StatusBadge";
 import RaceForm, { type RaceFormData } from "../components/admin/race/RaceForm";
 import RaceStatusButton from "../components/admin/race/RaceStatusButton";
+import NotFoundContent from "../components/ui/NotFoundContent";
 
 export default function AdminRaceDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id, tournamentId: urlTournamentId } = useParams<{
+    id: string;
+    tournamentId: string;
+  }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const stateTournamentId = (location.state as { tournamentId?: string })
+    ?.tournamentId;
+
+  const getBackUrl = () => {
+    const tid =
+      stateTournamentId || urlTournamentId || selectedRace?.tournamentId;
+    return tid ? `/admin/tournaments/${tid}` : "/admin/tournaments";
+  };
 
   const [toast, setToast] = useState<{
     message: string;
@@ -30,6 +43,7 @@ export default function AdminRaceDetailPage() {
     selectedRace,
     loading,
     actionLoading,
+    error,
     getRaceDetail,
     updateRace,
     updateRaceStatus,
@@ -102,7 +116,6 @@ export default function AdminRaceDetailPage() {
     const payload: Record<string, unknown> = {
       name: data.name,
       raceNumber: data.raceNumber,
-      roundName: data.roundName,
       courseDistanceId: data.trackDistanceId,
       distanceMeters: data.distanceMeters,
       trackCondition: data.trackCondition,
@@ -112,7 +125,7 @@ export default function AdminRaceDetailPage() {
     };
     const res = await updateRace(id, payload);
     if (res.success === false) {
-      addToast("Failed to update race.", "error");
+      addToast(res.error || "Failed to update race.", "error");
       return res.error ?? "Failed to update race.";
     }
     addToast("Race updated successfully.", "success");
@@ -123,12 +136,12 @@ export default function AdminRaceDetailPage() {
 
   const handleRaceStatusChange = async (status: string) => {
     if (!id) return;
-    const ok = await updateRaceStatus(id, status);
-    if (ok) {
+    const result = await updateRaceStatus(id, status);
+    if (result === true) {
       addToast("Race status updated.", "success");
       await getRaceDetail(id);
     } else {
-      addToast("Failed to update race status.", "error");
+      addToast(result || "Failed to update race status.", "error");
     }
   };
 
@@ -185,6 +198,17 @@ export default function AdminRaceDetailPage() {
     }
   };
 
+  if (error) {
+    return (
+      <NotFoundContent
+        title="Error"
+        message={error}
+        actionLabel="Go Back"
+        onAction={() => navigate(getBackUrl())}
+      />
+    );
+  }
+
   if (loading || !selectedRace) {
     return (
       <div className="flex items-center justify-center h-full p-10">
@@ -209,11 +233,11 @@ export default function AdminRaceDetailPage() {
         )}
 
         <button
-          onClick={() => navigate("/admin/tournaments")}
+          onClick={() => navigate(getBackUrl())}
           className="inline-flex items-center gap-2 text-sm font-semibold text-[#064E3B] mb-2 w-fit hover:underline"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Tournaments
+          Back to Tournament
         </button>
 
         <div className="space-y-5 bg-white border rounded-2xl p-6 shadow-sm">
@@ -250,7 +274,6 @@ export default function AdminRaceDetailPage() {
             <RaceForm
               initial={{
                 name: selectedRace.name,
-                roundName: selectedRace.roundName ?? "",
                 distanceMeters: selectedRace.distanceMeters ?? 1200,
                 trackCondition: selectedRace.trackCondition ?? "good",
                 scheduledAt: selectedRace.scheduledAt ?? "",
@@ -271,12 +294,15 @@ export default function AdminRaceDetailPage() {
                   <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
                     Status
                   </p>
-                  <span
-                    className={`text-[11px] font-bold px-2 py-0.5 rounded capitalize ${getRaceStatusStyle(selectedRace.status)}`}
-                  >
-                    {STATUS_LABELS[selectedRace.status] ??
-                      selectedRace.status.replaceAll("_", " ")}
-                  </span>
+                  <StatusBadge
+                    status={selectedRace.status}
+                    styleMap={RACE_STATUS_STYLES}
+                    label={
+                      STATUS_LABELS[selectedRace.status] ??
+                      selectedRace.status.replaceAll("_", " ")
+                    }
+                    className="rounded capitalize font-bold"
+                  />
                 </div>
                 <div className="bg-slate-50 rounded-xl p-3">
                   <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
@@ -284,7 +310,9 @@ export default function AdminRaceDetailPage() {
                   </p>
                   <p className="text-xs font-semibold">
                     {selectedRace.scheduledAt
-                      ? new Date(selectedRace.scheduledAt).toLocaleString()
+                      ? new Date(selectedRace.scheduledAt).toLocaleString(
+                          "en-GB"
+                        )
                       : "-"}
                   </p>
                 </div>
@@ -296,14 +324,7 @@ export default function AdminRaceDetailPage() {
                     {selectedRace.laneCount ?? "-"}
                   </p>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-3">
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                    Round
-                  </p>
-                  <p className="text-xs font-semibold">
-                    {selectedRace.roundName ?? "-"}
-                  </p>
-                </div>
+
                 <div className="bg-slate-50 rounded-xl p-3">
                   <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
                     Distance
@@ -464,9 +485,9 @@ export default function AdminRaceDetailPage() {
                       <p className="text-[10px] text-slate-400">
                         Assigned:{" "}
                         {raceReferee.assignedAt
-                          ? new Date(
-                              raceReferee.assignedAt
-                            ).toLocaleDateString()
+                          ? new Date(raceReferee.assignedAt).toLocaleDateString(
+                              "en-GB"
+                            )
                           : "Recently"}
                       </p>
                     </div>

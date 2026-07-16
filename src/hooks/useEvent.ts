@@ -13,7 +13,8 @@ export function useEvent() {
         const tournaments = res.data as Tournament[];
         setEventList(tournaments.map((t) => ({ id: t.id, title: t.name })));
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("Failed to load tournaments:", err);
         setEventList([]);
       });
   }, []);

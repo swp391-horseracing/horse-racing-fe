@@ -85,7 +85,6 @@ export interface RaceReportListResponse {
 }
 
 export interface RaceDetail extends RaceListItem {
-  roundName?: string;
   distanceMeters?: number;
   trackCondition?: string;
   laneCount?: number;
@@ -96,7 +95,6 @@ export type Ride = {
   id: string;
   tournamentId: string;
   name: string;
-  roundName: string;
   distanceMeters: number;
   scheduledAt: string;
   venue: string;
@@ -148,7 +146,6 @@ export interface AdminRace {
   name: string;
   raceNumber: number;
   roundNumber: number;
-  roundName: string;
   distanceMeters: number;
   trackCondition: "dry" | "wet" | "muddy" | "heavy";
   scheduledAt: string;

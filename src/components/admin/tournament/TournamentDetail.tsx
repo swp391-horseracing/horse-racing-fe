@@ -14,8 +14,8 @@ import type { Tournament } from "../../../types/tournament";
 
 type Props = {
   tournament: Tournament;
-  onUpdate?: (id: string, data: TournamentFormValues) => Promise<boolean>;
-  onStatusChange?: (id: string, status: string) => Promise<boolean>;
+  onUpdate?: (id: string, data: TournamentFormValues) => Promise<true | string>;
+  onStatusChange?: (id: string, status: string) => Promise<true | string>;
 };
 
 function pad(value: number) {
@@ -53,6 +53,7 @@ export default function TournamentDetail({
   onStatusChange,
 }: Props) {
   const [editing, setEditing] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
   const [status, setStatus] = useState(tournament.status);
 
   useEffect(() => {
@@ -83,6 +84,7 @@ export default function TournamentDetail({
     validationSchema: toFormikValidationSchema(tournamentSchema),
     onSubmit: async (values) => {
       if (!onUpdate) return;
+      setServerError(null);
 
       const payload: TournamentFormValues = {
         ...values,
@@ -92,17 +94,23 @@ export default function TournamentDetail({
         registrationCloseDate: toISO(values.registrationCloseDate),
       };
 
-      const success = await onUpdate(tournament.id, payload);
+      const result = await onUpdate(tournament.id, payload);
 
-      if (success) {
+      if (result === true) {
         setEditing(false);
+      } else {
+        setServerError(result);
       }
     },
   });
 
   const handleStatusUpdate = async () => {
     if (!onStatusChange) return;
-    await onStatusChange(tournament.id, status);
+    setServerError(null);
+    const result = await onStatusChange(tournament.id, status);
+    if (result !== true) {
+      setServerError(result);
+    }
   };
 
   return (
@@ -149,6 +157,12 @@ export default function TournamentDetail({
           </button>
         </div>
       </div>
+
+      {serverError && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {serverError}
+        </div>
+      )}
 
       {editing ? (
         <form
@@ -392,28 +406,32 @@ export default function TournamentDetail({
             <div>
               <strong>Start Date:</strong>{" "}
               {tournament.startDate
-                ? new Date(tournament.startDate).toLocaleString()
+                ? new Date(tournament.startDate).toLocaleString("en-GB")
                 : "-"}
             </div>
 
             <div>
               <strong>End Date:</strong>{" "}
               {tournament.endDate
-                ? new Date(tournament.endDate).toLocaleString()
+                ? new Date(tournament.endDate).toLocaleString("en-GB")
                 : "-"}
             </div>
 
             <div>
               <strong>Registration Open:</strong>{" "}
               {tournament.registrationOpenDate
-                ? new Date(tournament.registrationOpenDate).toLocaleString()
+                ? new Date(tournament.registrationOpenDate).toLocaleString(
+                    "en-GB"
+                  )
                 : "-"}
             </div>
 
             <div>
               <strong>Registration Close:</strong>{" "}
               {tournament.registrationCloseDate
-                ? new Date(tournament.registrationCloseDate).toLocaleString()
+                ? new Date(tournament.registrationCloseDate).toLocaleString(
+                    "en-GB"
+                  )
                 : "-"}
             </div>
 

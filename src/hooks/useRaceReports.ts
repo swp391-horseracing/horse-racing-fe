@@ -51,7 +51,10 @@ export function useRaceReports(addToast: (m: string, t?: ToastType) => void) {
         if (raceIdsNeedingReferee.length > 0) {
           const results = await Promise.allSettled(
             raceIdsNeedingReferee.map((id) =>
-              AdminService.getRaceReferee(id).catch(() => null)
+              AdminService.getRaceReferee(id).catch((err) => {
+                console.error("Failed to load race referee:", id, err);
+                return null;
+              })
             )
           );
           results.forEach((result, i) => {
