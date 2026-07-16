@@ -47,7 +47,7 @@ export default function RaceReplay() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const {
-    detail: raceDetail,
+    detail: RaceDetail,
     loading: detailLoading,
     error: detailError,
     latestTick,
@@ -89,8 +89,6 @@ export default function RaceReplay() {
     }
   };
 
-  const entries = raceDetail?.entries;
-  console.log("entries", entries);
   const horseMeta = useMemo(() => {
     const metaMap = new Map<
       string,
@@ -107,22 +105,6 @@ export default function RaceReplay() {
       }
     >();
 
-    if (entries?.length) {
-      entries.forEach((entry, index) => {
-        metaMap.set(entry.horseId, {
-          id: entry.horseId,
-          name: entry.name,
-          laneIndex: Number(entry.laneNumber),
-          color: HORSE_COLORS[index % HORSE_COLORS.length],
-          entryStatus: entry.entryStatus,
-          jockeyName: entry.jockeyName,
-          weightKg: entry.weightKg,
-          clothNumber: entry.clothNumber,
-          trainerName: entry.trainerName,
-        });
-      });
-    }
-
     if (currentTick?.horses) {
       currentTick.horses.forEach((horse) => {
         if (!metaMap.has(horse.horseId)) {
@@ -137,7 +119,7 @@ export default function RaceReplay() {
     }
 
     return Array.from(metaMap.values());
-  }, [entries, currentTick]);
+  }, [currentTick]);
   console.log("horseMeta", horseMeta);
 
   // Rank change detection
@@ -239,7 +221,7 @@ export default function RaceReplay() {
     );
   }
 
-  if (!raceDetail) {
+  if (!RaceDetail) {
     return (
       <NotFoundContent
         title="Race not found"
@@ -264,41 +246,41 @@ export default function RaceReplay() {
           </button>
           <Flag className="w-7 h-7 text-[#D4AF37]" />
           <div className="space-y-1">
-            {raceDetail?.name && (
+            {RaceDetail?.name && (
               <div className="text-[18px] font-bold uppercase tracking-widest truncate">
-                {raceDetail.name}
+                {RaceDetail.name}
               </div>
             )}
             <div className="flex flex-wrap items-center gap-2 font-semibold text-xs">
               <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
                 <Clock className="h-3.5 w-3.5" />
-                {formatDateTime(raceDetail?.scheduledAt)}
+                {formatDateTime(RaceDetail?.scheduledAt)}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
                 <Flag className="h-3.5 w-3.5" />
-                {raceDetail?.course?.name || "Venue"}
+                {RaceDetail?.course?.name || "Venue"}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
                 <Hash className="h-3.5 w-3.5" />
-                {raceDetail?.raceNumber
-                  ? `Race #${raceDetail.raceNumber}`
+                {RaceDetail?.raceNumber
+                  ? `Race #${RaceDetail.raceNumber}`
                   : "Race TBC"}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
                 <Trophy className="h-3.5 w-3.5" />
-                {raceDetail?.course?.distanceMeters
-                  ? `${raceDetail.course.distanceMeters}m`
-                  : raceDetail?.distanceMeters
-                    ? `${raceDetail.distanceMeters}m`
+                {RaceDetail?.course?.distanceMeters
+                  ? `${RaceDetail.course.distanceMeters}m`
+                  : RaceDetail?.distanceMeters
+                    ? `${RaceDetail.distanceMeters}m`
                     : "Distance TBC"}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold capitalize">
-                {raceDetail?.course?.surfaceType || "Standard"}
+                {RaceDetail?.course?.surfaceType || "Standard"}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
                 <Layers className="h-3.5 w-3.5" />
-                {raceDetail?.laneCount
-                  ? `${raceDetail.laneCount} Lanes`
+                {RaceDetail?.laneCount
+                  ? `${RaceDetail.laneCount} Lanes`
                   : "Lanes TBC"}
               </span>
             </div>
