@@ -16,3 +16,16 @@ export function formatAge(dob: string): string {
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
   return `${age} years`;
 }
+
+export function formatRaceCountdown(totalSeconds: number): string {
+  if (totalSeconds <= 0) return "Starting now...";
+
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const pad = (val: number) => String(val).padStart(2, "0");
+
+  return `This race starts in ${pad(days)}:${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+}

@@ -72,7 +72,15 @@ export const router = createBrowserRouter([
         element: <TournamentsPage />,
       },
       {
+        path: ROUTES.TOURNAMENT_DETAIL,
+        element: <TournamentsPage />,
+      },
+      {
         path: ROUTES.TRACKS,
+        element: <TracksPage />,
+      },
+      {
+        path: ROUTES.TRACK_DETAIL,
         element: <TracksPage />,
       },
       {
