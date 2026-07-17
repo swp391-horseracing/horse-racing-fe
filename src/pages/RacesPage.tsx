@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect, useRef, memo } from "react";
+import { useMemo, useState, useCallback, useEffect, memo } from "react";
 import {
   useNavigate,
   useSearchParams,
@@ -26,7 +26,7 @@ import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
 import type { DateRange } from "react-day-picker";
 import { useToast } from "../hooks/useToast";
 import { useOwner } from "../hooks/useOwner";
-import { formatStatus } from "../utils/formatters";
+import { formatStatus, formatRaceCountdown } from "../utils/formatters";
 import {
   StatusBadge,
   RACE_STATUS_STYLES,
@@ -173,13 +173,13 @@ const loadingPlaceholder = (
 const RaceRow = memo(function RaceRow({
   race,
   selected,
-  onClick,
+  onSelect,
   showPredictBadge,
   canEnter,
 }: {
   race: RaceUI;
   selected: boolean;
-  onClick: () => void;
+  onSelect: (id: string) => void;
   showPredictBadge?: boolean;
   canEnter?: boolean;
 }) {
@@ -187,7 +187,7 @@ const RaceRow = memo(function RaceRow({
   const showGlow = selected || isLive;
   return (
     <button
-      onClick={onClick}
+      onClick={() => onSelect(race.id)}
       className={`group relative w-full flex items-center justify-between px-3 py-3 text-left transition-all overflow-hidden ${
         selected
           ? "bg-primary/5"
@@ -304,7 +304,6 @@ export default function RacesPage() {
     new Set()
   );
   const [distanceOpen, setDistanceOpen] = useState(false);
-  const distanceRef = useRef<HTMLDivElement>(null);
   const [venueCacheReady, setVenueCacheReady] = useState(!!_venueCache);
 
   const [activeTab, setActiveTab] = useState<"upcoming" | "calendar">(
@@ -422,13 +421,18 @@ export default function RacesPage() {
     };
   }, [raceDetail?.id, raceDetail?.status, raceDetail?.scheduledAt]);
 
+  const isCountdownEligible =
+    raceDetail?.status === "scheduled" || raceDetail?.status === "pre_race";
+
   const isAutoCountdown =
+    isCountdownEligible &&
     secondsUntilStart !== null &&
-    secondsUntilStart > 0 &&
-    secondsUntilStart <= 1800;
+    secondsUntilStart <= 1800 &&
+    secondsUntilStart >= -600;
 
   const isNearStart =
-    userToggleOverride !== null ? userToggleOverride : isAutoCountdown;
+    isCountdownEligible &&
+    (userToggleOverride !== null ? userToggleOverride : isAutoCountdown);
 
   const currentPrediction = raceDetail
     ? myPredictions.get(raceDetail.id)
@@ -564,12 +568,14 @@ export default function RacesPage() {
 
   const handleSelectRace = useCallback(
     (id: string) => {
+      setMobileSidebarOpen(false);
       navigate(`/races/${id}`);
     },
     [navigate]
   );
 
   const handleCloseDetail = useCallback(() => {
+    setMobileSidebarOpen(false);
     navigate(ROUTES.RACES);
   }, [navigate]);
 
@@ -577,7 +583,9 @@ export default function RacesPage() {
 
   const isReallyLoading =
     detailLoading ||
-    (raceId !== null && (!raceDetail || raceDetail.id !== raceId));
+    (!detailError &&
+      raceId !== null &&
+      (!raceDetail || raceDetail.id !== raceId));
 
   const uniqueStatuses = useMemo(
     () => [...new Set(racesInRange.map((r) => r.status))],
@@ -612,11 +620,12 @@ export default function RacesPage() {
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (
-        distanceRef.current &&
-        !distanceRef.current.contains(e.target as Node)
+        e.target instanceof Element &&
+        e.target.closest(".distance-dropdown-container")
       ) {
-        setDistanceOpen(false);
+        return;
       }
+      setDistanceOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -643,7 +652,7 @@ export default function RacesPage() {
                 key={race.id}
                 race={race}
                 selected={raceId === race.id}
-                onClick={() => handleSelectRace(race.id)}
+                onSelect={handleSelectRace}
                 showPredictBadge={isSpectator}
                 canEnter={
                   isOwner &&
@@ -683,7 +692,7 @@ export default function RacesPage() {
                 key={race.id}
                 race={race}
                 selected={raceId === race.id}
-                onClick={() => handleSelectRace(race.id)}
+                onSelect={handleSelectRace}
                 showPredictBadge={isSpectator}
                 canEnter={
                   isOwner &&
@@ -778,10 +787,7 @@ export default function RacesPage() {
         </div>
 
         {uniqueDistances.length > 0 && (
-          <div
-            className="mb-6 flex flex-wrap items-center gap-2"
-            ref={distanceRef}
-          >
+          <div className="mb-6 flex flex-wrap items-center gap-2 distance-dropdown-container">
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1">
               Distance
             </span>
@@ -844,7 +850,6 @@ export default function RacesPage() {
       uniqueDistances,
       selectedDistances,
       distanceOpen,
-      distanceRef,
       setActiveTab,
       setSelectedStatuses,
       toggleStatus,
@@ -926,7 +931,9 @@ export default function RacesPage() {
                     />
                   </div>
                   <div className="w-full lg:sticky lg:top-6 space-y-4">
-                    {calendarRacesList}
+                    {upcomingLoading || racesLoading
+                      ? loadingPlaceholder
+                      : calendarRacesList}
                   </div>
                 </>
               ) : (
@@ -1066,16 +1073,25 @@ export default function RacesPage() {
                     {/* Time card */}
                     <button
                       title={
-                        isNearStart
-                          ? "Click to view scheduled start date"
-                          : "Click to view countdown timer"
+                        isCountdownEligible
+                          ? isNearStart
+                            ? "Click to view scheduled start date"
+                            : "Click to view countdown timer"
+                          : undefined
                       }
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setUserToggleOverride(!isNearStart);
-                      }}
+                      onClick={
+                        isCountdownEligible
+                          ? (e) => {
+                              e.stopPropagation();
+                              setUserToggleOverride(!isNearStart);
+                            }
+                          : undefined
+                      }
                       className={cn(
-                        "p-3.5 text-left rounded-xl border transition-all flex flex-col justify-between w-full min-h-[82px] cursor-pointer outline-none focus:ring-1 focus:ring-white/30 select-none",
+                        "p-3.5 text-left rounded-xl border transition-all flex flex-col justify-between w-full min-h-[82px] outline-none select-none",
+                        isCountdownEligible
+                          ? "cursor-pointer focus:ring-1 focus:ring-white/30"
+                          : "cursor-default",
                         isNearStart
                           ? "bg-amber-500 border-amber-400 hover:bg-amber-400 hover:border-amber-300 shadow-sm"
                           : "bg-white/15 border-white/25 hover:bg-white/25 hover:border-white/35"
@@ -1089,24 +1105,9 @@ export default function RacesPage() {
                               Starts In
                             </span>
                             <span className="text-base font-bold font-mono text-[#064E3B] tracking-normal block mt-1">
-                              {secondsUntilStart !== null &&
-                              secondsUntilStart > 0
-                                ? (() => {
-                                    const days = Math.floor(
-                                      secondsUntilStart / 86400
-                                    );
-                                    const hours = Math.floor(
-                                      (secondsUntilStart % 86400) / 3600
-                                    );
-                                    const minutes = Math.floor(
-                                      (secondsUntilStart % 3600) / 60
-                                    );
-                                    const seconds = secondsUntilStart % 60;
-                                    const pad = (val: number) =>
-                                      String(val).padStart(2, "0");
-                                    return `${pad(days)}:${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-                                  })()
-                                : "Starting now..."}
+                              {secondsUntilStart !== null
+                                ? formatRaceCountdown(secondsUntilStart)
+                                : ""}
                             </span>
                           </div>
                           <span className="text-[9px] text-[#064E3B]/70 block leading-normal mt-0.5">
@@ -1374,8 +1375,8 @@ export default function RacesPage() {
                                 <td className="px-6 py-4.5 font-bold font-headline text-[#064E3B] text-base leading-snug">
                                   <button
                                     onClick={() => {
-                                      if (!entry.id) return;
-                                      navigate(`/horses/${entry.id}`);
+                                      if (!entry.horseId) return;
+                                      navigate(`/horses/${entry.horseId}`);
                                     }}
                                     className="text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B]/40 rounded"
                                   >

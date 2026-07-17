@@ -33,6 +33,8 @@ export function SidebarDrawer({
 
       {/* Mobile drawer overlay — always in DOM for smooth CSS transitions */}
       <div
+        aria-hidden={!isOpen}
+        inert={!isOpen || undefined}
         className={cn(
           "lg:hidden fixed inset-0 z-50 flex transition-all duration-300",
           isOpen ? "pointer-events-auto" : "pointer-events-none"
@@ -61,8 +63,10 @@ export function SidebarDrawer({
             <button
               onClick={() => onOpenChange(false)}
               className="p-1.5 rounded-lg border border-border bg-muted/30 text-muted-foreground hover:bg-muted/60 transition-colors"
+              aria-label="Close drawer"
             >
               <X className="h-4 w-4" />
+              <span className="sr-only">Close drawer</span>
             </button>
           </div>
           {/* Drawer content */}

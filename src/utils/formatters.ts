@@ -27,5 +27,5 @@ export function formatRaceCountdown(totalSeconds: number): string {
 
   const pad = (val: number) => String(val).padStart(2, "0");
 
-  return `This race starts in ${pad(days)}:${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  return `${pad(days)}:${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 }
