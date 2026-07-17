@@ -63,8 +63,9 @@ const formatDateTime = (dateString: string | undefined) => {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return "Invalid Date";
   return date.toLocaleString("en-GB", {
-    month: "short",
     day: "numeric",
+    month: "numeric",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -131,11 +132,7 @@ function OpenRacesTab() {
   const dateRangeStr = useMemo(() => {
     if (!selectedRange?.from) return undefined;
     const fmt = (d: Date) =>
-      d.toLocaleDateString("en-GB", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      });
+      d.toLocaleDateString("en-GB");
     if (!selectedRange.to) return fmt(selectedRange.from);
     return `${fmt(selectedRange.from)} – ${fmt(selectedRange.to)}`;
   }, [selectedRange]);
@@ -379,9 +376,9 @@ function MyPredictionsTab() {
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
-    return d.toLocaleDateString("en-GB", {
-      month: "short",
+    return d.toLocaleString("en-GB", {
       day: "numeric",
+      month: "numeric",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",

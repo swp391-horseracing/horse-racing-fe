@@ -111,7 +111,7 @@ const mapRaceToUi = (race: RaceListItem): RaceUI => {
   return {
     ...race,
     title: race.name,
-    date: `${yyyy}-${mm}-${dd}`,
+    date: `${dd}/${mm}/${yyyy}`,
     time: `${hh}:${min}`,
     distance,
     surface,
@@ -123,11 +123,7 @@ const mapRaceToUi = (race: RaceListItem): RaceUI => {
 };
 
 const fmtShort = (d: string) =>
-  new Date(d).toLocaleDateString("en-GB", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
+  new Date(d).toLocaleDateString("en-GB");
 
 const parseLocalDate = (dateStr: string) => {
   const [year, month, day] = dateStr.split("-").map(Number);
@@ -140,8 +136,8 @@ const formatDateTime = (dateString: string | undefined) => {
   if (isNaN(date.getTime())) return "Invalid Date";
 
   return date.toLocaleString("en-GB", {
-    month: "short",
     day: "numeric",
+    month: "numeric",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",

@@ -94,11 +94,7 @@ function formatDateOrFallback(value?: string) {
   const d = new Date(value);
   return Number.isNaN(d.getTime())
     ? "Not specified"
-    : d.toLocaleDateString("en-GB", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
+    : d.toLocaleDateString("en-GB");
 }
 
 export default function TournamentsPage() {

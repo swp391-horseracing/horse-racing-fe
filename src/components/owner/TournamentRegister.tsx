@@ -47,22 +47,14 @@ function formatDate(value?: string) {
   if (!value) return "Not specified";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "Not specified";
-  return d.toLocaleDateString("en-GB", {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-  });
+  return d.toLocaleDateString("en-GB");
 }
 
 function formatDateFull(value?: string) {
   if (!value) return "Not specified";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "Not specified";
-  return d.toLocaleDateString("en-GB", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  return d.toLocaleDateString("en-GB");
 }
 
 function TournamentStatusBadge({ status }: { status: string }) {
@@ -619,8 +611,9 @@ export function TournamentRegister({
                                       {new Date(
                                         race.scheduledAt
                                       ).toLocaleString("en-GB", {
-                                        month: "short",
                                         day: "numeric",
+                                        month: "numeric",
+                                        year: "numeric",
                                         hour: "2-digit",
                                         minute: "2-digit",
                                       })}
