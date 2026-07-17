@@ -5,12 +5,6 @@ import { PredictionService } from "../../services/PredictionService";
 import { fetchRaceEntries } from "../../hooks/useRaces";
 import type { RaceEntry } from "../../types/race";
 
-export interface ExistingPrediction {
-  entryId: string;
-  horseName: string;
-  predictedPosition: number;
-}
-
 export interface PreselectedEntry {
   id: string;
   name: string;
@@ -29,9 +23,9 @@ interface PlacePredictionModalProps {
     message: string,
     type: "success" | "error" | "info" | "warning"
   ) => void;
-  existingPrediction?: ExistingPrediction | null;
-  onPlaced?: (data: ExistingPrediction) => void;
+  onPlaced?: (data: { entryId: string; horseName: string; predictedPosition: number }) => void;
   preselectedEntry?: PreselectedEntry | null;
+  predictedEntryIds?: string[];
 }
 
 const POSITIONS = [
@@ -48,20 +42,25 @@ export function PlacePredictionModal({
   onClose,
   onSuccess,
   addToast,
-  existingPrediction,
   onPlaced,
   preselectedEntry,
+  predictedEntryIds,
 }: PlacePredictionModalProps) {
   const [selectedEntryId, setSelectedEntryId] = useState<string>(
-    () => preselectedEntry?.id ?? existingPrediction?.entryId ?? ""
+    () => preselectedEntry?.id ?? ""
   );
-  const [selectedPosition, setSelectedPosition] = useState<number>(
-    () => existingPrediction?.predictedPosition ?? 1
-  );
+  const [selectedPosition, setSelectedPosition] = useState<number>(1);
   const [submitting, setSubmitting] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const filterEntries = (list: RaceEntry[]) =>
+    list.filter(
+      (e) =>
+        e.entryStatus === "confirmed" &&
+        !predictedEntryIds?.includes(e.id)
+    );
+
   const [localEntries, setLocalEntries] = useState<RaceEntry[]>(() =>
-    open ? entries : []
+    open ? filterEntries(entries) : []
   );
 
   useEffect(() => {
@@ -69,10 +68,10 @@ export function PlacePredictionModal({
     let cancelled = false;
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLocalEntries(entries);
+    setLocalEntries(filterEntries(entries));
     fetchRaceEntries(raceId)
       .then((data) => {
-        if (!cancelled) setLocalEntries(data);
+        if (!cancelled) setLocalEntries(filterEntries(data));
       })
       .catch((err) => {
         console.error("Failed to fetch race entries for prediction:", err);
@@ -99,7 +98,6 @@ export function PlacePredictionModal({
 
   if (!open) return null;
 
-  const isEdit = !!existingPrediction;
   const preselectedName = preselectedEntry?.name ?? entryMap.get(selectedEntryId) ?? "Unknown";
 
   const handleConfirmClick = () => {
@@ -123,12 +121,7 @@ export function PlacePredictionModal({
         selectedPosition
       );
       const horseName = preselectedName;
-      addToast(
-        isEdit
-          ? "Prediction updated successfully!"
-          : "Prediction placed successfully!",
-        "success"
-      );
+      addToast("Prediction placed successfully!", "success");
       onPlaced?.({
         entryId: selectedEntryId,
         horseName,
@@ -167,7 +160,7 @@ export function PlacePredictionModal({
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-[#EAB308]" />
             <h2 className="font-headline font-bold text-[#064E3B] text-lg">
-              {isEdit ? "Update Prediction" : "Place Prediction"}
+              Place Prediction
             </h2>
           </div>
           <button
@@ -306,7 +299,7 @@ export function PlacePredictionModal({
               disabled={submitting}
               className="w-full bg-[#064E3B] text-white font-bold text-sm py-3 rounded-xl hover:bg-[#043E2F] hover:shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              {isEdit ? "Update Prediction" : "Confirm Prediction"}
+              Confirm Prediction
               <ArrowRight className="w-4 h-4" />
             </button>
           )}

@@ -368,6 +368,9 @@ export default function RacesPage() {
   const currentPrediction = raceDetail
     ? myPredictions.get(raceDetail.id)
     : undefined;
+  const predictedEntryIds = currentPrediction
+    ? [currentPrediction.entryId]
+    : [];
 
   const eligibleHorsesForRace = raceDetail?.tournamentId
     ? (eligibleHorsesByTournament.get(raceDetail.tournamentId) ?? [])
@@ -970,9 +973,7 @@ export default function RacesPage() {
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EAB308] text-[#064E3B] font-bold text-[11px] hover:bg-[#D9A207] hover:shadow-md transition-all cursor-pointer"
                           >
                             <Target className="w-3.5 h-3.5" />
-                            {currentPrediction
-                              ? "Update Prediction"
-                              : "Predict"}
+                            Predict
                           </button>
                         )}
                     </>
@@ -1160,7 +1161,7 @@ export default function RacesPage() {
                                     (raceDetail?.status === "scheduled" ||
                                       raceDetail?.status === "pre_race") && (
                                       <td className="px-6 py-4.5 text-center">
-                                        {entry.entryStatus === "confirmed" ? (
+                                        {entry.entryStatus === "confirmed" && !predictedEntryIds.includes(entry.id) ? (
                                           <button
                                             onClick={() => {
                                               setPreselectedEntry({
@@ -1243,7 +1244,6 @@ export default function RacesPage() {
                 loadDetail();
               }}
               addToast={addToast}
-              existingPrediction={currentPrediction}
               onPlaced={(data) => {
                 setMyPredictions((prev) => {
                   const next = new Map(prev);
@@ -1253,6 +1253,7 @@ export default function RacesPage() {
                 setPreselectedEntry(null);
               }}
               preselectedEntry={preselectedEntry}
+              predictedEntryIds={predictedEntryIds}
             />
           )}
         </div>
