@@ -274,8 +274,11 @@ export default function FeedPage() {
                       className="group flex items-start gap-3 p-3 rounded-xl border border-slate-50 hover:border-[#064E3B]/20 hover:bg-slate-50/50 transition-all duration-200 cursor-pointer"
                     >
                       <div className="flex flex-col items-center justify-center bg-[#064E3B]/5 group-hover:bg-[#064E3B]/10 text-[#064E3B] rounded-lg p-2 shrink-0 w-12 text-center transition-colors">
-                          <span className="text-[10px] font-bold uppercase tracking-wider font-label">
-                          {new Date(race.scheduledAt).toLocaleDateString("en-GB", { month: "short" })}
+                        <span className="text-[10px] font-bold uppercase tracking-wider font-label">
+                          {new Date(race.scheduledAt).toLocaleDateString(
+                            "en-GB",
+                            { month: "short" }
+                          )}
                         </span>
                         <span className="text-base font-black font-headline leading-none">
                           {new Date(race.scheduledAt).getDate()}

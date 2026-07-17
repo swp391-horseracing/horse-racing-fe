@@ -1,12 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  ArrowRight,
-  Calendar,
-  Heart,
-  PlayCircle,
-  ArrowLeft,
-} from "lucide-react";
+import { ArrowRight, Heart, ArrowLeft } from "lucide-react";
 import useHorse from "../hooks/horse/useHorse";
 import useAuth from "../hooks/auth/useAuth";
 import { formatStatus } from "../utils/formatters";
@@ -170,7 +164,7 @@ export default function HorseDetailPage() {
                   </h1>
 
                   <p className="mt-4 max-w-2xl text-base font-medium leading-7 text-white/80 md:text-lg">
-                     Owned by {ownerName}
+                    Owned by {ownerName}
                   </p>
                 </div>
               </div>

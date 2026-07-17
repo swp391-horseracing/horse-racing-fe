@@ -1,4 +1,10 @@
-import { useState, useEffect, startTransition, type FormEvent } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  startTransition,
+  type FormEvent,
+} from "react";
 import { X, Loader2, Plus } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -68,10 +74,13 @@ export default function RaceForm({
     ...initial,
   });
   const [error, setError] = useState<string | null>(null);
-  const setFormError = (msg: string) => {
-    setError(msg);
-    onError?.(msg);
-  };
+  const setFormError = useCallback(
+    (msg: string) => {
+      setError(msg);
+      onError?.(msg);
+    },
+    [onError]
+  );
 
   const [tracks, setTracks] = useState<Track[]>([]);
   const [tracksLoading, setTracksLoading] = useState(false);
@@ -104,7 +113,7 @@ export default function RaceForm({
       }
     };
     void load();
-  }, []);
+  }, [setFormError]);
 
   // When track changes, fetch distances
   useEffect(() => {

@@ -122,8 +122,7 @@ const mapRaceToUi = (race: RaceListItem): RaceUI => {
   };
 };
 
-const fmtShort = (d: string) =>
-  new Date(d).toLocaleDateString("en-GB");
+const fmtShort = (d: string) => new Date(d).toLocaleDateString("en-GB");
 
 const parseLocalDate = (dateStr: string) => {
   const [year, month, day] = dateStr.split("-").map(Number);
@@ -456,8 +455,10 @@ export default function RacesPage() {
       const existing = map.get(r.date) ?? [];
       map.set(r.date, [...existing, r]);
     });
-    return Array.from(map.entries()).sort(([, racesA], [, racesB]) =>
-      new Date(racesA[0].scheduledAt).getTime() - new Date(racesB[0].scheduledAt).getTime()
+    return Array.from(map.entries()).sort(
+      ([, racesA], [, racesB]) =>
+        new Date(racesA[0].scheduledAt).getTime() -
+        new Date(racesB[0].scheduledAt).getTime()
     );
   }, [filteredRaces]);
 
@@ -1161,7 +1162,10 @@ export default function RacesPage() {
                                     (raceDetail?.status === "scheduled" ||
                                       raceDetail?.status === "pre_race") && (
                                       <td className="px-6 py-4.5 text-center">
-                                        {entry.entryStatus === "confirmed" && !predictedEntryIds.includes(entry.id) ? (
+                                        {entry.entryStatus === "confirmed" &&
+                                        !predictedEntryIds.includes(
+                                          entry.id
+                                        ) ? (
                                           <button
                                             onClick={() => {
                                               setPreselectedEntry({

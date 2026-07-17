@@ -131,8 +131,7 @@ function OpenRacesTab() {
 
   const dateRangeStr = useMemo(() => {
     if (!selectedRange?.from) return undefined;
-    const fmt = (d: Date) =>
-      d.toLocaleDateString("en-GB");
+    const fmt = (d: Date) => d.toLocaleDateString("en-GB");
     if (!selectedRange.to) return fmt(selectedRange.from);
     return `${fmt(selectedRange.from)} – ${fmt(selectedRange.to)}`;
   }, [selectedRange]);

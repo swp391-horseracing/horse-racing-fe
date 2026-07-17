@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { X, Trophy, ArrowRight } from "lucide-react";
 
 import { PredictionService } from "../../services/PredictionService";
@@ -23,7 +23,11 @@ interface PlacePredictionModalProps {
     message: string,
     type: "success" | "error" | "info" | "warning"
   ) => void;
-  onPlaced?: (data: { entryId: string; horseName: string; predictedPosition: number }) => void;
+  onPlaced?: (data: {
+    entryId: string;
+    horseName: string;
+    predictedPosition: number;
+  }) => void;
   preselectedEntry?: PreselectedEntry | null;
   predictedEntryIds?: string[];
 }
@@ -52,12 +56,14 @@ export function PlacePredictionModal({
   const [selectedPosition, setSelectedPosition] = useState<number>(1);
   const [submitting, setSubmitting] = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const filterEntries = (list: RaceEntry[]) =>
-    list.filter(
-      (e) =>
-        e.entryStatus === "confirmed" &&
-        !predictedEntryIds?.includes(e.id)
-    );
+  const filterEntries = useCallback(
+    (list: RaceEntry[]) =>
+      list.filter(
+        (e) =>
+          e.entryStatus === "confirmed" && !predictedEntryIds?.includes(e.id)
+      ),
+    [predictedEntryIds]
+  );
 
   const [localEntries, setLocalEntries] = useState<RaceEntry[]>(() =>
     open ? filterEntries(entries) : []
@@ -69,9 +75,30 @@ export function PlacePredictionModal({
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocalEntries(filterEntries(entries));
+
+    if (preselectedEntry) {
+      const match = filterEntries(entries).find(
+        (e) => e.name === preselectedEntry.name
+      );
+      if (match) {
+        setSelectedEntryId(match.id);
+        setConfirming(false);
+      }
+    }
+
     fetchRaceEntries(raceId)
       .then((data) => {
-        if (!cancelled) setLocalEntries(filterEntries(data));
+        if (!cancelled) {
+          const fetched = filterEntries(data);
+          setLocalEntries(fetched);
+          if (preselectedEntry) {
+            const match = fetched.find((e) => e.name === preselectedEntry.name);
+            if (match) {
+              setSelectedEntryId(match.id);
+              setConfirming(false);
+            }
+          }
+        }
       })
       .catch((err) => {
         console.error("Failed to fetch race entries for prediction:", err);
@@ -80,16 +107,7 @@ export function PlacePredictionModal({
     return () => {
       cancelled = true;
     };
-  }, [open, raceId, entries, addToast]);
-
-  useEffect(() => {
-    if (!preselectedEntry || !open) return;
-    const match = localEntries.find((e) => e.name === preselectedEntry.name);
-    if (match) {
-      setSelectedEntryId(match.id);
-      setConfirming(false);
-    }
-  }, [preselectedEntry, localEntries, open]);
+  }, [open, raceId, entries, addToast, filterEntries, preselectedEntry]);
 
   const entryMap = useMemo(
     () => new Map(localEntries.map((e) => [e.id, e.name])),
@@ -98,7 +116,8 @@ export function PlacePredictionModal({
 
   if (!open) return null;
 
-  const preselectedName = preselectedEntry?.name ?? entryMap.get(selectedEntryId) ?? "Unknown";
+  const preselectedName =
+    preselectedEntry?.name ?? entryMap.get(selectedEntryId) ?? "Unknown";
 
   const handleConfirmClick = () => {
     if (!selectedEntryId) {
