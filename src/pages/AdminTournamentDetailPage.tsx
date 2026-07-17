@@ -11,6 +11,8 @@ import { STATUS_LABELS } from "../components/admin/race/raceStatus";
 import { extractApiErrorMessage } from "../utils/errorMessages";
 import RaceForm, { type RaceFormData } from "../components/admin/race/RaceForm";
 import useAdminRace from "../hooks/admin/useAdminRace";
+import { useToast } from "../hooks/useToast";
+import { ToastContainer } from "../components/ui/toast";
 import type {
   RaceItem,
   TournamentDetail as TournamentDetailType,
@@ -20,15 +22,7 @@ export default function AdminTournamentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
-
-  const addToast = (message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  const { toasts, addToast } = useToast();
 
   const [selectedTournament, setSelectedTournament] =
     useState<TournamentDetailType | null>(null);
@@ -148,17 +142,7 @@ export default function AdminTournamentDetailPage() {
   return (
     <UserLayout activeKey="/admin/tournaments">
       <div className="h-full w-full flex flex-col overflow-y-auto p-6 max-w-7xl mx-auto space-y-4">
-        {toast && (
-          <div
-            className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-semibold shadow-lg ${
-              toast.type === "success"
-                ? "bg-emerald-600 text-white"
-                : "bg-rose-600 text-white"
-            }`}
-          >
-            {toast.message}
-          </div>
-        )}
+        <ToastContainer toasts={toasts} />
 
         <button
           onClick={() => navigate("/admin/tournaments")}
@@ -263,6 +247,7 @@ export default function AdminTournamentDetailPage() {
             actionLoading={actionLoading}
             tournamentStartDate={selectedTournament.startDate}
             tournamentEndDate={selectedTournament.endDate}
+            onError={(msg) => addToast(msg, "error")}
           />
         )}
       </div>
