@@ -447,7 +447,9 @@ export default function RacesPage() {
       const existing = map.get(r.date) ?? [];
       map.set(r.date, [...existing, r]);
     });
-    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
+    return Array.from(map.entries()).sort(([, racesA], [, racesB]) =>
+      new Date(racesA[0].scheduledAt).getTime() - new Date(racesB[0].scheduledAt).getTime()
+    );
   }, [filteredRaces]);
 
   const dateRangeStr = useMemo(() => {
@@ -468,14 +470,18 @@ export default function RacesPage() {
   }, [filteredRaces]);
 
   const calendarFilteredRaces = useMemo(() => {
-    if (!dateRangeStr) return nextFiveRaces;
-    if (typeof dateRangeStr === "string") {
-      return filteredRaces.filter((r) => r.date === dateRangeStr);
-    }
-    return filteredRaces.filter(
-      (r) => r.date >= dateRangeStr.from && r.date <= dateRangeStr.to
-    );
-  }, [filteredRaces, dateRangeStr, nextFiveRaces]);
+    if (!selectedRange?.from) return nextFiveRaces;
+    const from = new Date(selectedRange.from);
+    from.setHours(0, 0, 0, 0);
+    const to = selectedRange.to
+      ? new Date(selectedRange.to)
+      : new Date(selectedRange.from);
+    to.setHours(23, 59, 59, 999);
+    return filteredRaces.filter((r) => {
+      const d = new Date(r.scheduledAt);
+      return d >= from && d <= to;
+    });
+  }, [filteredRaces, selectedRange, nextFiveRaces]);
 
   const calendarRaces = useMemo(() => {
     const source =
@@ -484,18 +490,25 @@ export default function RacesPage() {
   }, [selectedRange?.from, selectedRange?.to, rangeRaces, apiRaces]);
 
   const raceDays = useMemo(() => {
-    return calendarRaces.map((r) => parseLocalDate(r.date));
+    return calendarRaces.map((r) => {
+      const d = new Date(r.scheduledAt);
+      return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    });
   }, [calendarRaces]);
 
   const racesInRange = useMemo(() => {
-    if (!isCalendarMode || !dateRangeStr) return allRaces;
-    if (typeof dateRangeStr === "string") {
-      return allRaces.filter((r) => r.date === dateRangeStr);
-    }
-    return allRaces.filter(
-      (r) => r.date >= dateRangeStr.from && r.date <= dateRangeStr.to
-    );
-  }, [allRaces, dateRangeStr, isCalendarMode]);
+    if (!isCalendarMode || !selectedRange?.from) return allRaces;
+    const from = new Date(selectedRange.from);
+    from.setHours(0, 0, 0, 0);
+    const to = selectedRange.to
+      ? new Date(selectedRange.to)
+      : new Date(selectedRange.from);
+    to.setHours(23, 59, 59, 999);
+    return allRaces.filter((r) => {
+      const d = new Date(r.scheduledAt);
+      return d >= from && d <= to;
+    });
+  }, [allRaces, selectedRange, isCalendarMode]);
 
   const handleSelectRace = useCallback(
     (id: string) => {
