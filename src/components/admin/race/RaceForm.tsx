@@ -1,5 +1,8 @@
 import { useState, useEffect, startTransition, type FormEvent } from "react";
 import { X, Loader2, Plus } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { format } from "date-fns";
 import { AdminService } from "../../../services/AdminService";
 import AddTrackDistanceModal from "./AddTrackDistanceModal";
 
@@ -379,17 +382,22 @@ export default function RaceForm({
                 {new Date(tournamentEndDate).toLocaleDateString("en-GB")}
               </p>
             )}
-            <input
-              type="datetime-local"
-              value={form.scheduledAt}
-              onChange={(e) =>
+            <DatePicker
+              selected={form.scheduledAt ? new Date(form.scheduledAt) : null}
+              onChange={(date) =>
                 setForm((prev) => ({
                   ...prev,
-                  scheduledAt: e.target.value,
+                  scheduledAt: date ? format(date, "yyyy-MM-dd'T'HH:mm") : "",
                 }))
               }
+              showTimeSelect
+              timeFormat="hh:mm aa"
+              timeIntervals={15}
+              dateFormat="dd/MM/yyyy hh:mm aa"
+              placeholderText="dd/MM/yyyy hh:mm aa"
               className="w-full border rounded-xl px-4 py-3"
               required
+              shouldCloseOnSelect
             />
           </div>
 
