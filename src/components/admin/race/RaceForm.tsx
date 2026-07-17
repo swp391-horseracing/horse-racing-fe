@@ -393,7 +393,7 @@ export default function RaceForm({
             )}
             <DatePicker
               selected={form.scheduledAt ? new Date(form.scheduledAt) : null}
-              onChange={(date) =>
+              onChange={(date: Date | null) =>
                 setForm((prev) => ({
                   ...prev,
                   scheduledAt: date ? format(date, "yyyy-MM-dd'T'HH:mm") : "",
