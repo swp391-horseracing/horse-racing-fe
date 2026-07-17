@@ -11,6 +11,13 @@ export interface ExistingPrediction {
   predictedPosition: number;
 }
 
+export interface PreselectedEntry {
+  id: string;
+  name: string;
+  jockeyName: string;
+  laneNumber: string;
+}
+
 interface PlacePredictionModalProps {
   raceId: string;
   raceName: string;
@@ -24,6 +31,7 @@ interface PlacePredictionModalProps {
   ) => void;
   existingPrediction?: ExistingPrediction | null;
   onPlaced?: (data: ExistingPrediction) => void;
+  preselectedEntry?: PreselectedEntry | null;
 }
 
 const POSITIONS = [
@@ -42,9 +50,10 @@ export function PlacePredictionModal({
   addToast,
   existingPrediction,
   onPlaced,
+  preselectedEntry,
 }: PlacePredictionModalProps) {
   const [selectedEntryId, setSelectedEntryId] = useState<string>(
-    () => existingPrediction?.entryId ?? ""
+    () => preselectedEntry?.id ?? existingPrediction?.entryId ?? ""
   );
   const [selectedPosition, setSelectedPosition] = useState<number>(
     () => existingPrediction?.predictedPosition ?? 1
@@ -74,6 +83,15 @@ export function PlacePredictionModal({
     };
   }, [open, raceId, entries, addToast]);
 
+  useEffect(() => {
+    if (!preselectedEntry || !open) return;
+    const match = localEntries.find((e) => e.name === preselectedEntry.name);
+    if (match) {
+      setSelectedEntryId(match.id);
+      setConfirming(false);
+    }
+  }, [preselectedEntry, localEntries, open]);
+
   const entryMap = useMemo(
     () => new Map(localEntries.map((e) => [e.id, e.name])),
     [localEntries]
@@ -82,6 +100,7 @@ export function PlacePredictionModal({
   if (!open) return null;
 
   const isEdit = !!existingPrediction;
+  const preselectedName = preselectedEntry?.name ?? entryMap.get(selectedEntryId) ?? "Unknown";
 
   const handleConfirmClick = () => {
     if (!selectedEntryId) {
@@ -103,7 +122,7 @@ export function PlacePredictionModal({
         selectedEntryId,
         selectedPosition
       );
-      const horseName = entryMap.get(selectedEntryId) || "Unknown";
+      const horseName = preselectedName;
       addToast(
         isEdit
           ? "Prediction updated successfully!"
@@ -169,44 +188,65 @@ export function PlacePredictionModal({
 
           <div>
             <label className="block font-label text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
-              Select Entry
+              {preselectedEntry ? "Selected Entry" : "Select Entry"}
             </label>
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {localEntries.map((entry) => (
-                <label
-                  key={entry.id}
-                  className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all ${
-                    selectedEntryId === entry.id
-                      ? "border-[#064E3B] bg-[#064E3B]/5 ring-1 ring-[#064E3B]"
-                      : "border-slate-100"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="entry"
-                      value={entry.id}
-                      checked={selectedEntryId === entry.id}
-                      onChange={() => setSelectedEntryId(entry.id)}
-                      className="text-[#064E3B] focus:ring-[#064E3B] h-4 w-4 border-slate-300"
-                    />
-                    <div>
-                      <span className="text-sm font-bold text-slate-700">
-                        {entry.name}
+            {preselectedEntry ? (
+              <div className="flex items-center justify-between p-3.5 border border-[#064E3B] bg-[#064E3B]/5 ring-1 ring-[#064E3B] rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="h-4 w-4 rounded-full bg-[#064E3B]" />
+                  <div>
+                    <span className="text-sm font-bold text-slate-700">
+                      {preselectedEntry.name}
+                    </span>
+                    {preselectedEntry.jockeyName && (
+                      <span className="text-xs text-slate-400 ml-2">
+                        (J: {preselectedEntry.jockeyName})
                       </span>
-                      {entry.jockeyName && (
-                        <span className="text-xs text-slate-400 ml-2">
-                          (J: {entry.jockeyName})
-                        </span>
-                      )}
-                    </div>
+                    )}
                   </div>
-                  <span className="font-label text-[10px] font-bold text-slate-400">
-                    Lane {entry.laneNumber}
-                  </span>
-                </label>
-              ))}
-            </div>
+                </div>
+                <span className="font-label text-[10px] font-bold text-slate-400">
+                  Lane {preselectedEntry.laneNumber}
+                </span>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {localEntries.map((entry) => (
+                  <label
+                    key={entry.id}
+                    className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all ${
+                      selectedEntryId === entry.id
+                        ? "border-[#064E3B] bg-[#064E3B]/5 ring-1 ring-[#064E3B]"
+                        : "border-slate-100"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="entry"
+                        value={entry.id}
+                        checked={selectedEntryId === entry.id}
+                        onChange={() => setSelectedEntryId(entry.id)}
+                        className="text-[#064E3B] focus:ring-[#064E3B] h-4 w-4 border-slate-300"
+                      />
+                      <div>
+                        <span className="text-sm font-bold text-slate-700">
+                          {entry.name}
+                        </span>
+                        {entry.jockeyName && (
+                          <span className="text-xs text-slate-400 ml-2">
+                            (J: {entry.jockeyName})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <span className="font-label text-[10px] font-bold text-slate-400">
+                      Lane {entry.laneNumber}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
@@ -238,7 +278,7 @@ export function PlacePredictionModal({
                   Are you sure?
                 </p>
                 <p className="text-sm font-bold text-amber-700 mt-1">
-                  {entryMap.get(selectedEntryId)} →{" "}
+                  {preselectedName} →{" "}
                   {{ 1: "1st", 2: "2nd", 3: "3rd" }[selectedPosition]} position
                 </p>
               </div>

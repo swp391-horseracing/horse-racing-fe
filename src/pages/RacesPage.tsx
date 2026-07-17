@@ -321,6 +321,12 @@ export default function RacesPage() {
   const [predictModalOpen, setPredictModalOpen] = useState(
     () => !!(urlRaceId && searchParams.get("predict") === "true")
   );
+  const [preselectedEntry, setPreselectedEntry] = useState<{
+    id: string;
+    name: string;
+    jockeyName: string;
+    laneNumber: string;
+  } | null>(null);
   const [modalKey, setModalKey] = useState(0);
   const { toasts, addToast } = useToast();
 
@@ -958,6 +964,7 @@ export default function RacesPage() {
                           <button
                             onClick={() => {
                               setModalKey((k) => k + 1);
+                              setPreselectedEntry(null);
                               setPredictModalOpen(true);
                             }}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EAB308] text-[#064E3B] font-bold text-[11px] hover:bg-[#D9A207] hover:shadow-md transition-all cursor-pointer"
@@ -1104,6 +1111,13 @@ export default function RacesPage() {
                               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hidden md:table-cell">
                                 Status
                               </th>
+                              {isSpectator &&
+                                (raceDetail?.status === "scheduled" ||
+                                  raceDetail?.status === "pre_race") && (
+                                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 w-24 text-center">
+                                    Action
+                                  </th>
+                                )}
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 text-sm bg-card">
@@ -1142,6 +1156,33 @@ export default function RacesPage() {
                                   <td className="px-6 py-4.5 font-medium text-slate-800 hidden md:table-cell">
                                     {formatStatus(entry.entryStatus)}
                                   </td>
+                                  {isSpectator &&
+                                    (raceDetail?.status === "scheduled" ||
+                                      raceDetail?.status === "pre_race") && (
+                                      <td className="px-6 py-4.5 text-center">
+                                        {entry.entryStatus === "confirmed" ? (
+                                          <button
+                                            onClick={() => {
+                                              setPreselectedEntry({
+                                                id: entry.id,
+                                                name: entry.name,
+                                                jockeyName: entry.jockeyName,
+                                                laneNumber: entry.laneNumber,
+                                              });
+                                              setPredictModalOpen(true);
+                                            }}
+                                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#EAB308] text-[#064E3B] font-bold text-[10px] hover:bg-[#D9A207] hover:shadow-sm transition-all cursor-pointer"
+                                          >
+                                            <Target className="w-3 h-3" />
+                                            Predict
+                                          </button>
+                                        ) : (
+                                          <span className="text-[10px] text-slate-300 font-medium">
+                                            —
+                                          </span>
+                                        )}
+                                      </td>
+                                    )}
                                 </tr>
                               ))}
                           </tbody>
@@ -1194,7 +1235,10 @@ export default function RacesPage() {
               raceName={raceDetail.name}
               entries={raceDetail.entries || []}
               open={predictModalOpen}
-              onClose={() => setPredictModalOpen(false)}
+              onClose={() => {
+                setPredictModalOpen(false);
+                setPreselectedEntry(null);
+              }}
               onSuccess={() => {
                 loadDetail();
               }}
@@ -1206,7 +1250,9 @@ export default function RacesPage() {
                   next.set(raceDetail.id, data);
                   return next;
                 });
+                setPreselectedEntry(null);
               }}
+              preselectedEntry={preselectedEntry}
             />
           )}
         </div>
