@@ -11,12 +11,12 @@ import {
   CalendarDays,
   Clock,
   Flag,
-  Hash,
   Layers,
   Trophy,
   Target,
   Send,
   Play,
+  Award,
 } from "lucide-react";
 import { ROUTES } from "../router/routes";
 
@@ -26,7 +26,7 @@ import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
 import type { DateRange } from "react-day-picker";
 import { useToast } from "../hooks/useToast";
 import { useOwner } from "../hooks/useOwner";
-import { formatStatus } from "../utils/formatters";
+import { formatStatus, formatRaceCountdown } from "../utils/formatters";
 import {
   StatusBadge,
   RACE_STATUS_STYLES,
@@ -38,6 +38,7 @@ import { cn } from "../lib/utils";
 
 import { ScheduleCalendar } from "../components/schedule/ScheduleCalendar";
 import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame";
+import { PredictionService } from "../services/PredictionService";
 import { PlacePredictionModal } from "../components/spectator/PlacePredictionModal";
 import { EnterRaceModal } from "../components/owner/EnterRaceModal";
 import { TrackService } from "../services/TrackService";
@@ -336,6 +337,26 @@ export default function RacesPage() {
     >
   >(new Map());
 
+  useEffect(() => {
+    if (!isSpectator) return;
+    PredictionService.getMyPredictions({})
+      .then((res) => {
+        const map = new Map<
+          string,
+          { entryId: string; horseName: string; predictedPosition: number }
+        >();
+        for (const p of res.data) {
+          map.set(p.race.id, {
+            entryId: p.predictedEntry.entryId,
+            horseName: p.predictedEntry.horseName,
+            predictedPosition: p.predictedPosition,
+          });
+        }
+        setMyPredictions(map);
+      })
+      .catch(() => {});
+  }, [isSpectator]);
+
   const viewYear = viewMonth.getFullYear();
   const viewMonthIndex = viewMonth.getMonth();
 
@@ -363,6 +384,53 @@ export default function RacesPage() {
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, [raceDetail?.id, raceDetail?.status, raceDetail?.scheduledAt]);
+
+  const [prevRaceId, setPrevRaceId] = useState<string | null>(null);
+  const [secondsUntilStart, setSecondsUntilStart] = useState<number | null>(
+    null
+  );
+  const [userToggleOverride, setUserToggleOverride] = useState<boolean | null>(
+    null
+  );
+
+  if (raceDetail && raceDetail.id !== prevRaceId) {
+    setPrevRaceId(raceDetail.id);
+    setUserToggleOverride(null);
+    setSecondsUntilStart(null);
+  }
+
+  useEffect(() => {
+    if (!raceDetail?.scheduledAt) return;
+    const targetStatus = raceDetail.status;
+    if (targetStatus !== "scheduled" && targetStatus !== "pre_race") return;
+
+    const tick = () => {
+      const diffMs = new Date(raceDetail.scheduledAt).getTime() - Date.now();
+      const diffSec = Math.floor(diffMs / 1000);
+      setSecondsUntilStart(diffSec);
+    };
+
+    const timeoutId = setTimeout(tick, 0);
+    const intervalId = setInterval(tick, 1000);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(intervalId);
+    };
+  }, [raceDetail?.id, raceDetail?.status, raceDetail?.scheduledAt]);
+
+  const isCountdownEligible =
+    raceDetail?.status === "scheduled" || raceDetail?.status === "pre_race";
+
+  const isAutoCountdown =
+    isCountdownEligible &&
+    secondsUntilStart !== null &&
+    secondsUntilStart <= 1800 &&
+    secondsUntilStart >= -600;
+
+  const isNearStart =
+    isCountdownEligible &&
+    (userToggleOverride !== null ? userToggleOverride : isAutoCountdown);
 
   const currentPrediction = raceDetail
     ? myPredictions.get(raceDetail.id)
@@ -870,84 +938,226 @@ export default function RacesPage() {
               ) : raceDetail ? (
                 <ScheduleDetailFrame
                   title={
-                    <h2 className="text-3xl font-black font-headline tracking-tight leading-tight text-white">
-                      {raceDetail.name}
-                    </h2>
-                  }
-                  subtitle={
-                    <div className="mt-3 space-y-3">
-                      {tournamentName && (
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-white/70 truncate">
-                          {tournamentName}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap w-full items-center gap-2 font-semibold text-xs text-white">
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
-                          <Clock className="h-3.5 w-3.5" />
-                          {formatDateTime(raceDetail.scheduledAt)}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
-                          <Flag className="h-3.5 w-3.5" />
-                          {raceDetail.course?.name || "Venue"}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
-                          <Hash className="h-3.5 w-3.5" />
-                          {raceDetail.raceNumber != null
-                            ? `Race #${raceDetail.raceNumber}`
-                            : "Race TBC"}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
-                          <Trophy className="h-3.5 w-3.5" />
-                          {raceDetail.course?.distanceMeters
-                            ? `${raceDetail.course.distanceMeters}m`
-                            : raceDetail.distanceMeters
-                              ? `${raceDetail.distanceMeters}m`
-                              : "Distance TBC"}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold capitalize">
-                          {raceDetail.course?.surfaceType || "Standard"}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
-                          <Layers className="h-3.5 w-3.5" />
-                          {raceDetail.laneCount
-                            ? `${raceDetail.laneCount} Lanes`
-                            : "Lanes TBC"}
-                        </span>
-                        <StatusBadge
-                          status={raceDetail.status}
-                          styleMap={RACE_STATUS_DETAIL_STYLES}
-                          label={
-                            raceDetail.status === "ongoing"
-                              ? formatTime(elapsedSeconds)
-                              : formatStatus(raceDetail.status)
+                    <div className="flex flex-wrap items-center gap-3">
+                      <h2 className="text-3xl font-black font-headline tracking-tight leading-tight text-white">
+                        {raceDetail.name}
+                      </h2>
+                      <StatusBadge
+                        status={raceDetail.status}
+                        styleMap={RACE_STATUS_DETAIL_STYLES}
+                        label={
+                          raceDetail.status === "ongoing"
+                            ? formatTime(elapsedSeconds)
+                            : formatStatus(raceDetail.status)
+                        }
+                        showDot={raceDetail.status === "ongoing"}
+                        dotClassName="bg-rose-300"
+                        className="rounded-lg px-2.5 py-1 font-bold gap-1.5 text-[11px]"
+                      />
+                      {raceDetail.status === "ongoing" && (
+                        <button
+                          onClick={() =>
+                            navigate(`/races/${raceDetail.id}/live`)
                           }
-                          showDot={raceDetail.status === "ongoing"}
-                          dotClassName="bg-rose-300"
-                          className="rounded-lg px-3 py-1.5 font-bold gap-1.5"
-                        />
-                        {raceDetail.status === "ongoing" && (
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-rose-400/50 bg-rose-500/20 text-rose-200 px-2.5 py-1 font-bold hover:bg-red-600/50 text-[11px] transition-all"
+                        >
+                          Watch Live
+                        </button>
+                      )}
+                    </div>
+                  }
+                  subtitle={null}
+                  bannerSlot={
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-4">
+                      {/* Time card */}
+                      <button
+                        title={
+                          isCountdownEligible
+                            ? isNearStart
+                              ? "Click to view scheduled start date"
+                              : "Click to view countdown timer"
+                            : undefined
+                        }
+                        onClick={
+                          isCountdownEligible
+                            ? (e) => {
+                                e.stopPropagation();
+                                setUserToggleOverride(!isNearStart);
+                              }
+                            : undefined
+                        }
+                        className={cn(
+                          "p-3.5 text-left rounded-xl border transition-all flex flex-col justify-between w-full min-h-[82px] outline-none select-none",
+                          isCountdownEligible
+                            ? "cursor-pointer focus:ring-1 focus:ring-white/30"
+                            : "cursor-default",
+                          isNearStart
+                            ? "bg-amber-500 border-amber-400 hover:bg-amber-400 hover:border-amber-300 shadow-sm"
+                            : "bg-white/15 border-white/25 hover:bg-white/25 hover:border-white/35"
+                        )}
+                      >
+                        {isNearStart ? (
                           <>
-                            <button
-                              onClick={() => {
-                                navigate(`/races/${raceDetail.id}/live`);
-                              }}
-                              className="inline-flex items-center gap-1.5 rounded-lg border bg-rose-500/20 border-rose-400/50 text-rose-200 px-3 py-1.5 font-bold hover:bg-red-600/50"
-                            >
-                              Watch Live
-                            </button>
+                            <div>
+                              <span className="flex items-center gap-1.5 text-[9px] font-bold text-[#064E3B]/80 uppercase tracking-wider">
+                                <Clock className="h-3.5 w-3.5 text-[#064E3B] animate-pulse" />
+                                Starts In
+                              </span>
+                              <span className="text-base font-bold font-mono text-[#064E3B] tracking-normal block mt-1">
+                                {secondsUntilStart !== null
+                                  ? formatRaceCountdown(secondsUntilStart)
+                                  : ""}
+                              </span>
+                            </div>
+                            <span className="text-[9px] text-[#064E3B]/70 block leading-normal mt-0.5">
+                              {isAutoCountdown
+                                ? "Countdown auto-enabled"
+                                : "Click to view start date"}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <div>
+                              <span className="flex items-center gap-1.5 text-[9px] font-bold text-white/70 uppercase tracking-wider">
+                                <Clock className="h-3.5 w-3.5 text-white/60" />
+                                Start Time
+                              </span>
+                              <span className="text-sm font-black font-headline text-white block mt-1">
+                                {formatDateTime(raceDetail.scheduledAt)}
+                              </span>
+                            </div>
+                            <span className="text-[9px] text-white/50 block leading-normal mt-0.5">
+                              Click to view countdown
+                            </span>
                           </>
                         )}
-                        {user?.role === "admin" && (
-                          <button
-                            onClick={() =>
-                              navigate(`/races/${raceDetail.id}/live`)
-                            }
-                            className="inline-flex items-center gap-1.5 rounded-lg border bg-emerald-500/20 border-emerald-400/50 text-emerald-200 px-3 py-1.5 font-bold hover:bg-emerald-600/50"
-                          >
-                            <Play size={12} fill="currentColor" />
-                            Simulate
-                          </button>
+                      </button>
+
+                      {/* Track Card */}
+                      <button
+                        title={
+                          raceDetail?.course?.id
+                            ? "Click to view track details"
+                            : "Track details unavailable"
+                        }
+                        onClick={() => {
+                          if (raceDetail?.course?.id) {
+                            navigate(`/tracks/${raceDetail.course.id}`);
+                          }
+                        }}
+                        disabled={!raceDetail?.course?.id}
+                        className={cn(
+                          "p-3.5 text-left rounded-xl border transition-all flex flex-col justify-between w-full min-h-[82px] select-none outline-none focus:ring-1 focus:ring-white/30",
+                          raceDetail?.course?.id
+                            ? "cursor-pointer bg-white/15 border-white/25 hover:bg-white/25 hover:border-white/35 active:scale-[0.98]"
+                            : "bg-white/5 border-white/10 opacity-50 cursor-not-allowed"
                         )}
+                      >
+                        <div>
+                          <span className="flex items-center gap-1.5 text-[10px] font-bold text-white/70 uppercase tracking-wider">
+                            <Flag className="h-4 w-4 text-white/60" />
+                            Track
+                          </span>
+                          <span className="text-sm font-black font-headline text-white block mt-1 capitalize truncate">
+                            {raceDetail.course?.name || "TBC"}
+                          </span>
+                        </div>
+                        <span className="text-xs text-white/70 mt-1 block capitalize leading-normal">
+                          {raceDetail.course?.surfaceType || "Unknown"} surface
+                        </span>
+                      </button>
+
+                      {/* Distance Card */}
+                      <div className="p-3.5 bg-white/15 border border-white/25 hover:bg-white/25 hover:border-white/35 rounded-xl flex flex-col justify-between min-h-[82px]">
+                        <div>
+                          <span className="flex items-center gap-1.5 text-[10px] font-bold text-white/70 uppercase tracking-wider">
+                            <Trophy className="h-4 w-4 text-white/60" />
+                            Distance
+                          </span>
+                          <span className="text-sm font-black font-headline text-white block mt-1">
+                            {raceDetail.course?.distanceMeters
+                              ? `${raceDetail.course.distanceMeters}m`
+                              : raceDetail.distanceMeters
+                                ? `${raceDetail.distanceMeters}m`
+                                : "TBC"}
+                          </span>
+                        </div>
+                        <span className="text-xs text-white/70 mt-1 block leading-normal">
+                          Track distance
+                        </span>
+                      </div>
+
+                      {/* Tournament Card */}
+                      <button
+                        title={
+                          raceDetail?.tournamentId
+                            ? "Click to view tournament details"
+                            : "Tournament details unavailable"
+                        }
+                        onClick={() => {
+                          if (raceDetail?.tournamentId) {
+                            navigate(`/tournaments/${raceDetail.tournamentId}`);
+                          }
+                        }}
+                        disabled={!raceDetail?.tournamentId}
+                        className={cn(
+                          "p-3.5 text-left rounded-xl border transition-all flex flex-col justify-between w-full min-h-[82px] select-none outline-none focus:ring-1 focus:ring-white/30",
+                          raceDetail?.tournamentId
+                            ? "cursor-pointer bg-white/15 border-white/25 hover:bg-white/25 hover:border-white/35 active:scale-[0.98]"
+                            : "bg-white/5 border-white/10 opacity-50 cursor-not-allowed"
+                        )}
+                      >
+                        <div>
+                          <span className="flex items-center gap-1.5 text-[10px] font-bold text-white/70 uppercase tracking-wider">
+                            <Award className="h-4 w-4 text-white/60" />
+                            Tournament
+                          </span>
+                          <span
+                            className="text-sm font-black font-headline text-white block mt-1 truncate text-left w-full"
+                            title={tournamentName || "Single Race"}
+                          >
+                            {tournamentName || "Single Race"}
+                          </span>
+                        </div>
+                        <span className="text-xs text-white/70 mt-1 block leading-normal truncate text-left w-full">
+                          {tournamentName
+                            ? "Tournament event"
+                            : "Non-tournament race"}
+                        </span>
+                      </button>
+
+                      {/* Lanes Card */}
+                      <div className="p-3.5 bg-white/15 border border-white/25 hover:bg-white/25 hover:border-white/35 rounded-xl flex flex-col justify-between min-h-[82px]">
+                        <div>
+                          <span className="flex items-center gap-1.5 text-[10px] font-bold text-white/70 uppercase tracking-wider">
+                            <Layers className="h-4 w-4 text-white/60" />
+                            Lanes
+                          </span>
+                          <span className="text-sm font-black font-headline text-white block mt-1">
+                            {raceDetail.laneCount
+                              ? `${raceDetail.laneCount} Lanes`
+                              : "TBC"}
+                          </span>
+                        </div>
+                        <span className="text-xs text-white/70 mt-1 block capitalize leading-normal">
+                          Track: {raceDetail.trackCondition || "Standard"}
+                        </span>
+                      </div>
+
+                      {/* Entries Card */}
+                      <div className="p-3.5 bg-white/15 border border-white/25 hover:bg-white/25 hover:border-white/35 rounded-xl flex flex-col justify-between min-h-[82px]">
+                        <div>
+                          <span className="flex items-center gap-1.5 text-[10px] font-bold text-white/70 uppercase tracking-wider">
+                            <Send className="h-4 w-4 text-white/60" />
+                            Entries
+                          </span>
+                          <span className="text-sm font-black font-headline text-white block mt-1">
+                            {raceDetail.entries?.length || 0}
+                          </span>
+                        </div>
+                        <span className="text-xs text-white/70 mt-1 block leading-normal">
+                          Confirmed horses
+                        </span>
                       </div>
                     </div>
                   }
@@ -956,9 +1166,9 @@ export default function RacesPage() {
                       {canEnterRace && (
                         <button
                           onClick={() => setEnterRaceModalOpen(true)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#064E3B] text-white font-bold text-[11px] border border-white/30 hover:bg-[#043E2F] hover:shadow-md hover:border-white/50 transition-all cursor-pointer"
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#064E3B] text-white font-bold text-[10px] border border-white/20 hover:bg-[#043E2F] transition-all cursor-pointer shadow-sm active:scale-95"
                         >
-                          <Send className="w-3.5 h-3.5" />
+                          <Send className="w-3 h-3" />
                           Enter Race
                         </button>
                       )}
@@ -968,98 +1178,32 @@ export default function RacesPage() {
                           <button
                             onClick={() => {
                               setModalKey((k) => k + 1);
-                              setPreselectedEntry(null);
                               setPredictModalOpen(true);
                             }}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EAB308] text-[#064E3B] font-bold text-[11px] hover:bg-[#D9A207] hover:shadow-md transition-all cursor-pointer"
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#EAB308] text-[#064E3B] font-bold text-[10px] hover:bg-[#D9A207] transition-all cursor-pointer shadow-sm active:scale-95"
                           >
-                            <Target className="w-3.5 h-3.5" />
-                            Predict
+                            <Target className="w-3 h-3" />
+                            {currentPrediction
+                              ? "Update Prediction"
+                              : "Predict"}
                           </button>
                         )}
+                      {user?.role === "admin" && (
+                        <button
+                          onClick={() =>
+                            navigate(`/races/${raceDetail.id}/live`)
+                          }
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-600 text-white font-bold text-[10px] border border-white/20 hover:bg-emerald-700 transition-all cursor-pointer shadow-sm active:scale-95"
+                        >
+                          <Play size={10} fill="currentColor" />
+                          Simulate
+                        </button>
+                      )}
                     </>
                   }
                   onClose={handleCloseDetail}
                   containerClass="border-slate-200 bg-white shadow-lg"
                 >
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-[#064E3B]/60 mb-3 block">
-                      Race Summary
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                          Track
-                        </span>
-                        <span className="text-base font-black font-headline text-[#064E3B] block mt-1 capitalize">
-                          {raceDetail.course?.name || "TBC"}
-                        </span>
-                        <span className="text-xs text-slate-500 mt-0.5 block capitalize">
-                          {raceDetail.course?.surfaceType || "Unknown"} surface
-                        </span>
-                      </div>
-                      <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                          Distance
-                        </span>
-                        <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
-                          {raceDetail.course?.distanceMeters
-                            ? `${raceDetail.course.distanceMeters}m`
-                            : raceDetail.distanceMeters
-                              ? `${raceDetail.distanceMeters}m`
-                              : "TBC"}
-                        </span>
-                        <span className="text-xs text-slate-500 mt-0.5 block">
-                          Track distance
-                        </span>
-                      </div>
-                      <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                          Race
-                        </span>
-                        <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
-                          {raceDetail.raceNumber != null
-                            ? `Race #${raceDetail.raceNumber}`
-                            : "TBC"}
-                        </span>
-                      </div>
-                      <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                          Location
-                        </span>
-                        <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
-                          {raceDetail.course?.city || "TBC"}
-                        </span>
-                        <span className="text-xs text-slate-500 mt-0.5 block">
-                          {raceDetail.course?.country || "Unknown"}
-                        </span>
-                      </div>
-                      <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                          Lanes
-                        </span>
-                        <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
-                          {raceDetail.laneCount
-                            ? `${raceDetail.laneCount} Lanes`
-                            : "TBC"}
-                        </span>
-                        <span className="text-xs text-slate-500 mt-0.5 block capitalize">
-                          Track: {raceDetail.trackCondition || "Standard"}
-                        </span>
-                      </div>
-                      <div className="p-4 bg-white border border-[#064E3B]/10 rounded-xl shadow-sm">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                          Entries
-                        </span>
-                        <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
-                          {raceDetail.entries?.length || 0}
-                        </span>
-                        <span className="text-xs text-slate-500 mt-0.5 block">
-                          Confirmed horses
-                        </span>
-                      </div>
-                    </div>
-                  </div>
                   {currentPrediction && (
                     <div className="bg-amber-50/50 border border-[#EAB308]/20 rounded-xl p-4">
                       <div className="flex items-center justify-between">
@@ -1114,6 +1258,7 @@ export default function RacesPage() {
                                 Status
                               </th>
                               {isSpectator &&
+                                !currentPrediction &&
                                 (raceDetail?.status === "scheduled" ||
                                   raceDetail?.status === "pre_race") && (
                                   <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 w-24 text-center">
@@ -1163,9 +1308,7 @@ export default function RacesPage() {
                                       raceDetail?.status === "pre_race") && (
                                       <td className="px-6 py-4.5 text-center">
                                         {entry.entryStatus === "confirmed" &&
-                                        !predictedEntryIds.includes(
-                                          entry.id
-                                        ) ? (
+                                        !currentPrediction ? (
                                           <button
                                             onClick={() => {
                                               setPreselectedEntry({

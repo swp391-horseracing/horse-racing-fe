@@ -107,7 +107,8 @@ export function PlacePredictionModal({
     return () => {
       cancelled = true;
     };
-  }, [open, raceId, entries, addToast, filterEntries, preselectedEntry]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, raceId, preselectedEntry]);
 
   const entryMap = useMemo(
     () => new Map(localEntries.map((e) => [e.id, e.name])),
