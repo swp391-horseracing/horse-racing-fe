@@ -65,15 +65,24 @@ const formatTime = (ms: number) => {
 const formatStatus = (status: string) => {
   const s = status.toLowerCase();
   switch (s) {
-    case "pending": return "Pending";
-    case "confirmed": return "Confirmed";
-    case "scratched": return "Scratched";
-    case "dns": return "Did Not Start";
-    case "dnf": return "Did Not Finish";
-    case "did_not_finish": return "Did Not Finish";
-    case "disqualified": return "Disqualified";
-    case "withdrawn": return "Withdrawn";
-    default: return status;
+    case "pending":
+      return "Pending";
+    case "confirmed":
+      return "Confirmed";
+    case "scratched":
+      return "Scratched";
+    case "dns":
+      return "Did Not Start";
+    case "dnf":
+      return "Did Not Finish";
+    case "did_not_finish":
+      return "Did Not Finish";
+    case "disqualified":
+      return "Disqualified";
+    case "withdrawn":
+      return "Withdrawn";
+    default:
+      return status;
   }
 };
 
@@ -129,7 +138,10 @@ export default function RaceReplay() {
   const [countdownText, setCountdownText] = useState<string | null>(null);
 
   useEffect(() => {
-    if (RaceDetail?.status !== "scheduled" && RaceDetail?.status !== "pre_race") {
+    if (
+      RaceDetail?.status !== "scheduled" &&
+      RaceDetail?.status !== "pre_race"
+    ) {
       const timer = setTimeout(() => setCountdownText(null), 0);
       return () => clearTimeout(timer);
     }
@@ -273,9 +285,13 @@ export default function RaceReplay() {
       (entry) =>
         // Added 'dnf' here — it's different from 'did_not_finish' in some backends.
         // Both mean the horse dropped out mid-race, so we include both to be safe.
-        ["pending", "confirmed", "dnf", "did_not_finish", "disqualified"].includes(
-          entry.entryStatus?.toLowerCase() || ""
-        ) && !!entry.jockeyName
+        [
+          "pending",
+          "confirmed",
+          "dnf",
+          "did_not_finish",
+          "disqualified",
+        ].includes(entry.entryStatus?.toLowerCase() || "") && !!entry.jockeyName
     );
   }, [entries]);
 
@@ -308,7 +324,7 @@ export default function RaceReplay() {
       metaMap.set(horseId, {
         id: horseId,
         name: entry.name,
-        laneIndex: parseInt(entry.laneNumber, 10) || (index + 1),
+        laneIndex: parseInt(entry.laneNumber, 10) || index + 1,
         color: HORSE_COLORS[index % HORSE_COLORS.length],
         entryStatus: entry.entryStatus,
         jockeyName: entry.jockeyName,
@@ -513,9 +529,14 @@ export default function RaceReplay() {
               </button>
             )}
             {countdownText ? (
-              <div className="flex items-center gap-2 bg-slate-900/60 shadow-inner px-4 py-1.5 rounded-lg border border-white/10" title="Predictions close in">
+              <div
+                className="flex items-center gap-2 bg-slate-900/60 shadow-inner px-4 py-1.5 rounded-lg border border-white/10"
+                title="Predictions close in"
+              >
                 <Clock className="w-4 h-4 text-emerald-400 opacity-80" />
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lock:</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Lock:
+                </span>
                 <span className="text-xl font-mono font-bold tabular-nums text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]">
                   {countdownText}
                 </span>
@@ -533,149 +554,387 @@ export default function RaceReplay() {
 
         {/* Track */}
         <div className="shrink-0 max-h-[300px] overflow-y-auto border-b border-slate-200/60 shadow-inner">
-          <div className={`relative ${
-            ["dirt", "sand", "clay"].includes(RaceDetail?.course?.surfaceType?.toLowerCase() || "") 
-              ? "bg-[#8B5A2B]/80" 
-              : "bg-[#1B4D3E]/80"
-          }`}>
           <div
-            className="relative w-full"
-            style={{ height: horseMeta.length * 60 }}
+            className={`relative ${
+              ["dirt", "sand", "clay"].includes(
+                RaceDetail?.course?.surfaceType?.toLowerCase() || ""
+              )
+                ? "bg-[#8B5A2B]/80"
+                : "bg-[#1B4D3E]/80"
+            }`}
           >
-            {/* Checkered Finish Line */}
             <div
-              className="absolute top-0 bottom-0 right-0 w-[60px] z-20 flex"
+              className="relative w-full"
+              style={{ height: horseMeta.length * 60 }}
             >
-              <div className="w-[3px] bg-red-600 h-full shadow-[-2px_0_4px_rgba(220,38,38,0.5)] z-30" />
-              <div 
-                className="flex-1 h-full"
-                style={{
-                  backgroundImage: "repeating-conic-gradient(#fff 0% 25%, #111 0% 50%)",
-                  backgroundSize: "30px 30px",
-                }}
-              />
-            </div>
+              {/* Checkered Finish Line */}
+              <div className="absolute top-0 bottom-0 right-0 w-[60px] z-20 flex">
+                <div className="w-[3px] bg-red-600 h-full shadow-[-2px_0_4px_rgba(220,38,38,0.5)] z-30" />
+                <div
+                  className="flex-1 h-full"
+                  style={{
+                    backgroundImage:
+                      "repeating-conic-gradient(#fff 0% 25%, #111 0% 50%)",
+                    backgroundSize: "30px 30px",
+                  }}
+                />
+              </div>
 
-            {/* Progress Lines */}
-            <div className="absolute left-[50px] right-[60px] top-0 bottom-0 pointer-events-none z-10">
-              {[20, 40, 60, 80].map((pct) => {
-                const totalDist = RaceDetail?.course?.distanceMeters || RaceDetail?.distanceMeters;
-                const markerDist = totalDist 
-                  ? `${Math.round((totalDist * pct) / 100)}m` 
-                  : `${pct}%`;
+              {/* Progress Lines */}
+              <div className="absolute left-[50px] right-[60px] top-0 bottom-0 pointer-events-none z-10">
+                {[20, 40, 60, 80].map((pct) => {
+                  const totalDist =
+                    RaceDetail?.course?.distanceMeters ||
+                    RaceDetail?.distanceMeters;
+                  const markerDist = totalDist
+                    ? `${Math.round((totalDist * pct) / 100)}m`
+                    : `${pct}%`;
+                  return (
+                    <div
+                      key={pct}
+                      className="absolute top-0 bottom-0 border-l border-dashed border-white/20 flex flex-col justify-start pt-1.5"
+                      style={{ left: `${pct}%` }}
+                    >
+                      <span className="text-[9px] font-black font-mono text-white/50 -translate-x-1/2 select-none bg-slate-900/40 px-1 py-0.5 rounded backdrop-blur-xs">
+                        {markerDist}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              {laneHorses.map((horse) => {
+                const isDirt = ["dirt", "sand", "clay"].includes(
+                  RaceDetail?.course?.surfaceType?.toLowerCase() || ""
+                );
+                const isStopped =
+                  !simulating ||
+                  horse.speedMs === 0 ||
+                  horse.finished ||
+                  ["disqualified", "dnf", "dns", "scratched"].includes(
+                    horse.entryStatus?.toLowerCase() || ""
+                  );
+                const isPredicted = predictedHorseName === horse.name;
+
                 return (
                   <div
-                    key={pct}
-                    className="absolute top-0 bottom-0 border-l border-dashed border-white/20 flex flex-col justify-start pt-1.5"
-                    style={{ left: `${pct}%` }}
+                    key={horse.id}
+                    className={`relative flex items-center border-b border-black/10 ${
+                      horse.laneIndex % 2
+                        ? isDirt
+                          ? "bg-[#A0522D]/80"
+                          : "bg-[#228B22]/80"
+                        : isDirt
+                          ? "bg-[#8B5A2B]/80"
+                          : "bg-[#1B4D3E]/80"
+                    }`}
+                    style={{ height: 60 }}
                   >
-                    <span className="text-[9px] font-black font-mono text-white/50 -translate-x-1/2 select-none bg-slate-900/40 px-1 py-0.5 rounded backdrop-blur-xs">
-                      {markerDist}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-            {laneHorses.map((horse) => {
-              const isDirt = ["dirt", "sand", "clay"].includes(RaceDetail?.course?.surfaceType?.toLowerCase() || "");
-              const isStopped = !simulating || horse.speedMs === 0 || horse.finished || ["disqualified", "dnf", "dns", "scratched"].includes(horse.entryStatus?.toLowerCase() || "");
-              const isPredicted = predictedHorseName === horse.name;
+                    {/* Metallic Starting Stalls */}
+                    <div className="absolute left-0 z-10 w-[50px] h-full bg-slate-200/50 border-r-2 border-r-slate-400 flex items-center justify-center shadow-[2px_0_8px_rgba(0,0,0,0.3)]">
+                      <span className="text-slate-800 font-black text-xl opacity-40">
+                        {horse.laneIndex}
+                      </span>
+                    </div>
 
-              return (
-                <div
-                  key={horse.id}
-                  className={`relative flex items-center border-b border-black/10 ${
-                    horse.laneIndex % 2 
-                      ? (isDirt ? "bg-[#A0522D]/80" : "bg-[#228B22]/80") 
-                      : (isDirt ? "bg-[#8B5A2B]/80" : "bg-[#1B4D3E]/80")
-                  }`}
-                  style={{ height: 60 }}
-                >
-                  {/* Metallic Starting Stalls */}
-                  <div className="absolute left-0 z-10 w-[50px] h-full bg-slate-200/50 border-r-2 border-r-slate-400 flex items-center justify-center shadow-[2px_0_8px_rgba(0,0,0,0.3)]">
-                    <span className="text-slate-800 font-black text-xl opacity-40">{horse.laneIndex}</span>
-                  </div>
-
-                  {/* Runnable Area */}
-                  <div className="absolute left-[50px] right-[60px] top-0 bottom-0">
-                    {/* role="button" + keyboard handler instead of a real <button> tag —
+                    {/* Runnable Area */}
+                    <div className="absolute left-[50px] right-[60px] top-0 bottom-0">
+                      {/* role="button" + keyboard handler instead of a real <button> tag —
                         doing so would break the absolute-positioned
                         gallop animation and horse name badge alignment on the track. */}
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Select ${horse.name}`}
-                      className={`absolute z-20 horse-runner pr-8 ${horse.finished ? "finished" : ""} cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:rounded`}
-                      style={{
-                        left: `${horse.displayPct}%`,
-                        transform: "translateX(-50%)",
-                        transition: horse.finished
-                          ? "left 900ms cubic-bezier(0.16, 1, 0.3, 1)"
-                          : "left 450ms linear",
-                      }}
-                      onMouseEnter={() => {
-                        const entry = RaceDetail?.entries?.find((e) => e.name === horse.name);
-                        if (entry) setHoveredHorse({ ...entry, laneNumber: horse.laneIndex });
-                      }}
-                      onMouseLeave={() => setHoveredHorse(null)}
-                      onClick={() => {
-                        const entry = RaceDetail?.entries?.find((e) => e.name === horse.name);
-                        if (entry) {
-                          setSelectedHorse(selectedHorse?.id === entry.id ? null : { ...entry, laneNumber: horse.laneIndex });
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          const entry = RaceDetail?.entries?.find((en) => en.name === horse.name);
-                          if (entry) setSelectedHorse(selectedHorse?.id === entry.id ? null : { ...entry, laneNumber: horse.laneIndex });
-                        }
-                      }}
-                    >
-                      <div className="horse-body w-10 flex items-center justify-end mt-1.5">
-                        {!isStopped && (
-                          <>
-                            <div className="dust" style={{ backgroundColor: isDirt ? '#D2B48C' : '#90EE90' }} />
-                            <div className="dust delay-1" style={{ backgroundColor: isDirt ? '#D2B48C' : '#90EE90' }} />
-                            <div className="dust delay-2" style={{ backgroundColor: isDirt ? '#D2B48C' : '#90EE90' }} />
-                          </>
-                        )}
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Select ${horse.name}`}
+                        className={`absolute z-20 horse-runner pr-8 ${horse.finished ? "finished" : ""} cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:rounded`}
+                        style={{
+                          left: `${horse.displayPct}%`,
+                          transform: "translateX(-50%)",
+                          transition: horse.finished
+                            ? "left 900ms cubic-bezier(0.16, 1, 0.3, 1)"
+                            : "left 450ms linear",
+                        }}
+                        onMouseEnter={() => {
+                          const entry = RaceDetail?.entries?.find(
+                            (e) => e.name === horse.name
+                          );
+                          if (entry)
+                            setHoveredHorse({
+                              ...entry,
+                              laneNumber: horse.laneIndex,
+                            });
+                        }}
+                        onMouseLeave={() => setHoveredHorse(null)}
+                        onClick={() => {
+                          const entry = RaceDetail?.entries?.find(
+                            (e) => e.name === horse.name
+                          );
+                          if (entry) {
+                            setSelectedHorse(
+                              selectedHorse?.id === entry.id
+                                ? null
+                                : { ...entry, laneNumber: horse.laneIndex }
+                            );
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            const entry = RaceDetail?.entries?.find(
+                              (en) => en.name === horse.name
+                            );
+                            if (entry)
+                              setSelectedHorse(
+                                selectedHorse?.id === entry.id
+                                  ? null
+                                  : { ...entry, laneNumber: horse.laneIndex }
+                              );
+                          }
+                        }}
+                      >
+                        <div className="horse-body w-10 flex items-center justify-end mt-1.5">
+                          {!isStopped && (
+                            <>
+                              <div
+                                className="dust"
+                                style={{
+                                  backgroundColor: isDirt
+                                    ? "#D2B48C"
+                                    : "#90EE90",
+                                }}
+                              />
+                              <div
+                                className="dust delay-1"
+                                style={{
+                                  backgroundColor: isDirt
+                                    ? "#D2B48C"
+                                    : "#90EE90",
+                                }}
+                              />
+                              <div
+                                className="dust delay-2"
+                                style={{
+                                  backgroundColor: isDirt
+                                    ? "#D2B48C"
+                                    : "#90EE90",
+                                }}
+                              />
+                            </>
+                          )}
 
-                        <div
-                          className={`shrink-0 rounded-full pl-1.5 pr-3 py-0.5 flex items-center gap-1.5 backdrop-blur-xs border shadow-lg ${
-                            isPredicted
-                              ? "bg-gradient-to-r from-amber-400 to-[#D4AF37] text-amber-950 border-amber-300 font-extrabold ring-2 ring-[#D4AF37]/35 scale-105 shadow-[0_0_12px_rgba(212,175,55,0.4)]"
-                              : "bg-slate-900/80 border-white/10 text-white"
-                          }`}
-                          style={{ borderLeftColor: isPredicted ? undefined : horse.color, borderLeftWidth: isPredicted ? undefined : "4px" }}
-                        >
-                          {isPredicted && <span className="text-[10px] text-amber-900 select-none">★</span>}
-                          <span className="text-[10px] font-bold tracking-wide">
-                            {horse.name}
-                          </span>
-                        </div>
-
-                        <div
-                          className="inline-block"
-                          style={{
-                            transform: "scaleX(-1)",
-                            filter: HORSE_FILTERS[horse.color] ?? "none",
-                          }}
-                        >
                           <div
-                            className={`horse-emoji text-4xl inline-block drop-shadow-[0_4px_4px_rgba(0,0,0,0.45)] ${
-                              !isStopped ? "gallop" : ""
-                            } ${
-                              horse.finished ? "finished" : ""
+                            className={`shrink-0 rounded-full pl-1.5 pr-3 py-0.5 flex items-center gap-1.5 backdrop-blur-xs border shadow-lg ${
+                              isPredicted
+                                ? "bg-gradient-to-r from-amber-400 to-[#D4AF37] text-amber-950 border-amber-300 font-extrabold ring-2 ring-[#D4AF37]/35 scale-105 shadow-[0_0_12px_rgba(212,175,55,0.4)]"
+                                : "bg-slate-900/80 border-white/10 text-white"
                             }`}
                             style={{
-                              transform: isStopped ? "scaleX(1)" : undefined
+                              borderLeftColor: isPredicted
+                                ? undefined
+                                : horse.color,
+                              borderLeftWidth: isPredicted ? undefined : "4px",
                             }}
                           >
-                            🐎
+                            {isPredicted && (
+                              <span className="text-[10px] text-amber-900 select-none">
+                                ★
+                              </span>
+                            )}
+                            <span className="text-[10px] font-bold tracking-wide">
+                              {horse.name}
+                            </span>
+                          </div>
+
+                          <div
+                            className="inline-block"
+                            style={{
+                              transform: "scaleX(-1)",
+                              filter: HORSE_FILTERS[horse.color] ?? "none",
+                            }}
+                          >
+                            <div
+                              className={`horse-emoji text-4xl inline-block drop-shadow-[0_4px_4px_rgba(0,0,0,0.45)] ${
+                                !isStopped ? "gallop" : ""
+                              } ${horse.finished ? "finished" : ""}`}
+                              style={{
+                                transform: isStopped ? "scaleX(1)" : undefined,
+                              }}
+                            >
+                              🐎
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Live Standings */}
+        <div className="flex-1 min-h-0 flex flex-col bg-slate-50 border-t border-slate-200">
+          <div className="shrink-0 px-6 py-3 flex items-center gap-2 border-b border-slate-200 bg-white">
+            <Trophy className="w-4 h-4 text-[#D4AF37]" />
+            <h3 className="font-black text-[#064E3B] uppercase tracking-wide text-sm">
+              Live Standings
+            </h3>
+          </div>
+          {/* Table Header */}
+          <div className="shrink-0 grid grid-cols-[40px_1fr_60px_80px_80px] gap-3 px-3 py-2 bg-slate-100 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider items-center">
+            <div className="text-center">Rnk</div>
+            <div>Horse</div>
+            <div className="text-center">Chg</div>
+            <div className="text-right">Dist</div>
+            <div className="text-right">Spd</div>
+          </div>
+          <div className="flex-col gap-px bg-slate-200 overflow-y-auto">
+            {rankedHorses.map((horse) => {
+              const meta = horseMeta.find((m) => m.id === horse.horseId);
+              const rank =
+                rankedHorses.findIndex((h) => h.horseId === horse.horseId) + 1;
+              const rankData = rankChanges[horse.horseId];
+              const change = rankData?.change ?? 0;
+              const isActive = !!rankData;
+              const isPredicted = predictedHorseName === horse.name;
+              const isSelected = selectedHorse?.name === horse.name;
+
+              // Top 3 Styling
+              let borderStyle: string;
+              let bgStyle: string;
+              if (rank === 1) {
+                borderStyle = "border-l-[4px] border-l-[#D4AF37]"; // Gold
+                bgStyle = "bg-yellow-50/50";
+              } else if (rank === 2) {
+                borderStyle = "border-l-[4px] border-l-[#94A3B8]"; // Silver
+                bgStyle = "bg-slate-50/80";
+              } else if (rank === 3) {
+                borderStyle = "border-l-[4px] border-l-[#B45309]"; // Bronze
+                bgStyle = "bg-orange-50/30";
+              } else {
+                borderStyle = "border-l-[4px] border-l-transparent";
+                bgStyle = "bg-white";
+              }
+
+              return (
+                <div
+                  key={horse.horseId}
+                  className={`grid grid-cols-[40px_1fr_60px_80px_80px] gap-3 px-3 py-2 items-center cursor-pointer transition-colors ${bgStyle} ${borderStyle} ${
+                    isSelected ? "bg-indigo-50" : "hover:bg-slate-50"
+                  }`}
+                  onMouseEnter={() => {
+                    const entry = RaceDetail?.entries?.find(
+                      (e) => e.name === horse.name
+                    );
+                    if (entry)
+                      setHoveredHorse({
+                        ...entry,
+                        laneNumber: meta?.laneIndex,
+                      });
+                  }}
+                  onMouseLeave={() => setHoveredHorse(null)}
+                  onClick={() => {
+                    const entry = RaceDetail?.entries?.find(
+                      (e) => e.name === horse.name
+                    );
+                    if (entry) {
+                      setSelectedHorse(
+                        selectedHorse?.id === entry.id
+                          ? null
+                          : { ...entry, laneNumber: meta?.laneIndex }
+                      );
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      const entry = RaceDetail?.entries?.find(
+                        (en) => en.name === horse.name
+                      );
+                      if (entry)
+                        setSelectedHorse(
+                          selectedHorse?.id === entry.id
+                            ? null
+                            : { ...entry, laneNumber: meta?.laneIndex }
+                        );
+                    }
+                  }}
+                >
+                  <div className="flex justify-center">
+                    <div
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-sm ${
+                        rank === 1
+                          ? "bg-gradient-to-br from-[#FDE047] to-[#D4AF37] text-yellow-900 border border-[#D4AF37]"
+                          : rank <= 3
+                            ? "bg-gradient-to-br from-slate-100 to-slate-300 text-slate-800 border border-slate-400"
+                            : "bg-slate-100 text-slate-500 border border-slate-200"
+                      }`}
+                    >
+                      {rank}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col min-w-0">
+                    <span
+                      className="font-bold text-sm leading-tight truncate flex items-center gap-1.5"
+                      style={{ color: meta?.color }}
+                      title={
+                        meta
+                          ? `Jockey: ${meta.jockeyName || "N/A"}\nWeight: ${meta.weightKg || "N/A"} kg\nCloth: ${meta.clothNumber ?? "N/A"}\nTrainer: ${meta.trainerName || "N/A"}\nStatus: ${meta.entryStatus || "N/A"}`
+                          : undefined
+                      }
+                    >
+                      {horse.name}
+                      {isPredicted && (
+                        <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#FDE047] to-[#D4AF37] text-[8px] font-black text-amber-950 uppercase tracking-wide shadow-xs border border-amber-300">
+                          ★ Picked
+                        </span>
+                      )}
+                      {meta?.entryStatus && (
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${getStatusBadgeClass(meta.entryStatus)}`}
+                        >
+                          {formatStatus(meta.entryStatus)}
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-medium">
+                      Lane {meta?.laneIndex}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-center">
+                    {isActive && change > 0 ? (
+                      <span className="rank-change-indicator flex items-center gap-0.5 text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                        <ArrowUp size={12} strokeWidth={3} />
+                        <span className="text-xs font-bold">{change}</span>
+                      </span>
+                    ) : isActive && change < 0 ? (
+                      <span className="rank-change-indicator flex items-center gap-0.5 text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
+                        <ArrowDown size={12} strokeWidth={3} />
+                        <span className="text-xs font-bold">
+                          {Math.abs(change)}
+                        </span>
+                      </span>
+                    ) : (
+                      <Minus size={12} className="text-slate-300" />
+                    )}
+                  </div>
+
+                  <div className="text-right">
+                    <span className="text-sm font-bold font-mono text-slate-700 tabular-nums">
+                      {horse.positionM.toFixed(1)}
+                    </span>
+                    <span className="text-[10px] font-normal text-slate-400 ml-0.5">
+                      m
+                    </span>
+                  </div>
+
+                  <div className="text-right">
+                    <span className="text-sm font-bold font-mono text-slate-700 tabular-nums">
+                      {horse.speedMs.toFixed(1)}
+                    </span>
+                    <span className="text-[10px] font-normal text-slate-400 ml-0.5">
+                      m/s
+                    </span>
                   </div>
                 </div>
               );
@@ -683,152 +942,6 @@ export default function RaceReplay() {
           </div>
         </div>
       </div>
-
-      {/* Live Standings */}
-      <div className="flex-1 min-h-0 flex flex-col bg-slate-50 border-t border-slate-200">
-        <div className="shrink-0 px-6 py-3 flex items-center gap-2 border-b border-slate-200 bg-white">
-          <Trophy className="w-4 h-4 text-[#D4AF37]" />
-          <h3 className="font-black text-[#064E3B] uppercase tracking-wide text-sm">
-            Live Standings
-          </h3>
-        </div>
-        {/* Table Header */}
-        <div className="shrink-0 grid grid-cols-[40px_1fr_60px_80px_80px] gap-3 px-3 py-2 bg-slate-100 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider items-center">
-          <div className="text-center">Rnk</div>
-          <div>Horse</div>
-          <div className="text-center">Chg</div>
-          <div className="text-right">Dist</div>
-          <div className="text-right">Spd</div>
-        </div>
-        <div className="flex-col gap-px bg-slate-200 overflow-y-auto">
-          {rankedHorses.map((horse) => {
-            const meta = horseMeta.find((m) => m.id === horse.horseId);
-            const rank =
-              rankedHorses.findIndex((h) => h.horseId === horse.horseId) + 1;
-            const rankData = rankChanges[horse.horseId];
-            const change = rankData?.change ?? 0;
-            const isActive = !!rankData;
-            const isPredicted = predictedHorseName === horse.name;
-            const isSelected = selectedHorse?.name === horse.name;
-
-            // Top 3 Styling
-            let borderStyle: string;
-            let bgStyle: string;
-            if (rank === 1) {
-              borderStyle = "border-l-[4px] border-l-[#D4AF37]"; // Gold
-              bgStyle = "bg-yellow-50/50";
-            } else if (rank === 2) {
-              borderStyle = "border-l-[4px] border-l-[#94A3B8]"; // Silver
-              bgStyle = "bg-slate-50/80";
-            } else if (rank === 3) {
-              borderStyle = "border-l-[4px] border-l-[#B45309]"; // Bronze
-              bgStyle = "bg-orange-50/30";
-            } else {
-              borderStyle = "border-l-[4px] border-l-transparent";
-              bgStyle = "bg-white";
-            }
-
-            return (
-              <div
-                key={horse.horseId}
-                className={`grid grid-cols-[40px_1fr_60px_80px_80px] gap-3 px-3 py-2 items-center cursor-pointer transition-colors ${bgStyle} ${borderStyle} ${
-                  isSelected ? "bg-indigo-50" : "hover:bg-slate-50"
-                }`}
-                onMouseEnter={() => {
-                  const entry = RaceDetail?.entries?.find((e) => e.name === horse.name);
-                  if (entry) setHoveredHorse({ ...entry, laneNumber: meta?.laneIndex });
-                }}
-                onMouseLeave={() => setHoveredHorse(null)}
-                onClick={() => {
-                  const entry = RaceDetail?.entries?.find((e) => e.name === horse.name);
-                  if (entry) {
-                    setSelectedHorse(selectedHorse?.id === entry.id ? null : { ...entry, laneNumber: meta?.laneIndex });
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    const entry = RaceDetail?.entries?.find((en) => en.name === horse.name);
-                    if (entry) setSelectedHorse(selectedHorse?.id === entry.id ? null : { ...entry, laneNumber: meta?.laneIndex });
-                  }
-                }}
-              >
-                <div className="flex justify-center">
-                  <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-sm ${rank === 1
-                        ? "bg-gradient-to-br from-[#FDE047] to-[#D4AF37] text-yellow-900 border border-[#D4AF37]"
-                        : rank <= 3
-                          ? "bg-gradient-to-br from-slate-100 to-slate-300 text-slate-800 border border-slate-400"
-                          : "bg-slate-100 text-slate-500 border border-slate-200"
-                      }`}
-                  >
-                    {rank}
-                  </div>
-                </div>
-                
-                <div className="flex flex-col min-w-0">
-                  <span
-                    className="font-bold text-sm leading-tight truncate flex items-center gap-1.5"
-                    style={{ color: meta?.color }}
-                    title={
-                      meta
-                        ? `Jockey: ${meta.jockeyName || "N/A"}\nWeight: ${meta.weightKg || "N/A"} kg\nCloth: ${meta.clothNumber ?? "N/A"}\nTrainer: ${meta.trainerName || "N/A"}\nStatus: ${meta.entryStatus || "N/A"}`
-                        : undefined
-                    }
-                  >
-                    {horse.name}
-                    {isPredicted && (
-                      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#FDE047] to-[#D4AF37] text-[8px] font-black text-amber-950 uppercase tracking-wide shadow-xs border border-amber-300">
-                        ★ Picked
-                      </span>
-                    )}
-                    {meta?.entryStatus && (
-                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${getStatusBadgeClass(meta.entryStatus)}`}>
-                        {formatStatus(meta.entryStatus)}
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-medium">
-                    Lane {meta?.laneIndex}
-                  </span>
-                </div>
-
-                <div className="flex justify-center">
-                  {isActive && change > 0 ? (
-                    <span className="rank-change-indicator flex items-center gap-0.5 text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
-                      <ArrowUp size={12} strokeWidth={3} />
-                      <span className="text-xs font-bold">{change}</span>
-                    </span>
-                  ) : isActive && change < 0 ? (
-                    <span className="rank-change-indicator flex items-center gap-0.5 text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
-                      <ArrowDown size={12} strokeWidth={3} />
-                      <span className="text-xs font-bold">
-                        {Math.abs(change)}
-                      </span>
-                    </span>
-                  ) : (
-                    <Minus size={12} className="text-slate-300" />
-                  )}
-                </div>
-
-                <div className="text-right">
-                  <span className="text-sm font-bold font-mono text-slate-700 tabular-nums">
-                    {horse.positionM.toFixed(1)}
-                  </span>
-                  <span className="text-[10px] font-normal text-slate-400 ml-0.5">m</span>
-                </div>
-                
-                <div className="text-right">
-                  <span className="text-sm font-bold font-mono text-slate-700 tabular-nums">
-                    {horse.speedMs.toFixed(1)}
-                  </span>
-                  <span className="text-[10px] font-normal text-slate-400 ml-0.5">m/s</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
 
       {/* ═══ Right Column: Sidebar ═══ */}
       <div className="shrink-0 w-72 flex flex-col gap-3 h-full overflow-hidden">

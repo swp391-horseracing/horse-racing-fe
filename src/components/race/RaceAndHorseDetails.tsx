@@ -106,7 +106,8 @@ export function RaceAndHorseDetails({
               </div>
               {/* Only append 'm' when we have a real number — otherwise it would show 'TBCm' */}
               <span className="font-bold text-slate-700">
-                {raceDetail?.course?.distanceMeters || raceDetail?.distanceMeters
+                {raceDetail?.course?.distanceMeters ||
+                raceDetail?.distanceMeters
                   ? `${raceDetail?.course?.distanceMeters || raceDetail?.distanceMeters}m`
                   : "TBC"}
               </span>
