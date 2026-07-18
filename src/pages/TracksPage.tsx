@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Search,
   MapPin,
@@ -83,7 +83,8 @@ function TrackBadge({ status }: { status?: string }) {
 }
 
 export default function TracksPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { id: urlTrackId } = useParams();
+  const navigate = useNavigate();
 
   const {
     tracks,
@@ -105,22 +106,22 @@ export default function TracksPage() {
   );
 
   useEffect(() => {
-    const selectedId = searchParams.get("selected");
-    if (selectedId && selectedId !== trackDetail?.id) {
-      getTrackById(selectedId);
+    if (urlTrackId) {
+      if (urlTrackId !== trackDetail?.id) {
+        getTrackById(urlTrackId);
+      }
+    } else if (trackDetail?.id) {
+      setTrackDetail(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [urlTrackId, trackDetail?.id, getTrackById, setTrackDetail]);
 
   const handleOpenTrack = (id: string) => {
-    getTrackById(id);
     setDetailTab("overview");
-    setSearchParams({ selected: id }, { replace: true });
+    navigate(`/tracks/${id}`);
   };
 
   const handleCloseTrack = () => {
-    setTrackDetail(null);
-    setSearchParams({}, { replace: true });
+    navigate("/tracks");
   };
 
   const safeTracks = Array.isArray(tracks) ? tracks : [];

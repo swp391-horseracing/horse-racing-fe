@@ -213,7 +213,7 @@ export function ScheduleCalendar({
 
           {/* Edit chips — shown when a range is selected */}
           {rangeComplete && (
-            <div className="flex items-center gap-2 pb-3 px-3 w-full">
+            <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100 pb-3 px-3 w-full">
               <button
                 onClick={() => setPhase("from")}
                 className={cn(
