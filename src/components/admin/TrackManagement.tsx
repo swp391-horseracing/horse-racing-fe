@@ -14,7 +14,7 @@ import {
   Plus,
   Trash2,
   ArrowRight,
-  Infinity,
+  Infinity as InfinityIcon,
   Circle,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
@@ -51,7 +51,7 @@ function formatDateOrFallback(value?: string) {
 function getTrackShapeIcon(shape?: string) {
   const s = shape?.toLowerCase().trim() ?? "";
   if (s === "straight") return ArrowRight;
-  if (s === "figure_eight") return Infinity;
+  if (s === "figure_eight") return InfinityIcon;
   if (s === "oval") return Circle;
   return Activity;
 }
@@ -352,8 +352,12 @@ export default function TrackManagement({
                         </div>
                         <div className="flex items-center gap-1.5 text-slate-500">
                           {(() => {
-                            const Icon = getTrackShapeIcon(track.trackShape?.shape);
-                            return <Icon className="w-3 h-3 text-slate-400 shrink-0" />;
+                            const Icon = getTrackShapeIcon(
+                              track.trackShape?.shape
+                            );
+                            return (
+                              <Icon className="w-3 h-3 text-slate-400 shrink-0" />
+                            );
                           })()}
                           <span className="text-[10px] truncate">
                             {formatStatus(track.trackShape?.shape || "Unknown")}
@@ -372,7 +376,7 @@ export default function TrackManagement({
                         </span>
                       </div>
                       <p className="text-[10px] text-slate-400 mt-0.5">
-                        Max Starters: {track.maxStartingPositions || 0}
+                        Max Lanes: {track.maxStartingPositions || 0}
                       </p>
                     </td>
 
@@ -590,7 +594,9 @@ export default function TrackManagement({
                   label="Track Shape"
                   value={formatStatus(selectedTrack.trackShape?.shape || "")}
                   icon={(() => {
-                    const Icon = getTrackShapeIcon(selectedTrack.trackShape?.shape);
+                    const Icon = getTrackShapeIcon(
+                      selectedTrack.trackShape?.shape
+                    );
                     return <Icon className="w-3.5 h-3.5" />;
                   })()}
                 />
@@ -600,7 +606,7 @@ export default function TrackManagement({
                   icon={<Users className="w-3.5 h-3.5" />}
                 />
                 <StatCard
-                  label="Max Starters"
+                  label="Max Lanes"
                   value={selectedTrack.maxStartingPositions}
                   icon={<Flag className="w-3.5 h-3.5" />}
                 />
@@ -611,9 +617,12 @@ export default function TrackManagement({
                   <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50">
                     <h4 className="text-[10px] font-bold uppercase text-slate-400 mb-2 flex items-center gap-2">
                       {(() => {
-                        const Icon = getTrackShapeIcon(selectedTrack.trackShape?.shape);
+                        const Icon = getTrackShapeIcon(
+                          selectedTrack.trackShape?.shape
+                        );
                         return <Icon className="w-3 h-3" />;
-                      })()} Shape Description
+                      })()}{" "}
+                      Shape Description
                     </h4>
                     <p className="text-xs text-slate-600 leading-relaxed italic">
                       "{selectedTrack.trackShape.description}"

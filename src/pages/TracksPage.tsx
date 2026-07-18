@@ -12,8 +12,9 @@ import {
   Clock,
   Home,
   ArrowRight,
-  Infinity,
+  Infinity as InfinityIcon,
   Circle,
+  Columns,
 } from "lucide-react";
 import { useTrack } from "../hooks/useTrack";
 import { formatStatus } from "../utils/formatters";
@@ -54,7 +55,7 @@ function StatFilterCard({
 function getTrackShapeIcon(shape?: string) {
   const s = shape?.toLowerCase().trim() ?? "";
   if (s === "straight") return ArrowRight;
-  if (s === "figure_eight") return Infinity;
+  if (s === "figure_eight") return InfinityIcon;
   if (s === "oval") return Circle;
   return Activity;
 }
@@ -373,7 +374,9 @@ export default function TracksPage() {
                       <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
                         <div className="p-2.5 bg-secondary/15 text-secondary rounded-lg">
                           {(() => {
-                            const Icon = getTrackShapeIcon(trackDetail.trackShape?.shape);
+                            const Icon = getTrackShapeIcon(
+                              trackDetail.trackShape?.shape
+                            );
                             return <Icon className="h-4.5 w-4.5" />;
                           })()}
                         </div>
@@ -407,11 +410,11 @@ export default function TracksPage() {
 
                       <div className="p-4.5 rounded-xl border border-border bg-card flex items-start gap-3.5">
                         <div className="p-2.5 bg-secondary/15 text-secondary rounded-lg">
-                          <Ruler className="h-4.5 w-4.5" />
+                          <Columns className="h-4.5 w-4.5" />
                         </div>
                         <div>
                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            Starters
+                            Lanes
                           </p>
                           <p className="text-base font-black text-foreground mt-1">
                             {trackDetail.maxStartingPositions || 0}
