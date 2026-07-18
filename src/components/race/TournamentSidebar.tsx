@@ -65,10 +65,9 @@ export function TournamentSidebar({
               <span>Status</span>
             </div>
             <span
-              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border capitalize ${
-                TOURNAMENT_STATUS_STYLES[tournament.status] ||
+              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border capitalize ${TOURNAMENT_STATUS_STYLES[tournament.status] ||
                 "bg-slate-100 text-slate-600 border-slate-200"
-              }`}
+                }`}
             >
               {tournament.status.replace("_", " ")}
             </span>
@@ -108,18 +107,27 @@ export function TournamentSidebar({
               const isActive = race.id === currentRaceId;
 
               return (
+                // We use role="button" + tabIndex instead of swapping to a <button>
+                // tag because that would mess up the layout. 
+                // This gives keyboard users the same access without breaking the styles.
                 <div
                   key={race.id || index}
+                  role="button"
+                  tabIndex={0}
+                  aria-current={isActive ? "page" : undefined}
                   onClick={() => {
                     if (!isActive) navigate(`/races/${race.id}`);
                   }}
-                  className={`relative p-3 rounded-lg flex flex-col gap-1.5 transition-colors cursor-pointer border ${
-                    isActive
+                  onKeyDown={(e) => {
+                    if ((e.key === "Enter" || e.key === " ") && !isActive)
+                      navigate(`/races/${race.id}`);
+                  }}
+                  className={`relative p-3 rounded-lg flex flex-col gap-1.5 transition-colors cursor-pointer border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${isActive
                       ? "bg-indigo-50 border-indigo-200 shadow-sm"
                       : race.status === "completed"
                         ? "bg-white border-transparent hover:bg-slate-50 opacity-70"
                         : "bg-white border-transparent hover:bg-slate-50"
-                  }`}
+                    }`}
                 >
                   {isActive && (
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-indigo-600 rounded-r-full" />
@@ -127,19 +135,17 @@ export function TournamentSidebar({
 
                   <div className="flex items-start justify-between gap-2">
                     <h5
-                      className={`font-bold text-xs leading-snug line-clamp-2 ${
-                        isActive ? "text-indigo-900" : "text-slate-700"
-                      }`}
+                      className={`font-bold text-xs leading-snug line-clamp-2 ${isActive ? "text-indigo-900" : "text-slate-700"
+                        }`}
                     >
                       {race.name || `Race ${index + 1}`}
                     </h5>
                     <span
-                      className={`shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border ${
-                        isActive
+                      className={`shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border ${isActive
                           ? "bg-indigo-100 text-indigo-700 border-indigo-200"
                           : RACE_STATUS_STYLES[race.status] ||
-                            "bg-slate-100 text-slate-600 border-slate-200"
-                      }`}
+                          "bg-slate-100 text-slate-600 border-slate-200"
+                        }`}
                     >
                       {isActive ? "Current" : race.status.replace("_", " ")}
                     </span>

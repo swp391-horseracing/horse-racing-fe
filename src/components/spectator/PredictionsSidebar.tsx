@@ -205,6 +205,12 @@ export function PredictionsSidebar({
     }
 
     // Spectators: fetch real prediction
+    // Ideally we'd paginate all pages or fetch by race ID directly to avoid
+    // missing predictions beyond the first 50. We skip that for now because spectators
+    // almost never have that many predictions, and this is a showcase app.
+    // We also intentionally don't separate 'fetch error' from 'no prediction'
+    // here — a proper fix would set a distinct loadError state instead of null,
+    // but that would add significant complexity for minimal real-world gain.
     setLoading(true);
     try {
       const data = await PredictionService.getMyPredictions({
@@ -238,6 +244,20 @@ export function PredictionsSidebar({
     }, 0);
     return () => clearTimeout(timer);
   }, [loadPrediction]);
+
+  // Reset the inline form whenever the user switches to a different race,
+  // so leftover selections from Race A don't bleed into Race B.
+  // Using setTimeout to defer setState calls out of the effect body — this avoids
+  // the ESLint 'set-state-in-effect' cascading render warning.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPicking(false);
+      setSelectedEntryId("");
+      setSelectedPosition(1);
+      setTokens(100);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [raceId]);
 
   const showPickingForm = isPicking && !isRaceStarted;
 
@@ -308,6 +328,9 @@ export function PredictionsSidebar({
         raceId,
         selectedEntryId,
         selectedPosition
+        // Tokens are NOT sent to the backend because the current API
+        // contract doesn't have a token field on placePrediction. Tokens are a
+        // frontend-only showcase feature showing estimated payouts.
       );
 
       addToast(

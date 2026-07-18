@@ -80,8 +80,9 @@ export function RaceAndHorseDetails({
       {/* Content wrapper with absolute transition panes */}
       <div className="flex-1 overflow-hidden relative">
         {/* Pane 1: Race Details */}
+        {/* overflow-y-auto added so long race info doesn't get clipped on short screens */}
         <div
-          className={`absolute inset-0 p-4 flex flex-col gap-3 transition-all duration-300 ease-in-out transform ${
+          className={`absolute inset-0 overflow-y-auto p-4 flex flex-col gap-3 transition-all duration-300 ease-in-out transform ${
             activeHorse
               ? "opacity-0 pointer-events-none translate-y-3 scale-95"
               : "opacity-100 pointer-events-auto translate-y-0 scale-100"
@@ -103,11 +104,11 @@ export function RaceAndHorseDetails({
                 <Layers size={13} className="text-slate-400" />
                 <span>Distance</span>
               </div>
+              {/* Only append 'm' when we have a real number — otherwise it would show 'TBCm' */}
               <span className="font-bold text-slate-700">
-                {raceDetail?.course?.distanceMeters ||
-                  raceDetail?.distanceMeters ||
-                  "TBC"}
-                m
+                {raceDetail?.course?.distanceMeters || raceDetail?.distanceMeters
+                  ? `${raceDetail?.course?.distanceMeters || raceDetail?.distanceMeters}m`
+                  : "TBC"}
               </span>
             </div>
 
@@ -148,8 +149,9 @@ export function RaceAndHorseDetails({
         </div>
 
         {/* Pane 2: Horse Details */}
+        {/* overflow-y-auto added so horse stats don't get cut off on short screens */}
         <div
-          className={`absolute inset-0 p-4 flex flex-col gap-3 transition-all duration-300 ease-in-out transform ${
+          className={`absolute inset-0 overflow-y-auto p-4 flex flex-col gap-3 transition-all duration-300 ease-in-out transform ${
             activeHorse
               ? "opacity-100 pointer-events-auto translate-y-0 scale-100"
               : "opacity-0 pointer-events-none -translate-y-3 scale-95"
