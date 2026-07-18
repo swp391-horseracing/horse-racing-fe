@@ -8,6 +8,7 @@ export const ROUTES = {
   HORSES: "/horses",
   RACES: "/races",
   TOURNAMENTS: "/tournaments",
+  TOURNAMENT_DETAIL: "/tournaments/:id",
   LEADERBOARD: "/leaderboard",
 
   // USER
@@ -58,6 +59,7 @@ export const ROUTES = {
   ADMIN_REPORTS: "/admin/reports",
 
   TRACKS: "/tracks",
+  TRACK_DETAIL: "/tracks/:id",
 
   // DYNAMIC
   HORSE_DETAIL: "/horses/:id",

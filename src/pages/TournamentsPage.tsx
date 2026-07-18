@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Search,
   MapPin,
@@ -103,7 +103,7 @@ function formatDateOrFallback(value?: string) {
 
 export default function TournamentsPage() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { id: urlTournamentId } = useParams();
 
   const {
     search,
@@ -129,21 +129,21 @@ export default function TournamentsPage() {
   } = useTournament();
 
   useEffect(() => {
-    const selectedId = searchParams.get("selected");
-    if (selectedId && selectedId !== selectedTournamentId) {
-      openTournament(selectedId);
+    if (urlTournamentId) {
+      if (urlTournamentId !== selectedTournamentId) {
+        openTournament(urlTournamentId);
+      }
+    } else if (selectedTournamentId) {
+      closeTournament();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [urlTournamentId, selectedTournamentId, openTournament, closeTournament]);
 
   const handleOpenTournament = (id: string) => {
-    openTournament(id);
-    setSearchParams({ selected: id }, { replace: true });
+    navigate(`/tournaments/${id}`);
   };
 
   const handleCloseTournament = () => {
-    closeTournament();
-    setSearchParams({}, { replace: true });
+    navigate("/tournaments");
   };
 
   // Updated to pass both raceId and date
