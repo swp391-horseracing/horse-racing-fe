@@ -276,7 +276,7 @@ export function RidingSchedule({
                 <CalendarDays className="h-4 w-4 text-slate-400" />
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
                   {selectedRange?.from
-                    ? `Schedule: ${selectedRange.from.toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" })}${selectedRange.to ? ` – ${selectedRange.to.toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" })}` : ""}`
+                    ? `Schedule: ${selectedRange.from.toLocaleDateString("en-GB")}${selectedRange.to ? ` – ${selectedRange.to.toLocaleDateString("en-GB")}` : ""}`
                     : isJockey
                       ? "All Scheduled Assignments"
                       : "All Races"}
@@ -467,12 +467,7 @@ function JockeyDetailPanel({
         <div className="flex flex-wrap items-center gap-2 mt-4 font-semibold text-xs text-white">
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold">
             <CalendarDays className="w-3.5 h-3.5" />
-            {new Date(ride.scheduledAt).toLocaleDateString("en-GB", {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-            })}{" "}
-            ·{" "}
+            {new Date(ride.scheduledAt).toLocaleDateString("en-GB")} ·{" "}
             {new Date(ride.scheduledAt).toLocaleTimeString("en-GB", {
               hour: "2-digit",
               minute: "2-digit",
@@ -749,13 +744,8 @@ function OwnerDetailPanel({
         <div className="flex flex-wrap items-center gap-2 mt-4 font-semibold text-xs text-white/95">
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/30 px-3 py-1.5 font-bold text-white">
             <CalendarDays className="w-3.5 h-3.5" />
-            {new Date(ride.scheduledAt).toLocaleDateString(navigator.language, {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-            })}{" "}
-            ·{" "}
-            {new Date(ride.scheduledAt).toLocaleTimeString(navigator.language, {
+            {new Date(ride.scheduledAt).toLocaleDateString("en-GB")} ·{" "}
+            {new Date(ride.scheduledAt).toLocaleTimeString("en-GB", {
               hour: "2-digit",
               minute: "2-digit",
             })}

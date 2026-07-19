@@ -214,10 +214,6 @@ export const router = createBrowserRouter([
           { path: ROUTES.ADMIN_REPORTS, element: <AdminPage /> },
           { path: "/admin/violation-types", element: <AdminPage /> },
           {
-            path: ROUTES.ADMIN_TOURNAMENT_RACE_NEW,
-            element: <AdminRaceDetailPage />,
-          },
-          {
             path: ROUTES.ADMIN_RACE_DETAIL,
             element: <AdminRaceDetailPage />,
           },

@@ -985,3 +985,16 @@ export default function RaceReplay() {
     </div>
   );
 }
+
+const formatDateTime = (dateString?: string) => {
+  if (!dateString) return "TBC";
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "Invalid Date";
+  return date.toLocaleString("en-GB", {
+    day: "numeric",
+    month: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};

@@ -12,6 +12,8 @@ import { StatusBadge, RACE_STATUS_STYLES } from "../components/ui/StatusBadge";
 import RaceForm, { type RaceFormData } from "../components/admin/race/RaceForm";
 import RaceStatusButton from "../components/admin/race/RaceStatusButton";
 import NotFoundContent from "../components/ui/NotFoundContent";
+import { useToast } from "../hooks/useToast";
+import { ToastContainer } from "../components/ui/toast";
 
 export default function AdminRaceDetailPage() {
   const { id, tournamentId: urlTournamentId } = useParams<{
@@ -23,20 +25,12 @@ export default function AdminRaceDetailPage() {
   const stateTournamentId = (location.state as { tournamentId?: string })
     ?.tournamentId;
 
+  const { toasts, addToast } = useToast();
+
   const getBackUrl = () => {
     const tid =
       stateTournamentId || urlTournamentId || selectedRace?.tournamentId;
     return tid ? `/admin/tournaments/${tid}` : "/admin/tournaments";
-  };
-
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
-
-  const addToast = (message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
   };
 
   const {
@@ -125,7 +119,6 @@ export default function AdminRaceDetailPage() {
     };
     const res = await updateRace(id, payload);
     if (res.success === false) {
-      addToast(res.error || "Failed to update race.", "error");
       return res.error ?? "Failed to update race.";
     }
     addToast("Race updated successfully.", "success");
@@ -220,17 +213,7 @@ export default function AdminRaceDetailPage() {
   return (
     <UserLayout activeKey="/admin/tournaments">
       <div className="h-full w-full flex flex-col overflow-y-auto p-6 max-w-7xl mx-auto space-y-4">
-        {toast && (
-          <div
-            className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-semibold shadow-lg ${
-              toast.type === "success"
-                ? "bg-emerald-600 text-white"
-                : "bg-rose-600 text-white"
-            }`}
-          >
-            {toast.message}
-          </div>
-        )}
+        <ToastContainer toasts={toasts} />
 
         <button
           onClick={() => navigate(getBackUrl())}
@@ -286,6 +269,7 @@ export default function AdminRaceDetailPage() {
               onClose={() => setRaceEditing(false)}
               onSubmit={handleUpdateRace}
               actionLoading={actionLoading}
+              onError={(msg) => addToast(msg, "error")}
             />
           ) : (
             <div className="pt-2 space-y-6">
