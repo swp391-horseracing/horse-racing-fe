@@ -555,8 +555,8 @@ const formatDateTime = (dateString?: string) => {
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return "Invalid Date";
   return date.toLocaleString("en-GB", {
-    month: "short",
     day: "numeric",
+    month: "numeric",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",

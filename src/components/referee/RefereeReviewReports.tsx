@@ -271,9 +271,9 @@ export default function RefereeReviewReports({
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "—";
   try {
-    return new Date(dateStr).toLocaleDateString("en-GB", {
-      month: "short",
+    return new Date(dateStr).toLocaleString("en-GB", {
       day: "numeric",
+      month: "numeric",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",

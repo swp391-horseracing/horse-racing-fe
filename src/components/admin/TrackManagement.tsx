@@ -13,6 +13,9 @@ import {
   Layers,
   Plus,
   Trash2,
+  ArrowRight,
+  Infinity as InfinityIcon,
+  Circle,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { ToastType } from "../../types/referee";
@@ -43,6 +46,14 @@ function formatDateOrFallback(value?: string) {
   if (!value) return "N/A";
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? "N/A" : d.toLocaleDateString("en-GB");
+}
+
+function getTrackShapeIcon(shape?: string) {
+  const s = shape?.toLowerCase().trim() ?? "";
+  if (s === "straight") return ArrowRight;
+  if (s === "figure_eight") return InfinityIcon;
+  if (s === "oval") return Circle;
+  return Activity;
 }
 
 interface FormModalProps {
@@ -340,7 +351,14 @@ export default function TrackManagement({
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 text-slate-500">
-                          <Activity className="w-3 h-3 text-slate-400 shrink-0" />
+                          {(() => {
+                            const Icon = getTrackShapeIcon(
+                              track.trackShape?.shape
+                            );
+                            return (
+                              <Icon className="w-3 h-3 text-slate-400 shrink-0" />
+                            );
+                          })()}
                           <span className="text-[10px] truncate">
                             {formatStatus(track.trackShape?.shape || "Unknown")}
                             {track.trackShape?.description &&
@@ -358,7 +376,7 @@ export default function TrackManagement({
                         </span>
                       </div>
                       <p className="text-[10px] text-slate-400 mt-0.5">
-                        Max Starters: {track.maxStartingPositions || 0}
+                        Max Lanes: {track.maxStartingPositions || 0}
                       </p>
                     </td>
 
@@ -575,7 +593,12 @@ export default function TrackManagement({
                 <StatCard
                   label="Track Shape"
                   value={formatStatus(selectedTrack.trackShape?.shape || "")}
-                  icon={<Activity className="w-3.5 h-3.5" />}
+                  icon={(() => {
+                    const Icon = getTrackShapeIcon(
+                      selectedTrack.trackShape?.shape
+                    );
+                    return <Icon className="w-3.5 h-3.5" />;
+                  })()}
                 />
                 <StatCard
                   label="Grandstand Cap."
@@ -583,7 +606,7 @@ export default function TrackManagement({
                   icon={<Users className="w-3.5 h-3.5" />}
                 />
                 <StatCard
-                  label="Max Starters"
+                  label="Max Lanes"
                   value={selectedTrack.maxStartingPositions}
                   icon={<Flag className="w-3.5 h-3.5" />}
                 />
@@ -593,7 +616,13 @@ export default function TrackManagement({
                 {selectedTrack.trackShape?.description && (
                   <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50">
                     <h4 className="text-[10px] font-bold uppercase text-slate-400 mb-2 flex items-center gap-2">
-                      <Activity className="w-3 h-3" /> Shape Description
+                      {(() => {
+                        const Icon = getTrackShapeIcon(
+                          selectedTrack.trackShape?.shape
+                        );
+                        return <Icon className="w-3 h-3" />;
+                      })()}{" "}
+                      Shape Description
                     </h4>
                     <p className="text-xs text-slate-600 leading-relaxed italic">
                       "{selectedTrack.trackShape.description}"

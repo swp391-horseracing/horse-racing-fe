@@ -1,5 +1,14 @@
-import { useState, useEffect, startTransition, type FormEvent } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  startTransition,
+  type FormEvent,
+} from "react";
 import { X, Loader2, Plus } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { format } from "date-fns";
 import { AdminService } from "../../../services/AdminService";
 import AddTrackDistanceModal from "./AddTrackDistanceModal";
 
@@ -47,6 +56,7 @@ type Props = {
   actionLoading: boolean;
   tournamentStartDate?: string;
   tournamentEndDate?: string;
+  onError?: (message: string) => void;
 };
 
 export default function RaceForm({
@@ -57,12 +67,20 @@ export default function RaceForm({
   actionLoading,
   tournamentStartDate,
   tournamentEndDate,
+  onError,
 }: Props) {
   const [form, setForm] = useState<RaceFormData>({
     ...initialForm,
     ...initial,
   });
   const [error, setError] = useState<string | null>(null);
+  const setFormError = useCallback(
+    (msg: string) => {
+      setError(msg);
+      onError?.(msg);
+    },
+    [onError]
+  );
 
   const [tracks, setTracks] = useState<Track[]>([]);
   const [tracksLoading, setTracksLoading] = useState(false);
@@ -89,13 +107,13 @@ export default function RaceForm({
         const list = Array.isArray(data) ? data : (data?.data ?? []);
         setTracks(Array.isArray(list) ? list : []);
       } catch {
-        setError("Failed to load tracks. Please try again.");
+        setFormError("Failed to load tracks. Please try again.");
       } finally {
         setTracksLoading(false);
       }
     };
     void load();
-  }, []);
+  }, [setFormError]);
 
   // When track changes, fetch distances
   useEffect(() => {
@@ -153,15 +171,15 @@ export default function RaceForm({
     setError(null);
 
     if (!form.name.trim()) {
-      setError("Race name is required.");
+      setFormError("Race name is required.");
       return;
     }
     if (!form.scheduledAt) {
-      setError("Scheduled date is required.");
+      setFormError("Scheduled date is required.");
       return;
     }
     if (!form.trackDistanceId) {
-      setError("Please select a track and distance.");
+      setFormError("Please select a track and distance.");
       return;
     }
 
@@ -170,7 +188,7 @@ export default function RaceForm({
       const startMs = new Date(tournamentStartDate).getTime();
       const endMs = new Date(tournamentEndDate).getTime();
       if (scheduledMs < startMs || scheduledMs > endMs) {
-        setError(
+        setFormError(
           "Scheduled date must be between tournament start and end dates"
         );
         return;
@@ -183,7 +201,7 @@ export default function RaceForm({
     });
 
     if (errMsg) {
-      setError(errMsg);
+      setFormError(errMsg);
     }
   };
 
@@ -202,12 +220,6 @@ export default function RaceForm({
             <X className="w-4 h-4" />
           </button>
         </div>
-
-        {error && (
-          <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -379,17 +391,22 @@ export default function RaceForm({
                 {new Date(tournamentEndDate).toLocaleDateString("en-GB")}
               </p>
             )}
-            <input
-              type="datetime-local"
-              value={form.scheduledAt}
-              onChange={(e) =>
+            <DatePicker
+              selected={form.scheduledAt ? new Date(form.scheduledAt) : null}
+              onChange={(date: Date | null) =>
                 setForm((prev) => ({
                   ...prev,
-                  scheduledAt: e.target.value,
+                  scheduledAt: date ? format(date, "yyyy-MM-dd'T'HH:mm") : "",
                 }))
               }
+              showTimeSelect
+              timeFormat="hh:mm aa"
+              timeIntervals={15}
+              dateFormat="dd/MM/yyyy hh:mm aa"
+              placeholderText="dd/MM/yyyy hh:mm aa"
               className="w-full border rounded-xl px-4 py-3"
               required
+              shouldCloseOnSelect
             />
           </div>
 
@@ -413,6 +430,12 @@ export default function RaceForm({
               Cancel
             </button>
           </div>
+
+          {error && (
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              {error}
+            </div>
+          )}
         </form>
       </div>
     </div>

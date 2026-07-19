@@ -1,12 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  ArrowRight,
-  Calendar,
-  Heart,
-  PlayCircle,
-  ArrowLeft,
-} from "lucide-react";
+import { ArrowRight, Heart, ArrowLeft } from "lucide-react";
 import useHorse from "../hooks/horse/useHorse";
 import useAuth from "../hooks/auth/useAuth";
 import { formatStatus } from "../utils/formatters";
@@ -158,10 +152,10 @@ export default function HorseDetailPage() {
                 <div className="max-w-3xl text-white">
                   <div className="mb-4 flex flex-wrap items-center gap-3 text-xs font-semibold tracking-[0.16em]">
                     <span className="rounded-full bg-amber-300 px-3 py-1 text-[#173a35]">
-                      No Info
+                      {age} old
                     </span>
                     <span className="rounded-full bg-[#254f45] px-3 py-1 text-white">
-                      No Info
+                      Breed: {selectedHorse.breed}
                     </span>
                   </div>
 
@@ -170,7 +164,7 @@ export default function HorseDetailPage() {
                   </h1>
 
                   <p className="mt-4 max-w-2xl text-base font-medium leading-7 text-white/80 md:text-lg">
-                    {selectedHorse.breed} • {age} • Owned by {ownerName}
+                    Owned by {ownerName}
                   </p>
                 </div>
               </div>
@@ -185,10 +179,6 @@ export default function HorseDetailPage() {
                 <button className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-1 font-semibold text-white backdrop-blur transition hover:bg-white/15">
                   <Heart className="h-4 w-4" />
                   Add to Favorite
-                </button>
-                <button className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-1 font-semibold text-white backdrop-blur transition hover:bg-white/15">
-                  <PlayCircle className="h-4 w-4" />
-                  View Race History
                 </button>
               </div>
             </div>
@@ -295,7 +285,7 @@ export default function HorseDetailPage() {
               </div>
             </section>
 
-            <section className="rounded-2xl bg-[#163c35] p-6 text-white shadow-sm">
+            {/* <section className="rounded-2xl bg-[#163c35] p-6 text-white shadow-sm">
               <div className="flex items-center gap-2 text-sm font-semibold">
                 <Calendar className="h-4 w-4" />
                 Breeding Status
@@ -307,7 +297,7 @@ export default function HorseDetailPage() {
               <button className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-white px-4 py-3 text-sm font-semibold text-[#173a35] transition hover:bg-slate-100">
                 Check Availability
               </button>
-            </section>
+            </section> */}
           </aside>
         </div>
       </div>

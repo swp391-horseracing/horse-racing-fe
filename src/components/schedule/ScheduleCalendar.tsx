@@ -31,11 +31,7 @@ function fmtInput(d: Date): string {
 }
 
 function fmtShort(d: Date): string {
-  return d.toLocaleDateString("en-GB", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
+  return d.toLocaleDateString("en-GB");
 }
 
 function parseInputDate(value: string): Date | undefined {

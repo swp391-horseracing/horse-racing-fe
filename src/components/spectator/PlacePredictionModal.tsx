@@ -1,14 +1,15 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { X, Trophy, ArrowRight } from "lucide-react";
 
 import { PredictionService } from "../../services/PredictionService";
 import { fetchRaceEntries } from "../../hooks/useRaces";
 import type { RaceEntry } from "../../types/race";
 
-export interface ExistingPrediction {
-  entryId: string;
-  horseName: string;
-  predictedPosition: number;
+export interface PreselectedEntry {
+  id: string;
+  name: string;
+  jockeyName: string;
+  laneNumber: string;
 }
 
 interface PlacePredictionModalProps {
@@ -22,8 +23,13 @@ interface PlacePredictionModalProps {
     message: string,
     type: "success" | "error" | "info" | "warning"
   ) => void;
-  existingPrediction?: ExistingPrediction | null;
-  onPlaced?: (data: ExistingPrediction) => void;
+  onPlaced?: (data: {
+    entryId: string;
+    horseName: string;
+    predictedPosition: number;
+  }) => void;
+  preselectedEntry?: PreselectedEntry | null;
+  predictedEntryIds?: string[];
 }
 
 const POSITIONS = [
@@ -40,19 +46,27 @@ export function PlacePredictionModal({
   onClose,
   onSuccess,
   addToast,
-  existingPrediction,
   onPlaced,
+  preselectedEntry,
+  predictedEntryIds,
 }: PlacePredictionModalProps) {
   const [selectedEntryId, setSelectedEntryId] = useState<string>(
-    () => existingPrediction?.entryId ?? ""
+    () => preselectedEntry?.id ?? ""
   );
-  const [selectedPosition, setSelectedPosition] = useState<number>(
-    () => existingPrediction?.predictedPosition ?? 1
-  );
+  const [selectedPosition, setSelectedPosition] = useState<number>(1);
   const [submitting, setSubmitting] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const filterEntries = useCallback(
+    (list: RaceEntry[]) =>
+      list.filter(
+        (e) =>
+          e.entryStatus === "confirmed" && !predictedEntryIds?.includes(e.id)
+      ),
+    [predictedEntryIds]
+  );
+
   const [localEntries, setLocalEntries] = useState<RaceEntry[]>(() =>
-    open ? entries : []
+    open ? filterEntries(entries) : []
   );
 
   useEffect(() => {
@@ -60,10 +74,31 @@ export function PlacePredictionModal({
     let cancelled = false;
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLocalEntries(entries);
+    setLocalEntries(filterEntries(entries));
+
+    if (preselectedEntry) {
+      const match = filterEntries(entries).find(
+        (e) => e.name === preselectedEntry.name
+      );
+      if (match) {
+        setSelectedEntryId(match.id);
+        setConfirming(false);
+      }
+    }
+
     fetchRaceEntries(raceId)
       .then((data) => {
-        if (!cancelled) setLocalEntries(data);
+        if (!cancelled) {
+          const fetched = filterEntries(data);
+          setLocalEntries(fetched);
+          if (preselectedEntry) {
+            const match = fetched.find((e) => e.name === preselectedEntry.name);
+            if (match) {
+              setSelectedEntryId(match.id);
+              setConfirming(false);
+            }
+          }
+        }
       })
       .catch((err) => {
         console.error("Failed to fetch race entries for prediction:", err);
@@ -72,7 +107,8 @@ export function PlacePredictionModal({
     return () => {
       cancelled = true;
     };
-  }, [open, raceId, entries, addToast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, raceId, preselectedEntry]);
 
   const entryMap = useMemo(
     () => new Map(localEntries.map((e) => [e.id, e.name])),
@@ -81,7 +117,8 @@ export function PlacePredictionModal({
 
   if (!open) return null;
 
-  const isEdit = !!existingPrediction;
+  const preselectedName =
+    preselectedEntry?.name ?? entryMap.get(selectedEntryId) ?? "Unknown";
 
   const handleConfirmClick = () => {
     if (!selectedEntryId) {
@@ -103,13 +140,8 @@ export function PlacePredictionModal({
         selectedEntryId,
         selectedPosition
       );
-      const horseName = entryMap.get(selectedEntryId) || "Unknown";
-      addToast(
-        isEdit
-          ? "Prediction updated successfully!"
-          : "Prediction placed successfully!",
-        "success"
-      );
+      const horseName = preselectedName;
+      addToast("Prediction placed successfully!", "success");
       onPlaced?.({
         entryId: selectedEntryId,
         horseName,
@@ -148,7 +180,7 @@ export function PlacePredictionModal({
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-[#EAB308]" />
             <h2 className="font-headline font-bold text-[#064E3B] text-lg">
-              {isEdit ? "Update Prediction" : "Place Prediction"}
+              Place Prediction
             </h2>
           </div>
           <button
@@ -169,44 +201,65 @@ export function PlacePredictionModal({
 
           <div>
             <label className="block font-label text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
-              Select Entry
+              {preselectedEntry ? "Selected Entry" : "Select Entry"}
             </label>
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {localEntries.map((entry) => (
-                <label
-                  key={entry.id}
-                  className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all ${
-                    selectedEntryId === entry.id
-                      ? "border-[#064E3B] bg-[#064E3B]/5 ring-1 ring-[#064E3B]"
-                      : "border-slate-100"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="entry"
-                      value={entry.id}
-                      checked={selectedEntryId === entry.id}
-                      onChange={() => setSelectedEntryId(entry.id)}
-                      className="text-[#064E3B] focus:ring-[#064E3B] h-4 w-4 border-slate-300"
-                    />
-                    <div>
-                      <span className="text-sm font-bold text-slate-700">
-                        {entry.name}
+            {preselectedEntry ? (
+              <div className="flex items-center justify-between p-3.5 border border-[#064E3B] bg-[#064E3B]/5 ring-1 ring-[#064E3B] rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="h-4 w-4 rounded-full bg-[#064E3B]" />
+                  <div>
+                    <span className="text-sm font-bold text-slate-700">
+                      {preselectedEntry.name}
+                    </span>
+                    {preselectedEntry.jockeyName && (
+                      <span className="text-xs text-slate-400 ml-2">
+                        (J: {preselectedEntry.jockeyName})
                       </span>
-                      {entry.jockeyName && (
-                        <span className="text-xs text-slate-400 ml-2">
-                          (J: {entry.jockeyName})
-                        </span>
-                      )}
-                    </div>
+                    )}
                   </div>
-                  <span className="font-label text-[10px] font-bold text-slate-400">
-                    Lane {entry.laneNumber}
-                  </span>
-                </label>
-              ))}
-            </div>
+                </div>
+                <span className="font-label text-[10px] font-bold text-slate-400">
+                  Lane {preselectedEntry.laneNumber}
+                </span>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {localEntries.map((entry) => (
+                  <label
+                    key={entry.id}
+                    className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all ${
+                      selectedEntryId === entry.id
+                        ? "border-[#064E3B] bg-[#064E3B]/5 ring-1 ring-[#064E3B]"
+                        : "border-slate-100"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="entry"
+                        value={entry.id}
+                        checked={selectedEntryId === entry.id}
+                        onChange={() => setSelectedEntryId(entry.id)}
+                        className="text-[#064E3B] focus:ring-[#064E3B] h-4 w-4 border-slate-300"
+                      />
+                      <div>
+                        <span className="text-sm font-bold text-slate-700">
+                          {entry.name}
+                        </span>
+                        {entry.jockeyName && (
+                          <span className="text-xs text-slate-400 ml-2">
+                            (J: {entry.jockeyName})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <span className="font-label text-[10px] font-bold text-slate-400">
+                      Lane {entry.laneNumber}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
@@ -238,7 +291,7 @@ export function PlacePredictionModal({
                   Are you sure?
                 </p>
                 <p className="text-sm font-bold text-amber-700 mt-1">
-                  {entryMap.get(selectedEntryId)} →{" "}
+                  {preselectedName} →{" "}
                   {{ 1: "1st", 2: "2nd", 3: "3rd" }[selectedPosition]} position
                 </p>
               </div>
@@ -266,7 +319,7 @@ export function PlacePredictionModal({
               disabled={submitting}
               className="w-full bg-[#064E3B] text-white font-bold text-sm py-3 rounded-xl hover:bg-[#043E2F] hover:shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              {isEdit ? "Update Prediction" : "Confirm Prediction"}
+              Confirm Prediction
               <ArrowRight className="w-4 h-4" />
             </button>
           )}

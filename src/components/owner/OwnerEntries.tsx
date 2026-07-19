@@ -117,8 +117,9 @@ export function OwnerEntries() {
                             {new Date(entry.scheduleAt).toLocaleString(
                               "en-GB",
                               {
-                                month: "short",
                                 day: "numeric",
+                                month: "numeric",
+                                year: "numeric",
                                 hour: "2-digit",
                                 minute: "2-digit",
                               }
