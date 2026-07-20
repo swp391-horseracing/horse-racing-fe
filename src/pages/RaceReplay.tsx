@@ -1,15 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  ArrowLeft,
-  Flag,
-  Trophy,
-  Clock,
-  ArrowUp,
-  ArrowDown,
-  Minus,
-  Play,
-  Square,
-} from "lucide-react";
+import { ArrowLeft, Flag, Trophy, Clock, Play, Square } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { RaceTick } from "../types/live";
 import { useRaceDetail } from "../hooks/useRaces";
@@ -23,6 +13,22 @@ import { RaceAndHorseDetails } from "../components/race/RaceAndHorseDetails";
 import { TournamentSidebar } from "../components/race/TournamentSidebar";
 import { TournamentService } from "../services/TournamentService";
 import type { TournamentDetail, RaceItem } from "../types/tournament";
+
+// Keyframe animations for rank changes
+const rankChangeAnimations = `
+  @keyframes moveUp {
+    0% { transform: translateY(8px); opacity: 0.8; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes moveDown {
+    0% { transform: translateY(-8px); opacity: 0.8; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes rankPulse {
+    0%, 100% { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+    50% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+  }
+`;
 
 const HORSE_COLORS = [
   "#064E3B",
@@ -53,59 +59,13 @@ const HORSE_FILTERS: Record<string, string> = {
   "#065F46": "hue-rotate(145deg) saturate(200%) brightness(80%)",
   "#9F1239": "hue-rotate(310deg) saturate(260%) brightness(90%)",
 };
-const RANK_CHANGE_DURATION_MS = 2500;
+const RANK_CHANGE_DURATION_MS = 1000;
 
 const formatTime = (ms: number) => {
   const s = Math.floor(ms / 1000);
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(
     s % 60
   ).padStart(2, "0")}.${String(Math.floor((ms % 1000) / 10)).padStart(2, "0")}`;
-};
-
-const formatStatus = (status: string) => {
-  const s = status.toLowerCase();
-  switch (s) {
-    case "pending":
-      return "Pending";
-    case "confirmed":
-      return "Confirmed";
-    case "scratched":
-      return "Scratched";
-    case "dns":
-      return "Did Not Start";
-    case "dnf":
-      return "Did Not Finish";
-    case "did_not_finish":
-      return "Did Not Finish";
-    case "disqualified":
-      return "Disqualified";
-    case "withdrawn":
-      return "Withdrawn";
-    default:
-      return status;
-  }
-};
-
-const getStatusBadgeClass = (status: string) => {
-  const s = status.toLowerCase();
-  switch (s) {
-    case "pending":
-      return "border border-amber-200 bg-amber-50 text-amber-800";
-    case "confirmed":
-      return "border border-emerald-200 bg-emerald-50 text-emerald-800";
-    case "scratched":
-      return "border border-amber-200 bg-amber-50 text-amber-800";
-    case "dns":
-    case "withdrawn":
-      return "border border-slate-200 bg-slate-50 text-slate-400";
-    case "dnf":
-    case "did_not_finish":
-      return "border border-slate-200 bg-slate-100 text-slate-700";
-    case "disqualified":
-      return "border border-red-200 bg-red-50 text-red-800";
-    default:
-      return "border border-slate-100 bg-slate-50 text-slate-600";
-  }
 };
 
 export default function RaceReplay() {
@@ -209,6 +169,11 @@ export default function RaceReplay() {
       active = false;
     };
   }, [RaceDetail?.tournamentId]);
+
+  // Reset manual stop flag when navigating to a different race
+  useEffect(() => {
+    manuallyStoppedRef.current = false;
+  }, [RaceDetail?.id]);
 
   useEffect(() => {
     if (
@@ -417,6 +382,21 @@ export default function RaceReplay() {
     }));
   }, [currentTick, horseMeta]);
 
+  // Dynamic height calculation for live standings
+  const { standingsHeight, detailsHeight } = useMemo(() => {
+    const standingsHeaderHeight = 44 + 30; // h-11 + column header
+    const rowHeight = 50; // Approximate height per horse row (including gaps)
+    const standingsContentHeight = rankedHorses.length * rowHeight;
+    const maxStandingsHeight = Math.min(
+      standingsHeaderHeight + standingsContentHeight,
+      Math.max(200, window.innerHeight * 0.68)
+    );
+    return {
+      standingsHeight: `${maxStandingsHeight}px`,
+      detailsHeight: `calc(100% - ${maxStandingsHeight + 12}px)`, // 12px is the gap size
+    };
+  }, [rankedHorses.length]);
+
   const OVERRUN_PCT = 2;
 
   const laneHorses = useMemo(() => {
@@ -459,7 +439,6 @@ export default function RaceReplay() {
       />
     );
   }
-
   if (!RaceDetail) {
     return (
       <NotFoundContent
@@ -473,16 +452,34 @@ export default function RaceReplay() {
 
   return (
     <div className="w-full h-full flex flex-row gap-3 bg-slate-100 p-3 font-sans overflow-hidden">
-      {/* ═══ Left Column: Tournament ═══ */}
-      <div className="shrink-0 w-72 h-full flex flex-col overflow-hidden">
-        <TournamentSidebar
-          tournament={tournamentDetail}
-          races={tournamentRaces}
-          currentRaceId={id!}
-        />
+      <style>{rankChangeAnimations}</style>
+      {/* ═══ Left Column: Predictions + Tournament ═══ */}
+      <div className="shrink-0 w-72 h-full flex flex-col gap-3 overflow-hidden">
+        {/* Predictions Panel — sized to fit prediction slip perfectly */}
+        <div className="h-[310px] shrink-0 flex flex-col bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
+          <PredictionsSidebar
+            raceId={id!}
+            raceStatus={RaceDetail?.status}
+            raceName={RaceDetail?.name}
+            entries={RaceDetail?.entries}
+            firstHorseName={horseMeta[0]?.name}
+            onPredictionChange={handlePredictionChange}
+            isSimulating={simulating}
+            elapsedMs={latestTick?.elapsedMs}
+          />
+        </div>
+
+        {/* Tournament schedule card — flex-1 to take remaining space */}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <TournamentSidebar
+            tournament={tournamentDetail}
+            races={tournamentRaces}
+            currentRaceId={id!}
+          />
+        </div>
       </div>
 
-      {/* ═══ Center/Left Column: Header + Track + Standings ═══ */}
+      {/* ═══ Center Column: Header + Track ═══ */}
       <div className="flex-1 min-w-0 flex flex-col h-full bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
         {/* Header */}
         <div className="shrink-0 bg-primary text-white px-6 py-4 flex justify-between items-center">
@@ -552,10 +549,10 @@ export default function RaceReplay() {
           </div>
         </div>
 
-        {/* Track */}
-        <div className="shrink-0 max-h-[300px] overflow-y-auto border-b border-slate-200/60 shadow-inner">
+        {/* Track — Extended to take all remaining height of the center panel */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
           <div
-            className={`relative ${
+            className={`relative min-h-full ${
               ["dirt", "sand", "clay"].includes(
                 RaceDetail?.course?.surfaceType?.toLowerCase() || ""
               )
@@ -770,24 +767,32 @@ export default function RaceReplay() {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Live Standings */}
-        <div className="flex-1 min-h-0 flex flex-col bg-slate-50 border-t border-slate-200">
-          <div className="shrink-0 px-6 py-3 flex items-center gap-2 border-b border-slate-200 bg-white">
-            <Trophy className="w-4 h-4 text-[#D4AF37]" />
-            <h3 className="font-black text-[#064E3B] uppercase tracking-wide text-sm">
+      {/* ═══ Right Column: Sidebar ═══ */}
+      <div className="shrink-0 w-72 flex flex-col gap-3 h-full overflow-hidden">
+        {/* Live Standings Panel — dynamic height based on horse count */}
+        <div
+          style={{ height: standingsHeight }}
+          className="shrink-0 flex flex-col bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden"
+        >
+          <div
+            className="shrink-0 px-4 py-2.5 flex items-center gap-2 border-b border-slate-100"
+            style={{ backgroundColor: "#ffffff", color: "#064E3B" }}
+          >
+            <Trophy className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <h3 className="font-bold uppercase tracking-wider text-[11px]">
               Live Standings
             </h3>
           </div>
-          {/* Table Header */}
-          <div className="shrink-0 grid grid-cols-[40px_1fr_60px_80px_80px] gap-3 px-3 py-2 bg-slate-100 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider items-center">
+          {/* Compact Table Header for Sidebar */}
+          <div className="shrink-0 grid grid-cols-[28px_1fr_50px_50px] gap-1.5 px-3 py-2 bg-slate-50 border-b border-slate-200/60 text-[9px] font-bold text-slate-500 uppercase tracking-wider items-center">
             <div className="text-center">Rnk</div>
             <div>Horse</div>
-            <div className="text-center">Chg</div>
             <div className="text-right">Dist</div>
             <div className="text-right">Spd</div>
           </div>
-          <div className="flex-col gap-px bg-slate-200 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto flex flex-col gap-px bg-slate-100 p-1.5 [scrollbar-width:thin] [scrollbar-color:rgba(148,163,184,0.5)_transparent]">
             {rankedHorses.map((horse) => {
               const meta = horseMeta.find((m) => m.id === horse.horseId);
               const rank =
@@ -802,25 +807,54 @@ export default function RaceReplay() {
               let borderStyle: string;
               let bgStyle: string;
               if (rank === 1) {
-                borderStyle = "border-l-[4px] border-l-[#D4AF37]"; // Gold
+                borderStyle = "border-l-[3px] border-l-[#D4AF37]"; // Gold
                 bgStyle = "bg-yellow-50/50";
               } else if (rank === 2) {
-                borderStyle = "border-l-[4px] border-l-[#94A3B8]"; // Silver
+                borderStyle = "border-l-[3px] border-l-[#94A3B8]"; // Silver
                 bgStyle = "bg-slate-50/80";
               } else if (rank === 3) {
-                borderStyle = "border-l-[4px] border-l-[#B45309]"; // Bronze
-                bgStyle = "bg-orange-50/30";
+                borderStyle = "border-l-[3px] border-l-[#B45309]"; // Bronze
+                bgStyle = "bg-orange-50/20";
               } else {
-                borderStyle = "border-l-[4px] border-l-transparent";
+                borderStyle = "border-l-[3px] border-l-transparent";
                 bgStyle = "bg-white";
               }
+
+              const rankChangeColor =
+                isActive && change > 0
+                  ? "rgba(34, 197, 94, 0.15)"
+                  : isActive && change < 0
+                    ? "rgba(239, 68, 68, 0.15)"
+                    : "transparent";
+
+              const animationStyle: React.CSSProperties = isActive
+                ? {
+                    backgroundColor: rankChangeColor,
+                    animation:
+                      change > 0
+                        ? "moveUp 0.5s ease-out"
+                        : "moveDown 0.5s ease-out",
+                    boxShadow:
+                      change > 0
+                        ? "0 4px 12px rgba(34, 197, 94, 0.3)"
+                        : "0 4px 12px rgba(239, 68, 68, 0.3)",
+                  }
+                : {
+                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+                  };
 
               return (
                 <div
                   key={horse.horseId}
-                  className={`grid grid-cols-[40px_1fr_60px_80px_80px] gap-3 px-3 py-2 items-center cursor-pointer transition-colors ${bgStyle} ${borderStyle} ${
-                    isSelected ? "bg-indigo-50" : "hover:bg-slate-50"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Select horse ${horse.name}`}
+                  className={`grid grid-cols-[28px_1fr_50px_50px] gap-1.5 px-2 py-1.5 items-center cursor-pointer transition-all border border-slate-100/50 rounded-lg focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-emerald-500 ${bgStyle} ${borderStyle} ${
+                    isSelected
+                      ? "bg-indigo-50 border-indigo-200"
+                      : "hover:bg-slate-50"
                   }`}
+                  style={animationStyle}
                   onMouseEnter={() => {
                     const entry = RaceDetail?.entries?.find(
                       (e) => e.name === horse.name
@@ -860,11 +894,11 @@ export default function RaceReplay() {
                 >
                   <div className="flex justify-center">
                     <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-sm ${
+                      className={`w-5.5 h-5.5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-xs ${
                         rank === 1
-                          ? "bg-gradient-to-br from-[#FDE047] to-[#D4AF37] text-yellow-900 border border-[#D4AF37]"
+                          ? "bg-gradient-to-br from-[#FDE047] to-[#D4AF37] text-yellow-950 border border-[#D4AF37]"
                           : rank <= 3
-                            ? "bg-gradient-to-br from-slate-100 to-slate-300 text-slate-800 border border-slate-400"
+                            ? "bg-gradient-to-br from-slate-50 to-slate-200 text-slate-800 border border-slate-350"
                             : "bg-slate-100 text-slate-500 border border-slate-200"
                       }`}
                     >
@@ -874,7 +908,7 @@ export default function RaceReplay() {
 
                   <div className="flex flex-col min-w-0">
                     <span
-                      className="font-bold text-sm leading-tight truncate flex items-center gap-1.5"
+                      className="font-extrabold text-[11px] leading-tight flex items-center gap-1"
                       style={{ color: meta?.color }}
                       title={
                         meta
@@ -882,57 +916,32 @@ export default function RaceReplay() {
                           : undefined
                       }
                     >
-                      {horse.name}
+                      <span className="truncate">{horse.name}</span>
                       {isPredicted && (
-                        <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#FDE047] to-[#D4AF37] text-[8px] font-black text-amber-950 uppercase tracking-wide shadow-xs border border-amber-300">
-                          ★ Picked
-                        </span>
-                      )}
-                      {meta?.entryStatus && (
-                        <span
-                          className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${getStatusBadgeClass(meta.entryStatus)}`}
-                        >
-                          {formatStatus(meta.entryStatus)}
+                        <span className="inline-flex items-center text-[8px] font-black text-amber-600 shrink-0">
+                          ★
                         </span>
                       )}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-medium">
-                      Lane {meta?.laneIndex}
+                    <span className="text-[8px] text-slate-400 font-semibold leading-none mt-0.5">
+                      L: {meta?.laneIndex}
                     </span>
-                  </div>
-
-                  <div className="flex justify-center">
-                    {isActive && change > 0 ? (
-                      <span className="rank-change-indicator flex items-center gap-0.5 text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
-                        <ArrowUp size={12} strokeWidth={3} />
-                        <span className="text-xs font-bold">{change}</span>
-                      </span>
-                    ) : isActive && change < 0 ? (
-                      <span className="rank-change-indicator flex items-center gap-0.5 text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
-                        <ArrowDown size={12} strokeWidth={3} />
-                        <span className="text-xs font-bold">
-                          {Math.abs(change)}
-                        </span>
-                      </span>
-                    ) : (
-                      <Minus size={12} className="text-slate-300" />
-                    )}
                   </div>
 
                   <div className="text-right">
-                    <span className="text-sm font-bold font-mono text-slate-700 tabular-nums">
-                      {horse.positionM.toFixed(1)}
+                    <span className="text-[10px] font-bold font-mono text-slate-700 tabular-nums">
+                      {horse.positionM.toFixed(0)}
                     </span>
-                    <span className="text-[10px] font-normal text-slate-400 ml-0.5">
+                    <span className="text-[8px] font-normal text-slate-450 ml-0.5">
                       m
                     </span>
                   </div>
 
                   <div className="text-right">
-                    <span className="text-sm font-bold font-mono text-slate-700 tabular-nums">
-                      {horse.speedMs.toFixed(1)}
+                    <span className="text-[10px] font-bold font-mono text-slate-700 tabular-nums">
+                      {horse.speedMs.toFixed(0)}
                     </span>
-                    <span className="text-[10px] font-normal text-slate-400 ml-0.5">
+                    <span className="text-[8px] font-normal text-slate-450 ml-0.5">
                       m/s
                     </span>
                   </div>
@@ -941,26 +950,12 @@ export default function RaceReplay() {
             })}
           </div>
         </div>
-      </div>
 
-      {/* ═══ Right Column: Sidebar ═══ */}
-      <div className="shrink-0 w-72 flex flex-col gap-3 h-full overflow-hidden">
-        {/* Predictions Panel — top ~45% */}
-        <div className="h-[45%] shrink-0 flex flex-col bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
-          <PredictionsSidebar
-            raceId={id!}
-            raceStatus={RaceDetail?.status}
-            raceName={RaceDetail?.name}
-            entries={RaceDetail?.entries}
-            firstHorseName={horseMeta[0]?.name}
-            onPredictionChange={handlePredictionChange}
-            isSimulating={simulating}
-            elapsedMs={latestTick?.elapsedMs}
-          />
-        </div>
-
-        {/* Race / Horse Details Panel — bottom ~55% */}
-        <div className="flex-1 min-h-0 flex flex-col bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
+        {/* Race / Horse Details Panel — dynamic height */}
+        <div
+          style={{ height: detailsHeight }}
+          className="min-h-0 flex flex-col bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden"
+        >
           <RaceAndHorseDetails
             raceDetail={RaceDetail}
             hoveredHorse={hoveredHorse}
