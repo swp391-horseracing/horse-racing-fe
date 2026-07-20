@@ -170,23 +170,10 @@ export default function RaceReplay() {
     };
   }, [RaceDetail?.tournamentId]);
 
-  // Check actual race status on component mount and when race details change
+  // Reset manual stop flag when navigating to a different race
   useEffect(() => {
-    // If race has progressed but we think it's not simulating, sync the state
-    if (
-      latestTick &&
-      latestTick.elapsedMs > 0 &&
-      !finalPlacements &&
-      !["under_review", "completed"].includes(RaceDetail?.status ?? "")
-    ) {
-      // Defer state update to avoid render-phase conflicts
-      const timer = setTimeout(() => {
-        setSimulating(true);
-        manuallyStoppedRef.current = false;
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [RaceDetail?.id, latestTick, finalPlacements, RaceDetail?.status]);
+    manuallyStoppedRef.current = false;
+  }, [RaceDetail?.id]);
 
   useEffect(() => {
     if (
@@ -862,7 +849,7 @@ export default function RaceReplay() {
                   role="button"
                   tabIndex={0}
                   aria-label={`Select horse ${horse.name}`}
-                  className={`grid grid-cols-[28px_1fr_50px_50px] gap-1.5 px-2 py-1.5 items-center cursor-pointer transition-all border border-slate-100/50 rounded-lg focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 ${bgStyle} ${borderStyle} ${
+                  className={`grid grid-cols-[28px_1fr_50px_50px] gap-1.5 px-2 py-1.5 items-center cursor-pointer transition-all border border-slate-100/50 rounded-lg focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-emerald-500 ${bgStyle} ${borderStyle} ${
                     isSelected
                       ? "bg-indigo-50 border-indigo-200"
                       : "hover:bg-slate-50"
