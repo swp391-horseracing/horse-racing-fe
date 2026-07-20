@@ -51,7 +51,7 @@ export function RaceAndHorseDetails({
   return (
     <div className="flex flex-col h-full overflow-hidden relative bg-white">
       {/* Header */}
-      <div className="shrink-0 px-4 py-2.5 flex items-center justify-between bg-gradient-to-r from-slate-700 to-slate-800 text-white z-10">
+      <div className="shrink-0 px-4 py-2.5 flex items-center justify-between bg-[#064E3B] text-white z-10">
         <div className="flex items-center gap-2">
           {activeHorse ? (
             <Trophy size={14} className="text-[#D4AF37]" />
