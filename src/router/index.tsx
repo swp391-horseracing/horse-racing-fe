@@ -9,6 +9,7 @@ import LoginPage from "../pages/LoginPage";
 import FeedPage from "../pages/FeedPage";
 import CalendarPage from "../pages/CalendarPage";
 import HorsePage from "../pages/HorsePage";
+import JockeysPage from "../pages/JockeysPage";
 import TournamentsPage from "../pages/TournamentsPage";
 import RacesPage from "../pages/RacesPage";
 import JockeyPage from "../pages/JockeyPage";
@@ -23,6 +24,7 @@ import RefereePage from "../pages/RefereePage";
 import LeaderBoardPage from "../pages/LeaderBoardPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import HorseDetailPage from "../pages/HorseDetailPage";
+import JockeyDetailPage from "../pages/JockeyDetailPage";
 import TracksPage from "../pages/TracksPage";
 import RaceReplay from "../pages/RaceReplay.tsx";
 export const router = createBrowserRouter([
@@ -66,6 +68,10 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.HORSES,
         element: <HorsePage />,
+      },
+      {
+        path: ROUTES.JOCKEYS,
+        element: <JockeysPage />,
       },
       {
         path: ROUTES.TOURNAMENTS,
@@ -230,6 +236,10 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.HORSE_DETAIL,
         element: <HorseDetailPage />,
+      },
+      {
+        path: ROUTES.JOCKEY_DETAIL,
+        element: <JockeyDetailPage />,
       },
     ],
   },
