@@ -1,7 +1,6 @@
-import { Star } from "lucide-react";
 import { useState, useMemo } from "react";
 import useHorse from "../hooks/horse/useHorse";
-import NoInfoPage from "./NoInfoPage";
+import { useSpotlightHorse } from "../hooks/useSpotlightEntity";
 import HorseSearch from "../components/horse/HorseSearch";
 import {
   Select,
@@ -12,8 +11,16 @@ import {
 } from "../components/ui/select";
 import { useNavigate } from "react-router-dom";
 import type { Horse } from "../types/horse";
-import banner from "../assets/images/horse-banner.png";
 import { formatStatus } from "../utils/formatters";
+import {
+  Layers,
+  Zap,
+  Activity,
+  ShieldAlert,
+  Star,
+  ArrowRight,
+} from "lucide-react";
+import banner from "../assets/images/horse-banner.png";
 
 function getAge(birthDate?: string) {
   if (!birthDate) return "N/A";
@@ -32,11 +39,13 @@ function getAge(birthDate?: string) {
 }
 
 function getDisplayStatus(horse: Horse): string {
+  if (horse.isRacing) return "Racing";
   if (horse.isRetired) return "Retired";
-  return horse.healthStatus ? formatStatus(horse.healthStatus) : "Unknown";
+  return horse.healthStatus ? formatStatus(horse.healthStatus) : "Active";
 }
 
 function getStatusColor(horse: Horse): string {
+  if (horse.isRacing) return "bg-amber-400";
   if (horse.isRetired) return "bg-slate-400";
   switch (horse.healthStatus?.toLowerCase()) {
     case "healthy":
@@ -50,7 +59,7 @@ function getStatusColor(horse: Horse): string {
     case "under observation":
       return "bg-slate-200";
     default:
-      return "bg-slate-400";
+      return "bg-green-500";
   }
 }
 
@@ -75,12 +84,18 @@ function HorseRow({ horse, selected }: { horse: Horse; selected: boolean }) {
       }`}
     >
       <div className="flex items-center gap-4 min-w-0">
-        <div className="h-10 w-10 rounded-full overflow-hidden bg-slate-200 shrink-0">
-          <img
-            src={horse.imageUrl || "/placeholder.jpg"}
-            alt={horse.name}
-            className="h-full w-full object-cover"
-          />
+        <div className="h-10 w-10 rounded-full overflow-hidden bg-slate-200 shrink-0 flex items-center justify-center">
+          {horse.imageUrl ? (
+            <img
+              src={horse.imageUrl}
+              alt={horse.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <span className="text-sm font-bold text-slate-500">
+              {horse.name.charAt(0).toUpperCase()}
+            </span>
+          )}
         </div>
         <div className="truncate">
           <p
@@ -91,7 +106,8 @@ function HorseRow({ horse, selected }: { horse: Horse; selected: boolean }) {
             {horse.name}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            {horse.breed} · {getAge(horse.birthDate)} · {horse.weightKg}kg
+            {horse.breed || "Unknown Breed"} · {getAge(horse.birthDate)} ·{" "}
+            {horse.weightKg ? `${horse.weightKg}kg` : "N/A weight"}
           </p>
         </div>
       </div>
@@ -106,7 +122,9 @@ function HorseRow({ horse, selected }: { horse: Horse; selected: boolean }) {
 }
 
 export default function HorsePage() {
+  const navigate = useNavigate();
   const { horses, loading, error, pagination, setPagination } = useHorse();
+  const spotlight = useSpotlightHorse(horses);
 
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
@@ -121,27 +139,146 @@ export default function HorsePage() {
   return (
     <div className="h-full w-full px-40 overflow-y-auto bg-background">
       <div className="mx-auto m-6">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-green-900 px-8 py-10 text-white shadow-sm sm:px-10">
-          <div className="flex flex-row items-center justify-between h-30">
-            <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-              <div className="max-w-2xl">
+        {/* Merged Header Card: Page Title + Quick Stats + Embedded Spotlight Card */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0d2a23] via-[#12362d] to-[#1a473b] p-8 text-white shadow-lg my-6">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.12),_transparent_40%)]" />
+          <div
+            className="absolute inset-0 opacity-15 pointer-events-none"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
+              backgroundSize: "48px 48px",
+            }}
+          />
+
+          {/* Low-opacity horse image (moved left, enlarged to show upper half) */}
+          <div className="absolute left-[20%] lg:left-[24%] xl:left-[0%] -top-6 bottom-0 w-[70%] hidden lg:block opacity-25 pointer-events-none overflow-hidden">
+            <img
+              src={banner}
+              alt=""
+              className="h-[170%] w-full object-cover object-top grayscale mix-blend-overlay"
+            />
+          </div>
+
+          <div className="relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8">
+            {/* Left Column: Title, Description, Quick Stat Pills */}
+            <div className="max-w-2xl flex flex-col justify-between space-y-6">
+              <div>
                 <h1 className="font-serif text-4xl font-bold tracking-tight text-white! sm:text-5xl">
                   Horse List
                 </h1>
-                <p className="mt-4 max-w-xl text-base leading-7 text-emerald-50/90 sm:text-lg">
+                <p className="mt-3 text-sm sm:text-base leading-relaxed text-emerald-50/80">
                   Browse all available horses and view detailed information
                   about each horse, including ownership, health status, weight,
-                  and important dates.
+                  and performance metrics.
                 </p>
               </div>
+
+              {/* 4 Quick Stat Pills */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur px-4 py-3 text-left">
+                  <div className="flex items-center gap-2 text-emerald-200 text-xs font-semibold uppercase tracking-wider mb-1">
+                    <Layers className="h-4 w-4" /> Total
+                  </div>
+                  <div className="text-2xl font-bold text-white">
+                    {pagination.total || horses.length}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur px-4 py-3 text-left">
+                  <div className="flex items-center gap-2 text-amber-200 text-xs font-semibold uppercase tracking-wider mb-1">
+                    <Zap className="h-4 w-4 text-amber-300" /> Racing
+                  </div>
+                  <div className="text-2xl font-bold text-white">
+                    {horses.filter((h) => h.isRacing).length}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur px-4 py-3 text-left">
+                  <div className="flex items-center gap-2 text-emerald-300 text-xs font-semibold uppercase tracking-wider mb-1">
+                    <Activity className="h-4 w-4 text-emerald-300" /> Active
+                  </div>
+                  <div className="text-2xl font-bold text-white">
+                    {horses.filter((h) => !h.isRetired && !h.isRacing).length}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur px-4 py-3 text-left">
+                  <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold uppercase tracking-wider mb-1">
+                    <ShieldAlert className="h-4 w-4 text-slate-300" /> Retired
+                  </div>
+                  <div className="text-2xl font-bold text-white">
+                    {horses.filter((h) => h.isRetired).length}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="relative inset-y-0 right-0 hidden w-1/2 opacity-20 lg:block">
-              <div className="relative pt-60 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.16),transparent_55%)]" />
-              <img
-                src={banner}
-                alt=""
-                className="h-full w-full object-cover object-top grayscale"
-              />
+
+            {/* Right Column: Embedded Spotlight Card with Subtle Ambient Glow & Reserved Slot */}
+            <div className="relative overflow-hidden w-full xl:w-[380px] shrink-0 rounded-2xl border border-white/25 bg-emerald-950/75 backdrop-blur p-6 text-white shadow-[0_0_20px_rgba(245,158,11,0.15)] ring-1 ring-amber-400/30 transition-all duration-300 hover:ring-amber-400/60 hover:shadow-[0_0_28px_rgba(245,158,11,0.22)] flex flex-col justify-between min-h-[220px]">
+              {/* Subtle ambient glowing orb */}
+              <div className="absolute -top-10 -right-10 h-24 w-24 bg-amber-400/15 rounded-full blur-xl animate-pulse pointer-events-none" />
+
+              {spotlight.loading || !spotlight.horse ? (
+                <div className="animate-pulse flex flex-col justify-between h-full space-y-4">
+                  <div className="h-4 w-32 bg-white/20 rounded-full" />
+                  <div className="space-y-2">
+                    <div className="h-7 w-40 bg-white/30 rounded-md" />
+                    <div className="h-3.5 w-52 bg-white/20 rounded-md" />
+                  </div>
+                  <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                    <div className="h-8 w-20 bg-white/20 rounded-md" />
+                    <div className="h-9 w-28 bg-white/20 rounded-xl" />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between z-10">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 border border-amber-300/40 px-3 py-0.5 text-xs font-bold text-amber-300 tracking-wider uppercase shadow-sm">
+                      <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" />
+                      SPOTLIGHT HORSE
+                    </span>
+                  </div>
+
+                  <div className="z-10">
+                    <h2 className="text-2xl font-bold tracking-tight text-white!">
+                      {spotlight.horse.name}
+                    </h2>
+                    <p className="text-xs font-semibold text-emerald-200/80 mt-1">
+                      {spotlight.horse.breed} ·{" "}
+                      {getAge(spotlight.horse.birthDate)} ·{" "}
+                      {spotlight.horse.weightKg
+                        ? `${spotlight.horse.weightKg}kg`
+                        : "N/A"}
+                    </p>
+                    <p className="mt-3 text-sm text-white/90 font-medium leading-snug">
+                      <span className="font-bold text-white!">
+                        {spotlight.horse.name}
+                      </span>{" "}
+                      is our chosen spotlight horse!
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-white/15 z-10">
+                    <div>
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-200">
+                        Last month win rate
+                      </div>
+                      <div className="text-2xl font-black text-white">
+                        {spotlight.winRate}%
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => navigate(`/horses/${spotlight.horse!.id}`)}
+                      className="inline-flex items-center gap-2 rounded-xl bg-amber-400 px-4 py-2 text-xs font-bold text-[#173a35] shadow-md transition hover:bg-amber-300 cursor-pointer"
+                    >
+                      View Details
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -151,17 +288,6 @@ export default function HorsePage() {
             {error}
           </div>
         )}
-
-        <h1 className="flex items-center justify-left text-xl font-black text-primary gap-2">
-          <Star />
-          <span className="text-2xl">Spotlight Horse</span>
-        </h1>
-
-        <div className="bg-background border-1 border-gray-400 px-4 py-10 my-6 rounded-sm">
-          <div className="flex h-60 w-full justify-center items-center">
-            <NoInfoPage />
-          </div>
-        </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 p-4">
           <div className="w-full sm:max-w-md">
