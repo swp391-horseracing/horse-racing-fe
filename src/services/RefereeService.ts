@@ -4,7 +4,7 @@ import type { RefereeReport } from "../types/referee";
 export interface UpdatePlacementsPayload {
   placements: {
     entryId: string;
-    finishedPosition: number;
+    finishedPosition: number | null;
     finishTime?: string;
     finishStatus?: "finished" | "dnf" | "dsq" | "dns";
     points?: number;

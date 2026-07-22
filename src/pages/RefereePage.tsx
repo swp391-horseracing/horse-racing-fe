@@ -589,7 +589,7 @@ export default function RefereePage() {
       const payload = {
         placements: race.lanes.map((l) => ({
           entryId: l.id,
-          finishedPosition: l.finishPosition || 999,
+          finishedPosition: l.finishPosition ?? null,
           finishTime: parseMSSToSecondsString(l.finishTime) || undefined,
           finishStatus: (l.inspectionStatus === "withdrawn"
             ? "dns"
