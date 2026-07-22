@@ -7,8 +7,16 @@ export function useJockeys() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<{
+    search: string;
+    status: string;
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  }>({
     search: "",
+    status: "all",
     page: 1,
     limit: 10,
     total: 0,
@@ -16,15 +24,21 @@ export function useJockeys() {
   });
 
   const loadJockeys = useCallback(async () => {
+    let active = true;
+
     try {
       setLoading(true);
       setError(null);
 
       const res = await JockeyService.getJockeys({
         search: pagination.search,
+        status:
+          pagination.status !== "all" ? (pagination.status as any) : undefined,
         page: pagination.page,
         limit: pagination.limit,
       });
+
+      if (!active) return;
 
       const rawList = res.data || [];
       const mappedList: Jockey[] = rawList.map((item: any) => ({
@@ -50,11 +64,19 @@ export function useJockeys() {
         }));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Load failed");
+      if (active) {
+        setError(err instanceof Error ? err.message : "Load failed");
+      }
     } finally {
-      setLoading(false);
+      if (active) {
+        setLoading(false);
+      }
     }
-  }, [pagination.search, pagination.page, pagination.limit]);
+
+    return () => {
+      active = false;
+    };
+  }, [pagination.search, pagination.status, pagination.page, pagination.limit]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

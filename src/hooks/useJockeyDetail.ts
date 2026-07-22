@@ -54,7 +54,12 @@ export function useJockeyDetail(jockeyId?: string) {
   });
 
   const loadJockeyDetail = useCallback(async () => {
-    if (!jockeyId) return;
+    if (!jockeyId) {
+      setLoading(false);
+      return;
+    }
+
+    let active = true;
 
     try {
       setLoading(true);
@@ -68,6 +73,8 @@ export function useJockeyDetail(jockeyId?: string) {
         }),
       ]);
 
+      if (!active) return;
+
       setJockey(jockeyData);
       setHistory(historyData.data || []);
       if (historyData.stats) {
@@ -77,12 +84,20 @@ export function useJockeyDetail(jockeyId?: string) {
         setPagination((prev) => ({ ...prev, ...historyData.pagination }));
       }
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to load jockey details"
-      );
+      if (active) {
+        setError(
+          err instanceof Error ? err.message : "Failed to load jockey details"
+        );
+      }
     } finally {
-      setLoading(false);
+      if (active) {
+        setLoading(false);
+      }
     }
+
+    return () => {
+      active = false;
+    };
   }, [jockeyId, pagination.page, pagination.limit]);
 
   useEffect(() => {

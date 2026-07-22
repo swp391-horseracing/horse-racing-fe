@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useCallback } from "react";
 import useJockeys from "../hooks/useJockeys";
 import { useSpotlightJockey } from "../hooks/useSpotlightEntity";
 import JockeySearch from "../components/jockey/JockeySearch";
@@ -46,11 +46,10 @@ function JockeyRow({
       }}
       role="button"
       tabIndex={0}
-      className={`group flex items-center justify-between px-5 py-4 transition-all border-l-4 cursor-pointer ${
-        selected
+      className={`group flex items-center justify-between px-5 py-4 transition-all border-l-4 cursor-pointer ${selected
           ? "bg-primary/5 border-l-primary"
           : "border-l-transparent hover:bg-slate-50/50"
-      }`}
+        }`}
     >
       <div className="flex items-center gap-4 min-w-0">
         <div className="h-10 w-10 rounded-full overflow-hidden bg-slate-200 shrink-0 flex items-center justify-center">
@@ -66,16 +65,15 @@ function JockeyRow({
         </div>
         <div className="truncate">
           <p
-            className={`font-bold font-headline text-base truncate ${
-              selected ? "text-primary" : "text-foreground"
-            }`}
+            className={`font-bold font-headline text-base truncate ${selected ? "text-primary" : "text-foreground"
+              }`}
           >
             {jockey.fullName}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
             Jockey ·{" "}
             {jockey.experienceYear !== null &&
-            jockey.experienceYear !== undefined
+              jockey.experienceYear !== undefined
               ? `${jockey.experienceYear} yrs experience`
               : "N/A experience"}{" "}
             ·{" "}
@@ -100,15 +98,29 @@ export default function JockeysPage() {
   const { jockeys, loading, error, pagination, setPagination } = useJockeys();
   const spotlight = useSpotlightJockey(jockeys);
 
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const handleStatusChange = useCallback(
+    (value: string) => {
+      setPagination((prev) =>
+        prev.status === value && prev.page === 1
+          ? prev
+          : { ...prev, status: value, page: 1 }
+      );
+    },
+    [setPagination]
+  );
 
-  const filteredJockeys = useMemo(() => {
-    if (statusFilter === "all") return jockeys;
-    if (statusFilter === "racing") return jockeys.filter((j) => j.isRacing);
-    if (statusFilter === "active" || statusFilter === "available")
-      return jockeys.filter((j) => !j.isRacing);
-    return jockeys;
-  }, [jockeys, statusFilter]);
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setPagination((prev) =>
+        prev.search === value && prev.page === 1
+          ? prev
+          : { ...prev, search: value, page: 1 }
+      );
+    },
+    [setPagination]
+  );
+
+  const filteredJockeys = jockeys;
 
   return (
     <div className="h-full w-full px-40 overflow-y-auto bg-background">
@@ -211,12 +223,12 @@ export default function JockeysPage() {
                     </h2>
                     <p className="text-xs font-semibold text-emerald-200/80 mt-1">
                       {spotlight.jockey.experienceYear !== null &&
-                      spotlight.jockey.experienceYear !== undefined
+                        spotlight.jockey.experienceYear !== undefined
                         ? `${spotlight.jockey.experienceYear} yrs exp`
                         : "N/A exp"}{" "}
                       ·{" "}
                       {spotlight.jockey.weightKg !== null &&
-                      spotlight.jockey.weightKg !== undefined
+                        spotlight.jockey.weightKg !== undefined
                         ? `${spotlight.jockey.weightKg}kg`
                         : "N/A weight"}
                     </p>
@@ -275,11 +287,8 @@ export default function JockeysPage() {
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
             <Select
-              value={statusFilter}
-              onValueChange={(value) => {
-                setStatusFilter(value);
-                setPagination((prev) => ({ ...prev, page: 1 }));
-              }}
+              value={pagination.status}
+              onValueChange={handleStatusChange}
             >
               <SelectTrigger className="w-full sm:w-44 h-10 rounded-xl">
                 <SelectValue />
@@ -309,7 +318,7 @@ export default function JockeysPage() {
           ) : (
             <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
               <p className="text-sm font-semibold text-muted-foreground">
-                {statusFilter !== "all"
+                {pagination.status !== "all"
                   ? "No jockeys match the selected status."
                   : "No jockeys found."}
               </p>
