@@ -39,6 +39,7 @@ export const ROUTES = {
   JOCKEY_DASHBOARD: "/jockey",
   JOCKEY_SCHEDULE: "/jockey/schedule",
   JOCKEY_INVITATIONS: "/jockey/invitations",
+  JOCKEY_HISTORY: "/jockey/history",
 
   // REFEREE
   REFEREE_DASHBOARD: "/referee",

@@ -21,7 +21,7 @@ import type { Horse } from "../../types/horse";
 import type { Entry } from "../../types/entry";
 import { TournamentService } from "../../services/TournamentService";
 import { HorseStatusIndicator } from "./HorseStatusIndicator";
-import { formatAge } from "../../utils/formatters";
+import { formatAge, formatPrizePool } from "../../utils/formatters";
 
 export interface TournamentRegisterProps {
   horses: Horse[];
@@ -526,7 +526,7 @@ export function TournamentRegister({
                           </p>
                           <p className="text-sm font-bold text-foreground mt-0.5">
                             {displayTournament?.prizePool != null
-                              ? `$${displayTournament?.prizePool.toLocaleString()}`
+                              ? `$${formatPrizePool(displayTournament?.prizePool)}`
                               : "Not announced"}
                           </p>
                         </div>
