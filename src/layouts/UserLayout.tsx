@@ -11,6 +11,7 @@ import {
   Flag,
   ListChecks,
   AlertTriangle,
+  Clock,
 } from "lucide-react";
 import {
   Sidebar,
@@ -131,6 +132,11 @@ export default function UserLayout({
         icon: Mail,
         key: ROUTES.JOCKEY_INVITATIONS,
         badge: pendingCount,
+      },
+      {
+        label: "Race History",
+        icon: Clock,
+        key: ROUTES.JOCKEY_HISTORY,
       },
     ],
     Owner: [

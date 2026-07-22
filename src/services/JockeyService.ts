@@ -1,5 +1,6 @@
 import api from "../lib/api";
 import type { TournamentApiStatus } from "../types/tournament";
+import type { JockeyRaceHistoryEntry, RaceHistoryResponse } from "../types/race";
 
 export const JockeyService = {
   getJockeys: async (params?: {
@@ -17,6 +18,14 @@ export const JockeyService = {
 
     console.log(response.data.data);
 
+    return response.data;
+  },
+
+  async getJockeyRaceHistory(
+    jockeyId: string,
+    params?: { page?: number; limit?: number; status?: string }
+  ): Promise<RaceHistoryResponse<JockeyRaceHistoryEntry>> {
+    const response = await api.get(`/jockeys/${jockeyId}/races`, { params });
     return response.data;
   },
 };
