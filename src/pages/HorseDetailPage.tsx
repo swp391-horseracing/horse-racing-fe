@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowRight, Heart, ArrowLeft } from "lucide-react";
+import { Heart, ArrowLeft } from "lucide-react";
 import useHorse from "../hooks/horse/useHorse";
 import useAuth from "../hooks/auth/useAuth";
 import { formatStatus } from "../utils/formatters";
 import NotFoundContent from "../components/ui/NotFoundContent";
 import { HorseService } from "../services/HorseService";
-import type { HorseRaceHistoryEntry, RaceHistoryStats } from "../types/race";
+import type { HorseRaceHistoryEntry } from "../types/race";
 
 function getAge(birthDate?: string) {
   if (!birthDate) return "N/A";
@@ -85,8 +85,7 @@ export default function HorseDetailPage() {
   );
 
   const [raceHistory, setRaceHistory] = useState<HorseRaceHistoryEntry[]>([]);
-  const [raceHistoryStats, setRaceHistoryStats] = useState<RaceHistoryStats | null>(null);
-  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [historyPage, setHistoryPage] = useState(1);
   const [historyTotalPages, setHistoryTotalPages] = useState(1);
 
@@ -94,12 +93,10 @@ export default function HorseDetailPage() {
     if (!id) return;
 
     let alive = true;
-    setHistoryLoading(true);
     HorseService.getHorseRaceHistory(id, { page: historyPage, limit: 10 })
       .then((res) => {
         if (!alive) return;
         setRaceHistory(res.data);
-        setRaceHistoryStats(res.stats);
         setHistoryTotalPages(res.totalPages);
       })
       .catch(() => {})
@@ -161,7 +158,14 @@ export default function HorseDetailPage() {
             day: "numeric",
           }),
           event: r.raceName,
-          position: r.finishStatus === "dnf" ? "DNF" : r.finishStatus === "dsq" ? "DSQ" : r.finishedPosition != null ? `#${r.finishedPosition}` : "-",
+          position:
+            r.finishStatus === "dnf"
+              ? "DNF"
+              : r.finishStatus === "dsq"
+                ? "DSQ"
+                : r.finishedPosition != null
+                  ? `#${r.finishedPosition}`
+                  : "-",
           jockey: r.jockey?.fullName ?? "-",
           purse: r.points != null ? `${r.points} pts` : "-",
         }));
@@ -242,7 +246,9 @@ export default function HorseDetailPage() {
                     <div className="flex items-center gap-2">
                       <button
                         disabled={historyPage <= 1}
-                        onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
+                        onClick={() =>
+                          setHistoryPage((p) => Math.max(1, p - 1))
+                        }
                         className="rounded-lg border px-3 py-1.5 text-xs font-semibold text-[#173a35] disabled:opacity-30"
                       >
                         Prev
@@ -264,7 +270,9 @@ export default function HorseDetailPage() {
 
               <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
                 {historyLoading ? (
-                  <div className="p-6 text-center text-sm text-slate-500">Loading race history...</div>
+                  <div className="p-6 text-center text-sm text-slate-500">
+                    Loading race history...
+                  </div>
                 ) : (
                   <table className="w-full border-collapse text-left text-sm">
                     <thead className="bg-slate-50 text-[11px] uppercase tracking-[0.18em] text-slate-500">
@@ -279,7 +287,9 @@ export default function HorseDetailPage() {
                     <tbody className="divide-y">
                       {performanceRows.map((row, idx) => (
                         <tr
-                          key={isPlaceholder ? "placeholder" : `${row.date}-${idx}`}
+                          key={
+                            isPlaceholder ? "placeholder" : `${row.date}-${idx}`
+                          }
                           className="hover:bg-slate-50"
                         >
                           <td className="px-4 py-4 font-medium text-slate-700">

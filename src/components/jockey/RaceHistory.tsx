@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import { Clock } from "lucide-react";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { JockeyService } from "../../services/JockeyService";
-import type { JockeyRaceHistoryEntry, RaceHistoryStats } from "../../types/race";
+import type {
+  JockeyRaceHistoryEntry,
+  RaceHistoryStats,
+} from "../../types/race";
 
 export function RaceHistory() {
   const { user } = useAuthContext();
@@ -16,7 +19,6 @@ export function RaceHistory() {
     if (!user?.id) return;
 
     let alive = true;
-    setLoading(true);
     JockeyService.getJockeyRaceHistory(user.id, { page, limit: 10 })
       .then((res) => {
         if (!alive) return;
@@ -39,24 +41,44 @@ export function RaceHistory() {
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-4 shadow-sm">
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Races</p>
-            <p className="text-2xl font-black text-[#064E3B] mt-1">{stats.totalRaces}</p>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+              Total Races
+            </p>
+            <p className="text-2xl font-black text-[#064E3B] mt-1">
+              {stats.totalRaces}
+            </p>
           </div>
           <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-4 shadow-sm">
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Wins</p>
-            <p className="text-2xl font-black text-emerald-600 mt-1">{stats.wins}</p>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+              Wins
+            </p>
+            <p className="text-2xl font-black text-emerald-600 mt-1">
+              {stats.wins}
+            </p>
           </div>
           <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-4 shadow-sm">
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Places</p>
-            <p className="text-2xl font-black text-amber-600 mt-1">{stats.places}</p>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+              Places
+            </p>
+            <p className="text-2xl font-black text-amber-600 mt-1">
+              {stats.places}
+            </p>
           </div>
           <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-4 shadow-sm">
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Avg Finish</p>
-            <p className="text-2xl font-black text-[#064E3B] mt-1">{stats.avgFinishPosition ?? "-"}</p>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+              Avg Finish
+            </p>
+            <p className="text-2xl font-black text-[#064E3B] mt-1">
+              {stats.avgFinishPosition ?? "-"}
+            </p>
           </div>
           <div className="bg-white border border-[#064E3B]/10 rounded-2xl p-4 shadow-sm">
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">DNF / DSQ</p>
-            <p className="text-2xl font-black text-red-600 mt-1">{stats.dnfCount + stats.dsqCount}</p>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+              DNF / DSQ
+            </p>
+            <p className="text-2xl font-black text-red-600 mt-1">
+              {stats.dnfCount + stats.dsqCount}
+            </p>
           </div>
         </div>
       )}
@@ -65,7 +87,9 @@ export function RaceHistory() {
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-[#064E3B]" />
-            <h3 className="font-bold font-headline text-[#064E3B]">Race History</h3>
+            <h3 className="font-bold font-headline text-[#064E3B]">
+              Race History
+            </h3>
           </div>
           {totalPages > 1 && (
             <div className="flex items-center gap-2">
@@ -91,7 +115,9 @@ export function RaceHistory() {
         </div>
 
         {loading ? (
-          <div className="p-10 text-center text-sm text-slate-500">Loading race history...</div>
+          <div className="p-10 text-center text-sm text-slate-500">
+            Loading race history...
+          </div>
         ) : data.length === 0 ? (
           <div className="p-10 text-center text-sm text-slate-500">
             No race history available yet.

@@ -17,7 +17,9 @@ export function formatAge(dob: string): string {
   return `${age} years`;
 }
 
-export function formatPrizePool(value: number | string | null | undefined): string {
+export function formatPrizePool(
+  value: number | string | null | undefined
+): string {
   if (value == null) return "";
   const num = typeof value === "string" ? parseFloat(value) : value;
   if (Number.isNaN(num)) return "0";

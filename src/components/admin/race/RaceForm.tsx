@@ -289,17 +289,17 @@ export default function RaceForm({
                 </div>
               ) : (
                 <select
-                    value={form.trackDistanceId}
-                    onChange={(e) => handleDistanceChange(e.target.value)}
-                    className="w-full border rounded-xl px-4 py-3"
-                  >
-                    <option value="">Select distance</option>
-                    {distances.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.distanceMeters}m
-                      </option>
-                    ))}
-                  </select>
+                  value={form.trackDistanceId}
+                  onChange={(e) => handleDistanceChange(e.target.value)}
+                  className="w-full border rounded-xl px-4 py-3"
+                >
+                  <option value="">Select distance</option>
+                  {distances.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.distanceMeters}m
+                    </option>
+                  ))}
+                </select>
               )}
             </div>
           </div>
