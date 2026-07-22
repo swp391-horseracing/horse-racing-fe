@@ -5,12 +5,11 @@ import {
   startTransition,
   type FormEvent,
 } from "react";
-import { X, Loader2, Plus } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import { AdminService } from "../../../services/AdminService";
-import AddTrackDistanceModal from "./AddTrackDistanceModal";
 
 type Track = {
   id: string;
@@ -87,7 +86,6 @@ export default function RaceForm({
   const [selectedTrackId, setSelectedTrackId] = useState("");
   const [distances, setDistances] = useState<TrackDistanceType[]>([]);
   const [distancesLoading, setDistancesLoading] = useState(false);
-  const [showAddDistance, setShowAddDistance] = useState(false);
 
   // Seed track selector when editing
   useEffect(() => {
@@ -155,15 +153,6 @@ export default function RaceForm({
         trackDistanceId: dist.id,
       }));
     }
-  };
-
-  const handleDistanceCreated = (id: string, meters: number) => {
-    setDistances((prev) => [...prev, { id, distanceMeters: meters }]);
-    setForm((prev) => ({
-      ...prev,
-      trackDistanceId: id,
-      distanceMeters: meters,
-    }));
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -295,19 +284,14 @@ export default function RaceForm({
                   Loading distances...
                 </div>
               ) : distances.length === 0 ? (
-                <button
-                  type="button"
-                  onClick={() => setShowAddDistance(true)}
-                  className="w-full border border-dashed border-amber-400 bg-amber-50 rounded-xl px-4 py-3 text-sm text-amber-700 font-semibold hover:bg-amber-100 flex items-center justify-center gap-2"
-                >
-                  <Plus className="w-4 h-4" /> Add Distance
-                </button>
+                <div className="w-full border rounded-xl px-4 py-3 text-sm text-slate-400 bg-slate-50">
+                  No distances available
+                </div>
               ) : (
-                <div className="flex gap-2">
-                  <select
+                <select
                     value={form.trackDistanceId}
                     onChange={(e) => handleDistanceChange(e.target.value)}
-                    className="flex-1 border rounded-xl px-4 py-3"
+                    className="w-full border rounded-xl px-4 py-3"
                   >
                     <option value="">Select distance</option>
                     {distances.map((d) => (
@@ -316,27 +300,8 @@ export default function RaceForm({
                       </option>
                     ))}
                   </select>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddDistance(true)}
-                    className="px-3 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50"
-                    title="Add new distance"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
               )}
             </div>
-            {showAddDistance && selectedTrackId && (
-              <AddTrackDistanceModal
-                trackId={selectedTrackId}
-                trackName={
-                  tracks.find((c) => c.id === selectedTrackId)?.name ?? ""
-                }
-                onClose={() => setShowAddDistance(false)}
-                onCreated={handleDistanceCreated}
-              />
-            )}
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
