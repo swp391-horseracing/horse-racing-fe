@@ -31,8 +31,8 @@ export const JockeyService = {
     // Also fetch jockeys list to retrieve weight, experience, and isRacing status
     try {
       const listRes = await api.get("/jockeys", { params: { limit: 100 } });
-      const item = (listRes.data.data || []).find(
-        (j: any) => j.id === jockeyId
+      const item = (listRes.data?.data || []).find(
+        (j: any) => String(j.id) === String(jockeyId)
       );
       if (item) {
         return {
@@ -58,7 +58,7 @@ export const JockeyService = {
   getJockeyRaceHistory: async (
     jockeyId: string,
     params?: { page?: number; limit?: number; status?: string }
-  ): Promise<any> => {
+  ): Promise<RaceHistoryResponse<JockeyRaceHistoryEntry>> => {
     const response = await api.get(`/jockeys/${jockeyId}/races`, {
       params: {
         page: params?.page ?? 1,
@@ -66,14 +66,6 @@ export const JockeyService = {
         status: params?.status,
       },
     });
-    return response.data;
-  },
-
-  async getJockeyRaceHistory(
-    jockeyId: string,
-    params?: { page?: number; limit?: number; status?: string }
-  ): Promise<RaceHistoryResponse<JockeyRaceHistoryEntry>> {
-    const response = await api.get(`/jockeys/${jockeyId}/races`, { params });
     return response.data;
   },
 };

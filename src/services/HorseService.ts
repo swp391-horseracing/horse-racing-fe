@@ -85,7 +85,13 @@ export const HorseService = {
     id: string,
     params?: { page?: number; limit?: number; status?: string }
   ): Promise<RaceHistoryResponse<HorseRaceHistoryEntry>> {
-    const response = await api.get(`/horses/${id}/races`, { params });
+    const response = await api.get(`/horses/${id}/races`, {
+      params: {
+        page: params?.page ?? 1,
+        limit: params?.limit ?? 10,
+        status: params?.status,
+      },
+    });
     return response.data;
   },
 
@@ -137,20 +143,6 @@ export const HorseService = {
 
   async retireHorse(id: string): Promise<RetireHorseResponse> {
     const response = await api.post(`/horses/${id}/retire`);
-    return response.data;
-  },
-
-  async getHorseRaceHistory(
-    horseId: string,
-    params?: { page?: number; limit?: number; status?: string }
-  ): Promise<any> {
-    const response = await api.get(`/horses/${horseId}/races`, {
-      params: {
-        page: params?.page ?? 1,
-        limit: params?.limit ?? 10,
-        status: params?.status,
-      },
-    });
     return response.data;
   },
 };

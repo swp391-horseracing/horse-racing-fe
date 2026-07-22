@@ -2,42 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { HorseService } from "../services/HorseService";
 import api from "../lib/api";
 import type { Horse } from "../types/horse";
-
-export interface HorseRaceHistoryItem {
-  raceId: string;
-  raceName: string;
-  raceNumber: number;
-  scheduledAt: string;
-  venue: string;
-  surfaceType: string;
-  distanceMeters: number;
-  raceStatus: string;
-  laneNumber: number;
-  entryStatus: string;
-  finishedPosition: number | null;
-  finishTime: string | null;
-  finishStatus: string | null;
-  points: number | null;
-  jockey?: {
-    id: string;
-    fullName: string;
-  };
-}
-
-export interface HorseRaceStats {
-  totalRaces: number;
-  wins: number;
-  places: number;
-  avgFinishPosition: number | null;
-  dnfCount: number;
-  dsqCount: number;
-}
+import type { HorseRaceHistoryEntry, RaceHistoryStats } from "../types/race";
 
 export function useHorseDetail(horseId?: string) {
   const [horse, setHorse] = useState<Horse | null>(null);
   const [ownerName, setOwnerName] = useState<string>("Unknown Owner");
-  const [history, setHistory] = useState<HorseRaceHistoryItem[]>([]);
-  const [stats, setStats] = useState<HorseRaceStats>({
+  const [history, setHistory] = useState<HorseRaceHistoryEntry[]>([]);
+  const [stats, setStats] = useState<RaceHistoryStats>({
     totalRaces: 0,
     wins: 0,
     places: 0,
@@ -56,7 +27,10 @@ export function useHorseDetail(horseId?: string) {
   });
 
   const loadHorseDetail = useCallback(async () => {
-    if (!horseId) return;
+    if (!horseId) {
+      setLoading(false);
+      return;
+    }
 
     let isMounted = true;
 
@@ -79,9 +53,13 @@ export function useHorseDetail(horseId?: string) {
       if (historyData.stats) {
         setStats(historyData.stats);
       }
-      if (historyData.pagination) {
-        setPagination((prev) => ({ ...prev, ...historyData.pagination }));
-      }
+      setPagination((prev) => ({
+        ...prev,
+        page: historyData.page ?? prev.page,
+        limit: historyData.limit ?? prev.limit,
+        total: historyData.total ?? prev.total,
+        totalPages: historyData.totalPages ?? prev.totalPages,
+      }));
 
       if (horseData?.ownerId) {
         try {

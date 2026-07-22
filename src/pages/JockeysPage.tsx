@@ -46,10 +46,11 @@ function JockeyRow({
       }}
       role="button"
       tabIndex={0}
-      className={`group flex items-center justify-between px-5 py-4 transition-all border-l-4 cursor-pointer ${selected
+      className={`group flex items-center justify-between px-5 py-4 transition-all border-l-4 cursor-pointer ${
+        selected
           ? "bg-primary/5 border-l-primary"
           : "border-l-transparent hover:bg-slate-50/50"
-        }`}
+      }`}
     >
       <div className="flex items-center gap-4 min-w-0">
         <div className="h-10 w-10 rounded-full overflow-hidden bg-slate-200 shrink-0 flex items-center justify-center">
@@ -65,15 +66,16 @@ function JockeyRow({
         </div>
         <div className="truncate">
           <p
-            className={`font-bold font-headline text-base truncate ${selected ? "text-primary" : "text-foreground"
-              }`}
+            className={`font-bold font-headline text-base truncate ${
+              selected ? "text-primary" : "text-foreground"
+            }`}
           >
             {jockey.fullName}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
             Jockey ·{" "}
             {jockey.experienceYear !== null &&
-              jockey.experienceYear !== undefined
+            jockey.experienceYear !== undefined
               ? `${jockey.experienceYear} yrs experience`
               : "N/A experience"}{" "}
             ·{" "}
@@ -223,12 +225,12 @@ export default function JockeysPage() {
                     </h2>
                     <p className="text-xs font-semibold text-emerald-200/80 mt-1">
                       {spotlight.jockey.experienceYear !== null &&
-                        spotlight.jockey.experienceYear !== undefined
+                      spotlight.jockey.experienceYear !== undefined
                         ? `${spotlight.jockey.experienceYear} yrs exp`
                         : "N/A exp"}{" "}
                       ·{" "}
                       {spotlight.jockey.weightKg !== null &&
-                        spotlight.jockey.weightKg !== undefined
+                      spotlight.jockey.weightKg !== undefined
                         ? `${spotlight.jockey.weightKg}kg`
                         : "N/A weight"}
                     </p>
@@ -276,13 +278,7 @@ export default function JockeysPage() {
           <div className="w-full sm:max-w-md">
             <JockeySearch
               value={pagination.search}
-              onChange={(value) =>
-                setPagination((prev) => ({
-                  ...prev,
-                  search: value,
-                  page: 1,
-                }))
-              }
+              onChange={handleSearchChange}
             />
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
