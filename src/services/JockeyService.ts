@@ -28,7 +28,7 @@ export const JockeyService = {
     try {
       const listRes = await api.get("/jockeys", { params: { limit: 100 } });
       const item = (listRes.data.data || []).find(
-        (j: any) => j.id === jockeyId
+        (j: { id: string | number }) => String(j.id) === String(jockeyId)
       );
       if (item) {
         return {

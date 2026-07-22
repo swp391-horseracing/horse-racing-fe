@@ -86,9 +86,51 @@ export function useJockeyDetail(jockeyId?: string) {
   }, [jockeyId, pagination.page, pagination.limit]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadJockeyDetail();
-  }, [loadJockeyDetail]);
+    if (!jockeyId) return;
+    let active = true;
+
+    const executeFetch = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [jockeyData, historyData] = await Promise.all([
+          JockeyService.getJockeyById(jockeyId),
+          JockeyService.getJockeyRaceHistory(jockeyId, {
+            page: pagination.page,
+            limit: pagination.limit,
+          }),
+        ]);
+
+        if (!active) return;
+
+        setJockey(jockeyData);
+        setHistory(historyData.data || []);
+        if (historyData.stats) {
+          setStats(historyData.stats);
+        }
+        if (historyData.pagination) {
+          setPagination((prev) => ({ ...prev, ...historyData.pagination }));
+        }
+      } catch (err) {
+        if (active) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load jockey details"
+          );
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void executeFetch();
+
+    return () => {
+      active = false;
+    };
+  }, [jockeyId, pagination.page, pagination.limit]);
 
   return {
     jockey,

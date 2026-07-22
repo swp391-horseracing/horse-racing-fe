@@ -1,5 +1,4 @@
-import { Star, User } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import useJockeys from "../hooks/useJockeys";
 import NoInfoPage from "./NoInfoPage";
 import JockeySearch from "../components/jockey/JockeySearch";
@@ -12,6 +11,7 @@ import {
 } from "../components/ui/select";
 import { useNavigate } from "react-router-dom";
 import type { Jockey } from "../types/jockey";
+import { Star, User } from "lucide-react";
 import banner from "../assets/images/horse-banner.png";
 
 function getDisplayStatus(jockey: Jockey): string {
@@ -100,6 +100,17 @@ export default function JockeysPage() {
 
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setPagination((prev) =>
+        prev.search === value && prev.page === 1
+          ? prev
+          : { ...prev, search: value, page: 1 }
+      );
+    },
+    [setPagination]
+  );
+
   const filteredJockeys = useMemo(() => {
     if (statusFilter === "all") return jockeys;
     if (statusFilter === "racing") return jockeys.filter((j) => j.isRacing);
@@ -157,13 +168,7 @@ export default function JockeysPage() {
           <div className="w-full sm:max-w-md">
             <JockeySearch
               value={pagination.search}
-              onChange={(value) =>
-                setPagination((prev) => ({
-                  ...prev,
-                  search: value,
-                  page: 1,
-                }))
-              }
+              onChange={handleSearchChange}
             />
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">

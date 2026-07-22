@@ -91,7 +91,7 @@ export default function JockeyDetailPage() {
       : "0.0";
 
   return (
-    <div className="h-full w-full px-40 py-4 overflow-y-auto bg-background">
+    <div className="h-full w-full px-4 py-4 sm:px-6 lg:px-12 xl:px-40 overflow-y-auto bg-background">
       <div className="mx-auto max-w-full overflow-hidden">
         {/* Header Banner */}
         <div className="relative overflow-hidden bg-[#173a35] rounded-3xl p-8 text-white shadow-sm">
@@ -265,7 +265,7 @@ export default function JockeyDetailPage() {
               {pagination.totalPages > 1 && (
                 <div className="flex items-center justify-end gap-2 pt-4">
                   <button
-                    disabled={pagination.page <= 1}
+                    disabled={loading || pagination.page <= 1}
                     onClick={() =>
                       setPagination((prev) => ({
                         ...prev,
@@ -280,7 +280,9 @@ export default function JockeyDetailPage() {
                     {pagination.page} / {pagination.totalPages}
                   </span>
                   <button
-                    disabled={pagination.page >= pagination.totalPages}
+                    disabled={
+                      loading || pagination.page >= pagination.totalPages
+                    }
                     onClick={() =>
                       setPagination((prev) => ({
                         ...prev,
