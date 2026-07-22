@@ -318,7 +318,8 @@ export default function RaceReportPanel({
   const sortedLanes = isEditable
     ? race.lanes.filter((l) => l.inspectionStatus === "cleared")
     : [...activeLanes].sort(
-        (a, b) => (a.finishPosition ?? 999) - (b.finishPosition ?? 999)
+        (a, b) =>
+          (a.finishPosition ?? Infinity) - (b.finishPosition ?? Infinity)
       );
 
   return (

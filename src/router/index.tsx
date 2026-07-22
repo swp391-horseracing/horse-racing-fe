@@ -121,6 +121,10 @@ export const router = createBrowserRouter([
             path: ROUTES.JOCKEY_INVITATIONS,
             element: <JockeyPage />,
           },
+          {
+            path: ROUTES.JOCKEY_HISTORY,
+            element: <JockeyPage />,
+          },
         ],
       },
       {

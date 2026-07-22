@@ -11,6 +11,7 @@ import {
   getAvailableStatuses,
 } from "../../../styles/schema/tournamentStatusFlow";
 import type { Tournament } from "../../../types/tournament";
+import { formatPrizePool } from "../../../utils/formatters";
 
 type Props = {
   tournament: Tournament;
@@ -77,7 +78,8 @@ export default function TournamentDetail({
       location: tournament.location ?? "",
       registrationOpenDate: toDateTimeLocal(tournament.registrationOpenDate),
       registrationCloseDate: toDateTimeLocal(tournament.registrationCloseDate),
-      prizePool: tournament.prizePool ?? 1000,
+      prizePool:
+        tournament.prizePool != null ? Number(tournament.prizePool) : 1000,
       maximumParticipants: tournament.maximumParticipants ?? 20,
       minimumParticipants: tournament.minimumParticipants ?? 10,
     },
@@ -400,7 +402,8 @@ export default function TournamentDetail({
             </div>
 
             <div>
-              <strong>Prize Pool:</strong> ${tournament.prizePool ?? 0}
+              <strong>Prize Pool:</strong> $
+              {formatPrizePool(tournament.prizePool) || "0"}
             </div>
 
             <div>

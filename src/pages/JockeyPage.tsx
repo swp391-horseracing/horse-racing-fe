@@ -12,6 +12,7 @@ import { ToastContainer } from "../components/ui/toast";
 import { JockeyDashboardOverview } from "../components/jockey/JockeyDashboardOverview";
 import { RidingSchedule } from "../components/jockey/RidingSchedule";
 import { InvitationsView } from "../components/jockey/InvitationsView";
+import { RaceHistory } from "../components/jockey/RaceHistory";
 
 export default function JockeyPage() {
   const location = useLocation();
@@ -117,6 +118,8 @@ export default function JockeyPage() {
             loading={invitesLoading}
           />
         );
+      case ROUTES.JOCKEY_HISTORY:
+        return <RaceHistory />;
       default:
         return null;
     }

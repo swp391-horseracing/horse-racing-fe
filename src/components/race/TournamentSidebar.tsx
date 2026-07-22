@@ -5,6 +5,7 @@ import {
   TOURNAMENT_STATUS_STYLES,
   RACE_STATUS_STYLES,
 } from "../ui/StatusBadge";
+import { formatPrizePool } from "../../utils/formatters";
 
 interface TournamentSidebarProps {
   tournament: TournamentDetail | null;
@@ -80,7 +81,7 @@ export function TournamentSidebar({
                 <span>Prize Pool</span>
               </div>
               <span className="font-bold text-emerald-600">
-                ${tournament.prizePool.toLocaleString()}
+                ${formatPrizePool(tournament.prizePool)}
               </span>
             </div>
           )}
