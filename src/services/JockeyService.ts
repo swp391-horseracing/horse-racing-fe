@@ -19,4 +19,9 @@ export const JockeyService = {
 
     return response.data;
   },
+
+  async getJockeyRacesHistory(id: string) {
+    const response = await api.get(`/jockeys/${id}/races`);
+    return response.data;
+  },
 };

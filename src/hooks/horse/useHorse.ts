@@ -2,10 +2,12 @@ import { useEffect, useState, useCallback } from "react";
 import { HorseService } from "../../services/HorseService";
 import type { Horse } from "../../types/horse";
 import { extractApiErrorMessage } from "../../utils/errorMessages";
+import type { RaceHistory } from "../../types/race.ts";
 
 export default function useHorse() {
   const [horses, setHorses] = useState<Horse[]>([]);
   const [selectedHorse, setSelectedHorse] = useState<Horse | null>(null);
+  const [history, setHistory] = useState<RaceHistory>();
 
   const [loading, setLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -67,8 +69,10 @@ export default function useHorse() {
       setDetailError(null);
 
       const horse = await HorseService.getHorseById(id);
+      const history = await HorseService.getHorseRacesHistory(id);
 
       setSelectedHorse(horse);
+      setHistory(history.data);
     } catch (err) {
       setSelectedHorse(null);
       const axiosErr = err as { response?: { status?: number } };
@@ -90,6 +94,7 @@ export default function useHorse() {
 
   return {
     horses,
+    history,
     loading,
     error,
     detailError,

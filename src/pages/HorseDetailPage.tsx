@@ -49,7 +49,8 @@ function SectionTitle({
 export default function HorseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { selectedHorse, detailLoading, detailError, openHorse } = useHorse();
+  const { selectedHorse, history, detailLoading, detailError, openHorse } =
+    useHorse();
   const { getUserByID } = useAuth();
 
   const [ownerName, setOwnerName] = useState("Unknown");
@@ -112,15 +113,8 @@ export default function HorseDetailPage() {
     );
   }
 
-  const performanceRows = [
-    {
-      date: "No Info yet",
-      event: "No Info yet",
-      position: "No Info yet",
-      jockey: "No Info yet",
-      purse: "No Info yet",
-    },
-  ];
+  const performanceRows = history;
+  console.log("history", performanceRows);
 
   return (
     <div className="h-full w-full px-40 py-4 overflow-y-auto bg-background">
@@ -204,33 +198,30 @@ export default function HorseDetailPage() {
                     <tr>
                       <th className="px-4 py-3">Date</th>
                       <th className="px-4 py-3">Event</th>
-                      <th className="px-4 py-3">Position</th>
+                      <th className="px-4 py-3">Finish Position</th>
                       <th className="px-4 py-3">Jockey</th>
-                      <th className="px-4 py-3">Purse</th>
+                      <th className="px-4 py-3">point</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {performanceRows.map((row) => (
-                      <tr
-                        key={`${row.date}-${row.event}`}
-                        className="hover:bg-slate-50"
-                      >
+                    {performanceRows?.data.map((row) => (
+                      <tr key={`${row.raceId}`} className="hover:bg-slate-50">
                         <td className="px-4 py-4 font-medium text-slate-700">
-                          {row.date}
+                          {row.scheduledAt}
                         </td>
                         <td className="px-4 py-4 text-slate-700">
-                          {row.event}
+                          {row.raceName}
                         </td>
                         <td className="px-4 py-4">
                           <span className="rounded bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-900">
-                            {row.position}
+                            {row.finishedPosition || "dnf"}
                           </span>
                         </td>
                         <td className="px-4 py-4 text-slate-700">
-                          {row.jockey}
+                          {row.jockey.fullName}
                         </td>
                         <td className="px-4 py-4 font-semibold text-slate-700">
-                          {row.purse}
+                          {row.points}
                         </td>
                       </tr>
                     ))}

@@ -130,4 +130,10 @@ export const HorseService = {
     const response = await api.post(`/horses/${id}/retire`);
     return response.data;
   },
+
+  async getHorseRacesHistory(id: string): Promise<any> {
+    const response = await api.get(`/horses/${id}/races`);
+    console.log(response.data);
+    return response;
+  },
 };

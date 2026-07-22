@@ -172,3 +172,40 @@ export interface RaceReplay {
   raceDistance: number;
   horses: HorseReplay[];
 }
+
+export type Stats = {
+  totalRaces: number;
+  wins: number;
+  places: number;
+  dnfCount: number;
+  dsqCount: number;
+};
+
+export type HistoryJockey = {
+  id: string;
+  fullName: string;
+};
+
+export type RidingHistory = {
+  raceId: string;
+  raceName: string;
+  raceNumber: number;
+  scheduledAt: string;
+  venue: string;
+  surfaceType: string;
+  distanceMeters: number;
+  raceStatus: string;
+  laneNumber: number;
+  entryStatus: string;
+  finishedPosition: number | null;
+  finishTime: string;
+  finishStatus: string;
+  points: number;
+  jockey: HistoryJockey;
+};
+
+export type RaceHistory = {
+  stats: Stats;
+  data: RidingHistory[];
+  pagination: Pagination;
+};
