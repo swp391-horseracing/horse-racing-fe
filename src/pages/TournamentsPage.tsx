@@ -19,7 +19,7 @@ import {
 import useTournament from "../hooks/useTournament";
 import { useOwner } from "../hooks/useOwner";
 import { useUserProfile } from "../hooks/useUserProfile";
-import { formatStatus, formatAge } from "../utils/formatters";
+import { formatStatus, formatAge, formatPrizePool } from "../utils/formatters";
 import {
   StatusBadge,
   TOURNAMENT_STATUS_STYLES,
@@ -586,7 +586,7 @@ export default function TournamentsPage() {
                           </p>
                           <p className="text-base font-black text-primary mt-1">
                             {selectedTournament.prizePool != null
-                              ? `$${selectedTournament.prizePool.toLocaleString()}`
+                              ? `$${formatPrizePool(selectedTournament.prizePool)}`
                               : "Not announced"}
                           </p>
                         </div>

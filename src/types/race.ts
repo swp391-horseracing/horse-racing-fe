@@ -172,3 +172,63 @@ export interface RaceReplay {
   raceDistance: number;
   horses: HorseReplay[];
 }
+
+export interface RaceHistoryStats {
+  totalRaces: number;
+  wins: number;
+  places: number;
+  avgFinishPosition: number | null;
+  dnfCount: number;
+  dsqCount: number;
+}
+
+export interface HorseRaceHistoryEntry {
+  raceId: string;
+  raceName: string;
+  raceNumber: number | null;
+  scheduledAt: string;
+  venue: string;
+  surfaceType: string | null;
+  distanceMeters: number | null;
+  raceStatus: string;
+  laneNumber: number | null;
+  entryStatus: string;
+  finishedPosition: number | null;
+  finishTime: string | null;
+  finishStatus: string | null;
+  points: number | null;
+  jockey: {
+    id: string;
+    fullName: string;
+  } | null;
+}
+
+export interface JockeyRaceHistoryEntry {
+  raceId: string;
+  raceName: string;
+  raceNumber: number | null;
+  scheduledAt: string;
+  venue: string;
+  surfaceType: string | null;
+  distanceMeters: number | null;
+  raceStatus: string;
+  laneNumber: number | null;
+  entryStatus: string;
+  finishedPosition: number | null;
+  finishTime: string | null;
+  finishStatus: string | null;
+  points: number | null;
+  horse: {
+    id: string;
+    name: string;
+  } | null;
+}
+
+export interface RaceHistoryResponse<T> {
+  stats: RaceHistoryStats;
+  data: T[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}

@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowRight, Heart, ArrowLeft } from "lucide-react";
+import { Heart, ArrowLeft } from "lucide-react";
 import useHorse from "../hooks/horse/useHorse";
 import useAuth from "../hooks/auth/useAuth";
 import { formatStatus } from "../utils/formatters";
 import NotFoundContent from "../components/ui/NotFoundContent";
+import { HorseService } from "../services/HorseService";
+import type { HorseRaceHistoryEntry } from "../types/race";
 
 function getAge(birthDate?: string) {
   if (!birthDate) return "N/A";
@@ -82,6 +84,31 @@ export default function HorseDetailPage() {
     [selectedHorse?.birthDate]
   );
 
+  const [raceHistory, setRaceHistory] = useState<HorseRaceHistoryEntry[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyTotalPages, setHistoryTotalPages] = useState(1);
+
+  useEffect(() => {
+    if (!id) return;
+
+    let alive = true;
+    HorseService.getHorseRaceHistory(id, { page: historyPage, limit: 10 })
+      .then((res) => {
+        if (!alive) return;
+        setRaceHistory(res.data);
+        setHistoryTotalPages(res.totalPages);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (alive) setHistoryLoading(false);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [id, historyPage]);
+
   if (detailError) {
     return (
       <NotFoundContent
@@ -112,15 +139,38 @@ export default function HorseDetailPage() {
     );
   }
 
-  const performanceRows = [
-    {
-      date: "No Info yet",
-      event: "No Info yet",
-      position: "No Info yet",
-      jockey: "No Info yet",
-      purse: "No Info yet",
-    },
-  ];
+  const performanceRows = historyLoading
+    ? []
+    : raceHistory.length === 0
+      ? [
+          {
+            date: "No Info yet",
+            event: "No Info yet",
+            position: "No Info yet",
+            jockey: "No Info yet",
+            purse: "No Info yet",
+          },
+        ]
+      : raceHistory.map((r) => ({
+          date: new Date(r.scheduledAt).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          }),
+          event: r.raceName,
+          position:
+            r.finishStatus === "dnf"
+              ? "DNF"
+              : r.finishStatus === "dsq"
+                ? "DSQ"
+                : r.finishedPosition != null
+                  ? `#${r.finishedPosition}`
+                  : "-",
+          jockey: r.jockey?.fullName ?? "-",
+          purse: r.points != null ? `${r.points} pts` : "-",
+        }));
+
+  const isPlaceholder = !historyLoading && raceHistory.length === 0;
 
   return (
     <div className="h-full w-full px-40 py-4 overflow-y-auto bg-background">
@@ -192,50 +242,78 @@ export default function HorseDetailPage() {
               <SectionTitle
                 title="Performance History"
                 action={
-                  <button className="inline-flex items-center gap-2 text-sm font-semibold text-[#173a35]">
-                    Full History <ArrowRight className="h-4 w-4" />
-                  </button>
+                  !isPlaceholder && historyTotalPages > 1 ? (
+                    <div className="flex items-center gap-2">
+                      <button
+                        disabled={historyPage <= 1}
+                        onClick={() =>
+                          setHistoryPage((p) => Math.max(1, p - 1))
+                        }
+                        className="rounded-lg border px-3 py-1.5 text-xs font-semibold text-[#173a35] disabled:opacity-30"
+                      >
+                        Prev
+                      </button>
+                      <span className="text-xs text-slate-500">
+                        {historyPage} / {historyTotalPages}
+                      </span>
+                      <button
+                        disabled={historyPage >= historyTotalPages}
+                        onClick={() => setHistoryPage((p) => p + 1)}
+                        className="rounded-lg border px-3 py-1.5 text-xs font-semibold text-[#173a35] disabled:opacity-30"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  ) : undefined
                 }
               />
 
               <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
-                <table className="w-full border-collapse text-left text-sm">
-                  <thead className="bg-slate-50 text-[11px] uppercase tracking-[0.18em] text-slate-500">
-                    <tr>
-                      <th className="px-4 py-3">Date</th>
-                      <th className="px-4 py-3">Event</th>
-                      <th className="px-4 py-3">Position</th>
-                      <th className="px-4 py-3">Jockey</th>
-                      <th className="px-4 py-3">Purse</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {performanceRows.map((row) => (
-                      <tr
-                        key={`${row.date}-${row.event}`}
-                        className="hover:bg-slate-50"
-                      >
-                        <td className="px-4 py-4 font-medium text-slate-700">
-                          {row.date}
-                        </td>
-                        <td className="px-4 py-4 text-slate-700">
-                          {row.event}
-                        </td>
-                        <td className="px-4 py-4">
-                          <span className="rounded bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-900">
-                            {row.position}
-                          </span>
-                        </td>
-                        <td className="px-4 py-4 text-slate-700">
-                          {row.jockey}
-                        </td>
-                        <td className="px-4 py-4 font-semibold text-slate-700">
-                          {row.purse}
-                        </td>
+                {historyLoading ? (
+                  <div className="p-6 text-center text-sm text-slate-500">
+                    Loading race history...
+                  </div>
+                ) : (
+                  <table className="w-full border-collapse text-left text-sm">
+                    <thead className="bg-slate-50 text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                      <tr>
+                        <th className="px-4 py-3">Date</th>
+                        <th className="px-4 py-3">Event</th>
+                        <th className="px-4 py-3">Position</th>
+                        <th className="px-4 py-3">Jockey</th>
+                        <th className="px-4 py-3">Purse</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y">
+                      {performanceRows.map((row, idx) => (
+                        <tr
+                          key={
+                            isPlaceholder ? "placeholder" : `${row.date}-${idx}`
+                          }
+                          className="hover:bg-slate-50"
+                        >
+                          <td className="px-4 py-4 font-medium text-slate-700">
+                            {row.date}
+                          </td>
+                          <td className="px-4 py-4 text-slate-700">
+                            {row.event}
+                          </td>
+                          <td className="px-4 py-4">
+                            <span className="rounded bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-900">
+                              {row.position}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 text-slate-700">
+                            {row.jockey}
+                          </td>
+                          <td className="px-4 py-4 font-semibold text-slate-700">
+                            {row.purse}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </section>
           </div>

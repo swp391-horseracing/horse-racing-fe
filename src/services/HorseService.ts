@@ -1,5 +1,6 @@
 import api from "../lib/api";
 import type { HorseListResponse, RetireHorseResponse } from "../types/horse";
+import type { HorseRaceHistoryEntry, RaceHistoryResponse } from "../types/race";
 
 export const HorseService = {
   async getHorses(
@@ -78,6 +79,14 @@ export const HorseService = {
   async getHorseById(id: string) {
     const response = await api.get(`/horses/${id}`);
     return response.data.horse;
+  },
+
+  async getHorseRaceHistory(
+    id: string,
+    params?: { page?: number; limit?: number; status?: string }
+  ): Promise<RaceHistoryResponse<HorseRaceHistoryEntry>> {
+    const response = await api.get(`/horses/${id}/races`, { params });
+    return response.data;
   },
 
   editHorse: async (
