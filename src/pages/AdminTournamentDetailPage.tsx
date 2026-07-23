@@ -11,6 +11,7 @@ import { STATUS_LABELS } from "../components/admin/race/raceStatus";
 import { extractApiErrorMessage } from "../utils/errorMessages";
 import RaceForm, { type RaceFormData } from "../components/admin/race/RaceForm";
 import useAdminRace from "../hooks/admin/useAdminRace";
+import { useRaces } from "../hooks/useRaces";
 import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "../components/ui/toast";
 import type {
@@ -35,6 +36,7 @@ export default function AdminTournamentDetailPage() {
   const [showCreateRace, setShowCreateRace] = useState(false);
 
   const { createRace, actionLoading } = useAdminRace();
+  const { startRaces } = useRaces();
 
   useEffect(() => {
     if (!id) return;
@@ -221,16 +223,42 @@ export default function AdminTournamentDetailPage() {
                         />
                       </td>
                       <td className="p-3 text-right">
-                        <button
-                          onClick={() =>
-                            navigate(`/admin/races/${race.id}`, {
-                              state: { tournamentId: race.tournamentId },
-                            })
-                          }
-                          className="text-[10px] font-bold text-[#064E3B] underline hover:no-underline"
-                        >
-                          View / Edit
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          {(race.status === "scheduled" ||
+                            race.status === "pre_race") && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await startRaces(race.id);
+                                  const racesRes =
+                                    await TournamentService.getTournamentRaces(
+                                      id!
+                                    );
+                                  setRaces(racesRes.data ?? []);
+                                  addToast(
+                                    "Race started successfully.",
+                                    "success"
+                                  );
+                                } catch {
+                                  addToast("Failed to start race.", "error");
+                                }
+                              }}
+                              className="text-[10px] font-bold text-blue-600 underline hover:no-underline"
+                            >
+                              Start
+                            </button>
+                          )}
+                          <button
+                            onClick={() =>
+                              navigate(`/admin/races/${race.id}`, {
+                                state: { tournamentId: race.tournamentId },
+                              })
+                            }
+                            className="text-[10px] font-bold text-[#064E3B] underline hover:no-underline"
+                          >
+                            View / Edit
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

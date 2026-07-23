@@ -5,8 +5,7 @@ import UserLayout from "../layouts/UserLayout";
 import type { RaceEntry } from "../types/race";
 import type { AssignedReferee } from "../types/referee";
 import useAdminRace from "../hooks/admin/useAdminRace";
-import { AdminService } from "../services/AdminService";
-import { fetchRaceEntries } from "../hooks/useRaces";
+import { useRaces, fetchRaceEntries } from "../hooks/useRaces";
 import { STATUS_LABELS } from "../components/admin/race/raceStatus";
 import { StatusBadge, RACE_STATUS_STYLES } from "../components/ui/StatusBadge";
 import RaceForm, { type RaceFormData } from "../components/admin/race/RaceForm";
@@ -14,6 +13,7 @@ import RaceStatusButton from "../components/admin/race/RaceStatusButton";
 import NotFoundContent from "../components/ui/NotFoundContent";
 import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "../components/ui/toast";
+import { AdminService } from "../services/AdminService.ts";
 
 export default function AdminRaceDetailPage() {
   const { id, tournamentId: urlTournamentId } = useParams<{
@@ -43,6 +43,7 @@ export default function AdminRaceDetailPage() {
     updateRaceStatus,
     clearSelectedRace,
   } = useAdminRace();
+  const { startRaces } = useRaces();
 
   const [raceEditing, setRaceEditing] = useState(false);
   const [raceReferee, setRaceReferee] = useState<AssignedReferee | null>(null);
@@ -230,6 +231,24 @@ export default function AdminRaceDetailPage() {
             </h2>
 
             <div className="flex gap-2">
+              {(selectedRace?.status === "scheduled" ||
+                selectedRace?.status === "pre_race") && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await startRaces(selectedRace.id);
+                      addToast("Race started successfully.", "success");
+                      if (id) await getRaceDetail(id);
+                    } catch {
+                      addToast("Failed to start race.", "error");
+                    }
+                  }}
+                  className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700"
+                >
+                  Start Race
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() =>

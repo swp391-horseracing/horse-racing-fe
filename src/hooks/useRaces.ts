@@ -5,7 +5,6 @@ import type { RaceTick } from "../types/live";
 import type { FeFinalPlacement } from "../types/live";
 import type { RaceDetail, RaceEntry, RaceListItem } from "../types/race";
 import { extractApiErrorMessage } from "../utils/errorMessages";
-
 type SocketEventHandler = (type: string, data: any) => void;
 
 interface UseRaceSocketOptions {
@@ -166,6 +165,15 @@ export function useRaces() {
     }
   }, []);
 
+  const startRaces = useCallback(async (raceId: string) => {
+    setLoading(true);
+    try {
+      await RaceService.startRaceAdmin(raceId);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const loadRacesForRange = useCallback(async (from: Date, to: Date) => {
     setLoading(true);
     try {
@@ -257,6 +265,7 @@ export function useRaces() {
     rangeRaces,
     loading,
     upcomingRaces,
+    startRaces,
     upcomingLoading,
     loadRacesByMonth,
     loadRacesForRange,
