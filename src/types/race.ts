@@ -22,6 +22,7 @@ export interface RaceEntry {
   laneNumber: string;
   weightKg: string;
   entryStatus: string;
+  jockeyId: string;
   jockeyName: string;
   clothNumber: number;
   trainerName?: string;

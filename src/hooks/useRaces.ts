@@ -388,6 +388,7 @@ export async function fetchRaceEntries(raceId: string): Promise<RaceEntry[]> {
     laneNumber: String(e.laneNumber),
     weightKg: "",
     entryStatus: e.entryStatus,
+    jockeyId: e.jockey?.id ?? "",
     jockeyName: e.jockey?.name ?? "",
     clothNumber: 0,
   }));

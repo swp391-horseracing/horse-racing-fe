@@ -1295,7 +1295,15 @@ export default function RacesPage() {
                                     </button>
                                   </td>
                                   <td className="px-6 py-4.5 font-medium text-slate-800">
-                                    {entry.jockeyName}
+                                    <button
+                                      onClick={() => {
+                                        if (!entry.jockeyId) return;
+                                        navigate(`/jockeys/${entry.jockeyId}`);
+                                      }}
+                                      className="text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 rounded"
+                                    >
+                                      {entry.jockeyName}
+                                    </button>
                                   </td>
                                   <td className="px-6 py-4.5 text-slate-500">
                                     {entry.weightKg}
