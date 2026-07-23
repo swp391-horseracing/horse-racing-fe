@@ -8,10 +8,11 @@ export const HorseService = {
     breed?: string,
     isRetired?: boolean,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    isRacing?: boolean
   ) {
     const response = await api.get("/horses", {
-      params: { search, breed, isRetired, page, limit },
+      params: { search, breed, isRetired, page, limit, isRacing },
     });
     return response.data;
   },

@@ -19,6 +19,7 @@ import {
   ShieldAlert,
   Star,
   ArrowRight,
+  X,
 } from "lucide-react";
 import banner from "../assets/images/horse-banner.png";
 
@@ -38,14 +39,12 @@ function getAge(birthDate?: string) {
   return `${Math.max(age, 0)} yrs`;
 }
 
-function getDisplayStatus(horse: Horse): string {
-  if (horse.isRacing) return "Racing";
+function getStatusLabel(horse: Horse): string {
   if (horse.isRetired) return "Retired";
   return horse.healthStatus ? formatStatus(horse.healthStatus) : "Active";
 }
 
-function getStatusColor(horse: Horse): string {
-  if (horse.isRacing) return "bg-amber-400";
+function getStatusDotColor(horse: Horse): string {
   if (horse.isRetired) return "bg-slate-400";
   switch (horse.healthStatus?.toLowerCase()) {
     case "healthy":
@@ -60,6 +59,24 @@ function getStatusColor(horse: Horse): string {
       return "bg-slate-200";
     default:
       return "bg-green-500";
+  }
+}
+
+function getStatusBadgeStyle(horse: Horse): string {
+  if (horse.isRetired) return "bg-slate-50 border-slate-300 text-slate-600";
+  switch (horse.healthStatus?.toLowerCase()) {
+    case "healthy":
+      return "bg-emerald-50 border-emerald-200 text-emerald-700";
+    case "recovering":
+      return "bg-blue-50 border-blue-200 text-blue-700";
+    case "minor injury":
+      return "bg-yellow-50 border-yellow-200 text-yellow-700";
+    case "injured":
+      return "bg-red-50 border-red-200 text-red-700";
+    case "under observation":
+      return "bg-slate-50 border-slate-200 text-slate-500";
+    default:
+      return "bg-emerald-50 border-emerald-200 text-emerald-700";
   }
 }
 
@@ -111,10 +128,16 @@ function HorseRow({ horse, selected }: { horse: Horse; selected: boolean }) {
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-3 shrink-0 pl-4">
-        <span className={`h-2 w-2 rounded-full ${getStatusColor(horse)}`} />
-        <span className="text-xs font-medium text-muted-foreground hidden sm:inline">
-          {getDisplayStatus(horse)}
+      <div className="flex items-center gap-2 shrink-0 pl-4">
+        {horse.isRacing && (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-bold text-amber-700">
+            <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+            Racing
+          </span>
+        )}
+        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${getStatusBadgeStyle(horse)}`}>
+          <span className={`h-2 w-2 rounded-full ${getStatusDotColor(horse)}`} />
+          {getStatusLabel(horse)}
         </span>
       </div>
     </div>
@@ -303,6 +326,28 @@ export default function HorsePage() {
             />
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+            <button
+              onClick={() =>
+                setPagination((prev) => ({
+                  ...prev,
+                  isRacing: prev.isRacing === true ? undefined : true,
+                  page: 1,
+                }))
+              }
+              className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-bold transition ${
+                pagination.isRacing
+                  ? "bg-amber-50 border-amber-200 text-amber-700 shadow-sm"
+                  : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+              }`}
+            >
+              <Zap
+                className={`h-3.5 w-3.5 ${
+                  pagination.isRacing ? "text-amber-500" : "text-slate-400"
+                }`}
+              />
+              Racing
+              {pagination.isRacing && <X className="h-3 w-3 ml-0.5" />}
+            </button>
             <Select
               value={statusFilter}
               onValueChange={(value) => {
