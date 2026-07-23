@@ -2,25 +2,11 @@ import { useCallback } from "react";
 import useJockeys from "../hooks/useJockeys";
 import { useSpotlightJockey } from "../hooks/useSpotlightEntity";
 import JockeySearch from "../components/jockey/JockeySearch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../components/ui/select";
+
 import { useNavigate } from "react-router-dom";
 import type { Jockey } from "../types/jockey";
-import { Layers, Zap, Activity, Star, ArrowRight, User } from "lucide-react";
+import { Layers, Zap, Activity, Star, ArrowRight, User, X } from "lucide-react";
 import banner from "../assets/images/horse-banner.png";
-
-function getDisplayStatus(jockey: Jockey): string {
-  return jockey.isRacing ? "Racing" : "Active";
-}
-
-function getStatusColor(jockey: Jockey): string {
-  return jockey.isRacing ? "bg-amber-400" : "bg-green-500";
-}
 
 function JockeyRow({
   jockey,
@@ -85,10 +71,16 @@ function JockeyRow({
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-3 shrink-0 pl-4">
-        <span className={`h-2 w-2 rounded-full ${getStatusColor(jockey)}`} />
-        <span className="text-xs font-medium text-muted-foreground hidden sm:inline">
-          {getDisplayStatus(jockey)}
+      <div className="flex items-center gap-2 shrink-0 pl-4">
+        {jockey.isRacing && (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-bold text-amber-700">
+            <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+            Racing
+          </span>
+        )}
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border-emerald-200 text-emerald-700 border px-2.5 py-0.5 text-xs font-bold">
+          <span className="h-2 w-2 rounded-full bg-green-500" />
+          Active
         </span>
       </div>
     </div>
@@ -99,17 +91,6 @@ export default function JockeysPage() {
   const navigate = useNavigate();
   const { jockeys, loading, error, pagination, setPagination } = useJockeys();
   const spotlight = useSpotlightJockey(jockeys);
-
-  const handleStatusChange = useCallback(
-    (value: string) => {
-      setPagination((prev) =>
-        prev.status === value && prev.page === 1
-          ? prev
-          : { ...prev, status: value, page: 1 }
-      );
-    },
-    [setPagination]
-  );
 
   const handleSearchChange = useCallback(
     (value: string) => {
@@ -282,19 +263,54 @@ export default function JockeysPage() {
             />
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
-            <Select
-              value={pagination.status}
-              onValueChange={handleStatusChange}
+            <button
+              onClick={() =>
+                setPagination((prev) => ({
+                  ...prev,
+                  status: prev.status === "racing" ? "all" : "racing",
+                  page: 1,
+                }))
+              }
+              className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-bold transition ${
+                pagination.status === "racing"
+                  ? "bg-amber-50 border-amber-200 text-amber-700 shadow-sm"
+                  : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+              }`}
             >
-              <SelectTrigger className="w-full sm:w-44 h-10 rounded-xl">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="racing">Racing</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-              </SelectContent>
-            </Select>
+              <Zap
+                className={`h-3.5 w-3.5 ${
+                  pagination.status === "racing"
+                    ? "text-amber-500"
+                    : "text-slate-400"
+                }`}
+              />
+              Racing
+              {pagination.status === "racing" && <X className="h-3 w-3 ml-0.5" />}
+            </button>
+            <button
+              onClick={() =>
+                setPagination((prev) => ({
+                  ...prev,
+                  status: prev.status === "active" ? "all" : "active",
+                  page: 1,
+                }))
+              }
+              className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-bold transition ${
+                pagination.status === "active"
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm"
+                  : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+              }`}
+            >
+              <Activity
+                className={`h-3.5 w-3.5 ${
+                  pagination.status === "active"
+                    ? "text-emerald-500"
+                    : "text-slate-400"
+                }`}
+              />
+              Active
+              {pagination.status === "active" && <X className="h-3 w-3 ml-0.5" />}
+            </button>
           </div>
         </div>
 
