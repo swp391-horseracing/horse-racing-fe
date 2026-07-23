@@ -169,6 +169,10 @@ export interface MyEntriesResponse {
   };
 }
 
+export interface Wallet {
+  balance: number;
+}
+
 export type UserRaceDetail = {
   id: string;
   tournamentId: string;

@@ -6,6 +6,7 @@ import type {
   UserProfile,
   UserRaceDetail,
   UserRaceListResponse,
+  Wallet,
 } from "../types/user";
 
 export const UserService = {
@@ -169,6 +170,11 @@ export const UserService = {
     const formData = new FormData();
     formData.append("avatar", file);
     const response = await api.patch("/me/avatar", formData);
+    return response.data;
+  },
+
+  getWallet: async (): Promise<Wallet> => {
+    const response = await api.get("/me/wallet");
     return response.data;
   },
 };

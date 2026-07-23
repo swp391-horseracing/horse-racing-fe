@@ -1,10 +1,11 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { ROUTES } from "../router/routes";
-import { Bell, Newspaper } from "lucide-react";
+import { Bell, Newspaper, Wallet } from "lucide-react";
 import React from "react";
 import NotificationTab from "../components/NotificationTab";
 import { useAuthContext } from "../contexts/AuthContext";
+import { useWallet } from "../hooks/useWallet";
 
 export default function MainLayout() {
   interface LinkItem {
@@ -67,6 +68,7 @@ export default function MainLayout() {
   const location = useLocation();
 
   const isAuthenticated = loading ? !!token : !!(token && user);
+  const { balance } = useWallet();
 
   return (
     <div className="flex flex-col h-screen w-screen bg-gray-200 pb-2 px-2 pt-4 overflow-hidden">
@@ -135,6 +137,12 @@ export default function MainLayout() {
 
         {/* Actions Menu */}
         <div className="flex justify-center items-center h-8 ml-auto shrink-0 relative">
+          {isAuthenticated && (
+            <div className="flex justify-center items-center h-8 shrink-0 mr-2 gap-1 text-emerald-700 bg-emerald-50 px-2 py-1 rounded-sm border border-emerald-200 text-xs font-semibold">
+              <Wallet className="w-3.5 h-3.5" />
+              {balance.toLocaleString()} credits
+            </div>
+          )}
           <div className="flex flex-row justify-end h-8">
             <Button
               onClick={() => setShow(!show)}
