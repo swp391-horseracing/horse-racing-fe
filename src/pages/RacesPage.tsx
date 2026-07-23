@@ -268,6 +268,7 @@ export default function RacesPage() {
     loadRacesByMonth,
     loadRacesForRange,
     loadUpcomingRaces,
+    startRaces,
   } = useRaces();
 
   const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(
@@ -1186,6 +1187,28 @@ export default function RacesPage() {
                             {currentPrediction
                               ? "Update Prediction"
                               : "Predict"}
+                          </button>
+                        )}
+                      {user?.role === "admin" &&
+                        (raceDetail?.status === "scheduled" ||
+                          raceDetail?.status === "pre_race") && (
+                          <button
+                            onClick={async () => {
+                              try {
+                                await startRaces(raceDetail.id);
+                                addToast(
+                                  "Race started successfully.",
+                                  "success"
+                                );
+                                loadDetail();
+                              } catch {
+                                addToast("Failed to start race.", "error");
+                              }
+                            }}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-600 text-white font-bold text-[10px] border border-white/20 hover:bg-blue-700 transition-all cursor-pointer shadow-sm active:scale-95"
+                          >
+                            <Flag size={10} />
+                            Start Race
                           </button>
                         )}
                       {user?.role === "admin" && (

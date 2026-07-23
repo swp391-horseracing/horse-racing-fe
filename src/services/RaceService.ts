@@ -29,4 +29,8 @@ export const RaceService = {
     const response = await api.get(`/races/${raceId}/entries`);
     return response.data;
   },
+
+  async startRaceAdmin(raceId: string) {
+    await api.post(`/admin/races/${raceId}/start`);
+  },
 };
