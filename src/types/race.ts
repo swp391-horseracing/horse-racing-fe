@@ -57,6 +57,11 @@ export interface RaceListItem {
 
   course?: RaceTrack;
   entryCount?: number;
+  tournamentName?: string;
+  tournament?: {
+    id: string;
+    name: string;
+  };
 }
 
 export interface Pagination {
