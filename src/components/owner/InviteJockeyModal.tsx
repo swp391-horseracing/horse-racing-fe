@@ -6,7 +6,7 @@ interface InviteJockeyModalProps {
   isOpen: boolean;
   onClose: () => void;
   jockeys: Jockey[];
-  onDispatch: (ids: number[]) => void;
+  onDispatch: (ids: (string | number)[]) => void;
 }
 
 export function InviteJockeyModal({
@@ -15,11 +15,11 @@ export function InviteJockeyModal({
   jockeys,
   onDispatch,
 }: InviteJockeyModalProps) {
-  const [selected, setSelected] = useState<number[]>([]);
+  const [selected, setSelected] = useState<(string | number)[]>([]);
 
   if (!isOpen) return null;
 
-  const toggle = (id: number) =>
+  const toggle = (id: string | number) =>
     setSelected((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );

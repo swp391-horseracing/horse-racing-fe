@@ -22,6 +22,7 @@ export default function MainLayout() {
       icon: <Newspaper className="w-4 h-4 mr-1.5" />,
     },
     { label: "Horses", to: ROUTES.HORSES },
+    { label: "Jockeys", to: ROUTES.JOCKEYS },
     { label: "Races", to: ROUTES.RACES },
     { label: "Tournaments", to: ROUTES.TOURNAMENTS },
     { label: "LeaderBoard", to: ROUTES.LEADERBOARD },

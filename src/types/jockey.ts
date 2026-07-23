@@ -1,10 +1,15 @@
 export interface Jockey {
-  id: number;
+  id: string | number;
   name: string;
   fullName: string;
-  licenseId: string;
+  avatarUrl?: string | null;
+  weightKg?: number | null;
+  experienceYear?: number | null;
+  isRacing?: boolean;
+  licenseId?: string;
   winRate: number;
   totalRuns: number;
   podiums: number;
   club: string;
+  createdAt?: string;
 }

@@ -52,7 +52,9 @@ export function SendInvitesPage({
 
   const entry = entries.find((e: Entry) => e.entryId === entryId);
 
-  const [selectedJockeyId, setSelectedJockeyId] = useState<number | null>(null);
+  const [selectedJockeyId, setSelectedJockeyId] = useState<
+    string | number | null
+  >(null);
   const [inviteTitle, setInviteTitle] = useState("");
   const [inviteMessage, setInviteMessage] = useState("");
   const [inviting, setInviting] = useState(false);
@@ -72,7 +74,7 @@ export function SendInvitesPage({
 
   const selectedJockey = jockeys.find((j) => j.id === selectedJockeyId);
 
-  const handleSelectJockey = (jockeyId: number) => {
+  const handleSelectJockey = (jockeyId: string | number) => {
     setSelectedJockeyId(jockeyId);
     setStep("write");
   };

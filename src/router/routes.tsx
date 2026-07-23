@@ -6,6 +6,7 @@ export const ROUTES = {
   REGISTER: "/register",
   CALENDAR: "/calendar",
   HORSES: "/horses",
+  JOCKEYS: "/jockeys",
   RACES: "/races",
   TOURNAMENTS: "/tournaments",
   TOURNAMENT_DETAIL: "/tournaments/:id",
