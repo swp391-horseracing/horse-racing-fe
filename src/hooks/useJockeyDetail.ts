@@ -99,9 +99,13 @@ export function useJockeyDetail(jockeyId?: string) {
         if (historyData.stats) {
           setStats(historyData.stats);
         }
-        if (historyData.pagination) {
-          setPagination((prev) => ({ ...prev, ...historyData.pagination }));
-        }
+        setPagination((prev) => ({
+          ...prev,
+          page: historyData.page,
+          limit: historyData.limit,
+          total: historyData.total,
+          totalPages: historyData.totalPages,
+        }));
       } catch (err) {
         if (active) {
           setError(
