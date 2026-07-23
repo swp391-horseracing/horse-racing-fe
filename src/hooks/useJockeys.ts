@@ -41,20 +41,35 @@ export function useJockeys() {
       if (!active) return;
 
       const rawList = res.data || [];
-      const mappedList: Jockey[] = rawList.map((item: any) => ({
-        id: item.id,
-        name: item.fullName || item.name || "Unknown Jockey",
-        fullName: item.fullName || item.name || "Unknown Jockey",
-        avatarUrl: item.avatarUrl ?? null,
-        weightKg: item.weightKg ?? null,
-        experienceYear: item.experienceYear ?? null,
-        isRacing: item.isRacing ?? false,
-        licenseId: item.licenseId ?? "",
-        winRate: item.winRate ?? 0,
-        totalRuns: item.totalRuns ?? 0,
-        podiums: item.podiums ?? 0,
-        club: item.club ?? "Independent",
-      }));
+      const mappedList: Jockey[] = rawList.map(
+        (item: {
+          id: string | number;
+          fullName?: string;
+          name?: string;
+          avatarUrl?: string | null;
+          weightKg?: number | null;
+          experienceYear?: number | null;
+          isRacing?: boolean;
+          licenseId?: string;
+          winRate?: number;
+          totalRuns?: number;
+          podiums?: number;
+          club?: string;
+        }) => ({
+          id: item.id,
+          name: item.fullName || item.name || "Unknown Jockey",
+          fullName: item.fullName || item.name || "Unknown Jockey",
+          avatarUrl: item.avatarUrl ?? null,
+          weightKg: item.weightKg ?? null,
+          experienceYear: item.experienceYear ?? null,
+          isRacing: item.isRacing ?? false,
+          licenseId: item.licenseId ?? "",
+          winRate: item.winRate ?? 0,
+          totalRuns: item.totalRuns ?? 0,
+          podiums: item.podiums ?? 0,
+          club: item.club ?? "Independent",
+        })
+      );
 
       setJockeys(mappedList);
       if (res.pagination) {
@@ -79,9 +94,76 @@ export function useJockeys() {
   }, [pagination.search, pagination.status, pagination.page, pagination.limit]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadJockeys();
-  }, [loadJockeys]);
+    let active = true;
+
+    const executeFetch = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const res = await JockeyService.getJockeys({
+          search: pagination.search,
+          page: pagination.page,
+          limit: pagination.limit,
+        });
+
+        if (!active) return;
+
+        const rawList = res.data || [];
+        const mappedList: Jockey[] = rawList.map(
+          (item: {
+            id: string | number;
+            fullName?: string;
+            name?: string;
+            avatarUrl?: string | null;
+            weightKg?: number | null;
+            experienceYear?: number | null;
+            isRacing?: boolean;
+            licenseId?: string;
+            winRate?: number;
+            totalRuns?: number;
+            podiums?: number;
+            club?: string;
+          }) => ({
+            id: item.id,
+            name: item.fullName || item.name || "Unknown Jockey",
+            fullName: item.fullName || item.name || "Unknown Jockey",
+            avatarUrl: item.avatarUrl ?? null,
+            weightKg: item.weightKg ?? null,
+            experienceYear: item.experienceYear ?? null,
+            isRacing: item.isRacing ?? false,
+            licenseId: item.licenseId ?? "",
+            winRate: item.winRate ?? 0,
+            totalRuns: item.totalRuns ?? 0,
+            podiums: item.podiums ?? 0,
+            club: item.club ?? "Independent",
+          })
+        );
+
+        setJockeys(mappedList);
+        if (res.pagination) {
+          setPagination((prev) => ({
+            ...prev,
+            ...res.pagination,
+          }));
+        }
+      } catch (err) {
+        if (active) {
+          setError(err instanceof Error ? err.message : "Load failed");
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void executeFetch();
+
+    return () => {
+      active = false;
+    };
+  }, [pagination.search, pagination.page, pagination.limit]);
 
   return {
     jockeys,
