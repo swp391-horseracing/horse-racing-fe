@@ -144,6 +144,27 @@ export interface TournamentRacesResponse {
   pagination: Pagination;
 }
 
+export interface TournamentParticipant {
+  horse: {
+    id: string;
+    name: string;
+    breed: string;
+    imageUrl: string | null;
+    baseSpeed?: number;
+    stamina?: number;
+  };
+  owner: {
+    id: string;
+    fullName: string;
+    avatarUrl: string | null;
+  };
+}
+
+export interface TournamentParticipantsResponse {
+  data: TournamentParticipant[];
+  pagination: Pagination;
+}
+
 export interface TournamentListQuery {
   status?: TournamentApiStatus;
   page?: number;

@@ -13,10 +13,11 @@ import type {
   TournamentApiStatus,
   TournamentDetail,
   TournamentListItem,
+  TournamentParticipant,
 } from "../types/tournament";
 
 type FilterTab = "All" | TournamentApiStatus;
-export type DetailTab = "schedule" | "entry" | "registration";
+export type DetailTab = "schedule" | "entry" | "registration" | "participants";
 
 type RacePreview = {
   id: string;
@@ -116,6 +117,18 @@ export default function useTournament() {
 
   const [raceStatus, setRaceStatus] = useState<RaceApiStatus | undefined>();
 
+  const [participants, setParticipants] = useState<TournamentParticipant[]>([]);
+  const [participantsLoading, setParticipantsLoading] = useState(false);
+  const [participantsError, setParticipantsError] = useState<string | null>(
+    null
+  );
+  const [participantsPagination, setParticipantsPagination] = useState({
+    page: 1,
+    limit: DEFAULT_LIMIT,
+    total: 0,
+    totalPages: 0,
+  });
+
   const [detailTab, setDetailTab] = useState<DetailTab>("schedule");
 
   const loadAllTournaments = useCallback(async () => {
@@ -188,6 +201,38 @@ export default function useTournament() {
     })();
   }, [loadTournamentDetail]);
 
+  const loadParticipants = useCallback(async () => {
+    if (!selectedTournamentId || detailTab !== "participants") return;
+
+    try {
+      setParticipantsLoading(true);
+      setParticipantsError(null);
+
+      const response = await TournamentService.getTournamentParticipants(
+        selectedTournamentId,
+        { page: 1, limit: 100 }
+      );
+
+      setParticipants(response.data);
+      setParticipantsPagination(response.pagination);
+    } catch (error) {
+      setParticipantsError(
+        error instanceof Error ? error.message : "Load participants failed"
+      );
+      setParticipants([]);
+    } finally {
+      setParticipantsLoading(false);
+    }
+  }, [selectedTournamentId, detailTab]);
+
+  useEffect(() => {
+    (async () => {
+      if (detailTab === "participants") {
+        await loadParticipants();
+      }
+    })();
+  }, [loadParticipants, detailTab]);
+
   const filteredTournaments = useMemo(() => {
     let result = allTournaments;
 
@@ -258,6 +303,8 @@ export default function useTournament() {
     setRaces([]);
     setRacesError(null);
     setRaceStatus(undefined);
+    setParticipants([]);
+    setParticipantsError(null);
   };
 
   return {
@@ -297,6 +344,11 @@ export default function useTournament() {
     racesPagination,
     racesLoading,
     racesError,
+
+    participants,
+    participantsLoading,
+    participantsError,
+    participantsPagination,
 
     reloadTournaments: loadAllTournaments,
   };
