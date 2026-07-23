@@ -232,8 +232,11 @@ export default function UserLayout({
 
   const activePath = activeKey || location.pathname;
   const activeLabel =
-    currentNav.find(
-      (n) => activePath === n.key || activePath.startsWith(n.key + "/")
+    (
+      currentNav.find((n) => activePath === n.key) ??
+      currentNav.find(
+        (n) => n.key !== "/" && activePath.startsWith(n.key + "/")
+      )
     )?.label ?? "Portal";
 
   const handleNavigation = (key: string) => {

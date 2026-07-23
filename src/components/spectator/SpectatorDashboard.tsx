@@ -106,9 +106,9 @@ export function SpectatorDashboard({ setActiveTab }: SpectatorDashboardProps) {
       {/* Bento Grid Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Tokens Card */}
-        <div
+        <button
           onClick={() => setActiveTab?.(ROUTES.SPECTATOR_WALLET)}
-          className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300 shadow-sm cursor-pointer"
+          className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300 shadow-sm cursor-pointer text-left w-full block focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
         >
           <div className="absolute -right-6 -top-6 w-24 h-24 bg-[#064E3B]/5 rounded-full blur-xl group-hover:bg-[#064E3B]/10 transition-colors"></div>
           <div className="flex items-center justify-between mb-4">
@@ -125,12 +125,12 @@ export function SpectatorDashboard({ setActiveTab }: SpectatorDashboardProps) {
               PTS
             </span>
           </div>
-        </div>
+        </button>
 
         {/* Active Predictions Card */}
-        <div
+        <button
           onClick={() => setActiveTab?.(ROUTES.SPECTATOR_PREDICTIONS)}
-          className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300 shadow-sm cursor-pointer"
+          className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300 shadow-sm cursor-pointer text-left w-full block focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
         >
           <div className="absolute -right-6 -top-6 w-24 h-24 bg-[#EAB308]/5 rounded-full blur-xl group-hover:bg-[#EAB308]/10 transition-colors"></div>
           <div className="flex items-center justify-between mb-4">
@@ -147,12 +147,12 @@ export function SpectatorDashboard({ setActiveTab }: SpectatorDashboardProps) {
               pending
             </span>
           </div>
-        </div>
+        </button>
 
         {/* Recent Wins Card */}
-        <div
+        <button
           onClick={() => setActiveTab?.(ROUTES.SPECTATOR_PREDICTIONS)}
-          className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300 shadow-sm cursor-pointer"
+          className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300 shadow-sm cursor-pointer text-left w-full block focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
         >
           <div className="absolute -right-6 -top-6 w-24 h-24 bg-[#064E3B]/5 rounded-full blur-xl group-hover:bg-[#064E3B]/10 transition-colors"></div>
           <div className="flex items-center justify-between mb-4">
@@ -166,10 +166,10 @@ export function SpectatorDashboard({ setActiveTab }: SpectatorDashboardProps) {
           <div className="font-headline text-4xl font-black text-[#064E3B] flex items-baseline gap-2 group-hover:underline">
             {loading ? "..." : recentWinsCount}
             <span className="text-sm font-bold font-body text-slate-500">
-              correct
+              wins
             </span>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Main Grid Layout */}
@@ -248,10 +248,10 @@ export function SpectatorDashboard({ setActiveTab }: SpectatorDashboardProps) {
                 const isPending = p.isCorrect === null;
 
                 return (
-                  <div
+                  <button
                     key={p.id}
                     onClick={() => setActiveTab?.(ROUTES.SPECTATOR_PREDICTIONS)}
-                    className="bg-white border border-slate-100 rounded-xl p-4 min-h-[88px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative shadow-sm hover:border-[#064E3B]/20 cursor-pointer transition-all"
+                    className="bg-white border border-slate-100 rounded-xl p-4 min-h-[88px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative shadow-sm hover:border-[#064E3B]/20 cursor-pointer transition-all text-left w-full block focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
                   >
                     <div
                       className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${
@@ -284,35 +284,35 @@ export function SpectatorDashboard({ setActiveTab }: SpectatorDashboardProps) {
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {isCorrect && (
-                        <span className="px-3 py-1 bg-emerald-50 border border-emerald-250 text-emerald-800 rounded-full font-label text-[10px] font-bold flex items-center gap-1">
+                        <span className="px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full font-label text-[10px] font-bold flex items-center gap-1">
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                           Won +{p.rewardAmount || "0"} PTS
                         </span>
                       )}
                       {isIncorrect && (
-                        <span className="px-3 py-1 bg-rose-50 border border-rose-250 text-rose-800 rounded-full font-label text-[10px] font-bold flex items-center gap-1">
+                        <span className="px-3 py-1 bg-rose-50 border border-rose-200 text-rose-800 rounded-full font-label text-[10px] font-bold flex items-center gap-1">
                           <XCircle className="w-3.5 h-3.5 text-rose-600" />
                           Incorrect
                         </span>
                       )}
                       {isPending && (
-                        <span className="px-3 py-1 bg-amber-50 border border-amber-250 text-amber-800 rounded-full font-label text-[10px] font-bold flex items-center gap-1">
+                        <span className="px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 rounded-full font-label text-[10px] font-bold flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5 text-amber-600" />
                           Pending Race
                         </span>
                       )}
                     </div>
-                  </div>
+                  </button>
                 );
               })
             ) : recentCompletedRaces.length > 0 ? (
               recentCompletedRaces.map((r) => (
-                <div
+                <button
                   key={r.id}
                   onClick={() =>
                     setActiveTab?.(ROUTES.RACE_DETAIL.replace(":id", r.id))
                   }
-                  className="bg-white border border-slate-100 rounded-xl p-4 min-h-[88px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative shadow-sm hover:border-[#064E3B]/20 cursor-pointer transition-all"
+                  className="bg-white border border-slate-100 rounded-xl p-4 min-h-[88px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative shadow-sm hover:border-[#064E3B]/20 cursor-pointer transition-all text-left w-full block focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
                 >
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#064E3B]/30 rounded-l-xl" />
                   <div className="pl-2">
@@ -334,12 +334,12 @@ export function SpectatorDashboard({ setActiveTab }: SpectatorDashboardProps) {
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="px-3 py-1 bg-emerald-50 border border-emerald-250 text-emerald-800 rounded-full font-label text-[10px] font-bold flex items-center gap-1">
+                    <span className="px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full font-label text-[10px] font-bold flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                       Completed
                     </span>
                   </div>
-                </div>
+                </button>
               ))
             ) : (
               <div className="py-8 text-center text-xs text-slate-400">

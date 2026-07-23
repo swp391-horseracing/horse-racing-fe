@@ -46,14 +46,20 @@ export default function WalletPage() {
   const [isFlyoutOpen, setIsFlyoutOpen] = useState(false);
   const flyoutRef = useRef<HTMLDivElement>(null);
 
-  const loadWalletData = async () => {
+  const loadWalletData = async (isMounted = { current: true }) => {
     try {
       const data = await WalletService.getMyWallet();
-      setWallet(data);
+      if (isMounted.current) {
+        setWallet(data);
+      }
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to load wallet data.");
+      if (isMounted.current) {
+        setError(err?.response?.data?.message || "Failed to load wallet data.");
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -64,31 +70,13 @@ export default function WalletPage() {
   };
 
   useEffect(() => {
-    let isMounted = true;
-
+    const isMounted = { current: true };
     const init = async () => {
-      try {
-        const walletData = await WalletService.getMyWallet();
-        if (isMounted && walletData) {
-          setWallet(walletData);
-        }
-      } catch (err: any) {
-        if (isMounted) {
-          setError(
-            err?.response?.data?.message || "Failed to load wallet data."
-          );
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
+      await loadWalletData(isMounted);
     };
-
     init();
-
     return () => {
-      isMounted = false;
+      isMounted.current = false;
     };
   }, []);
 
@@ -479,45 +467,36 @@ export default function WalletPage() {
                 onClick={() => setActiveTab("activity_heatmap")}
                 className={`pb-2 text-xs font-bold flex items-center gap-1.5 transition-all relative font-headline ${
                   activeTab === "activity_heatmap"
-                    ? "text-[#064E3B]"
+                    ? "text-[#064E3B] border-b-2 border-[#064E3B]"
                     : "text-slate-400 hover:text-slate-600"
                 }`}
               >
                 <TrendingUp className="w-3.5 h-3.5" />
                 Monthly Activity Heatmap
-                {activeTab === "activity_heatmap" && (
-                  <div className="absolute bottom-[-5px] left-0 right-0 h-0.5 bg-[#064E3B] rounded-full" />
-                )}
               </button>
 
               <button
                 onClick={() => setActiveTab("how_it_works")}
                 className={`pb-2 text-xs font-bold flex items-center gap-1.5 transition-all relative font-headline ${
                   activeTab === "how_it_works"
-                    ? "text-[#064E3B]"
+                    ? "text-[#064E3B] border-b-2 border-[#064E3B]"
                     : "text-slate-400 hover:text-slate-600"
                 }`}
               >
                 <BookOpen className="w-3.5 h-3.5" />
                 How It Works
-                {activeTab === "how_it_works" && (
-                  <div className="absolute bottom-[-5px] left-0 right-0 h-0.5 bg-[#064E3B] rounded-full" />
-                )}
               </button>
 
               <button
                 onClick={() => setActiveTab("faqs")}
                 className={`pb-2 text-xs font-bold flex items-center gap-1.5 transition-all relative font-headline ${
                   activeTab === "faqs"
-                    ? "text-[#064E3B]"
+                    ? "text-[#064E3B] border-b-2 border-[#064E3B]"
                     : "text-slate-400 hover:text-slate-600"
                 }`}
               >
                 <HelpCircle className="w-3.5 h-3.5" />
                 FAQs
-                {activeTab === "faqs" && (
-                  <div className="absolute bottom-[-5px] left-0 right-0 h-0.5 bg-[#064E3B] rounded-full" />
-                )}
               </button>
             </div>
 
@@ -752,7 +731,7 @@ export default function WalletPage() {
                 </span>
                 <span className="inline sm:hidden font-sans">Filter</span>
                 {activeFilterCount > 0 && (
-                  <span className="ml-0.5 px-1.5 py-0.2 bg-emerald-200 text-emerald-900 font-black rounded-full text-[9px] font-sans">
+                  <span className="ml-0.5 px-1.5 py-0.5 bg-emerald-200 text-emerald-900 font-black rounded-full text-[9px] font-sans">
                     {activeFilterCount}
                   </span>
                 )}
@@ -975,10 +954,14 @@ export default function WalletPage() {
               {searchQuery && (
                 <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-900 text-[10px] font-semibold rounded-full flex items-center gap-1">
                   "{searchQuery}"
-                  <X
-                    className="w-2.5 h-2.5 cursor-pointer"
+                  <button
+                    type="button"
+                    aria-label="Remove search filter"
                     onClick={() => setSearchQuery("")}
-                  />
+                    className="focus:outline-none focus:ring-1 focus:ring-emerald-600/30 rounded-full p-0.5"
+                  >
+                    <X className="w-2.5 h-2.5 cursor-pointer" />
+                  </button>
                 </span>
               )}
               {selectedTypes.map((t) => (
@@ -987,10 +970,14 @@ export default function WalletPage() {
                   className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-900 text-[10px] font-semibold rounded-full flex items-center gap-1 capitalize"
                 >
                   Type: {t}
-                  <X
-                    className="w-2.5 h-2.5 cursor-pointer"
+                  <button
+                    type="button"
+                    aria-label={`Remove type ${t} filter`}
                     onClick={() => toggleTypeFilter(t)}
-                  />
+                    className="focus:outline-none focus:ring-1 focus:ring-emerald-600/30 rounded-full p-0.5"
+                  >
+                    <X className="w-2.5 h-2.5 cursor-pointer" />
+                  </button>
                 </span>
               ))}
               {selectedStatuses.map((s) => (
@@ -999,28 +986,40 @@ export default function WalletPage() {
                   className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-900 text-[10px] font-semibold rounded-full flex items-center gap-1 capitalize"
                 >
                   Status: {s}
-                  <X
-                    className="w-2.5 h-2.5 cursor-pointer"
+                  <button
+                    type="button"
+                    aria-label={`Remove status ${s} filter`}
                     onClick={() => toggleStatusFilter(s)}
-                  />
+                    className="focus:outline-none focus:ring-1 focus:ring-emerald-600/30 rounded-full p-0.5"
+                  >
+                    <X className="w-2.5 h-2.5 cursor-pointer" />
+                  </button>
                 </span>
               ))}
               {startDate && (
                 <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-900 text-[10px] font-semibold rounded-full flex items-center gap-1">
                   From: {startDate}
-                  <X
-                    className="w-2.5 h-2.5 cursor-pointer"
+                  <button
+                    type="button"
+                    aria-label="Remove start date filter"
                     onClick={() => setStartDate("")}
-                  />
+                    className="focus:outline-none focus:ring-1 focus:ring-emerald-600/30 rounded-full p-0.5"
+                  >
+                    <X className="w-2.5 h-2.5 cursor-pointer" />
+                  </button>
                 </span>
               )}
               {endDate && (
                 <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-900 text-[10px] font-semibold rounded-full flex items-center gap-1">
                   To: {endDate}
-                  <X
-                    className="w-2.5 h-2.5 cursor-pointer"
+                  <button
+                    type="button"
+                    aria-label="Remove end date filter"
                     onClick={() => setEndDate("")}
-                  />
+                    className="focus:outline-none focus:ring-1 focus:ring-emerald-600/30 rounded-full p-0.5"
+                  >
+                    <X className="w-2.5 h-2.5 cursor-pointer" />
+                  </button>
                 </span>
               )}
               <button
