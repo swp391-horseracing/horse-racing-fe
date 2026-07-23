@@ -171,6 +171,14 @@ export const router = createBrowserRouter([
             path: ROUTES.SPECTATOR_PREDICTIONS,
             element: <SpectatorPage />,
           },
+          {
+            path: ROUTES.SPECTATOR_WALLET,
+            element: <SpectatorPage />,
+          },
+          {
+            path: ROUTES.USER_WALLET,
+            element: <SpectatorPage />,
+          },
         ],
       },
       {

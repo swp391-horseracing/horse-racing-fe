@@ -3,6 +3,7 @@ import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes";
 import { SpectatorDashboard } from "../components/spectator/SpectatorDashboard";
 import { PredictionsHub } from "../components/spectator/PredictionsHub";
+import WalletPage from "./WalletPage";
 
 export default function SpectatorPage() {
   const location = useLocation();
@@ -15,6 +16,9 @@ export default function SpectatorPage() {
         return <SpectatorDashboard setActiveTab={navigate} />;
       case ROUTES.SPECTATOR_PREDICTIONS:
         return <PredictionsHub />;
+      case ROUTES.SPECTATOR_WALLET:
+      case ROUTES.USER_WALLET:
+        return <WalletPage />;
       default:
         return null;
     }

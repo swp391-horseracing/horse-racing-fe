@@ -15,11 +15,13 @@ export const ROUTES = {
   // USER
   USER_PROFILE: "/user/profile",
   USER_NOTIFICATION: "/user/notifications",
+  USER_WALLET: "/user/wallet",
 
   // SPECTATOR
   SPECTATOR_DASHBOARD: "/spectator",
   SPECTATOR_BET: "/spectator/bet",
   SPECTATOR_TRACK_RESULT: "/spectator/track-result",
+  SPECTATOR_WALLET: "/spectator/wallet",
 
   // OWNER
   OWNER_DASHBOARD: "/owner",

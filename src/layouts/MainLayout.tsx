@@ -163,6 +163,23 @@ export default function MainLayout() {
             )}
           </div>
 
+          {isAuthenticated && user?.role === "spectator" && (
+            <Button
+              onClick={() => navigate(ROUTES.SPECTATOR_WALLET)}
+              variant="ghost"
+              title="Spectator Wallet"
+              className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 mx-1 py-2
+                ${
+                  location.pathname === ROUTES.SPECTATOR_WALLET ||
+                  location.pathname === ROUTES.USER_WALLET
+                    ? "bg-[#064E3B]/10 text-[#064E3B] font-bold"
+                    : "text-gray-500 hover:text-gray-900"
+                }`}
+            >
+              <Wallet className="w-5 h-5" />
+            </Button>
+          )}
+
           {isAuthenticated ? (
             <Button
               onClick={() => navigate(ROUTES.USER_PROFILE)}

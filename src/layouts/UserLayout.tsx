@@ -12,6 +12,7 @@ import {
   ListChecks,
   AlertTriangle,
   Clock,
+  Wallet,
 } from "lucide-react";
 import {
   Sidebar,
@@ -169,6 +170,11 @@ export default function UserLayout({
         label: "Predictions Hub",
         icon: Activity,
         key: ROUTES.SPECTATOR_PREDICTIONS,
+      },
+      {
+        label: "Spectator Wallet",
+        icon: Wallet,
+        key: ROUTES.SPECTATOR_WALLET,
       },
     ],
     Admin: [
