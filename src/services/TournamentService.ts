@@ -5,6 +5,7 @@ import type {
   TournamentListResponse,
   TournamentRacesResponse,
   TournamentDetail,
+  TournamentParticipantsResponse,
 } from "../types/tournament";
 
 export const TournamentService = {
@@ -60,6 +61,20 @@ export const TournamentService = {
 
   getTournamentRegistration: async (id: string, regId: string) => {
     const response = await api.get(`/tournaments/${id}/registrations/${regId}`);
+
+    return response.data;
+  },
+
+  getTournamentParticipants: async (
+    id: string,
+    params?: { page?: number; limit?: number }
+  ): Promise<TournamentParticipantsResponse> => {
+    const response = await api.get(`/tournaments/${id}/participants`, {
+      params: {
+        page: params?.page ?? 1,
+        limit: params?.limit ?? 10,
+      },
+    });
 
     return response.data;
   },

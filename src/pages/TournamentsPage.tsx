@@ -122,6 +122,10 @@ export default function TournamentsPage() {
     racesError,
     page,
     setPage,
+    participants,
+    participantsLoading,
+    participantsError,
+    participantsPagination,
   } = useTournament();
 
   useEffect(() => {
@@ -438,6 +442,17 @@ export default function TournamentsPage() {
                   Entry Info & Rules
                 </button>
 
+                <button
+                  onClick={() => setDetailTab("participants")}
+                  className={`py-2.5 px-4 text-xs font-bold border-b-2 transition-all -mb-[1px] ${
+                    detailTab === "participants"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Participants
+                </button>
+
                 {isOwner &&
                   selectedTournament.status === "registration_open" && (
                     <button
@@ -668,6 +683,68 @@ export default function TournamentsPage() {
                         <p className="whitespace-pre-wrap">
                           {selectedTournament.rules}
                         </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {detailTab === "participants" && (
+                  <div className="space-y-6">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5" />
+                      Participants
+                      <span className="text-primary bg-primary/10 px-2 py-0.5 rounded ml-1">
+                        {participantsPagination.total}
+                      </span>
+                    </h4>
+
+                    {participantsLoading ? (
+                      <div className="text-sm text-muted-foreground">
+                        Loading participants...
+                      </div>
+                    ) : participantsError ? (
+                      <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 shrink-0" />
+                        {participantsError}
+                      </div>
+                    ) : participants.length > 0 ? (
+                      <div className="divide-y divide-border rounded-xl border border-border bg-card">
+                        {participants.map((p) => (
+                          <div
+                            key={p.horse.id}
+                            onClick={() =>
+                              navigate(`/horses/${p.horse.id}`)
+                            }
+                            className="flex items-center gap-3.5 px-4 py-3 cursor-pointer hover:bg-muted/40 transition-colors"
+                          >
+                            <div className="h-9 w-9 shrink-0 rounded-lg border border-border bg-muted overflow-hidden flex items-center justify-center">
+                              {p.horse.imageUrl ? (
+                                <img
+                                  src={p.horse.imageUrl}
+                                  alt={p.horse.name}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <Users className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-bold text-foreground truncate">
+                                {p.horse.name}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">
+                                {p.horse.breed}
+                                {p.owner?.fullName &&
+                                  ` · Owner: ${p.owner.fullName}`}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-xs text-muted-foreground font-medium">
+                        <Users className="mx-auto mb-2 h-6 w-6 text-muted-foreground/40" />
+                        No participants yet.
                       </div>
                     )}
                   </div>
