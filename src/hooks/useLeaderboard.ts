@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRef } from "react";
 import { HorseService } from "../services/HorseService";
+import { JockeyService } from "../services/JockeyService";
 import type { TransformedHorseRow } from "../components/leaderboard/HorseLeaderboardView";
+import type { TransformedJockeyRow } from "../components/leaderboard/JockeyLeaderboardView";
 import type { Horse } from "../types/horse";
 
 export type LeaderboardTab = "horses" | "jockeys";
@@ -22,6 +24,7 @@ export function useLeaderboard() {
   const [totalItems, setTotalItems] = useState<number>(0);
 
   const [horseRows, setHorseRows] = useState<TransformedHorseRow[]>([]);
+  const [jockeyRows, setJockeyRows] = useState<TransformedJockeyRow[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,7 +80,57 @@ export function useLeaderboard() {
           }
           setHorseRows(transformedRows);
         } else {
-          // Fetch real jockey rankings
+          const response = await JockeyService.getJockeys({
+            page: currentPage,
+            limit,
+          });
+          if (currentRequestId !== requestIdRef.current) return;
+
+          const rawJockeys: any[] = response?.data || [];
+
+          const statsResults = await Promise.allSettled(
+            rawJockeys.map((j: any) =>
+              JockeyService.getJockeyRaceHistory(String(j.id), {
+                page: 1,
+                limit: 1,
+              })
+            )
+          );
+
+          const transformedRows: TransformedJockeyRow[] = rawJockeys.map(
+            (item: any, index: number) => {
+              const stats =
+                statsResults[index]?.status === "fulfilled"
+                  ? statsResults[index].value.stats
+                  : { totalRaces: 0, wins: 0, places: 0 };
+
+              const totalRuns = stats.totalRaces ?? 0;
+              const wins = stats.wins ?? 0;
+              const podiums = wins + (stats.places ?? 0);
+              const winRate = totalRuns > 0 ? wins / totalRuns : 0;
+
+              return {
+                rank: (currentPage - 1) * limit + (index + 1),
+                jockey: {
+                  id: item.id,
+                  name: item.fullName || item.name || "Unknown Jockey",
+                  winRate,
+                  totalRuns,
+                  podiums,
+                },
+              };
+            }
+          );
+
+          const totalCount = response?.pagination?.total ?? rawJockeys.length;
+          setTotalItems(totalCount);
+
+          if (response?.pagination?.totalPages) {
+            setTotalPages(response.pagination.totalPages);
+          } else {
+            setTotalPages(Math.max(1, Math.ceil(totalCount / limit)));
+          }
+          setJockeyRows(transformedRows);
         }
       } catch (err) {
         if (currentRequestId !== requestIdRef.current) return;
@@ -120,6 +173,7 @@ export function useLeaderboard() {
     totalPages,
     totalItems,
     horseRows,
+    jockeyRows,
     loading,
     error,
     handleTabChange,
