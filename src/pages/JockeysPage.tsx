@@ -1,11 +1,20 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import useJockeys from "../hooks/useJockeys";
 import { useSpotlightJockey } from "../hooks/useSpotlightEntity";
 import JockeySearch from "../components/jockey/JockeySearch";
 
 import { useNavigate } from "react-router-dom";
 import type { Jockey } from "../types/jockey";
-import { Layers, Zap, Activity, Star, ArrowRight, User, X } from "lucide-react";
+import {
+  Layers,
+  Zap,
+  Activity,
+  Star,
+  ArrowRight,
+  User,
+  X,
+  Ban,
+} from "lucide-react";
 import banner from "../assets/images/horse-banner.png";
 
 function JockeyRow({
@@ -103,7 +112,12 @@ export default function JockeysPage() {
     [setPagination]
   );
 
-  const filteredJockeys = jockeys;
+  const filteredJockeys = useMemo(() => {
+    if (pagination.status === "all") return jockeys;
+    if (pagination.status === "racing")
+      return jockeys.filter((j) => j.isRacing);
+    return jockeys.filter((j) => !j.isRacing);
+  }, [jockeys, pagination.status]);
 
   return (
     <div className="h-full w-full px-40 overflow-y-auto bg-background">
@@ -265,27 +279,30 @@ export default function JockeysPage() {
           <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
             <button
               onClick={() =>
-                setPagination((prev) => ({
-                  ...prev,
-                  status: prev.status === "racing" ? "all" : "racing",
-                  page: 1,
-                }))
+                setPagination((prev) => {
+                  const modes = ["all", "racing", "not_racing"];
+                  const idx = modes.indexOf(prev.status);
+                  return { ...prev, status: modes[(idx + 1) % 3], page: 1 };
+                })
               }
               className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-bold transition ${
                 pagination.status === "racing"
                   ? "bg-amber-50 border-amber-200 text-amber-700 shadow-sm"
-                  : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                  : pagination.status === "not_racing"
+                    ? "bg-slate-100 border-slate-300 text-slate-600 shadow-sm"
+                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
               }`}
             >
-              <Zap
-                className={`h-3.5 w-3.5 ${
-                  pagination.status === "racing"
-                    ? "text-amber-500"
-                    : "text-slate-400"
-                }`}
-              />
-              Racing
-              {pagination.status === "racing" && <X className="h-3 w-3 ml-0.5" />}
+              {pagination.status === "racing" ? (
+                <Zap className="h-3.5 w-3.5 text-amber-500" />
+              ) : pagination.status === "not_racing" ? (
+                <Ban className="h-3.5 w-3.5 text-slate-500" />
+              ) : null}
+              {pagination.status === "racing"
+                ? "Racing"
+                : pagination.status === "not_racing"
+                  ? "Not Racing"
+                  : "All"}
             </button>
             <button
               onClick={() =>
@@ -309,7 +326,9 @@ export default function JockeysPage() {
                 }`}
               />
               Active
-              {pagination.status === "active" && <X className="h-3 w-3 ml-0.5" />}
+              {pagination.status === "active" && (
+                <X className="h-3 w-3 ml-0.5" />
+              )}
             </button>
           </div>
         </div>

@@ -420,13 +420,14 @@ function JockeyDetailPanel({
     UserService.getMyRaceDetail(ride.id)
       .then((data) => {
         if (!cancelled) {
-          const mapped = (data.entries ?? []).map((e) => ({
+          const mapped = (data.entries ?? []).map((e: any) => ({
             id: e.id,
             horseId: e.horseId,
             name: e.horseName,
             laneNumber: "",
             weightKg: "",
             entryStatus: "",
+            jockeyId: e.jockeyId ?? "",
             jockeyName: e.jockeyName ?? "",
             clothNumber: e.clothNumber,
             trainerName: e.trainerName,

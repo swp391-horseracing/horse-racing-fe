@@ -32,8 +32,6 @@ export function useJockeys() {
 
       const res = await JockeyService.getJockeys({
         search: pagination.search,
-        status:
-          pagination.status !== "all" ? (pagination.status as any) : undefined,
         page: pagination.page,
         limit: pagination.limit,
       });
@@ -91,7 +89,7 @@ export function useJockeys() {
     return () => {
       active = false;
     };
-  }, [pagination.search, pagination.status, pagination.page, pagination.limit]);
+  }, [pagination.search, pagination.page, pagination.limit]);
 
   useEffect(() => {
     let active = true;

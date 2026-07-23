@@ -18,7 +18,7 @@ export default function useHorse() {
   const [pagination, setPagination] = useState({
     search: "",
     breed: "",
-    isRetired: undefined as boolean | undefined,
+    isRetired: false,
     isRacing: undefined as boolean | undefined,
     page: 1,
     limit: 10,

@@ -1,6 +1,14 @@
+import { useState, useMemo } from "react";
 import useHorse from "../hooks/horse/useHorse";
 import { useSpotlightHorse } from "../hooks/useSpotlightEntity";
 import HorseSearch from "../components/horse/HorseSearch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
 import { useNavigate } from "react-router-dom";
 import type { Horse } from "../types/horse";
 import { formatStatus } from "../utils/formatters";
@@ -11,7 +19,7 @@ import {
   ShieldAlert,
   Star,
   ArrowRight,
-  X,
+  Ban,
 } from "lucide-react";
 import banner from "../assets/images/horse-banner.png";
 
@@ -127,8 +135,12 @@ function HorseRow({ horse, selected }: { horse: Horse; selected: boolean }) {
             Racing
           </span>
         )}
-        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${getStatusBadgeStyle(horse)}`}>
-          <span className={`h-2 w-2 rounded-full ${getStatusDotColor(horse)}`} />
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${getStatusBadgeStyle(horse)}`}
+        >
+          <span
+            className={`h-2 w-2 rounded-full ${getStatusDotColor(horse)}`}
+          />
           {getStatusLabel(horse)}
         </span>
       </div>
@@ -141,7 +153,15 @@ export default function HorsePage() {
   const { horses, loading, error, pagination, setPagination } = useHorse();
   const spotlight = useSpotlightHorse(horses);
 
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
+  const filteredHorses = useMemo(() => {
+    if (statusFilter === "all") return horses;
+    if (statusFilter === "retired") return horses.filter((h) => h.isRetired);
+    return horses.filter(
+      (h) => !h.isRetired && h.healthStatus?.toLowerCase() === statusFilter
+    );
+  }, [horses, statusFilter]);
 
   return (
     <div className="h-full w-full px-40 overflow-y-auto bg-background">
@@ -312,50 +332,57 @@ export default function HorsePage() {
           <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
             <button
               onClick={() =>
-                setPagination((prev) => ({
-                  ...prev,
-                  isRacing: prev.isRacing === true ? undefined : true,
-                  page: 1,
-                }))
+                setPagination((prev) => {
+                  const modes: (boolean | undefined)[] = [
+                    undefined,
+                    true,
+                    false,
+                  ];
+                  const idx = modes.indexOf(prev.isRacing);
+                  return { ...prev, isRacing: modes[(idx + 1) % 3], page: 1 };
+                })
               }
               className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-bold transition ${
-                pagination.isRacing
+                pagination.isRacing === true
                   ? "bg-amber-50 border-amber-200 text-amber-700 shadow-sm"
-                  : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                  : pagination.isRacing === false
+                    ? "bg-slate-100 border-slate-300 text-slate-600 shadow-sm"
+                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
               }`}
             >
-              <Zap
-                className={`h-3.5 w-3.5 ${
-                  pagination.isRacing ? "text-amber-500" : "text-slate-400"
-                }`}
-              />
-              Racing
-              {pagination.isRacing && <X className="h-3 w-3 ml-0.5" />}
+              {pagination.isRacing === true ? (
+                <Zap className="h-3.5 w-3.5 text-amber-500" />
+              ) : pagination.isRacing === false ? (
+                <Ban className="h-3.5 w-3.5 text-slate-500" />
+              ) : null}
+              {pagination.isRacing === true
+                ? "Racing"
+                : pagination.isRacing === false
+                  ? "Not Racing"
+                  : "All"}
             </button>
-            <button
-              onClick={() =>
-                setPagination((prev) => ({
-                  ...prev,
-                  isRetired: prev.isRetired === false ? undefined : false,
-                  page: 1,
-                }))
-              }
-              className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-bold transition ${
-                pagination.isRetired === false
-                  ? "bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm"
-                  : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
-              }`}
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => {
+                setStatusFilter(value);
+                setPagination((prev) => ({ ...prev, page: 1 }));
+              }}
             >
-              <Activity
-                className={`h-3.5 w-3.5 ${
-                  pagination.isRetired === false
-                    ? "text-emerald-500"
-                    : "text-slate-400"
-                }`}
-              />
-              Active
-              {pagination.isRetired === false && <X className="h-3 w-3 ml-0.5" />}
-            </button>
+              <SelectTrigger className="w-full sm:w-44 h-10 rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="healthy">Healthy</SelectItem>
+                <SelectItem value="recovering">Recovering</SelectItem>
+                <SelectItem value="minor injury">Minor Injury</SelectItem>
+                <SelectItem value="injured">Injured</SelectItem>
+                <SelectItem value="under observation">
+                  Under Observation
+                </SelectItem>
+                <SelectItem value="retired">Retired</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -366,16 +393,18 @@ export default function HorsePage() {
                 Loading horses...
               </p>
             </div>
-          ) : horses.length > 0 ? (
+          ) : filteredHorses.length > 0 ? (
             <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden divide-y divide-border">
-              {horses.map((horse) => (
+              {filteredHorses.map((horse) => (
                 <HorseRow key={horse.id} horse={horse} selected={false} />
               ))}
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
               <p className="text-sm font-semibold text-muted-foreground">
-                No horses found.
+                {statusFilter !== "all"
+                  ? "No horses match the selected status."
+                  : "No horses found."}
               </p>
             </div>
           )}
