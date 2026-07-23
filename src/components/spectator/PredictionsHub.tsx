@@ -176,6 +176,7 @@ function OpenRacesTab() {
                 laneNumber: String(e.laneNumber),
                 weightKg: "",
                 entryStatus: e.entryStatus,
+                jockeyId: e.jockey?.id ?? "",
                 jockeyName: e.jockey?.name || "",
                 clothNumber: 0,
               }));
@@ -212,6 +213,7 @@ function OpenRacesTab() {
         laneNumber: String(e.laneNumber),
         weightKg: "",
         entryStatus: e.entryStatus,
+        jockeyId: e.jockey?.id ?? "",
         jockeyName: e.jockey?.name || "",
         clothNumber: 0,
       }));

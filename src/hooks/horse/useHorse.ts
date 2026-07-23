@@ -19,6 +19,7 @@ export default function useHorse() {
     search: "",
     breed: "",
     isRetired: false,
+    isRacing: undefined as boolean | undefined,
     page: 1,
     limit: 10,
     total: 0,
@@ -35,7 +36,8 @@ export default function useHorse() {
         pagination.breed,
         pagination.isRetired,
         pagination.page,
-        pagination.limit
+        pagination.limit,
+        pagination.isRacing
       );
 
       setHorses(res.data);
@@ -52,6 +54,7 @@ export default function useHorse() {
     pagination.search,
     pagination.breed,
     pagination.isRetired,
+    pagination.isRacing,
     pagination.page,
     pagination.limit,
   ]);
