@@ -712,9 +712,7 @@ export default function TournamentsPage() {
                         {participants.map((p) => (
                           <div
                             key={p.horse.id}
-                            onClick={() =>
-                              navigate(`/horses/${p.horse.id}`)
-                            }
+                            onClick={() => navigate(`/horses/${p.horse.id}`)}
                             className="flex items-center gap-3.5 px-4 py-3 cursor-pointer hover:bg-muted/40 transition-colors"
                           >
                             <div className="h-9 w-9 shrink-0 rounded-lg border border-border bg-muted overflow-hidden flex items-center justify-center">

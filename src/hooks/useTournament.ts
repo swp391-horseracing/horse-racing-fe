@@ -208,11 +208,10 @@ export default function useTournament() {
       setParticipantsLoading(true);
       setParticipantsError(null);
 
-      const response =
-        await TournamentService.getTournamentParticipants(
-          selectedTournamentId,
-          { page: 1, limit: 100 }
-        );
+      const response = await TournamentService.getTournamentParticipants(
+        selectedTournamentId,
+        { page: 1, limit: 100 }
+      );
 
       setParticipants(response.data);
       setParticipantsPagination(response.pagination);
