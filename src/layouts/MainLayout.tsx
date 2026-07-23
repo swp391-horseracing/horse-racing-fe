@@ -1,11 +1,12 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { ROUTES } from "../router/routes";
-import { Bell, Newspaper, Wallet } from "lucide-react";
+import { Newspaper, Wallet } from "lucide-react";
 import React from "react";
-import NotificationTab from "../components/NotificationTab";
+// import NotificationTab from "../components/NotificationTab";
 import { useAuthContext } from "../contexts/AuthContext";
 import { useWallet } from "../hooks/useWallet";
+// import { useNotification } from "../hooks/useNotification";
 
 export default function MainLayout() {
   interface LinkItem {
@@ -15,6 +16,7 @@ export default function MainLayout() {
   }
 
   const { user, token, loading } = useAuthContext();
+  // const { unreadCount } = useNotification();
 
   const generalLinks: LinkItem[] = [
     {
@@ -62,7 +64,7 @@ export default function MainLayout() {
   const roleLinks: LinkItem[] =
     user?.role && roleLinkMap[user.role] ? [roleLinkMap[user.role]] : [];
 
-  const [show, setShow] = React.useState(false);
+  // const [show, setShow] = React.useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -144,23 +146,30 @@ export default function MainLayout() {
             </div>
           )}
           <div className="flex flex-row justify-end h-8">
-            <Button
-              onClick={() => setShow(!show)}
-              variant="ghost"
-              className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 mx-1 py-2
-                ${
-                  show
-                    ? "bg-gray-100 text-gray-800"
-                    : "text-gray-500 hover:text-gray-900"
-                }`}
-            >
-              <Bell className="w-5 h-5" />
-            </Button>
-            {show && (
-              <div className="absolute mr-110 top-0 z-50">
-                <NotificationTab />
-              </div>
-            )}
+            {/*<Button*/}
+            {/*  onClick={() => setShow(!show)}*/}
+            {/*  variant="ghost"*/}
+            {/*  className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 mx-1 py-2*/}
+            {/*    ${*/}
+            {/*      show*/}
+            {/*        ? "bg-gray-100 text-gray-800"*/}
+            {/*        : "text-gray-500 hover:text-gray-900"*/}
+            {/*    }`}*/}
+            {/*>*/}
+            {/*  <div className="relative">*/}
+            {/*    <Bell className="w-5 h-5" />*/}
+            {/*    {unreadCount > 0 && (*/}
+            {/*      <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-bold text-white bg-red-500 rounded-full leading-none">*/}
+            {/*        {unreadCount > 99 ? "99+" : unreadCount}*/}
+            {/*      </span>*/}
+            {/*    )}*/}
+            {/*  </div>*/}
+            {/*</Button>*/}
+            {/*{show && (*/}
+            {/*  <div className="absolute mr-110 top-0 z-50">*/}
+            {/*    <NotificationTab />*/}
+            {/*  </div>*/}
+            {/*)}*/}
           </div>
 
           {isAuthenticated && user?.role === "spectator" && (
