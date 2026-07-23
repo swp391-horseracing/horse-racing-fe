@@ -86,8 +86,11 @@ export default function JockeyDetailPage() {
   }
 
   const winRate =
-    stats.totalRaces > 0
-      ? ((stats.wins / stats.totalRaces) * 100).toFixed(1)
+    Number(stats.totalRaces || 0) > 0
+      ? (
+          (Number(stats.wins || 0) / Number(stats.totalRaces || 1)) *
+          100
+        ).toFixed(1)
       : "0.0";
 
   return (
@@ -166,7 +169,7 @@ export default function JockeyDetailPage() {
                   <Trophy className="h-4 w-4 text-amber-300" />
                 </div>
                 <div className="text-2xl font-bold text-white">
-                  {stats.wins}
+                  {Number(stats.wins || 0)}
                 </div>
               </div>
 
@@ -191,7 +194,7 @@ export default function JockeyDetailPage() {
                   <Award className="h-4 w-4 text-blue-300" />
                 </div>
                 <div className="text-2xl font-bold text-white">
-                  {stats.wins + stats.places}
+                  {Number(stats.wins || 0) + Number(stats.places || 0)}
                 </div>
               </div>
             </div>

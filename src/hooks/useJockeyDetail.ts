@@ -1,41 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { JockeyService } from "../services/JockeyService";
 import type { Jockey } from "../types/jockey";
-
-export interface JockeyRaceHistoryItem {
-  raceId: string;
-  raceName: string;
-  raceNumber: number;
-  scheduledAt: string;
-  venue: string;
-  surfaceType: string;
-  distanceMeters: number;
-  raceStatus: string;
-  laneNumber: number;
-  entryStatus: string;
-  finishedPosition: number | null;
-  finishTime: string | null;
-  finishStatus: string | null;
-  points: number | null;
-  horse?: {
-    id: string;
-    name: string;
-  };
-}
-
-export interface JockeyRaceStats {
-  totalRaces: number;
-  wins: number;
-  places: number;
-  avgFinishPosition: number | null;
-  dnfCount: number;
-  dsqCount: number;
-}
+import type { JockeyRaceHistoryEntry, RaceHistoryStats } from "../types/race";
 
 export function useJockeyDetail(jockeyId?: string) {
   const [jockey, setJockey] = useState<Jockey | null>(null);
-  const [history, setHistory] = useState<JockeyRaceHistoryItem[]>([]);
-  const [stats, setStats] = useState<JockeyRaceStats>({
+  const [history, setHistory] = useState<JockeyRaceHistoryEntry[]>([]);
+  const [stats, setStats] = useState<RaceHistoryStats>({
     totalRaces: 0,
     wins: 0,
     places: 0,
@@ -54,7 +25,12 @@ export function useJockeyDetail(jockeyId?: string) {
   });
 
   const loadJockeyDetail = useCallback(async () => {
-    if (!jockeyId) return;
+    if (!jockeyId) {
+      setLoading(false);
+      return;
+    }
+
+    let active = true;
 
     try {
       setLoading(true);
@@ -68,21 +44,35 @@ export function useJockeyDetail(jockeyId?: string) {
         }),
       ]);
 
+      if (!active) return;
+
       setJockey(jockeyData);
       setHistory(historyData.data || []);
       if (historyData.stats) {
         setStats(historyData.stats);
       }
-      if (historyData.pagination) {
-        setPagination((prev) => ({ ...prev, ...historyData.pagination }));
-      }
+      setPagination((prev) => ({
+        ...prev,
+        page: historyData.page ?? prev.page,
+        limit: historyData.limit ?? prev.limit,
+        total: historyData.total ?? prev.total,
+        totalPages: historyData.totalPages ?? prev.totalPages,
+      }));
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to load jockey details"
-      );
+      if (active) {
+        setError(
+          err instanceof Error ? err.message : "Failed to load jockey details"
+        );
+      }
     } finally {
-      setLoading(false);
+      if (active) {
+        setLoading(false);
+      }
     }
+
+    return () => {
+      active = false;
+    };
   }, [jockeyId, pagination.page, pagination.limit]);
 
   useEffect(() => {
@@ -109,9 +99,13 @@ export function useJockeyDetail(jockeyId?: string) {
         if (historyData.stats) {
           setStats(historyData.stats);
         }
-        if (historyData.pagination) {
-          setPagination((prev) => ({ ...prev, ...historyData.pagination }));
-        }
+        setPagination((prev) => ({
+          ...prev,
+          page: historyData.page,
+          limit: historyData.limit,
+          total: historyData.total,
+          totalPages: historyData.totalPages,
+        }));
       } catch (err) {
         if (active) {
           setError(

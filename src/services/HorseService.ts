@@ -85,7 +85,13 @@ export const HorseService = {
     id: string,
     params?: { page?: number; limit?: number; status?: string }
   ): Promise<RaceHistoryResponse<HorseRaceHistoryEntry>> {
-    const response = await api.get(`/horses/${id}/races`, { params });
+    const response = await api.get(`/horses/${id}/races`, {
+      params: {
+        page: params?.page ?? 1,
+        limit: params?.limit ?? 10,
+        status: params?.status,
+      },
+    });
     return response.data;
   },
 
