@@ -1,27 +1,28 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { NotificationService } from "../services/NotificationService";
 import type { Notification } from "../types/notification";
+import { useAuthContext } from "../contexts/AuthContext";
+import { useRaceSocket } from "./useRaces";
 
 export function useNotification() {
+  const { user, token } = useAuthContext();
   const [NotificationList, setList] = useState<Notification[]>([]);
 
-  // Keep a stable callback for manual refreshes if needed
   const getNotificationList = useCallback(async () => {
     try {
-      const data = await NotificationService.getNotification();
+      const data = await NotificationService.getNotifications();
       setList(data);
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
     }
   }, []);
 
-  // Fetch notifications safely on mount using an active flag to prevent state updates if unmounted
   useEffect(() => {
     let active = true;
 
     const fetchNotifications = async () => {
       try {
-        const data = await NotificationService.getNotification();
+        const data = await NotificationService.getNotifications();
         if (active) {
           setList(data);
         }
@@ -37,11 +38,36 @@ export function useNotification() {
     };
   }, []);
 
-  // State modification actions defined inside the hook
+  const notificationTopic = useMemo(
+    () => (user?.id ? [`notification:user:${user.id}`] : null),
+    [user]
+  );
+
+  useRaceSocket(
+    notificationTopic,
+    useCallback((type, data) => {
+      if (type === "notification:new") {
+        setList((prev) => [
+          {
+            id: data.id ?? String(Date.now()),
+            title: data.title ?? "",
+            description: data.description ?? "",
+            url: data.url ?? "",
+            date: data.date ?? new Date().toISOString(),
+            isRead: false,
+          } as Notification,
+          ...prev,
+        ]);
+      }
+    }, []),
+    { token, enabled: !!user?.id }
+  );
+
   const handleRead = useCallback((id: string) => {
     setList((prev) =>
       prev.map((item) => (item.id === id ? { ...item, isRead: true } : item))
     );
+    NotificationService.markAsRead(id).catch(console.error);
   }, []);
 
   const handleReadAll = useCallback(() => {
@@ -51,12 +77,19 @@ export function useNotification() {
         isRead: true,
       }))
     );
+    NotificationService.markAllAsRead().catch(console.error);
   }, []);
+
+  const unreadCount = useMemo(
+    () => NotificationList.filter((n) => !n.isRead).length,
+    [NotificationList]
+  );
 
   return {
     NotificationList,
     getNotificationList,
     handleRead,
     handleReadAll,
+    unreadCount,
   };
 }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Flag, Trophy, Clock, Play, Square } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { RaceTick } from "../types/live";
+import type { RaceEntry } from "../types/race";
 import { useRaceDetail } from "../hooks/useRaces";
 import { AdminService } from "../services/AdminService";
 import NotFoundContent from "../components/ui/NotFoundContent";
@@ -244,24 +245,8 @@ export default function RaceReplay() {
 
   const entries = RaceDetail?.entries;
 
-  const qualifiedEntries = useMemo(() => {
-    if (!entries) return [];
-    return entries.filter(
-      (entry) =>
-        // Added 'dnf' here — it's different from 'did_not_finish' in some backends.
-        // Both mean the horse dropped out mid-race, so we include both to be safe.
-        [
-          "pending",
-          "confirmed",
-          "dnf",
-          "did_not_finish",
-          "disqualified",
-        ].includes(entry.entryStatus?.toLowerCase() || "") && !!entry.jockeyName
-    );
-  }, [entries]);
-
   const horseMeta = useMemo(() => {
-    if (qualifiedEntries.length === 0) return [];
+    if (!currentTick?.horses?.length) return [];
 
     const metaMap = new Map<
       string,
@@ -278,29 +263,28 @@ export default function RaceReplay() {
       }
     >();
 
-    const sortedEntries = [...qualifiedEntries].sort((a, b) => {
-      const aLane = parseInt(a.laneNumber, 10) || 0;
-      const bLane = parseInt(b.laneNumber, 10) || 0;
-      return aLane - bLane;
-    });
+    const entryMap = new Map<string, RaceEntry>();
+    if (entries) {
+      entries.forEach((e) => entryMap.set(e.horseId || e.id, e));
+    }
 
-    sortedEntries.forEach((entry, index) => {
-      const horseId = entry.horseId || entry.id;
-      metaMap.set(horseId, {
-        id: horseId,
-        name: entry.name,
-        laneIndex: parseInt(entry.laneNumber, 10) || index + 1,
+    currentTick.horses.forEach((tickHorse, index) => {
+      const entry = entryMap.get(tickHorse.horseId);
+      metaMap.set(tickHorse.horseId, {
+        id: tickHorse.horseId,
+        name: tickHorse.name,
+        laneIndex: index + 1,
         color: HORSE_COLORS[index % HORSE_COLORS.length],
-        entryStatus: entry.entryStatus,
-        jockeyName: entry.jockeyName,
-        weightKg: entry.weightKg,
-        clothNumber: entry.clothNumber,
-        trainerName: entry.trainerName,
+        entryStatus: entry?.entryStatus,
+        jockeyName: entry?.jockeyName,
+        weightKg: entry?.weightKg,
+        clothNumber: entry?.clothNumber,
+        trainerName: entry?.trainerName,
       });
     });
 
     return Array.from(metaMap.values());
-  }, [qualifiedEntries]);
+  }, [currentTick, entries]);
 
   // Rank change detection
   useEffect(() => {
@@ -365,22 +349,9 @@ export default function RaceReplay() {
   }, [RaceDetail?.status]);
 
   const rankedHorses = useMemo(() => {
-    if (currentTick?.horses) {
-      const activeTickHorses = currentTick.horses.filter((horse) => {
-        const meta = horseMeta.find((m) => m.id === horse.horseId);
-        return !!meta;
-      });
-      return [...activeTickHorses].sort((a, b) => b.positionM - a.positionM);
-    }
-    return horseMeta.map((meta) => ({
-      horseId: meta.id,
-      name: meta.name,
-      positionM: 0,
-      speedMs: 0,
-      progressPct: 0,
-      finished: false,
-    }));
-  }, [currentTick, horseMeta]);
+    if (!currentTick?.horses) return [];
+    return [...currentTick.horses].sort((a, b) => b.positionM - a.positionM);
+  }, [currentTick]);
 
   // Dynamic height calculation for live standings
   const { standingsHeight, detailsHeight } = useMemo(() => {
