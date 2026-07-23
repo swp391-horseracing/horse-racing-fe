@@ -34,7 +34,12 @@ export const AdminService = {
 
   async getUserById(id: string) {
     const response = await api.get(`/admin/users/${id}`);
-    return response.data.user;
+    return (
+      response.data.user ||
+      response.data.User ||
+      response.data.data ||
+      response.data
+    );
   },
 
   async updateUserRole(id: string, role: string): Promise<UserResponse> {

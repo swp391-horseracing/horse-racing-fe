@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  ClipboardCheck,
-  Calendar,
-  Lock,
-  Users,
-  Loader2,
-} from "lucide-react";
+import { ClipboardCheck, Calendar, Lock, Users, Loader2 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { AdminService } from "../../services/AdminService";
 import { TournamentService } from "../../services/TournamentService";

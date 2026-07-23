@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, Loader2 } from "lucide-react";
+import { ChevronDown, Loader2, Eye } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { formatStatus } from "../../utils/formatters";
 import type { ToastType } from "../../types/referee";
 import useAdmin from "../../hooks/admin/useAdmin";
 import UserSearch from "./user/UserSearch";
+import UserDetailsModal from "./user/UserDetailsModal";
 
 type OpenMenuState =
   | {
@@ -58,9 +59,27 @@ export default function AccessManagement({
     updateUserRole,
     updateUserStatus,
     actionLoading,
+    selectedUser,
+    detailLoading,
+    openUser,
+    closeUser,
+    error,
   } = useAdmin();
 
   const [openMenu, setOpenMenu] = useState<OpenMenuState>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const handleViewUser = (userId: string) => {
+    console.log("View button clicked for user:", userId);
+    setModalOpen(true);
+    openUser(userId);
+  };
+
+  const handleCloseModal = () => {
+    console.log("Closing modal");
+    setModalOpen(false);
+    closeUser();
+  };
 
   return (
     <div className="p-6 space-y-5 max-w-7xl mx-auto h-full">
@@ -179,6 +198,21 @@ export default function AccessManagement({
 
                     <td className="p-3 text-right">
                       <div className="inline-flex items-center gap-2 relative">
+                        <button
+                          type="button"
+                          disabled={actionLoading}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleViewUser(u.id);
+                          }}
+                          className="inline-flex items-center gap-1 text-[10px] font-bold bg-blue-50 text-blue-700 px-2.5 py-1.5 rounded hover:bg-blue-100 transition disabled:opacity-50"
+                          title="View user details"
+                        >
+                          <Eye className="w-3 h-3" />
+                          View
+                        </button>
+
                         <div className="relative">
                           <button
                             type="button"
@@ -427,6 +461,14 @@ export default function AccessManagement({
           </div>
         )}
       </div>
+
+      <UserDetailsModal
+        isOpen={modalOpen}
+        user={selectedUser}
+        loading={detailLoading}
+        error={error}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
