@@ -1,5 +1,16 @@
-import { useState, useMemo, useCallback } from "react";
-import { Calendar, Loader2, Plus, Search, Trophy, MapPin } from "lucide-react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import {
+  Calendar,
+  Loader2,
+  Plus,
+  Search,
+  Trophy,
+  MapPin,
+  SlidersHorizontal,
+  Filter,
+  X,
+  RotateCcw,
+} from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { ToastType } from "../../types/referee";
 import { TournamentForm } from "./tournament/TournamentForm";
@@ -28,8 +39,13 @@ export default function TournamentRaceManager({
   const [showCreateRace, setShowCreateRace] = useState(false);
   const [editingRace, setEditingRace] = useState<RaceItem | null>(null);
 
+  // Advanced Filter State
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const [isFlyoutOpen, setIsFlyoutOpen] = useState(false);
+  const flyoutRef = useRef<HTMLDivElement>(null);
 
   const [selectedTournamentDetail, setSelectedTournamentDetail] =
     useState<TournamentDetailType | null>(null);
@@ -65,6 +81,24 @@ export default function TournamentRaceManager({
     (tournamentsList.length > 0 ? tournamentsList[0].id : null);
   const [prevSelectedId, setPrevSelectedId] = useState(selectedTournamentId);
 
+  // Close flyout menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        flyoutRef.current &&
+        !flyoutRef.current.contains(event.target as Node)
+      ) {
+        setIsFlyoutOpen(false);
+      }
+    };
+    if (isFlyoutOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isFlyoutOpen]);
+
   // Load tournament detail & races
   const loadTournamentData = useCallback(async (tId: string) => {
     setDetailLoading(true);
@@ -95,15 +129,77 @@ export default function TournamentRaceManager({
     }
   }
 
+  const toggleStatusFilter = (statusKey: string) => {
+    if (statusKey === "all") {
+      setSelectedStatuses([]);
+      return;
+    }
+    setSelectedStatuses((prev) =>
+      prev.includes(statusKey)
+        ? prev.filter((k) => k !== statusKey)
+        : [...prev, statusKey]
+    );
+  };
+
+  const applyDatePreset = (daysAgo: number) => {
+    const now = new Date();
+    const endStr = now.toISOString().split("T")[0];
+    if (daysAgo === 0) {
+      setStartDate(endStr);
+      setEndDate(endStr);
+    } else {
+      const start = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+      setStartDate(start.toISOString().split("T")[0]);
+      setEndDate(endStr);
+    }
+  };
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setSelectedStatuses([]);
+    setStartDate("");
+    setEndDate("");
+  };
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (searchQuery.trim() !== "") count++;
+    count += selectedStatuses.length;
+    if (startDate) count++;
+    if (endDate) count++;
+    return count;
+  }, [searchQuery, selectedStatuses, startDate, endDate]);
+
   const filteredTournaments = useMemo(() => {
     return tournamentsList.filter((t) => {
-      const matchSearch =
-        t.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.location?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchStatus = statusFilter === "all" || t.status === statusFilter;
-      return matchSearch && matchStatus;
+      // 1. Search Query
+      if (searchQuery.trim() !== "") {
+        const query = searchQuery.toLowerCase();
+        const matchName = t.name?.toLowerCase().includes(query) ?? false;
+        const matchLoc = t.location?.toLowerCase().includes(query) ?? false;
+        if (!matchName && !matchLoc) return false;
+      }
+
+      // 2. Status Multi-select
+      if (selectedStatuses.length > 0) {
+        if (!selectedStatuses.includes(t.status)) return false;
+      }
+
+      // 3. Date Range
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        if (new Date(t.startDate) < start) return false;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        if (new Date(t.startDate) > end) return false;
+      }
+
+      return true;
     });
-  }, [tournamentsList, searchQuery, statusFilter]);
+  }, [tournamentsList, searchQuery, selectedStatuses, startDate, endDate]);
 
   const handleSelectTournament = (id: string) => {
     navigate(`/admin/tournaments/${id}`, { replace: true });
@@ -206,8 +302,8 @@ export default function TournamentRaceManager({
 
   return (
     <div className="h-full w-full flex flex-col md:flex-row overflow-hidden bg-slate-100/50">
-      {/* Left Master Panel: Tournament List & Filters */}
-      <div className="w-full md:w-[380px] bg-white border-r border-slate-200 flex flex-col h-full shrink-0">
+      {/* Left Master Panel: Tournament List & Advanced Filters */}
+      <div className="w-full md:w-[400px] bg-white border-r border-slate-200 flex flex-col h-full shrink-0">
         <div className="p-4 border-b border-slate-200 space-y-3">
           <button
             onClick={() => setShowCreateTournament(true)}
@@ -216,38 +312,243 @@ export default function TournamentRaceManager({
             <Plus className="w-4 h-4" /> New Tournament
           </button>
 
-          <div className="relative pt-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 translate-y-0.5" />
-            <input
-              type="text"
-              placeholder="Search tournaments or location..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
-            />
+          {/* Search & Advanced Filter Flyout Bar */}
+          <div className="flex gap-2 items-center">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search tournaments..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-8 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-700"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Advanced Filter Button & Flyout */}
+            <div className="relative" ref={flyoutRef}>
+              <button
+                onClick={() => setIsFlyoutOpen((prev) => !prev)}
+                className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 border shrink-0 ${
+                  activeFilterCount > 0
+                    ? "bg-[#064E3B] text-white border-[#064E3B] shadow-xs"
+                    : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                }`}
+                title="Advanced Filter Options"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                <span>Filter</span>
+                {activeFilterCount > 0 && (
+                  <span className="ml-0.5 px-1.5 py-0.5 bg-emerald-200 text-emerald-900 font-black rounded-full text-[9px]">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Flyout Panel */}
+              {isFlyoutOpen && (
+                <div className="absolute right-0 top-full mt-2 w-72 md:w-80 bg-white border border-slate-200 rounded-xl shadow-2xl p-4.5 z-50 space-y-4 text-slate-800 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex justify-between items-center pb-2.5 border-b border-slate-100">
+                    <span className="font-bold text-[#064E3B] text-sm flex items-center gap-2">
+                      <Filter className="w-4 h-4 text-emerald-700" /> Advanced
+                      Filter Options
+                    </span>
+                    <button
+                      onClick={() => setIsFlyoutOpen(false)}
+                      className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                      title="Close"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Multi-Select Status Filter */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                        Tournament Status
+                      </label>
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        Multi-select
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      <button
+                        onClick={() => toggleStatusFilter("all")}
+                        className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition-colors ${
+                          selectedStatuses.length === 0
+                            ? "bg-[#064E3B] text-white border-[#064E3B] font-bold"
+                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                        }`}
+                      >
+                        All
+                      </button>
+                      {[
+                        { key: "upcoming", label: "Upcoming" },
+                        {
+                          key: "registration_open",
+                          label: "Registration Open",
+                        },
+                        { key: "ongoing", label: "Ongoing" },
+                        { key: "completed", label: "Completed" },
+                        { key: "cancelled", label: "Cancelled" },
+                      ].map((chip) => {
+                        const isSelected = selectedStatuses.includes(chip.key);
+                        return (
+                          <button
+                            key={chip.key}
+                            onClick={() => toggleStatusFilter(chip.key)}
+                            className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition-colors flex items-center gap-1 ${
+                              isSelected
+                                ? "bg-[#064E3B] text-white border-[#064E3B] shadow-xs font-bold"
+                                : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                            }`}
+                          >
+                            {isSelected && (
+                              <span className="text-xs font-bold">✓</span>
+                            )}
+                            {chip.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Date Range Filter */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                        Start Date Range
+                      </label>
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        From / To
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">
+                          Start
+                        </span>
+                        <input
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="w-full px-2.5 py-1.5 text-xs font-medium text-slate-900 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#064E3B]"
+                        />
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">
+                          End
+                        </span>
+                        <input
+                          type="date"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className="w-full px-2.5 py-1.5 text-xs font-medium text-slate-900 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#064E3B]"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {[
+                        { label: "Today", days: 0 },
+                        { label: "Last 7 Days", days: 7 },
+                        { label: "Last 30 Days", days: 30 },
+                      ].map((preset) => (
+                        <button
+                          key={preset.label}
+                          onClick={() => applyDatePreset(preset.days)}
+                          className="px-2 py-0.5 text-[10px] font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-md transition-colors"
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Footer Reset */}
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <span className="text-xs text-slate-500">Auto-applied</span>
+                    <button
+                      onClick={handleResetFilters}
+                      className="px-3.5 py-1.5 bg-[#064E3B] text-white font-bold rounded-lg text-xs hover:bg-emerald-900 transition-colors flex items-center gap-1.5 shadow-xs"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" /> Reset Filters
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex gap-1 overflow-x-auto pb-1 text-[11px] font-semibold">
-            {[
-              "all",
-              "upcoming",
-              "registration_open",
-              "active",
-              "completed",
-            ].map((st) => (
+          {/* Active Filter Badges Summary */}
+          {activeFilterCount > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
+              <span className="text-[10px] text-slate-400 font-bold uppercase">
+                Active:
+              </span>
+              {searchQuery && (
+                <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-900 text-[10px] font-semibold rounded-full flex items-center gap-1">
+                  "{searchQuery}"
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="hover:text-rose-600"
+                  >
+                    <X className="w-2.5 h-2.5" />
+                  </button>
+                </span>
+              )}
+              {selectedStatuses.map((st) => (
+                <span
+                  key={st}
+                  className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-900 text-[10px] font-semibold rounded-full flex items-center gap-1 capitalize"
+                >
+                  {st.replaceAll("_", " ")}
+                  <button
+                    onClick={() => toggleStatusFilter(st)}
+                    className="hover:text-rose-600"
+                  >
+                    <X className="w-2.5 h-2.5" />
+                  </button>
+                </span>
+              ))}
+              {startDate && (
+                <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-900 text-[10px] font-semibold rounded-full flex items-center gap-1">
+                  From: {startDate}
+                  <button
+                    onClick={() => setStartDate("")}
+                    className="hover:text-rose-600"
+                  >
+                    <X className="w-2.5 h-2.5" />
+                  </button>
+                </span>
+              )}
+              {endDate && (
+                <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-900 text-[10px] font-semibold rounded-full flex items-center gap-1">
+                  To: {endDate}
+                  <button
+                    onClick={() => setEndDate("")}
+                    className="hover:text-rose-600"
+                  >
+                    <X className="w-2.5 h-2.5" />
+                  </button>
+                </span>
+              )}
               <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                className={`px-2.5 py-1 rounded-lg capitalize whitespace-nowrap transition-colors ${
-                  statusFilter === st
-                    ? "bg-[#064E3B] text-white font-bold"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
+                onClick={handleResetFilters}
+                className="text-[10px] text-slate-400 hover:text-slate-600 underline ml-auto"
               >
-                {st.replaceAll("_", " ")}
+                Clear all
               </button>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Tournament Card List */}
@@ -263,7 +564,7 @@ export default function TournamentRaceManager({
             </div>
           ) : filteredTournaments.length === 0 ? (
             <div className="text-center py-12 text-slate-400 text-xs">
-              No tournaments found.
+              No tournaments match active filters.
             </div>
           ) : (
             filteredTournaments.map((tournament) => {

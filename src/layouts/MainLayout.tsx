@@ -1,8 +1,7 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { ROUTES } from "../router/routes";
-import { Newspaper, Trophy, Flag, Users, Compass, ShieldCheck, Wallet } from "lucide-react";
-import React from "react";
+import { Wallet } from "lucide-react";
 import { useAuthContext } from "../contexts/AuthContext";
 import { useWallet } from "../hooks/useWallet";
 
@@ -10,7 +9,6 @@ export default function MainLayout() {
   interface LinkItem {
     label: string;
     to: string;
-    icon?: React.ReactNode;
   }
 
   const { user, token, loading } = useAuthContext();
@@ -19,32 +17,26 @@ export default function MainLayout() {
     {
       label: "Feed",
       to: ROUTES.FEED,
-      icon: <Newspaper className="w-4 h-4 mr-2" />,
     },
     {
       label: "Horses",
       to: ROUTES.HORSES,
-      icon: <ShieldCheck className="w-4 h-4 mr-2" />,
     },
     {
       label: "Jockeys",
       to: ROUTES.JOCKEYS,
-      icon: <Users className="w-4 h-4 mr-2" />,
     },
     {
       label: "Races",
       to: ROUTES.RACES,
-      icon: <Flag className="w-4 h-4 mr-2" />,
     },
     {
       label: "Tournaments",
       to: ROUTES.TOURNAMENTS,
-      icon: <Trophy className="w-4 h-4 mr-2" />,
     },
     {
       label: "Tracks",
       to: ROUTES.TRACKS,
-      icon: <Compass className="w-4 h-4 mr-2" />,
     },
   ];
 
@@ -83,7 +75,7 @@ export default function MainLayout() {
   return (
     <div className="flex flex-col h-screen w-screen bg-slate-100 pb-3 px-3 pt-3 overflow-hidden">
       {/* Navigation Header */}
-      <div className="flex w-full items-center h-16 bg-white mb-3 gap-3 px-4 rounded-2xl shadow-md border border-slate-200/80 overflow-x-auto flex-shrink-0">
+      <div className="flex w-full items-center h-16 bg-white mb-3 gap-3 px-8 rounded-2xl shadow-md border border-slate-200/80 flex-shrink-0 flex-wrap">
         {/* Logo */}
         <div className="flex justify-center items-center shrink-0">
           <Button
@@ -96,7 +88,7 @@ export default function MainLayout() {
         </div>
 
         {/* Global Navigation */}
-        <div className="flex items-center gap-1.5 overflow-x-auto py-1">
+        <div className="flex items-center gap-1 flex-wrap">
           {generalLinks.map((link) => {
             const isActive =
               location.pathname === link.to ||
@@ -108,11 +100,10 @@ export default function MainLayout() {
                 variant="ghost"
                 className={`rounded-xl focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-2 flex items-center text-xs font-bold transition-all ${
                   isActive
-                    ? "bg-[#064E3B] text-white shadow-sm scale-105"
+                    ? "bg-[#064E3B] text-white shadow-sm"
                     : "text-slate-700 hover:text-[#064E3B] hover:bg-[#064E3B]/10"
                 }`}
               >
-                {link.icon}
                 {link.label}
               </Button>
             );
@@ -133,13 +124,13 @@ export default function MainLayout() {
               key={link.to}
               onClick={() => navigate(link.to)}
               variant="ghost"
-              className={`rounded-xl focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-2 text-xs font-bold transition-all ${
+              className={`rounded-xl focus-visible:ring-0 focus-visible:ring-offset-0 px-3 py-2 text-xs font-bold transition-all ${
                 isActive
                   ? "bg-amber-600 text-white shadow-sm"
                   : "text-slate-600 hover:text-amber-700 hover:bg-amber-50"
               }`}
             >
-              {link.label} Portal
+              {link.label}
             </Button>
           );
         })}
