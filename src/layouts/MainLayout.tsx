@@ -28,7 +28,7 @@ export default function MainLayout() {
     { label: "Jockeys", to: ROUTES.JOCKEYS },
     { label: "Races", to: ROUTES.RACES },
     { label: "Tournaments", to: ROUTES.TOURNAMENTS },
-    { label: "LeaderBoard", to: ROUTES.LEADERBOARD },
+    // { label: "LeaderBoard", to: ROUTES.LEADERBOARD },
     { label: "Tracks", to: ROUTES.TRACKS },
   ];
 
