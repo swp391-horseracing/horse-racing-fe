@@ -4,13 +4,15 @@ import {
   Trophy,
   Clock,
   Target,
-  Sparkles,
   CheckCircle2,
   XCircle,
   AlertCircle,
+  Coins,
+  Wallet,
 } from "lucide-react";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { PredictionService } from "../../services/PredictionService";
+import { useWallet } from "../../hooks/useWallet";
 import type { Prediction } from "../../types/prediction";
 import type { RaceEntry } from "../../types/race";
 import { useToast } from "../../hooks/useToast";
@@ -25,6 +27,7 @@ interface PredictionsSidebarProps {
   onPredictionChange: (horseName: string | null) => void;
   isSimulating?: boolean;
   elapsedMs?: number;
+  predictionMinStake?: number;
 }
 
 const POSITION_LABELS: Record<number, string> = {
@@ -39,38 +42,7 @@ const POSITION_EMOJI: Record<number, string> = {
   3: "🥉",
 };
 
-/** Generate deterministic mock odds from prediction ID hash */
-function getMockOdds(id: string): string {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = (hash * 31 + id.charCodeAt(i)) | 0;
-  }
-  const numerators = [2, 3, 5, 7, 4, 9, 6, 8, 11, 15];
-  const denominators = [1, 1, 2, 2, 1, 4, 1, 3, 4, 8];
-  const idx = Math.abs(hash) % numerators.length;
-  return `${numerators[idx]}/${denominators[idx]}`;
-}
-
-/** Evaluate fractional odds to return multiplier */
-function evalOdds(oddsStr: string): number {
-  const parts = oddsStr.split("/");
-  if (parts.length === 2) {
-    const num = parseFloat(parts[0]);
-    const den = parseFloat(parts[1]);
-    return 1 + num / den;
-  }
-  return 1.0;
-}
-
-/** Generate deterministic mock token amount from prediction ID hash */
-function getMockTokens(id: string): number {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = (hash * 37 + id.charCodeAt(i)) | 0;
-  }
-  const amounts = [50, 100, 150, 200, 250, 300, 500, 75, 125, 350];
-  return amounts[Math.abs(hash) % amounts.length];
-}
+const STAKE_STEP = 10;
 
 function formatPlacedAt(dateString: string): string {
   const date = new Date(dateString);
@@ -105,7 +77,7 @@ const STATUS_CONFIG: Record<
     label: "LIVE",
     bg: "bg-emerald-100",
     text: "text-emerald-700",
-    icon: <Sparkles size={12} />,
+    icon: <CheckCircle2 size={12} />,
   },
   won: {
     label: "WON",
@@ -136,8 +108,10 @@ export function PredictionsSidebar({
   onPredictionChange,
   isSimulating = false,
   elapsedMs = 0,
+  predictionMinStake = 10,
 }: PredictionsSidebarProps) {
   const { user } = useAuthContext();
+  const { balance, refetch: refetchWallet } = useWallet();
   const { toasts, addToast } = useToast();
 
   const [prediction, setPrediction] = useState<Prediction | null>(null);
@@ -147,8 +121,10 @@ export function PredictionsSidebar({
   const [isPicking, setIsPicking] = useState(false);
   const [selectedEntryId, setSelectedEntryId] = useState("");
   const [selectedPosition, setSelectedPosition] = useState(1);
-  const [tokens, setTokens] = useState<number>(100);
+  const [stakeAmount, setStakeAmount] = useState<number>(predictionMinStake);
   const [submitting, setSubmitting] = useState(false);
+
+  const maxStake = Math.max(predictionMinStake, balance);
 
   const isSpectator = user?.role === "spectator";
   const isRaceStarted =
@@ -161,7 +137,6 @@ export function PredictionsSidebar({
   const loadPrediction = useCallback(async () => {
     if (!raceId) return;
 
-    // Non-spectators get preview mode
     if (!user || !isSpectator) {
       setIsPreview(true);
       const isRaceScheduled =
@@ -187,6 +162,7 @@ export function PredictionsSidebar({
               scheduledAt: new Date().toISOString(),
               venue: "",
               status: raceStatus || "draft",
+              predictionMinStake,
             },
             predictedEntry: {
               entryId: "preview-entry",
@@ -196,6 +172,7 @@ export function PredictionsSidebar({
             placedAt: new Date().toISOString(),
             isCorrect: null,
             rewardAmount: null as unknown as string,
+            stakeAmount: 0,
           };
           onPredictionChange(firstHorseName);
           return mock;
@@ -204,13 +181,6 @@ export function PredictionsSidebar({
       return;
     }
 
-    // Spectators: fetch real prediction
-    // Ideally we'd paginate all pages or fetch by race ID directly to avoid
-    // missing predictions beyond the first 50. We skip that for now because spectators
-    // almost never have that many predictions, and this is a showcase app.
-    // We also intentionally don't separate 'fetch error' from 'no prediction'
-    // here — a proper fix would set a distinct loadError state instead of null,
-    // but that would add significant complexity for minimal real-world gain.
     setLoading(true);
     try {
       const data = await PredictionService.getMyPredictions({
@@ -236,6 +206,7 @@ export function PredictionsSidebar({
     raceName,
     raceStatus,
     onPredictionChange,
+    predictionMinStake,
   ]);
 
   useEffect(() => {
@@ -245,27 +216,30 @@ export function PredictionsSidebar({
     return () => clearTimeout(timer);
   }, [loadPrediction]);
 
-  // Reset the inline form whenever the user switches to a different race,
-  // so leftover selections from Race A don't bleed into Race B.
-  // Using setTimeout to defer setState calls out of the effect body — this avoids
-  // the ESLint 'set-state-in-effect' cascading render warning.
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsPicking(false);
       setSelectedEntryId("");
       setSelectedPosition(1);
-      setTokens(100);
+      setStakeAmount(predictionMinStake);
     }, 0);
     return () => clearTimeout(timer);
-  }, [raceId]);
+  }, [raceId, predictionMinStake]);
 
   const showPickingForm = isPicking && !isRaceStarted;
+
+  const stakeError =
+    stakeAmount < predictionMinStake
+      ? `Minimum stake is ${predictionMinStake}`
+      : stakeAmount > balance
+        ? "Insufficient balance"
+        : null;
 
   const startPicking = () => {
     if (isRaceStarted) return;
     setSelectedEntryId(prediction?.predictedEntry.entryId || "");
     setSelectedPosition(prediction?.predictedPosition || 1);
-    setTokens((prediction as any)?.tokens || 100);
+    setStakeAmount(prediction?.stakeAmount || predictionMinStake);
     setIsPicking(true);
   };
 
@@ -282,15 +256,14 @@ export function PredictionsSidebar({
       addToast("Please select a horse entry.", "warning");
       return;
     }
-    if (tokens < 10) {
-      addToast("Minimum token placement is 10.", "warning");
+    if (stakeError) {
+      addToast(stakeError, "warning");
       return;
     }
 
     const horseName =
       (entries || []).find((e) => e.id === selectedEntryId)?.name || "Unknown";
 
-    // Non-spectators (Admin showcase flow) bypasses backend role check and mocks success
     if (!isSpectator) {
       setSubmitting(true);
       setTimeout(() => {
@@ -303,6 +276,7 @@ export function PredictionsSidebar({
             scheduledAt: new Date().toISOString(),
             venue: "",
             status: raceStatus || "draft",
+            predictionMinStake,
           },
           predictedEntry: {
             entryId: selectedEntryId,
@@ -312,8 +286,8 @@ export function PredictionsSidebar({
           placedAt: new Date().toISOString(),
           isCorrect: null,
           rewardAmount: null as unknown as string,
-          tokens: tokens, // Store user inputted tokens locally
-        } as any);
+          stakeAmount,
+        });
         onPredictionChange(horseName);
         setIsPicking(false);
         setSubmitting(false);
@@ -327,10 +301,8 @@ export function PredictionsSidebar({
       await PredictionService.placePrediction(
         raceId,
         selectedEntryId,
-        selectedPosition
-        // Tokens are NOT sent to the backend because the current API
-        // contract doesn't have a token field on placePrediction. Tokens are a
-        // frontend-only showcase feature showing estimated payouts.
+        selectedPosition,
+        stakeAmount
       );
 
       addToast(
@@ -340,20 +312,33 @@ export function PredictionsSidebar({
         "success"
       );
 
+      refetchWallet();
       onPredictionChange(horseName);
       setIsPicking(false);
       loadPrediction();
     } catch (err: unknown) {
       const error = err as {
-        response?: { data?: { message?: string } };
+        response?: { data?: { message?: string }; status?: number };
         message?: string;
       };
-      addToast(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Failed to place prediction",
-        "error"
-      );
+      if (error?.response?.status === 400) {
+        addToast(
+          error?.response?.data?.message || "Insufficient balance",
+          "error"
+        );
+      } else if (error?.response?.status === 409) {
+        addToast(
+          error?.response?.data?.message || "Duplicate prediction",
+          "error"
+        );
+      } else {
+        addToast(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Failed to place prediction",
+          "error"
+        );
+      }
     } finally {
       setSubmitting(false);
     }
@@ -361,15 +346,6 @@ export function PredictionsSidebar({
 
   const ticketStatus = getTicketStatus(prediction, isPreview);
   const statusCfg = STATUS_CONFIG[ticketStatus];
-
-  // Dynamic calculation for Est. Return
-  const selectedHorseOdds = selectedEntryId
-    ? getMockOdds(selectedEntryId)
-    : "N/A";
-  const estReturnMultiplier = selectedEntryId
-    ? evalOdds(selectedHorseOdds)
-    : 1.0;
-  const estimatedReturn = Math.round(tokens * estReturnMultiplier);
 
   return (
     <>
@@ -415,18 +391,11 @@ export function PredictionsSidebar({
                 </button>
               </div>
 
-              {/* Horse Selector Dropdown & Odds Indicator */}
+              {/* Horse Selector */}
               <div className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Horse Entry
-                  </label>
-                  {selectedEntryId && (
-                    <span className="text-[10px] font-extrabold text-[#D4AF37] bg-slate-900/90 px-1.5 py-0.5 rounded">
-                      Odds: {selectedHorseOdds}
-                    </span>
-                  )}
-                </div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Horse Entry
+                </label>
                 <select
                   value={selectedEntryId}
                   onChange={(e) => setSelectedEntryId(e.target.value)}
@@ -442,28 +411,45 @@ export function PredictionsSidebar({
                 </select>
               </div>
 
-              {/* Token Input with Estimated Return */}
+              {/* Stake Slider */}
               <div className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Place Tokens
+                <div className="flex items-center justify-between">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <Coins size={11} />
+                    Stake Amount
                   </label>
-                  {selectedEntryId && (
-                    <span className="text-[10px] font-bold text-emerald-600">
-                      Est. Payout: +{estimatedReturn.toLocaleString()}
+                  <span className="text-[11px] font-black text-[#064E3B]">
+                    {stakeAmount} PTS
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] font-bold text-slate-400 min-w-[20px]">
+                    {predictionMinStake}
+                  </span>
+                  <input
+                    type="range"
+                    min={predictionMinStake}
+                    max={maxStake}
+                    step={STAKE_STEP}
+                    value={stakeAmount}
+                    onChange={(e) => setStakeAmount(Number(e.target.value))}
+                    className="flex-1 h-1.5 rounded-full appearance-none cursor-pointer bg-slate-200 accent-[#064E3B] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#064E3B] [&::-webkit-slider-thumb]:shadow-sm [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white"
+                  />
+                  <span className="text-[9px] font-bold text-slate-400 min-w-[24px] text-right">
+                    {maxStake}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1 text-[9px] text-slate-400 font-medium">
+                    <Wallet size={9} />
+                    Balance: {balance} PTS
+                  </span>
+                  {stakeError && (
+                    <span className="text-[9px] font-bold text-rose-500">
+                      {stakeError}
                     </span>
                   )}
                 </div>
-                <input
-                  type="number"
-                  min="10"
-                  max="100000"
-                  value={tokens}
-                  onChange={(e) =>
-                    setTokens(Math.max(0, parseInt(e.target.value, 10) || 0))
-                  }
-                  className="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#064E3B]"
-                />
               </div>
 
               {/* Position selector buttons */}
@@ -496,7 +482,7 @@ export function PredictionsSidebar({
               {/* Submit button */}
               <button
                 type="button"
-                disabled={submitting}
+                disabled={submitting || !!stakeError}
                 onClick={handleInlineSubmit}
                 className="w-full mt-1.5 py-2 rounded-lg bg-[#064E3B] hover:bg-[#065F46] disabled:opacity-50 text-white text-xs font-bold transition cursor-pointer shadow-sm text-center flex items-center justify-center gap-1.5"
               >
@@ -556,27 +542,15 @@ export function PredictionsSidebar({
                 </p>
 
                 <div className="flex items-center gap-1.5">
-                  <Trophy size={11} className="text-[#D4AF37]" />
+                  <Coins size={11} className="text-amber-500" />
                   <span className="text-[9px] text-slate-500 uppercase font-semibold">
-                    Odds
+                    Stake
                   </span>
                 </div>
                 <p className="text-[11px] font-bold text-right text-slate-700">
-                  {prediction.id
-                    ? getMockOdds(prediction.id)
-                    : selectedHorseOdds}
-                </p>
-
-                <div className="flex items-center gap-1.5">
-                  <Sparkles size={11} className="text-amber-500" />
-                  <span className="text-[9px] text-slate-500 uppercase font-semibold">
-                    Tokens
-                  </span>
-                </div>
-                <p className="text-[11px] font-bold text-right text-slate-700">
-                  {(prediction as any).tokens
-                    ? (prediction as any).tokens.toLocaleString()
-                    : getMockTokens(prediction.id).toLocaleString()}
+                  {prediction.stakeAmount
+                    ? `${prediction.stakeAmount.toLocaleString()} PTS`
+                    : "—"}
                 </p>
               </div>
 
@@ -587,7 +561,7 @@ export function PredictionsSidebar({
                     Payout
                   </span>
                   <span className="text-xs font-black text-amber-700">
-                    +{Number(prediction.rewardAmount).toLocaleString()} Tokens
+                    +{Number(prediction.rewardAmount).toLocaleString()} PTS
                   </span>
                 </div>
               )}

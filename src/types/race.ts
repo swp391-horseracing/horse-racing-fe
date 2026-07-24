@@ -62,6 +62,7 @@ export interface RaceListItem {
     id: string;
     name: string;
   };
+  predictionMinStake?: number;
 }
 
 export interface Pagination {
@@ -95,6 +96,7 @@ export interface RaceDetail extends RaceListItem {
   trackCondition?: string;
   laneCount?: number;
   entries?: RaceEntry[];
+  predictionMinStake?: number;
 }
 
 export type Ride = {

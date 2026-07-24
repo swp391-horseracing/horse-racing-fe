@@ -7,6 +7,7 @@ export interface PredictionRace {
   scheduledAt: string;
   venue: string;
   status: string;
+  predictionMinStake: number;
 }
 
 export interface PredictionEntry {
@@ -22,6 +23,13 @@ export interface Prediction {
   placedAt: string;
   isCorrect: boolean | null;
   rewardAmount: string;
+  stakeAmount: number;
+}
+
+export interface CreatePredictionPayload {
+  predictedEntryId: string;
+  predictedPosition: number;
+  stakeAmount: number;
 }
 
 export interface PredictionListResponse {

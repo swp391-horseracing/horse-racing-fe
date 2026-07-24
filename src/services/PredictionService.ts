@@ -15,11 +15,13 @@ export const PredictionService = {
   async placePrediction(
     raceId: string,
     predictedEntryId: string,
-    predictedPosition: number
+    predictedPosition: number,
+    stakeAmount: number
   ) {
     const response = await api.post(`/races/${raceId}/predictions`, {
       predictedEntryId,
       predictedPosition,
+      stakeAmount,
     });
     return response.data;
   },
