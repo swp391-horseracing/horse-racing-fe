@@ -1,12 +1,10 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { ROUTES } from "../router/routes";
-import { Newspaper, Wallet } from "lucide-react";
+import { Newspaper, Trophy, Flag, Users, Compass, ShieldCheck, Wallet } from "lucide-react";
 import React from "react";
-// import NotificationTab from "../components/NotificationTab";
 import { useAuthContext } from "../contexts/AuthContext";
 import { useWallet } from "../hooks/useWallet";
-// import { useNotification } from "../hooks/useNotification";
 
 export default function MainLayout() {
   interface LinkItem {
@@ -16,27 +14,39 @@ export default function MainLayout() {
   }
 
   const { user, token, loading } = useAuthContext();
-  // const { unreadCount } = useNotification();
 
   const generalLinks: LinkItem[] = [
     {
       label: "Feed",
       to: ROUTES.FEED,
-      icon: <Newspaper className="w-4 h-4 mr-1.5" />,
+      icon: <Newspaper className="w-4 h-4 mr-2" />,
     },
-    { label: "Horses", to: ROUTES.HORSES },
-    { label: "Jockeys", to: ROUTES.JOCKEYS },
-    { label: "Races", to: ROUTES.RACES },
-    { label: "Tournaments", to: ROUTES.TOURNAMENTS },
-    // { label: "LeaderBoard", to: ROUTES.LEADERBOARD },
-    { label: "Tracks", to: ROUTES.TRACKS },
+    {
+      label: "Horses",
+      to: ROUTES.HORSES,
+      icon: <ShieldCheck className="w-4 h-4 mr-2" />,
+    },
+    {
+      label: "Jockeys",
+      to: ROUTES.JOCKEYS,
+      icon: <Users className="w-4 h-4 mr-2" />,
+    },
+    {
+      label: "Races",
+      to: ROUTES.RACES,
+      icon: <Flag className="w-4 h-4 mr-2" />,
+    },
+    {
+      label: "Tournaments",
+      to: ROUTES.TOURNAMENTS,
+      icon: <Trophy className="w-4 h-4 mr-2" />,
+    },
+    {
+      label: "Tracks",
+      to: ROUTES.TRACKS,
+      icon: <Compass className="w-4 h-4 mr-2" />,
+    },
   ];
-
-  interface LinkItem {
-    label: string;
-    to: string;
-    icon?: React.ReactNode;
-  }
 
   const roleLinkMap: Record<string, LinkItem> = {
     jockey: {
@@ -64,8 +74,6 @@ export default function MainLayout() {
   const roleLinks: LinkItem[] =
     user?.role && roleLinkMap[user.role] ? [roleLinkMap[user.role]] : [];
 
-  // const [show, setShow] = React.useState(false);
-
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -73,14 +81,14 @@ export default function MainLayout() {
   const { balance } = useWallet();
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-gray-200 pb-2 px-2 pt-4 overflow-hidden">
+    <div className="flex flex-col h-screen w-screen bg-slate-100 pb-3 px-3 pt-3 overflow-hidden">
       {/* Navigation Header */}
-      <div className="flex w-full items-center h-12 bg-white mb-4 gap-2 px-2 rounded-sm shadow-sm overflow-x-auto flex-shrink-0">
+      <div className="flex w-full items-center h-16 bg-white mb-3 gap-3 px-4 rounded-2xl shadow-md border border-slate-200/80 overflow-x-auto flex-shrink-0">
         {/* Logo */}
-        <div className="flex justify-center items-center h-8 shrink-0">
+        <div className="flex justify-center items-center shrink-0">
           <Button
             onClick={() => navigate(ROUTES.HOME)}
-            className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 font-bold text-[#064E3B]"
+            className="rounded-xl focus-visible:ring-0 focus-visible:ring-offset-0 font-black text-base text-[#064E3B] bg-[#064E3B]/10 hover:bg-[#064E3B]/20 px-4 py-2"
             variant="ghost"
           >
             HRTMS
@@ -88,102 +96,74 @@ export default function MainLayout() {
         </div>
 
         {/* Global Navigation */}
-        {generalLinks.map((link) => (
-          <div
-            key={link.to}
-            className="flex justify-center items-center h-8 shrink-0"
-          >
-            <Button
-              onClick={() => navigate(link.to)}
-              variant="ghost"
-              className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-2 flex items-center
-                ${
-                  location.pathname === link.to ||
-                  location.pathname.startsWith(link.to + "/")
-                    ? "bg-emerald-50 text-emerald-800 font-bold border border-emerald-200"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-emerald-50 hover:border-emerald-200 border border-transparent"
+        <div className="flex items-center gap-1.5 overflow-x-auto py-1">
+          {generalLinks.map((link) => {
+            const isActive =
+              location.pathname === link.to ||
+              location.pathname.startsWith(link.to + "/");
+            return (
+              <Button
+                key={link.to}
+                onClick={() => navigate(link.to)}
+                variant="ghost"
+                className={`rounded-xl focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-2 flex items-center text-xs font-bold transition-all ${
+                  isActive
+                    ? "bg-[#064E3B] text-white shadow-sm scale-105"
+                    : "text-slate-700 hover:text-[#064E3B] hover:bg-[#064E3B]/10"
                 }`}
-            >
-              {link.icon}
-              {link.label}
-            </Button>
-          </div>
-        ))}
+              >
+                {link.icon}
+                {link.label}
+              </Button>
+            );
+          })}
+        </div>
 
         {roleLinks.length > 0 && (
-          <div className="flex justify-center items-center h-8 text-gray-300 px-1 shrink-0 font-light">
+          <div className="flex justify-center items-center text-slate-300 px-1 shrink-0 font-light">
             |
           </div>
         )}
 
         {/* Role Portals */}
-        {roleLinks.map((link) => (
-          <div
-            key={link.to}
-            className="flex justify-center items-center h-8 shrink-0"
-          >
+        {roleLinks.map((link) => {
+          const isActive = location.pathname.includes(link.to);
+          return (
             <Button
+              key={link.to}
               onClick={() => navigate(link.to)}
               variant="ghost"
-              className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-2
-                ${
-                  location.pathname.includes(link.to)
-                    ? "bg-gray-100 text-gray-800 font-bold"
-                    : "text-gray-500 hover:text-gray-900"
-                }`}
+              className={`rounded-xl focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-2 text-xs font-bold transition-all ${
+                isActive
+                  ? "bg-amber-600 text-white shadow-sm"
+                  : "text-slate-600 hover:text-amber-700 hover:bg-amber-50"
+              }`}
             >
-              {link.label}
+              {link.label} Portal
             </Button>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Actions Menu */}
-        <div className="flex justify-center items-center h-8 ml-auto shrink-0 relative">
+        <div className="flex justify-center items-center ml-auto shrink-0 gap-2">
           {isAuthenticated && (
-            <div className="flex justify-center items-center h-8 shrink-0 mr-2 gap-1 text-emerald-700 bg-emerald-50 px-2 py-1 rounded-sm border border-emerald-200 text-xs font-semibold">
-              <Wallet className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-1.5 text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 text-xs font-bold shadow-2xs">
+              <Wallet className="w-4 h-4 text-emerald-600" />
               {balance.toLocaleString()} credits
             </div>
           )}
-          <div className="flex flex-row justify-end h-8">
-            {/*<Button*/}
-            {/*  onClick={() => setShow(!show)}*/}
-            {/*  variant="ghost"*/}
-            {/*  className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 mx-1 py-2*/}
-            {/*    ${*/}
-            {/*      show*/}
-            {/*        ? "bg-gray-100 text-gray-800"*/}
-            {/*        : "text-gray-500 hover:text-gray-900"*/}
-            {/*    }`}*/}
-            {/*>*/}
-            {/*  <div className="relative">*/}
-            {/*    <Bell className="w-5 h-5" />*/}
-            {/*    {unreadCount > 0 && (*/}
-            {/*      <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-bold text-white bg-red-500 rounded-full leading-none">*/}
-            {/*        {unreadCount > 99 ? "99+" : unreadCount}*/}
-            {/*      </span>*/}
-            {/*    )}*/}
-            {/*  </div>*/}
-            {/*</Button>*/}
-            {/*{show && (*/}
-            {/*  <div className="absolute mr-110 top-0 z-50">*/}
-            {/*    <NotificationTab />*/}
-            {/*  </div>*/}
-            {/*)}*/}
-          </div>
 
           {isAuthenticated && user?.role === "spectator" && (
             <Button
               onClick={() => navigate(ROUTES.SPECTATOR_WALLET)}
               variant="ghost"
               title="Spectator Wallet"
-              className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 mx-1 py-2
-                ${
-                  location.pathname === ROUTES.SPECTATOR_WALLET ||
-                  location.pathname === ROUTES.USER_WALLET
-                    ? "bg-[#064E3B]/10 text-[#064E3B] font-bold"
-                    : "text-gray-500 hover:text-gray-900"
-                }`}
+              className={`rounded-xl focus-visible:ring-0 focus-visible:ring-offset-0 p-2 text-xs font-bold ${
+                location.pathname === ROUTES.SPECTATOR_WALLET ||
+                location.pathname === ROUTES.USER_WALLET
+                  ? "bg-[#064E3B]/10 text-[#064E3B]"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              }`}
             >
               <Wallet className="w-5 h-5" />
             </Button>
@@ -193,12 +173,11 @@ export default function MainLayout() {
             <Button
               onClick={() => navigate(ROUTES.USER_PROFILE)}
               variant="ghost"
-              className={`rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-4 ml-1 py-2
-                ${
-                  location.pathname === ROUTES.USER_PROFILE
-                    ? "bg-gray-100 text-gray-800 font-bold"
-                    : "text-gray-500 hover:text-gray-900"
-                }`}
+              className={`rounded-xl focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-2 text-xs font-bold ${
+                location.pathname === ROUTES.USER_PROFILE
+                  ? "bg-slate-900 text-white shadow-sm"
+                  : "text-slate-700 hover:text-slate-900 hover:bg-slate-100"
+              }`}
             >
               My Profile
             </Button>
@@ -206,7 +185,7 @@ export default function MainLayout() {
             <Button
               onClick={() => navigate(ROUTES.LOGIN)}
               variant="ghost"
-              className="rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-4 ml-1 py-2 text-gray-500 hover:text-gray-900"
+              className="rounded-xl focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-2 text-xs font-bold bg-[#064E3B]/10 text-[#064E3B] hover:bg-[#064E3B]/20"
             >
               Login
             </Button>
@@ -215,9 +194,8 @@ export default function MainLayout() {
       </div>
 
       {/* Application Viewport */}
-      <div className="w-full flex-1 bg-white rounded-sm min-h-0 overflow-y-auto  shadow-sm border border-gray-200">
+      <div className="w-full flex-1 bg-white rounded-2xl min-h-0 overflow-y-auto shadow-md border border-slate-200/80">
         <Outlet />
-        {/* <Footer /> */}
       </div>
     </div>
   );
