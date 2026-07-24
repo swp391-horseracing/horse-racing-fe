@@ -60,6 +60,23 @@ export function usePredictions() {
     [page, search, statusFilter]
   );
 
+  const placePrediction = useCallback(
+    async (
+      raceId: string,
+      predictedEntryId: string,
+      predictedPosition: number,
+      stakeAmount: number
+    ) => {
+      return PredictionService.placePrediction(
+        raceId,
+        predictedEntryId,
+        predictedPosition,
+        stakeAmount
+      );
+    },
+    []
+  );
+
   const handleSearchChange = useCallback((value: string) => {
     setSearch(value);
     setPage(1);
@@ -84,6 +101,7 @@ export function usePredictions() {
     search,
     statusFilter,
     loadPredictions,
+    placePrediction,
     handleSearchChange,
     handleStatusChange,
     handlePageChange,

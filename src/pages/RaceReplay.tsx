@@ -437,6 +437,7 @@ export default function RaceReplay() {
             onPredictionChange={handlePredictionChange}
             isSimulating={simulating}
             elapsedMs={latestTick?.elapsedMs}
+            predictionMinStake={RaceDetail?.predictionMinStake ?? 10}
           />
         </div>
 

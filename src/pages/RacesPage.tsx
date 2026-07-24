@@ -26,6 +26,7 @@ import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
 import type { DateRange } from "react-day-picker";
 import { useToast } from "../hooks/useToast";
 import { useOwner } from "../hooks/useOwner";
+import { useWallet } from "../hooks/useWallet";
 import { formatStatus, formatRaceCountdown } from "../utils/formatters";
 import {
   StatusBadge,
@@ -270,6 +271,7 @@ export default function RacesPage() {
     loadUpcomingRaces,
     startRaces,
   } = useRaces();
+  const { balance, refetch: refetchWallet } = useWallet();
 
   const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(
     new Set()
@@ -1420,6 +1422,7 @@ export default function RacesPage() {
               }}
               onSuccess={() => {
                 loadDetail();
+                refetchWallet();
               }}
               addToast={addToast}
               onPlaced={(data) => {
@@ -1429,9 +1432,12 @@ export default function RacesPage() {
                   return next;
                 });
                 setPreselectedEntry(null);
+                refetchWallet();
               }}
               preselectedEntry={preselectedEntry}
               predictedEntryIds={predictedEntryIds}
+              balance={balance}
+              predictionMinStake={raceDetail.predictionMinStake ?? 10}
             />
           )}
         </div>

@@ -12,6 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { usePredictions } from "../../hooks/usePredictions";
 import { useRaces } from "../../hooks/useRaces";
+import { useWallet } from "../../hooks/useWallet";
 import { RaceService } from "../../services/RaceService";
 import { PlacePredictionModal } from "./PlacePredictionModal";
 import { ScheduleCalendar } from "../schedule/ScheduleCalendar";
@@ -75,9 +76,11 @@ function OpenRacesTab() {
   const navigate = useNavigate();
   const { races, rangeRaces, loading, loadRacesByMonth, loadRacesForRange } =
     useRaces();
+  const { balance, refetch: refetchWallet } = useWallet();
   const [selectedRace, setSelectedRace] = useState<{
     id: string;
     name: string;
+    raceMinStake?: number;
   } | null>(null);
   const [entries, setEntries] = useState<RaceEntry[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -194,9 +197,13 @@ function OpenRacesTab() {
     };
   }, [openRaces]);
 
-  const handlePredict = async (raceId: string, raceName: string) => {
+  const handlePredict = async (
+    raceId: string,
+    raceName: string,
+    raceMinStake?: number
+  ) => {
     setLoadingRaceId(raceId);
-    setSelectedRace({ id: raceId, name: raceName });
+    setSelectedRace({ id: raceId, name: raceName, raceMinStake });
     const cached = entriesCache[raceId];
     if (cached) {
       setEntries(cached);
@@ -306,7 +313,13 @@ function OpenRacesTab() {
                       Detail
                     </button>
                     <button
-                      onClick={() => handlePredict(race.id, race.name)}
+                      onClick={() =>
+                        handlePredict(
+                          race.id,
+                          race.name,
+                          race.predictionMinStake
+                        )
+                      }
                       disabled={loadingRaceId === race.id}
                       className="flex items-center gap-1.5 bg-[#EAB308] text-[#064E3B] font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-[#D9A207] hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
@@ -334,9 +347,14 @@ function OpenRacesTab() {
             setModalOpen(false);
             setSelectedRace(null);
             setEntries([]);
+            refetchWallet();
           }}
-          onSuccess={() => {}}
+          onSuccess={() => {
+            refetchWallet();
+          }}
           addToast={addToast}
+          balance={balance}
+          predictionMinStake={selectedRace.raceMinStake ?? 10}
         />
       )}
     </div>

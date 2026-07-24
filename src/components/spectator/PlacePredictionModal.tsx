@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { X, Trophy, ArrowRight } from "lucide-react";
+import { X, Trophy, ArrowRight, Coins, Wallet } from "lucide-react";
 
 import { PredictionService } from "../../services/PredictionService";
 import { fetchRaceEntries } from "../../hooks/useRaces";
@@ -30,6 +30,8 @@ interface PlacePredictionModalProps {
   }) => void;
   preselectedEntry?: PreselectedEntry | null;
   predictedEntryIds?: string[];
+  balance?: number;
+  predictionMinStake?: number;
 }
 
 const POSITIONS = [
@@ -37,6 +39,8 @@ const POSITIONS = [
   { value: 2, label: "2nd" },
   { value: 3, label: "3rd" },
 ];
+
+const STAKE_STEP = 10;
 
 export function PlacePredictionModal({
   raceId,
@@ -49,13 +53,19 @@ export function PlacePredictionModal({
   onPlaced,
   preselectedEntry,
   predictedEntryIds,
+  balance = 0,
+  predictionMinStake = 10,
 }: PlacePredictionModalProps) {
   const [selectedEntryId, setSelectedEntryId] = useState<string>(
     () => preselectedEntry?.id ?? ""
   );
   const [selectedPosition, setSelectedPosition] = useState<number>(1);
+  const [stakeAmount, setStakeAmount] = useState<number>(predictionMinStake);
   const [submitting, setSubmitting] = useState(false);
   const [confirming, setConfirming] = useState(false);
+
+  const maxStake = Math.max(predictionMinStake, balance);
+
   const filterEntries = useCallback(
     (list: RaceEntry[]) =>
       list.filter(
@@ -110,6 +120,13 @@ export function PlacePredictionModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, raceId, preselectedEntry]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setStakeAmount(predictionMinStake);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [predictionMinStake, open]);
+
   const entryMap = useMemo(
     () => new Map(localEntries.map((e) => [e.id, e.name])),
     [localEntries]
@@ -120,9 +137,20 @@ export function PlacePredictionModal({
   const preselectedName =
     preselectedEntry?.name ?? entryMap.get(selectedEntryId) ?? "Unknown";
 
+  const stakeError =
+    stakeAmount < predictionMinStake
+      ? `Minimum stake is ${predictionMinStake}`
+      : stakeAmount > balance
+        ? "Insufficient balance"
+        : null;
+
   const handleConfirmClick = () => {
     if (!selectedEntryId) {
       addToast("Please select a horse entry.", "warning");
+      return;
+    }
+    if (stakeError) {
+      addToast(stakeError, "warning");
       return;
     }
     setConfirming(true);
@@ -133,12 +161,17 @@ export function PlacePredictionModal({
       addToast("Please select a horse entry.", "warning");
       return;
     }
+    if (stakeError) {
+      addToast(stakeError, "warning");
+      return;
+    }
     try {
       setSubmitting(true);
       await PredictionService.placePrediction(
         raceId,
         selectedEntryId,
-        selectedPosition
+        selectedPosition,
+        stakeAmount
       );
       const horseName = preselectedName;
       addToast("Prediction placed successfully!", "success");
@@ -149,19 +182,32 @@ export function PlacePredictionModal({
       });
       setSelectedEntryId("");
       setSelectedPosition(1);
+      setStakeAmount(predictionMinStake);
       onSuccess();
       onClose();
     } catch (err: unknown) {
       const error = err as {
-        response?: { data?: { message?: string } };
+        response?: { data?: { message?: string }; status?: number };
         message?: string;
       };
-      addToast(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Failed to place prediction",
-        "error"
-      );
+      if (error?.response?.status === 400) {
+        addToast(
+          error?.response?.data?.message || "Insufficient balance",
+          "error"
+        );
+      } else if (error?.response?.status === 409) {
+        addToast(
+          error?.response?.data?.message || "Duplicate prediction",
+          "error"
+        );
+      } else {
+        addToast(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Failed to place prediction",
+          "error"
+        );
+      }
     } finally {
       setSubmitting(false);
     }
@@ -284,6 +330,48 @@ export function PlacePredictionModal({
             </div>
           </div>
 
+          <div>
+            <label className="block font-label text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Coins className="w-3.5 h-3.5" />
+                  Stake Amount
+                </span>
+                <span className="text-[#064E3B] text-sm font-black">
+                  {stakeAmount} PTS
+                </span>
+              </div>
+            </label>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-slate-400 min-w-[28px]">
+                {predictionMinStake}
+              </span>
+              <input
+                type="range"
+                min={predictionMinStake}
+                max={maxStake}
+                step={STAKE_STEP}
+                value={stakeAmount}
+                onChange={(e) => setStakeAmount(Number(e.target.value))}
+                className="flex-1 h-2 rounded-full appearance-none cursor-pointer bg-slate-200 accent-[#064E3B] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#064E3B] [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white"
+              />
+              <span className="text-xs font-bold text-slate-400 min-w-[32px] text-right">
+                {maxStake}
+              </span>
+            </div>
+            <div className="flex items-center justify-between mt-1.5">
+              <div className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+                <Wallet className="w-3 h-3" />
+                Balance: {balance} PTS
+              </div>
+              {stakeError && (
+                <span className="text-[10px] font-bold text-rose-500">
+                  {stakeError}
+                </span>
+              )}
+            </div>
+          </div>
+
           {confirming ? (
             <div className="space-y-3">
               <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
@@ -293,6 +381,9 @@ export function PlacePredictionModal({
                 <p className="text-sm font-bold text-amber-700 mt-1">
                   {preselectedName} →{" "}
                   {{ 1: "1st", 2: "2nd", 3: "3rd" }[selectedPosition]} position
+                </p>
+                <p className="text-xs text-amber-600 mt-1">
+                  Stake: {stakeAmount} PTS
                 </p>
               </div>
               <div className="flex gap-2">
@@ -316,7 +407,7 @@ export function PlacePredictionModal({
           ) : (
             <button
               onClick={handleConfirmClick}
-              disabled={submitting}
+              disabled={submitting || !!stakeError}
               className="w-full bg-[#064E3B] text-white font-bold text-sm py-3 rounded-xl hover:bg-[#043E2F] hover:shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               Confirm Prediction
