@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Calendar, Loader2, Plus, Search, Trophy, MapPin } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { ToastType } from "../../types/referee";
@@ -11,7 +11,10 @@ import useAdminTournament from "../../hooks/admin/useAdminTournament";
 import useAdminRace from "../../hooks/admin/useAdminRace";
 import { TournamentService } from "../../services/TournamentService";
 import { formatPrizePool } from "../../utils/formatters";
-import type { RaceItem, TournamentDetail as TournamentDetailType } from "../../types/tournament";
+import type {
+  RaceItem,
+  TournamentDetail as TournamentDetailType,
+} from "../../types/tournament";
 
 export default function TournamentRaceManager({
   addToast,
@@ -24,12 +27,12 @@ export default function TournamentRaceManager({
   const [showCreateTournament, setShowCreateTournament] = useState(false);
   const [showCreateRace, setShowCreateRace] = useState(false);
   const [editingRace, setEditingRace] = useState<RaceItem | null>(null);
-  const [selectedTournamentId, setSelectedTournamentId] = useState<string | null>(urlTournamentId ?? null);
-  
+
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const [selectedTournamentDetail, setSelectedTournamentDetail] = useState<TournamentDetailType | null>(null);
+  const [selectedTournamentDetail, setSelectedTournamentDetail] =
+    useState<TournamentDetailType | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [races, setRaces] = useState<RaceItem[]>([]);
   const [racesLoading, setRacesLoading] = useState(false);
@@ -47,61 +50,62 @@ export default function TournamentRaceManager({
     actionLoading: tournamentActionLoading,
   } = useAdminTournament();
 
-  const { createRace, updateRace, actionLoading: raceActionLoading } = useAdminRace();
+  const {
+    createRace,
+    updateRace,
+    actionLoading: raceActionLoading,
+  } = useAdminRace();
 
-  // Keep selected tournament in sync with route or selection
-  useEffect(() => {
-    if (urlTournamentId) {
-      setSelectedTournamentId(urlTournamentId);
-    } else if (!selectedTournamentId && tournaments?.data && tournaments.data.length > 0) {
-      setSelectedTournamentId(tournaments.data[0].id);
-    }
-  }, [urlTournamentId, tournaments, selectedTournamentId]);
+  const tournamentsList = useMemo(
+    () => tournaments?.data ?? [],
+    [tournaments?.data]
+  );
+  const selectedTournamentId =
+    urlTournamentId ??
+    (tournamentsList.length > 0 ? tournamentsList[0].id : null);
+  const [prevSelectedId, setPrevSelectedId] = useState(selectedTournamentId);
 
-  // Load tournament detail & races when selectedTournamentId changes
+  // Load tournament detail & races
   const loadTournamentData = useCallback(async (tId: string) => {
     setDetailLoading(true);
-    try {
-      const detail = await TournamentService.getTournamentByID(tId);
-      setSelectedTournamentDetail(detail);
-    } catch {
-      setSelectedTournamentDetail(null);
-    } finally {
-      setDetailLoading(false);
-    }
-
     setRacesLoading(true);
     try {
-      const res = await TournamentService.getTournamentRaces(tId);
+      const [detail, res] = await Promise.all([
+        TournamentService.getTournamentByID(tId),
+        TournamentService.getTournamentRaces(tId),
+      ]);
+      setSelectedTournamentDetail(detail);
       setRaces(res.data ?? []);
     } catch {
+      setSelectedTournamentDetail(null);
       setRaces([]);
     } finally {
+      setDetailLoading(false);
       setRacesLoading(false);
     }
   }, []);
 
-  useEffect(() => {
+  if (selectedTournamentId !== prevSelectedId) {
+    setPrevSelectedId(selectedTournamentId);
     if (selectedTournamentId) {
       void loadTournamentData(selectedTournamentId);
     } else {
       setSelectedTournamentDetail(null);
       setRaces([]);
     }
-  }, [selectedTournamentId, loadTournamentData]);
+  }
 
   const filteredTournaments = useMemo(() => {
-    const list = tournaments?.data ?? [];
-    return list.filter((t) => {
-      const matchSearch = t.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          t.location?.toLowerCase().includes(searchQuery.toLowerCase());
+    return tournamentsList.filter((t) => {
+      const matchSearch =
+        t.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.location?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchStatus = statusFilter === "all" || t.status === statusFilter;
       return matchSearch && matchStatus;
     });
-  }, [tournaments, searchQuery, statusFilter]);
+  }, [tournamentsList, searchQuery, statusFilter]);
 
   const handleSelectTournament = (id: string) => {
-    setSelectedTournamentId(id);
     navigate(`/admin/tournaments/${id}`, { replace: true });
   };
 
@@ -116,7 +120,10 @@ export default function TournamentRaceManager({
     return result;
   };
 
-  const handleUpdateTournament = async (tId: string, data: Record<string, unknown>): Promise<true | string> => {
+  const handleUpdateTournament = async (
+    tId: string,
+    data: Record<string, unknown>
+  ): Promise<true | string> => {
     const result = await updateTournament(tId, data as any);
     if (result === true) {
       addToast("Tournament updated successfully.", "success");
@@ -127,7 +134,10 @@ export default function TournamentRaceManager({
     return result;
   };
 
-  const handleStatusChange = async (tId: string, status: string): Promise<true | string> => {
+  const handleStatusChange = async (
+    tId: string,
+    status: string
+  ): Promise<true | string> => {
     const result = await updateTournamentStatus(tId, status);
     if (result === true) {
       addToast("Tournament status updated.", "success");
@@ -138,7 +148,9 @@ export default function TournamentRaceManager({
     return result;
   };
 
-  const handleCreateRaceSubmit = async (data: RaceFormData): Promise<string | null> => {
+  const handleCreateRaceSubmit = async (
+    data: RaceFormData
+  ): Promise<string | null> => {
     if (!selectedTournamentId) return "Tournament is not selected.";
     const scheduledDate = new Date(data.scheduledAt);
     if (Number.isNaN(scheduledDate.getTime())) return "Invalid schedule date.";
@@ -164,7 +176,9 @@ export default function TournamentRaceManager({
     return res.error;
   };
 
-  const handleUpdateRaceSubmit = async (data: RaceFormData): Promise<string | null> => {
+  const handleUpdateRaceSubmit = async (
+    data: RaceFormData
+  ): Promise<string | null> => {
     if (!editingRace) return "No active race selected.";
     const scheduledDate = new Date(data.scheduledAt);
     if (Number.isNaN(scheduledDate.getTime())) return "Invalid schedule date.";
@@ -214,7 +228,13 @@ export default function TournamentRaceManager({
           </div>
 
           <div className="flex gap-1 overflow-x-auto pb-1 text-[11px] font-semibold">
-            {["all", "upcoming", "registration_open", "active", "completed"].map((st) => (
+            {[
+              "all",
+              "upcoming",
+              "registration_open",
+              "active",
+              "completed",
+            ].map((st) => (
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
@@ -234,7 +254,8 @@ export default function TournamentRaceManager({
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {tournamentLoading ? (
             <div className="py-12 flex items-center justify-center text-slate-400 text-xs gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-[#064E3B]" /> Loading tournaments...
+              <Loader2 className="w-4 h-4 animate-spin text-[#064E3B]" />{" "}
+              Loading tournaments...
             </div>
           ) : tournamentError ? (
             <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
@@ -258,16 +279,23 @@ export default function TournamentRaceManager({
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2 mb-1.5">
-                    <h3 className="font-bold text-xs text-[#064E3B] line-clamp-1">{tournament.name}</h3>
+                    <h3 className="font-bold text-xs text-[#064E3B] line-clamp-1">
+                      {tournament.name}
+                    </h3>
                     <TournamentStatus status={tournament.status} />
                   </div>
                   <div className="flex items-center gap-3 text-[11px] text-slate-500">
                     <span className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3" /> {tournament.location || "Online"}
+                      <MapPin className="w-3 h-3" />{" "}
+                      {tournament.location || "Online"}
                     </span>
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />{" "}
-                      {tournament.startDate ? new Date(tournament.startDate).toLocaleDateString("en-GB") : "-"}
+                      {tournament.startDate
+                        ? new Date(tournament.startDate).toLocaleDateString(
+                            "en-GB"
+                          )
+                        : "-"}
                     </span>
                   </div>
                 </div>
@@ -280,15 +308,21 @@ export default function TournamentRaceManager({
           <div className="p-3 border-t border-slate-200 flex items-center justify-between text-xs">
             <button
               disabled={pagination.page <= 1}
-              onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
+              onClick={() =>
+                setPagination((prev) => ({ ...prev, page: prev.page - 1 }))
+              }
               className="border rounded-lg px-2.5 py-1 disabled:opacity-50 font-medium"
             >
               Prev
             </button>
-            <span className="text-slate-600 font-medium">{pagination.page} / {pagination.totalPages}</span>
+            <span className="text-slate-600 font-medium">
+              {pagination.page} / {pagination.totalPages}
+            </span>
             <button
               disabled={pagination.page >= pagination.totalPages}
-              onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
+              onClick={() =>
+                setPagination((prev) => ({ ...prev, page: prev.page + 1 }))
+              }
               className="border rounded-lg px-2.5 py-1 disabled:opacity-50 font-medium"
             >
               Next
@@ -302,12 +336,18 @@ export default function TournamentRaceManager({
         {!selectedTournamentId ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400 space-y-3">
             <Trophy className="w-12 h-12 stroke-1 text-slate-300" />
-            <h3 className="font-bold text-slate-700 text-sm">No Tournament Selected</h3>
-            <p className="text-xs max-w-sm">Choose a tournament from the left panel to manage its races, schedule, entries, and referees in one place.</p>
+            <h3 className="font-bold text-slate-700 text-sm">
+              No Tournament Selected
+            </h3>
+            <p className="text-xs max-w-sm">
+              Choose a tournament from the left panel to manage its races,
+              schedule, entries, and referees in one place.
+            </p>
           </div>
         ) : detailLoading && !selectedTournamentDetail ? (
           <div className="flex-1 flex items-center justify-center text-slate-400 gap-2 text-xs">
-            <Loader2 className="w-6 h-6 animate-spin text-[#064E3B]" /> Loading tournament workspace...
+            <Loader2 className="w-6 h-6 animate-spin text-[#064E3B]" /> Loading
+            tournament workspace...
           </div>
         ) : !selectedTournamentDetail ? (
           <div className="flex-1 flex items-center justify-center text-rose-500 text-xs">
@@ -324,10 +364,14 @@ export default function TournamentRaceManager({
                   </h2>
                   <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
                     <span className="flex items-center gap-1 font-semibold text-slate-700">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" /> {selectedTournamentDetail.location}
+                      <MapPin className="w-3.5 h-3.5 text-slate-400" />{" "}
+                      {selectedTournamentDetail.location}
                     </span>
                     <span>•</span>
-                    <span>Prize Pool: ${formatPrizePool(selectedTournamentDetail.prizePool) ?? 0}</span>
+                    <span>
+                      Prize Pool: $
+                      {formatPrizePool(selectedTournamentDetail.prizePool) ?? 0}
+                    </span>
                   </div>
                 </div>
 
@@ -370,17 +414,24 @@ export default function TournamentRaceManager({
             {activeTab === "races" ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-sm text-slate-800">Tournament Races</h3>
-                  <span className="text-xs text-slate-400">Click any row to expand entries and referees</span>
+                  <h3 className="font-bold text-sm text-slate-800">
+                    Tournament Races
+                  </h3>
+                  <span className="text-xs text-slate-400">
+                    Click any row to expand entries and referees
+                  </span>
                 </div>
 
                 {racesLoading ? (
                   <div className="py-12 flex items-center justify-center text-slate-400 text-xs gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-[#064E3B]" /> Loading races...
+                    <Loader2 className="w-4 h-4 animate-spin text-[#064E3B]" />{" "}
+                    Loading races...
                   </div>
                 ) : races.length === 0 ? (
                   <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl space-y-2">
-                    <p className="text-xs text-slate-400">No races created in this tournament yet.</p>
+                    <p className="text-xs text-slate-400">
+                      No races created in this tournament yet.
+                    </p>
                     <button
                       onClick={() => setShowCreateRace(true)}
                       className="text-xs font-bold text-[#064E3B] underline hover:no-underline"
@@ -394,7 +445,9 @@ export default function TournamentRaceManager({
                       <RaceExpandableRow
                         key={race.id}
                         race={race}
-                        onRaceUpdated={() => loadTournamentData(selectedTournamentId)}
+                        onRaceUpdated={() =>
+                          loadTournamentData(selectedTournamentId)
+                        }
                         onEditRace={(r) => setEditingRace(r)}
                         addToast={addToast}
                       />

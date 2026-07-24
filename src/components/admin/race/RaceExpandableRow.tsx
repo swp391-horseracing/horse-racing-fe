@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp, User, Loader2, Play, Edit2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  User,
+  Loader2,
+  Play,
+  Edit2,
+} from "lucide-react";
 import { StatusBadge, RACE_STATUS_STYLES } from "../../ui/StatusBadge";
 import { STATUS_LABELS } from "../race/raceStatus";
 import type { RaceItem } from "../../../types/tournament";
@@ -26,7 +33,9 @@ export default function RaceExpandableRow({
   const [entriesLoading, setEntriesLoading] = useState(false);
   const [raceReferee, setRaceReferee] = useState<AssignedReferee | null>(null);
   const [showRefereePicker, setShowRefereePicker] = useState(false);
-  const [availableReferees, setAvailableReferees] = useState<{ id: string; fullName: string; email?: string }[]>([]);
+  const [availableReferees, setAvailableReferees] = useState<
+    { id: string; fullName: string; email?: string }[]
+  >([]);
   const [refereesLoading, setRefereesLoading] = useState(false);
   const [selectedRefereeId, setSelectedRefereeId] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
@@ -36,21 +45,20 @@ export default function RaceExpandableRow({
   useEffect(() => {
     if (!expanded) return;
     let ignore = false;
-    setEntriesLoading(true);
 
-    fetchRaceEntries(race.id)
-      .then((data) => {
+    const loadExpandedData = async () => {
+      setEntriesLoading(true);
+      try {
+        const data = await fetchRaceEntries(race.id);
         if (!ignore) setEntries(data);
-      })
-      .catch(() => {
+      } catch {
         if (!ignore) setEntries([]);
-      })
-      .finally(() => {
+      } finally {
         if (!ignore) setEntriesLoading(false);
-      });
+      }
 
-    AdminService.getRaceReferee(race.id)
-      .then((data) => {
+      try {
+        const data = await AdminService.getRaceReferee(race.id);
         if (ignore) return;
         const ref = data?.referee
           ? {
@@ -60,18 +68,20 @@ export default function RaceExpandableRow({
               assignedAt: data.assignedAt,
             }
           : data?.id
-          ? {
-              id: data.id,
-              fullName: data.fullName,
-              email: data.email,
-              assignedAt: data.assignedAt,
-            }
-          : null;
+            ? {
+                id: data.id,
+                fullName: data.fullName,
+                email: data.email,
+                assignedAt: data.assignedAt,
+              }
+            : null;
         setRaceReferee(ref);
-      })
-      .catch(() => {
+      } catch {
         if (!ignore) setRaceReferee(null);
-      });
+      }
+    };
+
+    void loadExpandedData();
 
     return () => {
       ignore = true;
@@ -82,7 +92,13 @@ export default function RaceExpandableRow({
     setRefereesLoading(true);
     setSelectedRefereeId("");
     try {
-      const res = await AdminService.getUsers(undefined, undefined, "referee", 1, 100);
+      const res = await AdminService.getUsers(
+        undefined,
+        undefined,
+        "referee",
+        1,
+        100
+      );
       const list = res?.data ?? [];
       setAvailableReferees(
         list.map((u: any) => ({
@@ -164,7 +180,11 @@ export default function RaceExpandableRow({
             type="button"
             className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 shrink-0"
           >
-            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {expanded ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
           </button>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -175,17 +195,25 @@ export default function RaceExpandableRow({
               <StatusBadge
                 status={race.status}
                 styleMap={RACE_STATUS_STYLES}
-                label={STATUS_LABELS[race.status] ?? race.status.replaceAll("_", " ")}
+                label={
+                  STATUS_LABELS[race.status] ?? race.status.replaceAll("_", " ")
+                }
                 className="rounded capitalize font-bold text-[9px] px-1.5 py-0.5"
               />
             </div>
             <p className="text-[11px] text-slate-500 truncate mt-0.5">
-              {race.scheduledAt ? new Date(race.scheduledAt).toLocaleString("en-GB") : "Not scheduled"} • {race.venue || "No venue"}
+              {race.scheduledAt
+                ? new Date(race.scheduledAt).toLocaleString("en-GB")
+                : "Not scheduled"}{" "}
+              • {race.venue || "No venue"}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="flex items-center gap-2 shrink-0"
+          onClick={(e) => e.stopPropagation()}
+        >
           {(race.status === "scheduled" || race.status === "pre_race") && (
             <button
               onClick={handleStartRace}
@@ -227,15 +255,20 @@ export default function RaceExpandableRow({
             <div className="md:col-span-2 bg-white rounded-xl border border-slate-200 p-3.5 space-y-2">
               <h5 className="font-bold text-xs text-[#064E3B] flex items-center justify-between">
                 <span>Race Entries ({entries.length})</span>
-                {entriesLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />}
+                {entriesLoading && (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />
+                )}
               </h5>
 
               {entriesLoading ? (
                 <div className="py-6 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin text-[#064E3B]" /> Loading entries...
+                  <Loader2 className="w-4 h-4 animate-spin text-[#064E3B]" />{" "}
+                  Loading entries...
                 </div>
               ) : entries.length === 0 ? (
-                <p className="text-xs text-slate-400 py-3 text-center">No entries registered for this race.</p>
+                <p className="text-xs text-slate-400 py-3 text-center">
+                  No entries registered for this race.
+                </p>
               ) : (
                 <div className="border rounded-lg overflow-hidden">
                   <table className="w-full text-left text-[11px]">
@@ -251,10 +284,18 @@ export default function RaceExpandableRow({
                     <tbody className="divide-y divide-slate-100">
                       {entries.map((entry) => (
                         <tr key={entry.id} className="hover:bg-slate-50">
-                          <td className="p-2 font-semibold text-slate-800">{entry.name}</td>
-                          <td className="p-2 text-slate-600">{entry.jockeyName || "-"}</td>
-                          <td className="p-2 text-slate-600">{entry.laneNumber || "-"}</td>
-                          <td className="p-2 text-slate-600">{entry.clothNumber ?? "-"}</td>
+                          <td className="p-2 font-semibold text-slate-800">
+                            {entry.name}
+                          </td>
+                          <td className="p-2 text-slate-600">
+                            {entry.jockeyName || "-"}
+                          </td>
+                          <td className="p-2 text-slate-600">
+                            {entry.laneNumber || "-"}
+                          </td>
+                          <td className="p-2 text-slate-600">
+                            {entry.clothNumber ?? "-"}
+                          </td>
                           <td className="p-2">
                             <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase bg-slate-100 text-slate-600">
                               {entry.entryStatus?.replaceAll("_", " ") ?? "-"}
@@ -272,7 +313,9 @@ export default function RaceExpandableRow({
             <div className="bg-white rounded-xl border border-slate-200 p-3.5 space-y-3 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h5 className="font-bold text-xs text-[#064E3B]">Referee Assignment</h5>
+                  <h5 className="font-bold text-xs text-[#064E3B]">
+                    Referee Assignment
+                  </h5>
                   {raceReferee && !showRefereePicker && (
                     <button
                       onClick={() => {
@@ -290,10 +333,13 @@ export default function RaceExpandableRow({
                   <div className="space-y-2">
                     {refereesLoading ? (
                       <div className="py-4 text-center text-xs text-slate-400 flex items-center justify-center gap-1">
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading referees...
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading
+                        referees...
                       </div>
                     ) : availableReferees.length === 0 ? (
-                      <p className="text-xs text-slate-400 py-2">No available referees found.</p>
+                      <p className="text-xs text-slate-400 py-2">
+                        No available referees found.
+                      </p>
                     ) : (
                       <>
                         <select
@@ -301,7 +347,9 @@ export default function RaceExpandableRow({
                           onChange={(e) => setSelectedRefereeId(e.target.value)}
                           className="w-full border rounded-lg px-2.5 py-1.5 text-xs bg-slate-50"
                         >
-                          <option value="" disabled>Select referee...</option>
+                          <option value="" disabled>
+                            Select referee...
+                          </option>
                           {availableReferees.map((r) => (
                             <option key={r.id} value={r.id}>
                               {r.fullName} {r.email ? `(${r.email})` : ""}
@@ -336,8 +384,12 @@ export default function RaceExpandableRow({
                         <User className="w-3.5 h-3.5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-800 truncate">{raceReferee.fullName}</p>
-                        <p className="text-[10px] text-slate-400 truncate">{raceReferee.email || "Assigned referee"}</p>
+                        <p className="text-xs font-bold text-slate-800 truncate">
+                          {raceReferee.fullName}
+                        </p>
+                        <p className="text-[10px] text-slate-400 truncate">
+                          {raceReferee.email || "Assigned referee"}
+                        </p>
                       </div>
                     </div>
                     <button
