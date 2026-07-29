@@ -3,7 +3,7 @@ import { UserService } from "../services/UserService";
 import type { User } from "../types/user";
 import { useAuthContext } from "../contexts/AuthContext";
 
-export type ProfileTab = "account" | "notifications";
+export type ProfileTab = "overview" | "exchanges" | "activity" | "settings";
 
 interface ApiError {
   response?: {
@@ -18,7 +18,7 @@ export function useUserProfile() {
   const { token } = useAuthContext();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<ProfileTab>("account");
+  const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [error, setError] = useState<string | null>(null);
 
   const handleAuthError = useCallback(
@@ -43,10 +43,21 @@ export function useUserProfile() {
       if (!userId) throw new Error("Missing userId");
 
       const u = await UserService.getUser(userId);
-      setUser(u);
+      let mergedUser = { ...u };
+      try {
+        const profile = await UserService.getProfile();
+        mergedUser = { ...mergedUser, ...profile };
+      } catch (pe) {
+        console.error("Failed to load full profile extra props", pe);
+      }
+      setUser(mergedUser);
       localStorage.setItem(
         "user",
-        JSON.stringify({ id: u.id, role: u.role, full_name: u.full_name })
+        JSON.stringify({
+          id: mergedUser.id,
+          role: mergedUser.role,
+          full_name: mergedUser.full_name,
+        })
       );
     } catch (err: unknown) {
       const error = err as ApiError;

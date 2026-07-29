@@ -14,6 +14,7 @@ import {
   Clock,
   Wallet,
 } from "lucide-react";
+import { useAuthContext } from "../contexts/AuthContext";
 import {
   Sidebar,
   SidebarContent,
@@ -79,6 +80,8 @@ export default function UserLayout({
   const navigate = useNavigate();
   const location = useLocation();
   const { invitations } = useInvitations();
+  const { user: currentUser } = useAuthContext();
+  const userRole = currentUser?.role?.toLowerCase() || "spectator";
 
   const pendingCount =
     invitations?.filter((i) => i.status === "pending").length || 0;
@@ -225,7 +228,16 @@ export default function UserLayout({
         key: ROUTES.REFEREE_REVIEW_REPORT,
       },
     ],
-    UserProfile: [{ label: "Account", icon: UserCheck, key: "account" }],
+    UserProfile: (() => {
+      const navs: NavItem[] = [
+        { label: "Overview", icon: LayoutDashboard, key: "overview" },
+      ];
+      if (userRole === "spectator") {
+        navs.push({ label: "My Exchanges", icon: Wallet, key: "exchanges" });
+      }
+      navs.push({ label: "Activity History", icon: Clock, key: "activity" });
+      return navs;
+    })(),
   };
 
   const currentNav = navConfigurations[currentRole];
@@ -266,7 +278,7 @@ export default function UserLayout({
           collapsible="none"
           className="!static self-stretch border-r border-[#064E3B]/10 shrink-0 bg-[#064E3B] text-slate-100 h-full overflow-hidden z-20"
         >
-          <SidebarContent className="py-4">
+          <SidebarContent className="py-4 flex flex-col justify-between h-full">
             <SidebarGroup>
               <SidebarGroupLabel className="px-3 text-slate-350 text-[10px] uppercase font-black tracking-widest mb-3 font-body">
                 {sidebarGroupLabel}
@@ -301,6 +313,38 @@ export default function UserLayout({
                 })}
               </SidebarMenu>
             </SidebarGroup>
+            {currentUser && (
+              <div className="px-4 py-4 border-t border-[#043E2F] mx-2 mt-auto">
+                <div className="bg-[#043E2F]/60 rounded-xl p-3 border border-[#054E3B] font-body text-xs text-slate-300">
+                  <div className="text-[10px] uppercase font-bold tracking-widest text-[#EAB308] mb-1">
+                    Your Role
+                  </div>
+                  <div className="flex items-center gap-1.5 text-white font-semibold text-sm">
+                    <UserCheck className="w-4 h-4 text-[#EAB308]" />
+                    <span>
+                      {currentUser.role.toLowerCase() === "horse_owner"
+                        ? "Horse Owner"
+                        : currentUser.role.charAt(0).toUpperCase() +
+                          currentUser.role.slice(1).toLowerCase()}
+                    </span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block ml-auto" />
+                  </div>
+                  <div className="text-[11px] text-slate-355 mt-1 leading-relaxed">
+                    {currentUser.role.toLowerCase() === "spectator" &&
+                      "Enjoy races, make predictions, earn tokens and exchange gifts!"}
+                    {currentUser.role.toLowerCase() === "referee" &&
+                      "Supervise assigned races, write race reports, flag violations!"}
+                    {currentUser.role.toLowerCase() === "jockey" &&
+                      "Review race rides, accept invites, record race history!"}
+                    {(currentUser.role.toLowerCase() === "owner" ||
+                      currentUser.role.toLowerCase() === "horse_owner") &&
+                      "Manage horses, register tournaments, recruit jockeys!"}
+                    {currentUser.role.toLowerCase() === "admin" &&
+                      "Control registry & approvals, manage tracks, manage economy!"}
+                  </div>
+                </div>
+              </div>
+            )}
           </SidebarContent>
         </Sidebar>
 
