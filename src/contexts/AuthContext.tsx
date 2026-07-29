@@ -52,7 +52,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     }
   });
-  const [loading, setLoading] = useState(!localStorage.getItem("token"));
+  const [loading, setLoading] = useState<boolean>(() =>
+    Boolean(localStorage.getItem("token"))
+  );
 
   const clearAuth = useCallback(() => {
     clearStoredAuth();

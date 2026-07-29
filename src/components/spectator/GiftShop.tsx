@@ -52,42 +52,24 @@ export function GiftShop() {
     "price-desc" | "price-asc" | "tier-desc" | "tier-asc"
   >("price-desc");
 
-  // Helper functions for toggling filters
-  const toggleSeriesFilter = (value: string) => {
-    if (value === "all") {
-      setSelectedSeries([]);
-    } else {
-      setSelectedSeries((prev) =>
-        prev.includes(value)
-          ? prev.filter((item) => item !== value)
-          : [...prev, value]
-      );
-    }
-  };
+  // Generic helper for toggling filter selections
+  const makeToggleFilter =
+    (setter: React.Dispatch<React.SetStateAction<string[]>>) =>
+    (value: string) => {
+      if (value === "all") {
+        setter([]);
+      } else {
+        setter((prev) =>
+          prev.includes(value)
+            ? prev.filter((item) => item !== value)
+            : [...prev, value]
+        );
+      }
+    };
 
-  const toggleCategoryFilter = (value: string) => {
-    if (value === "all") {
-      setSelectedCategories([]);
-    } else {
-      setSelectedCategories((prev) =>
-        prev.includes(value)
-          ? prev.filter((item) => item !== value)
-          : [...prev, value]
-      );
-    }
-  };
-
-  const toggleTierFilter = (value: string) => {
-    if (value === "all") {
-      setSelectedTiers([]);
-    } else {
-      setSelectedTiers((prev) =>
-        prev.includes(value)
-          ? prev.filter((item) => item !== value)
-          : [...prev, value]
-      );
-    }
-  };
+  const toggleSeriesFilter = makeToggleFilter(setSelectedSeries);
+  const toggleCategoryFilter = makeToggleFilter(setSelectedCategories);
+  const toggleTierFilter = makeToggleFilter(setSelectedTiers);
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -171,7 +153,7 @@ export function GiftShop() {
     } else {
       fetchInventory();
     }
-  }, [activeTab, shopPage, inventoryPage, fetchShopItems, fetchInventory]);
+  }, [activeTab, fetchShopItems, fetchInventory]);
 
   // Client side filtering for shop items
   const filteredItems = useMemo(() => {
@@ -255,6 +237,43 @@ export function GiftShop() {
     selectedTiers,
     sortBy,
   ]);
+
+  // Helper for deriving display attributes from item metadata
+  const deriveItemView = useCallback(
+    (item: ShopItem) => {
+      const meta = getItemMetadata(
+        item.name,
+        item.price,
+        item.description ?? ""
+      );
+      const isAffordable =
+        walletBalance !== null && walletBalance >= item.price;
+      const formattedSeries =
+        meta.series.charAt(0).toUpperCase() + meta.series.slice(1);
+      const formattedCategory =
+        meta.category.charAt(0).toUpperCase() + meta.category.slice(1);
+      const seriesColor =
+        meta.series === "general"
+          ? "bg-teal-50 text-teal-700 border-teal-200"
+          : "bg-violet-50 text-violet-700 border-violet-200";
+      const categoryColor =
+        meta.category === "decorative"
+          ? "bg-cyan-50 text-cyan-700 border-cyan-200"
+          : meta.category === "drinkware"
+            ? "bg-amber-50 text-amber-700 border-amber-200"
+            : "bg-emerald-50 text-emerald-700 border-emerald-200";
+
+      return {
+        meta,
+        isAffordable,
+        formattedSeries,
+        formattedCategory,
+        seriesColor,
+        categoryColor,
+      };
+    },
+    [walletBalance]
+  );
 
   const handlePurchase = async () => {
     if (!confirmingItem || isPurchasing) return;
@@ -353,6 +372,7 @@ export function GiftShop() {
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
               <input
                 type="text"
+                aria-label="Search items by name or description"
                 placeholder="Search items..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -362,6 +382,8 @@ export function GiftShop() {
 
             <div className="relative">
               <button
+                aria-expanded={isFlyoutOpen}
+                aria-label="Toggle filter and sorting options"
                 onClick={() => setIsFlyoutOpen(!isFlyoutOpen)}
                 className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
               >
@@ -686,28 +708,14 @@ export function GiftShop() {
           ) : viewMode === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-in fade-in duration-200">
               {filteredItems.map((item) => {
-                const meta = getItemMetadata(
-                  item.name,
-                  item.price,
-                  item.description ?? ""
-                );
-                const isAffordable =
-                  walletBalance !== null && walletBalance >= item.price;
-                const formattedSeries =
-                  meta.series.charAt(0).toUpperCase() + meta.series.slice(1);
-                const formattedCategory =
-                  meta.category.charAt(0).toUpperCase() +
-                  meta.category.slice(1);
-                const seriesColor =
-                  meta.series === "general"
-                    ? "bg-teal-50 text-teal-700 border-teal-200"
-                    : "bg-violet-50 text-violet-750 border-violet-200";
-                const categoryColor =
-                  meta.category === "decorative"
-                    ? "bg-cyan-50 text-cyan-700 border-cyan-200"
-                    : meta.category === "drinkware"
-                      ? "bg-amber-50 text-amber-700 border-amber-200"
-                      : "bg-emerald-50 text-emerald-700 border-emerald-200";
+                const {
+                  meta,
+                  isAffordable,
+                  formattedSeries,
+                  formattedCategory,
+                  seriesColor,
+                  categoryColor,
+                } = deriveItemView(item);
 
                 return (
                   <div
@@ -811,28 +819,14 @@ export function GiftShop() {
             /* List View */
             <div className="space-y-3 animate-in fade-in duration-200">
               {filteredItems.map((item) => {
-                const meta = getItemMetadata(
-                  item.name,
-                  item.price,
-                  item.description ?? ""
-                );
-                const isAffordable =
-                  walletBalance !== null && walletBalance >= item.price;
-                const formattedSeries =
-                  meta.series.charAt(0).toUpperCase() + meta.series.slice(1);
-                const formattedCategory =
-                  meta.category.charAt(0).toUpperCase() +
-                  meta.category.slice(1);
-                const seriesColor =
-                  meta.series === "general"
-                    ? "bg-teal-50 text-teal-700 border-teal-200"
-                    : "bg-violet-50 text-violet-750 border-violet-200";
-                const categoryColor =
-                  meta.category === "decorative"
-                    ? "bg-cyan-50 text-cyan-700 border-cyan-200"
-                    : meta.category === "drinkware"
-                      ? "bg-amber-50 text-amber-700 border-amber-200"
-                      : "bg-emerald-50 text-emerald-700 border-emerald-200";
+                const {
+                  meta,
+                  isAffordable,
+                  formattedSeries,
+                  formattedCategory,
+                  seriesColor,
+                  categoryColor,
+                } = deriveItemView(item);
 
                 return (
                   <div
@@ -1070,13 +1064,22 @@ export function GiftShop() {
 
       {/* Confirmation Purchase Modal */}
       {confirmingItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        >
           <div className="bg-white rounded-3xl border shadow-2xl p-6 w-full max-w-md animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="font-extrabold text-slate-800 text-base flex items-center gap-2">
+              <h3
+                id="confirm-modal-title"
+                className="font-extrabold text-slate-800 text-base flex items-center gap-2"
+              >
                 <Gift className="w-5 h-5 text-[#EAB308]" /> Confirm Exchange
               </h3>
               <button
+                aria-label="Close modal"
                 onClick={() => setConfirmingItem(null)}
                 className="p-1 hover:bg-slate-100 rounded-full"
               >

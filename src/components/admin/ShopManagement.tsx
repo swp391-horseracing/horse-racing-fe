@@ -312,10 +312,16 @@ export default function ShopManagement() {
     );
 
     const successCount = results.filter((r) => r.status === "fulfilled").length;
+    const errors = results.filter(
+      (r): r is PromiseRejectedResult =>
+        r.status === "rejected" && r.reason?.response?.status !== 409
+    );
 
     setIsSeeding(false);
     if (successCount > 0) {
       addToast(`Seeded ${successCount} default items!`, "success");
+    } else if (errors.length > 0) {
+      addToast("Failed to seed items. Please check network/auth.", "error");
     } else {
       addToast("Default items already exist in the catalog.", "info");
     }
@@ -510,13 +516,22 @@ export default function ShopManagement() {
 
       {/* Create / Edit Modal */}
       {isOpenModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="shop-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        >
           <div className="bg-white rounded-3xl border shadow-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="font-extrabold text-slate-800 text-base">
+              <h3
+                id="shop-modal-title"
+                className="font-extrabold text-slate-800 text-base"
+              >
                 {editingItem ? "Edit Shop Item" : "Create New Shop Item"}
               </h3>
               <button
+                aria-label="Close modal"
                 onClick={() => setIsOpenModal(false)}
                 className="p-1 hover:bg-slate-100 rounded-full"
               >

@@ -88,7 +88,7 @@ export function getItemMetadata(name: string, price: number, description = "") {
 export interface ShopItem {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   price: number;
   imageUrl?: string;
   isActive?: boolean;
@@ -163,12 +163,7 @@ export const ShopService = {
   adminCreateItem: async (formData: FormData): Promise<{ item: ShopItem }> => {
     const response = await api.post<{ item: ShopItem }>(
       "/admin/shop/items",
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
+      formData
     );
     return response.data;
   },
@@ -179,12 +174,7 @@ export const ShopService = {
   ): Promise<{ item: ShopItem }> => {
     const response = await api.patch<{ item: ShopItem }>(
       `/admin/shop/items/${itemId}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
+      formData
     );
     return response.data;
   },
