@@ -117,17 +117,22 @@ export function GiftShop() {
     try {
       const data = await WalletService.getMyWallet();
       setWalletBalance(data.balance);
-    } catch {
-      // Soft fail
+    } catch (err: any) {
+      addToast(
+        err?.response?.data?.message ||
+          "Couldn't load your points balance. Redemption is disabled until it loads.",
+        "error"
+      );
     }
-  }, []);
+  }, [addToast]);
 
   const fetchShopItems = useCallback(async () => {
     setIsLoadingShop(true);
     try {
-      const res = await ShopService.listItems(shopPage, 12);
+      // Fetch entire catalog (limit 100) so client-side filter, search, and sort operate across all items
+      const res = await ShopService.listItems(1, 100);
       setShopItems(res.data);
-      setShopTotalPages(res.pagination.totalPages);
+      setShopTotalPages(1);
     } catch (err: any) {
       addToast(
         err?.response?.data?.message || "Failed to load shop items",
@@ -136,7 +141,7 @@ export function GiftShop() {
     } finally {
       setIsLoadingShop(false);
     }
-  }, [shopPage, addToast]);
+  }, [addToast]);
 
   const fetchInventory = useCallback(async () => {
     setIsLoadingInventory(true);
@@ -252,7 +257,7 @@ export function GiftShop() {
   ]);
 
   const handlePurchase = async () => {
-    if (!confirmingItem) return;
+    if (!confirmingItem || isPurchasing) return;
     setIsPurchasing(true);
     try {
       const res = await ShopService.purchaseItem(confirmingItem.id);
@@ -556,7 +561,7 @@ export function GiftShop() {
                   "p-1.5 rounded-lg transition-all cursor-pointer",
                   viewMode === "grid"
                     ? "bg-white text-[#064E3B] shadow-2xs"
-                    : "text-slate-450 hover:text-slate-650"
+                    : "text-slate-400 hover:text-slate-600"
                 )}
                 title="Grid view"
               >
@@ -568,7 +573,7 @@ export function GiftShop() {
                   "p-1.5 rounded-lg transition-all cursor-pointer",
                   viewMode === "list"
                     ? "bg-white text-[#064E3B] shadow-2xs"
-                    : "text-slate-450 hover:text-slate-650"
+                    : "text-slate-400 hover:text-slate-600"
                 )}
                 title="List view"
               >
@@ -585,11 +590,11 @@ export function GiftShop() {
           {/* Active Filter Chips Summary */}
           {activeFilterCount > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 shrink-0 py-1 border-b">
-              <span className="text-[10px] text-slate-450 font-label">
+              <span className="text-[10px] text-slate-400 font-label">
                 Active Filters:
               </span>
               {searchQuery && (
-                <span className="px-2.5 py-0.5 bg-emerald-50 border border-emerald-150 text-emerald-900 text-[10px] font-bold rounded-lg flex items-center gap-1">
+                <span className="px-2.5 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-900 text-[10px] font-bold rounded-lg flex items-center gap-1">
                   "{searchQuery}"
                   <button
                     onClick={() => setSearchQuery("")}
@@ -779,6 +784,12 @@ export function GiftShop() {
                         </div>
 
                         <button
+                          disabled={!isAffordable}
+                          title={
+                            isAffordable
+                              ? undefined
+                              : "Not enough points in wallet"
+                          }
                           onClick={() => setConfirmingItem(item)}
                           className={cn(
                             "text-[10px] font-extrabold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all",
@@ -894,6 +905,12 @@ export function GiftShop() {
                       </div>
 
                       <button
+                        disabled={!isAffordable}
+                        title={
+                          isAffordable
+                            ? undefined
+                            : "Not enough points in wallet"
+                        }
                         onClick={() => setConfirmingItem(item)}
                         className={cn(
                           "text-[10px] font-extrabold px-4 py-2 rounded-lg flex items-center gap-1 transition-all w-full md:w-auto justify-center",

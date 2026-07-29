@@ -12,11 +12,17 @@ export function parseDescriptionMeta(description: string): {
   const clean = description.slice(0, idx);
   try {
     const parsed = JSON.parse(description.slice(idx + META_SEPARATOR.length));
-    // Guard: only accept plain objects, not arrays, nulls, or primitives
-    const meta =
-      parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)
-        ? (parsed as { series?: string; category?: string; tier?: string })
-        : {};
+    const meta: { series?: string; category?: string; tier?: string } = {};
+    if (
+      parsed !== null &&
+      typeof parsed === "object" &&
+      !Array.isArray(parsed)
+    ) {
+      for (const key of ["series", "category", "tier"] as const) {
+        const value = (parsed as Record<string, unknown>)[key];
+        if (typeof value === "string") meta[key] = value;
+      }
+    }
     return { cleanDescription: clean, meta };
   } catch {
     return { cleanDescription: clean, meta: {} };

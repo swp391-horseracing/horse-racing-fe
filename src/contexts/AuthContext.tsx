@@ -40,9 +40,19 @@ function clearStoredAuth() {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(() =>
+    localStorage.getItem("token")
+  );
+  const [user, setUser] = useState<UserProfile | null>(() => {
+    const stored = localStorage.getItem("user");
+    if (!stored) return null;
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return null;
+    }
+  });
+  const [loading, setLoading] = useState(!localStorage.getItem("token"));
 
   const clearAuth = useCallback(() => {
     clearStoredAuth();

@@ -184,21 +184,38 @@ export default function ShopManagement() {
     setIsOpenModal(true);
   };
 
+  const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+  const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFilePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      addToast("Please select a JPG, PNG, or WebP image.", "error");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
     }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      addToast("Image size must be 5MB or smaller.", "error");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFilePreview(reader.result as string);
+    };
+    reader.onerror = () => addToast("Failed to preview image.", "error");
+    reader.readAsDataURL(file);
   };
 
   /** Build the description with optional meta suffix. */
   const buildDescription = (): string => {
-    const base = formData.description.trim();
+    // Sanitize any user-entered META_SEPARATOR out of the base description
+    const base = formData.description.split(META_SEPARATOR)[0].trim();
     const hasMeta =
       metaOverride.series !== "auto" ||
       metaOverride.category !== "auto" ||
@@ -405,7 +422,7 @@ export default function ShopManagement() {
                           <div className="font-extrabold text-slate-800 line-clamp-1">
                             {item.name}
                           </div>
-                          <div className="text-[10px] text-slate-450 line-clamp-1 mt-0.5">
+                          <div className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
                             {cleanDescription || "No description"}
                           </div>
                         </div>
@@ -588,7 +605,7 @@ export default function ShopManagement() {
               <div className="border border-slate-200 rounded-xl p-3 space-y-3 bg-slate-50/50">
                 <p className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">
                   Metadata Overrides{" "}
-                  <span className="normal-case font-normal text-slate-350">
+                  <span className="normal-case font-normal text-slate-400">
                     (Auto = inferred from name &amp; price)
                   </span>
                 </p>
