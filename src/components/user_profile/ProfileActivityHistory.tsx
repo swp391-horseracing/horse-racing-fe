@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import { Search, Calendar, Coins, Target, Bell } from "lucide-react";
 import type { WalletTransaction } from "../../types/wallet";
 import type { Prediction } from "../../types/prediction";
@@ -26,7 +26,7 @@ export default function ProfileActivityHistory({
       amount?: string;
       amountType?: "positive" | "negative";
       date: Date;
-      icon: React.ReactNode;
+      icon: ReactNode;
       bgColor: string;
     }> = [];
 
@@ -53,13 +53,18 @@ export default function ProfileActivityHistory({
           : p.isCorrect === false
             ? "lost"
             : "pending";
+      const isWon = p.isCorrect === true;
       list.push({
         id: `pred-${p.id}`,
         type: "prediction",
         title: `Prediction placed on Race ${p.race?.name || p.race?.id || ""}`,
         subtitle: `Predicted Position: ${p.predictedPosition || ""} • Status: ${statusStr}`,
-        amount: `-${p.stakeAmount || 0}`,
-        amountType: "negative",
+        amount: isWon
+          ? p.rewardAmount
+            ? `+${p.rewardAmount}`
+            : `+${p.stakeAmount * 2}`
+          : `-${p.stakeAmount || 0}`,
+        amountType: isWon ? "positive" : "negative",
         date: p.placedAt ? new Date(p.placedAt) : new Date(0),
         icon: <Target className="w-4 h-4 text-blue-600" />,
         bgColor: "bg-blue-50",
@@ -115,14 +120,14 @@ export default function ProfileActivityHistory({
             placeholder="Search activities..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-50/50 border border-slate-150 rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 font-body"
+            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 font-body"
           />
         </div>
         <div className="flex gap-2">
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="bg-slate-50/50 border border-slate-150 rounded-xl px-3 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-body cursor-pointer"
+            className="bg-slate-50/50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-body cursor-pointer"
           >
             <option value="all">All Activities</option>
             <option value="transaction">Transactions Only</option>

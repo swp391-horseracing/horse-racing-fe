@@ -322,24 +322,22 @@ export default function UserLayout({
                   <div className="flex items-center gap-1.5 text-white font-semibold text-sm">
                     <UserCheck className="w-4 h-4 text-[#EAB308]" />
                     <span>
-                      {currentUser.role.toLowerCase() === "horse_owner"
+                      {userRole === "horse_owner"
                         ? "Horse Owner"
-                        : currentUser.role.charAt(0).toUpperCase() +
-                          currentUser.role.slice(1).toLowerCase()}
+                        : userRole.charAt(0).toUpperCase() + userRole.slice(1)}
                     </span>
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block ml-auto" />
                   </div>
                   <div className="text-[11px] text-slate-355 mt-1 leading-relaxed">
-                    {currentUser.role.toLowerCase() === "spectator" &&
+                    {userRole === "spectator" &&
                       "Enjoy races, make predictions, earn tokens and exchange gifts!"}
-                    {currentUser.role.toLowerCase() === "referee" &&
+                    {userRole === "referee" &&
                       "Supervise assigned races, write race reports, flag violations!"}
-                    {currentUser.role.toLowerCase() === "jockey" &&
+                    {userRole === "jockey" &&
                       "Review race rides, accept invites, record race history!"}
-                    {(currentUser.role.toLowerCase() === "owner" ||
-                      currentUser.role.toLowerCase() === "horse_owner") &&
+                    {(userRole === "owner" || userRole === "horse_owner") &&
                       "Manage horses, register tournaments, recruit jockeys!"}
-                    {currentUser.role.toLowerCase() === "admin" &&
+                    {userRole === "admin" &&
                       "Control registry & approvals, manage tracks, manage economy!"}
                   </div>
                 </div>

@@ -56,7 +56,13 @@ export default function UserPage() {
   // Ensure default query parameter is set
   useEffect(() => {
     if (!searchParams.get("tab")) {
-      setSearchParams({ tab: "overview" });
+      setSearchParams(
+        (prev) => {
+          prev.set("tab", "overview");
+          return prev;
+        },
+        { replace: true }
+      );
     }
   }, [searchParams, setSearchParams]);
 
@@ -189,6 +195,7 @@ export default function UserPage() {
       setEditError("Failed to upload profile picture.");
     } finally {
       setSaving(false);
+      e.target.value = "";
     }
   };
 
@@ -229,16 +236,24 @@ export default function UserPage() {
   return (
     <UserLayout
       activeKey={activeTab}
-      onActiveKeyChange={(key) => setSearchParams({ tab: key })}
+      onActiveKeyChange={(key) =>
+        setSearchParams((prev) => {
+          prev.set("tab", key);
+          return prev;
+        })
+      }
     >
       <div className="flex-1 min-w-0 h-full overflow-y-auto p-3 space-y-3 max-h-screen">
         {/* PREMIUM USER HEADER CARD WITH SEAMLESS INLINE EDITING */}
         <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 hover:shadow-md transition-shadow duration-300">
           <div className="flex flex-col md:flex-row items-center gap-5 w-full md:w-auto">
             {/* Avatar container */}
-            <div
-              onClick={() => isEditing && fileInputRef.current?.click()}
-              className="relative group cursor-pointer shrink-0"
+            <button
+              type="button"
+              disabled={!isEditing}
+              aria-label="Change profile picture"
+              onClick={() => fileInputRef.current?.click()}
+              className="relative group cursor-pointer shrink-0 disabled:cursor-default"
             >
               <div className="w-20 h-20 rounded-full bg-[#F4F6F5] border-2 border-emerald-600 flex items-center justify-center text-emerald-800 text-2xl font-headline font-black overflow-hidden shadow-inner">
                 {user.avatar_url ? (
@@ -265,9 +280,10 @@ export default function UserPage() {
                 ref={fileInputRef}
                 onChange={handleAvatarChange}
                 accept="image/*"
+                aria-label="Profile picture file"
                 className="hidden"
               />
-            </div>
+            </button>
 
             <div className="text-center md:text-left space-y-2 flex-1 w-full">
               <div className="flex flex-col md:flex-row items-center gap-2">
@@ -289,6 +305,7 @@ export default function UserPage() {
                       padding: 0,
                     }}
                     placeholder="Full Name"
+                    aria-label="Full Name"
                     required
                   />
                 ) : (
@@ -310,12 +327,12 @@ export default function UserPage() {
                 <span
                   className={`shrink-0 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
                     user.role.toLowerCase() === "spectator"
-                      ? "bg-emerald-50 text-emerald-700 border border-emerald-250"
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                       : user.role.toLowerCase() === "referee"
-                        ? "bg-amber-50 text-amber-700 border border-amber-250"
+                        ? "bg-amber-50 text-amber-700 border border-amber-200"
                         : user.role.toLowerCase() === "jockey"
-                          ? "bg-indigo-50 text-indigo-700 border border-indigo-250"
-                          : "bg-rose-50 text-rose-700 border border-rose-250"
+                          ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                          : "bg-rose-50 text-rose-700 border border-rose-200"
                   }`}
                 >
                   {roleText}
@@ -351,6 +368,7 @@ export default function UserPage() {
                         padding: 0,
                       }}
                       placeholder="Email Address"
+                      aria-label="Email Address"
                       required
                     />
                   ) : (
@@ -393,6 +411,7 @@ export default function UserPage() {
                         padding: 0,
                       }}
                       placeholder="Phone Number"
+                      aria-label="Phone Number"
                     />
                   ) : (
                     <span
@@ -434,6 +453,7 @@ export default function UserPage() {
                         padding: 0,
                       }}
                       placeholder="Address"
+                      aria-label="Address"
                     />
                   ) : (
                     <span
@@ -480,7 +500,7 @@ export default function UserPage() {
               <>
                 <button
                   onClick={handleStartEdit}
-                  className="px-4 py-2 bg-white border border-slate-250 hover:border-slate-350 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 font-body shadow-sm"
+                  className="px-4 py-2 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 font-body shadow-sm"
                 >
                   <Edit2 className="w-3.5 h-3.5 text-slate-500" />
                   Edit Profile
@@ -514,7 +534,12 @@ export default function UserPage() {
                 races={races}
                 entries={entries}
                 tracks={tracks}
-                onNavigateToTab={(tab) => setSearchParams({ tab })}
+                onNavigateToTab={(tab) =>
+                  setSearchParams((prev) => {
+                    prev.set("tab", tab);
+                    return prev;
+                  })
+                }
               />
             )}
 

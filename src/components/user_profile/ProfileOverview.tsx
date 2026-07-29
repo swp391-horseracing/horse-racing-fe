@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Coins,
@@ -82,20 +82,20 @@ export default function ProfileOverview({
                 </p>
               </div>
             </div>
-            {/* Card 2: Tournaments Joined */}
+            {/* Card 2: Races Predicted */}
             <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4">
               <div className="p-3 bg-yellow-50 text-yellow-600 rounded-xl">
                 <Trophy className="w-6 h-6" />
               </div>
               <div>
                 <p className="text-xs text-slate-500 font-medium font-body">
-                  Tournaments Predicted
+                  Races Predicted
                 </p>
                 <p className="text-2xl font-extrabold text-[#064E3B] font-headline mt-0.5">
                   {uniqueTournaments}
                 </p>
                 <p className="text-[11px] text-slate-400 mt-1">
-                  Participated in tournaments
+                  Participated in races
                 </p>
               </div>
             </div>
@@ -126,12 +126,10 @@ export default function ProfileOverview({
                 <p className="text-xs text-slate-500 font-medium font-body">
                   Gifts Received
                 </p>
-                <p className="text-2xl font-extrabold text-[#064E3B] font-headline mt-0.5">
-                  0
+                <p className="text-2xl font-extrabold text-[#064E3B] font-headline mt-0.5 text-slate-400">
+                  —
                 </p>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Gifts earned pool
-                </p>
+                <p className="text-[11px] text-slate-400 mt-1">Coming soon</p>
               </div>
             </div>
           </>
@@ -166,7 +164,7 @@ export default function ProfileOverview({
               </div>
             </div>
             {/* Card 2: Reports Submitted */}
-            <div className="bg-white rounded-2xl p-5 border border-slate-150 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4">
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4">
               <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
                 <ClipboardList className="w-6 h-6" />
               </div>
@@ -350,8 +348,7 @@ export default function ProfileOverview({
         );
       }
 
-      case "admin":
-      default: {
+      case "admin": {
         const activeCount =
           tracks?.filter((t) => t.status?.toLowerCase() === "active").length ||
           0;
@@ -372,13 +369,10 @@ export default function ProfileOverview({
                 <p className="text-xs text-slate-500 font-medium font-body">
                   Registry Approvals
                 </p>
-                <p className="text-2xl font-extrabold text-[#064E3B] font-headline mt-0.5">
-                  0
+                <p className="text-2xl font-extrabold text-[#064E3B] font-headline mt-0.5 text-slate-400">
+                  —
                 </p>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Needs action:{" "}
-                  <span className="font-bold text-purple-600">Pending</span>
-                </p>
+                <p className="text-[11px] text-slate-400 mt-1">Coming soon</p>
               </div>
             </div>
             {/* Card 2: Track Count */}
@@ -407,6 +401,14 @@ export default function ProfileOverview({
           </>
         );
       }
+
+      default: {
+        return (
+          <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 col-span-3 justify-center text-slate-400 text-xs font-body">
+            No statistics cards configured for this user role.
+          </div>
+        );
+      }
     }
   };
 
@@ -417,7 +419,8 @@ export default function ProfileOverview({
       title: string;
       subtitle: string;
       time: string;
-      icon: React.ReactNode;
+      date: Date;
+      icon: ReactNode;
       bgColor: string;
     }> = [];
 
@@ -434,6 +437,7 @@ export default function ProfileOverview({
         title: `Placed prediction on Race "${p.race?.name || "Race"}"`,
         subtitle: `Stake: ${p.stakeAmount} tokens • Position: ${p.predictedPosition} • Status: ${statusStr}`,
         time: p.placedAt ? new Date(p.placedAt).toLocaleDateString() : "",
+        date: p.placedAt ? new Date(p.placedAt) : new Date(0),
         icon: <Target className="w-4 h-4 text-blue-500" />,
         bgColor: "bg-blue-50",
       });
@@ -446,13 +450,14 @@ export default function ProfileOverview({
         title: t.description || `Wallet transaction: ${t.type}`,
         subtitle: `Amount: ${t.amount > 0 ? "+" : ""}${t.amount} tokens • Status: ${t.status}`,
         time: t.createdAt ? new Date(t.createdAt).toLocaleDateString() : "",
+        date: t.createdAt ? new Date(t.createdAt) : new Date(0),
         icon: <Coins className="w-4 h-4 text-emerald-500" />,
         bgColor: "bg-emerald-50",
       });
     });
 
-    // Sort by date (mock/empty if nothing, sort is done on date if we had full timestamp, otherwise we just show them)
-    return list.slice(0, 4);
+    // Sort by date descending and slice the top 4
+    return list.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 4);
   }, [predictions, transactions]);
 
   // 3. ROLE-SPECIFIC BOTTOM RIGHT WIDGET
@@ -660,7 +665,6 @@ export default function ProfileOverview({
         );
 
       case "admin":
-      default:
         return (
           <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-col h-full justify-between min-h-[300px]">
             <div>
@@ -684,6 +688,9 @@ export default function ProfileOverview({
             </button>
           </div>
         );
+
+      default:
+        return null;
     }
   };
 
@@ -695,7 +702,10 @@ export default function ProfileOverview({
           Your Overview
         </h2>
         <div className="relative">
-          <select className="appearance-none bg-white border border-slate-150 rounded-xl px-4 py-1.5 pr-8 text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-body cursor-pointer shadow-sm">
+          <select
+            aria-label="Filter overview time range"
+            className="appearance-none bg-white border border-slate-200 rounded-xl px-4 py-1.5 pr-8 text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-body cursor-pointer shadow-sm"
+          >
             <option>All Time</option>
             <option>This Month</option>
             <option>This Week</option>
