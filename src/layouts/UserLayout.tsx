@@ -13,6 +13,8 @@ import {
   AlertTriangle,
   Clock,
   Wallet,
+  Gift,
+  ShoppingBag,
 } from "lucide-react";
 import { useAuthContext } from "../contexts/AuthContext";
 import {
@@ -179,6 +181,11 @@ export default function UserLayout({
         icon: Wallet,
         key: ROUTES.SPECTATOR_WALLET,
       },
+      {
+        label: "Gift Shop",
+        icon: Gift,
+        key: ROUTES.SPECTATOR_SHOP,
+      },
     ],
     Admin: [
       {
@@ -209,6 +216,11 @@ export default function UserLayout({
         label: "Violation Types",
         icon: AlertTriangle,
         key: "/admin/violation-types",
+      },
+      {
+        label: "Shop Management",
+        icon: ShoppingBag,
+        key: ROUTES.ADMIN_SHOP,
       },
     ],
     Referee: [
