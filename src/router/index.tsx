@@ -179,6 +179,10 @@ export const router = createBrowserRouter([
             path: ROUTES.USER_WALLET,
             element: <SpectatorPage />,
           },
+          {
+            path: ROUTES.SPECTATOR_SHOP,
+            element: <SpectatorPage />,
+          },
         ],
       },
       {
@@ -234,6 +238,10 @@ export const router = createBrowserRouter([
           {
             path: ROUTES.ADMIN_RACE_DETAIL,
             element: <AdminRaceDetailPage />,
+          },
+          {
+            path: ROUTES.ADMIN_SHOP,
+            element: <AdminPage />,
           },
         ],
       },

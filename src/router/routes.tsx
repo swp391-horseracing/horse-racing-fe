@@ -22,6 +22,7 @@ export const ROUTES = {
   SPECTATOR_BET: "/spectator/bet",
   SPECTATOR_TRACK_RESULT: "/spectator/track-result",
   SPECTATOR_WALLET: "/spectator/wallet",
+  SPECTATOR_SHOP: "/spectator/shop",
 
   // OWNER
   OWNER_DASHBOARD: "/owner",
@@ -61,6 +62,7 @@ export const ROUTES = {
   ADMIN_RACE_DETAIL: "/admin/races/:id",
   ADMIN_CALENDAR: "/admin/calendar",
   ADMIN_REPORTS: "/admin/reports",
+  ADMIN_SHOP: "/admin/shop",
 
   TRACKS: "/tracks",
   TRACK_DETAIL: "/tracks/:id",

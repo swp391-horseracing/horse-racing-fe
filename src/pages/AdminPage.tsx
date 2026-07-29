@@ -13,6 +13,7 @@ import ControlCenterOverview from "../components/admin/controlCenterOverview";
 import RaceReportsManager from "../components/admin/RaceReportsManager";
 import TrackManagement from "../components/admin/TrackManagement";
 import ViolationTypesManager from "../components/admin/ViolationTypesManager";
+import ShopManagement from "../components/admin/ShopManagement";
 
 const TAB_ROUTE_MAP: Record<string, string> = {
   [ROUTES.ADMIN_DASHBOARD]: ROUTES.ADMIN_DASHBOARD,
@@ -24,6 +25,7 @@ const TAB_ROUTE_MAP: Record<string, string> = {
   "/admin/track": "/admin/track",
   [ROUTES.ADMIN_REPORTS]: ROUTES.ADMIN_REPORTS,
   "/admin/violation-types": "/admin/violation-types",
+  [ROUTES.ADMIN_SHOP]: ROUTES.ADMIN_SHOP,
 };
 
 function getTabKey(pathname: string): string {
@@ -69,6 +71,8 @@ export default function AdminPage() {
         return <ViolationTypesManager addToast={addToast} />;
       case "/admin/track":
         return <TrackManagement addToast={addToast} />;
+      case ROUTES.ADMIN_SHOP:
+        return <ShopManagement />;
       default:
         return <ControlCenterOverview setActiveTab={handleActiveChange} />;
     }

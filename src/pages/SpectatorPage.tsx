@@ -3,6 +3,7 @@ import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes";
 import { SpectatorDashboard } from "../components/spectator/SpectatorDashboard";
 import { PredictionsHub } from "../components/spectator/PredictionsHub";
+import { GiftShop } from "../components/spectator/GiftShop";
 import WalletPage from "./WalletPage";
 
 export default function SpectatorPage() {
@@ -19,6 +20,8 @@ export default function SpectatorPage() {
       case ROUTES.SPECTATOR_WALLET:
       case ROUTES.USER_WALLET:
         return <WalletPage />;
+      case ROUTES.SPECTATOR_SHOP:
+        return <GiftShop />;
       default:
         return null;
     }

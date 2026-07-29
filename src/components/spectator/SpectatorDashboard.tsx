@@ -105,7 +105,7 @@ export function SpectatorDashboard({ setActiveTab }: SpectatorDashboardProps) {
 
       {/* Bento Grid Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Tokens Card */}
+        {/* Points Card */}
         <button
           onClick={() => setActiveTab?.(ROUTES.SPECTATOR_WALLET)}
           className="bg-white border border-[#064E3B]/10 rounded-2xl p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300 shadow-sm cursor-pointer text-left w-full block focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20"
@@ -113,7 +113,7 @@ export function SpectatorDashboard({ setActiveTab }: SpectatorDashboardProps) {
           <div className="absolute -right-6 -top-6 w-24 h-24 bg-[#064E3B]/5 rounded-full blur-xl group-hover:bg-[#064E3B]/10 transition-colors"></div>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-label text-xs font-bold text-slate-400 uppercase tracking-wider">
-              Total Tokens
+              Total Points
             </h3>
             <span className="p-2 rounded-xl bg-[#064E3B]/10 text-[#064E3B]">
               <Coins className="w-5 h-5" />
