@@ -250,6 +250,42 @@ export default function RaceExpandableRow({
       {/* Expanded Details Section */}
       {expanded && (
         <div className="border-t border-slate-100 bg-slate-50/50 p-4 space-y-4">
+          {/* Race Metadata & Points Info Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="bg-white rounded-xl border border-slate-200 p-3">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                Distance & Lanes
+              </p>
+              <p className="text-xs font-semibold text-slate-800">
+                {race.distanceMeters ?? 1200}m • {race.laneCount ?? 8} Lanes
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-slate-200 p-3">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                Track Condition
+              </p>
+              <p className="text-xs font-semibold text-slate-800 capitalize">
+                {race.trackCondition || "Dry"}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-slate-200 p-3">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                Venue / Track
+              </p>
+              <p className="text-xs font-semibold text-slate-800 truncate">
+                {race.venue || "Main Arena"}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-slate-200 p-3">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                Points Config (1st / 2nd / 3rd)
+              </p>
+              <p className="text-xs font-semibold text-[#064E3B]">
+                9 / 8 / 7 pts
+              </p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Entries Section */}
             <div className="md:col-span-2 bg-white rounded-xl border border-slate-200 p-3.5 space-y-2">
@@ -412,10 +448,6 @@ export default function RaceExpandableRow({
                 )}
               </div>
 
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500">
-                <span>Lane Count: {race.laneCount ?? 8}</span>
-                <span>Distance: {race.distanceMeters ?? 1200}m</span>
-              </div>
             </div>
           </div>
         </div>

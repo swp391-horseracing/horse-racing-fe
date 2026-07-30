@@ -21,6 +21,7 @@ import TournamentDetail from "./tournament/TournamentDetail";
 import useAdminTournament from "../../hooks/admin/useAdminTournament";
 import useAdminRace from "../../hooks/admin/useAdminRace";
 import { AdminService } from "../../services/AdminService";
+import { RaceService } from "../../services/RaceService";
 import { TournamentService } from "../../services/TournamentService";
 import { formatPrizePool } from "../../utils/formatters";
 import type {
@@ -760,7 +761,14 @@ export default function TournamentRaceManager({
                         onRaceUpdated={() =>
                           loadTournamentData(selectedTournamentId)
                         }
-                        onEditRace={(r) => setEditingRace(r)}
+                        onEditRace={async (r) => {
+                          try {
+                            const detail = await RaceService.getRaceById(r.id);
+                            setEditingRace({ ...r, ...detail } as any);
+                          } catch {
+                            setEditingRace(r);
+                          }
+                        }}
                         addToast={addToast}
                       />
                     ))}

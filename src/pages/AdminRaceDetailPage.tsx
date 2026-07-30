@@ -319,6 +319,14 @@ export default function AdminRaceDetailPage() {
                 </div>
                 <div className="bg-slate-50 rounded-xl p-3">
                   <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    Race Number
+                  </p>
+                  <p className="text-xs font-semibold">
+                    {selectedRace.raceNumber != null ? `#${selectedRace.raceNumber}` : "-"}
+                  </p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
                     Scheduled
                   </p>
                   <p className="text-xs font-semibold">
@@ -351,21 +359,53 @@ export default function AdminRaceDetailPage() {
                 </div>
                 <div className="bg-slate-50 rounded-xl p-3">
                   <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                    Track
+                    Track Surface
                   </p>
                   <p className="text-xs font-semibold capitalize">
-                    {selectedRace.trackCondition ??
-                      selectedRace.course?.surfaceType ??
-                      "-"}
+                    {selectedRace.course?.surfaceType ?? "-"}
                   </p>
                 </div>
                 <div className="bg-slate-50 rounded-xl p-3">
                   <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                    Venue
+                    Track Condition
+                  </p>
+                  <p className="text-xs font-semibold capitalize">
+                    {selectedRace.trackCondition ?? "-"}
+                  </p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    Track / Venue
                   </p>
                   <p className="text-xs font-semibold">
-                    {selectedRace.venue ?? selectedRace.course?.name ?? "-"}
+                    {selectedRace.course?.name ?? selectedRace.venue ?? "-"}
                   </p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-bold text-slate-800 mb-2">
+                  Points Configuration
+                </h3>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-slate-50 rounded-xl p-3">
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                      1st Place
+                    </p>
+                    <p className="text-sm font-bold text-[#064E3B]">9 pts</p>
+                  </div>
+                  <div className="bg-slate-50 rounded-xl p-3">
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                      2nd Place
+                    </p>
+                    <p className="text-sm font-bold text-[#064E3B]">8 pts</p>
+                  </div>
+                  <div className="bg-slate-50 rounded-xl p-3">
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                      3rd Place
+                    </p>
+                    <p className="text-sm font-bold text-[#064E3B]">7 pts</p>
+                  </div>
                 </div>
               </div>
 
