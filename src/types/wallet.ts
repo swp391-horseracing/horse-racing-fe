@@ -3,7 +3,8 @@ export type TransactionType =
   | "prediction"
   | "reward"
   | "refund"
-  | "admin_adjustment";
+  | "admin_adjustment"
+  | "purchase";
 
 export type TransactionStatus =
   | "pending"
