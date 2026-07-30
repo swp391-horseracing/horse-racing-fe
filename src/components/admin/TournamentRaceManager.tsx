@@ -771,9 +771,14 @@ export default function TournamentRaceManager({
                               ...r,
                               ...detail,
                               raceConfig: config,
+                              raceConfigFailed: false,
                             } as any);
                           } catch {
-                            setEditingRace(r);
+                            setEditingRace({
+                              ...r,
+                              raceConfig: null,
+                              raceConfigFailed: true,
+                            } as any);
                           }
                         }}
                         addToast={addToast}
@@ -828,12 +833,15 @@ export default function TournamentRaceManager({
             laneCount: editingRace.laneCount ?? 8,
             raceNumber: (editingRace as any).raceNumber ?? undefined,
             trackDistanceId: (editingRace as any).courseDistanceId ?? "",
-            firstPlacePoints:
-              (editingRace as any).raceConfig?.firstPlacePoints ?? 9,
-            secondPlacePoints:
-              (editingRace as any).raceConfig?.secondPlacePoints ?? 8,
-            thirdPlacePoints:
-              (editingRace as any).raceConfig?.thirdPlacePoints ?? 7,
+            firstPlacePoints: (editingRace as any).raceConfigFailed
+              ? 0
+              : ((editingRace as any).raceConfig?.firstPlacePoints ?? 9),
+            secondPlacePoints: (editingRace as any).raceConfigFailed
+              ? 0
+              : ((editingRace as any).raceConfig?.secondPlacePoints ?? 8),
+            thirdPlacePoints: (editingRace as any).raceConfigFailed
+              ? 0
+              : ((editingRace as any).raceConfig?.thirdPlacePoints ?? 7),
           }}
           initialTrackId={(editingRace as any).course?.id ?? ""}
           onClose={() => setEditingRace(null)}

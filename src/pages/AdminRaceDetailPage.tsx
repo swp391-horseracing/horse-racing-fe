@@ -53,6 +53,7 @@ export default function AdminRaceDetailPage() {
     secondPlacePoints: number;
     thirdPlacePoints: number;
   } | null>(null);
+  const [raceConfigLoading, setRaceConfigLoading] = useState(true);
   const [showRefereePicker, setShowRefereePicker] = useState(false);
   const [availableReferees, setAvailableReferees] = useState<
     { id: string; fullName: string; email?: string }[]
@@ -106,6 +107,9 @@ export default function AdminRaceDetailPage() {
       })
       .catch(() => {
         if (!ignore) setRaceConfig(null);
+      })
+      .finally(() => {
+        if (!ignore) setRaceConfigLoading(false);
       });
     return () => {
       ignore = true;
@@ -143,6 +147,15 @@ export default function AdminRaceDetailPage() {
 
     addToast("Race updated successfully.", "success");
     setRaceEditing(false);
+    setRaceConfigLoading(true);
+    try {
+      const config = await AdminService.getRaceConfig(id);
+      setRaceConfig(config);
+    } catch {
+      setRaceConfig(null);
+    } finally {
+      setRaceConfigLoading(false);
+    }
     await getRaceDetail(id);
     return null;
   };
@@ -270,6 +283,7 @@ export default function AdminRaceDetailPage() {
               )}
               <button
                 type="button"
+                disabled={raceConfigLoading}
                 onClick={() =>
                   setRaceEditing((prev) => {
                     if (!prev) {
@@ -279,7 +293,7 @@ export default function AdminRaceDetailPage() {
                     return !prev;
                   })
                 }
-                className="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700"
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 disabled:opacity-50"
               >
                 {raceEditing ? "Cancel Edit" : "Edit Race"}
               </button>
@@ -402,30 +416,51 @@ export default function AdminRaceDetailPage() {
                   Points Configuration
                 </h3>
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-slate-50 rounded-xl p-3">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                      1st Place
-                    </p>
-                    <p className="text-sm font-bold text-[#064E3B]">
-                      {raceConfig?.firstPlacePoints ?? 9} pts
-                    </p>
-                  </div>
-                  <div className="bg-slate-50 rounded-xl p-3">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                      2nd Place
-                    </p>
-                    <p className="text-sm font-bold text-[#064E3B]">
-                      {raceConfig?.secondPlacePoints ?? 8} pts
-                    </p>
-                  </div>
-                  <div className="bg-slate-50 rounded-xl p-3">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                      3rd Place
-                    </p>
-                    <p className="text-sm font-bold text-[#064E3B]">
-                      {raceConfig?.thirdPlacePoints ?? 7} pts
-                    </p>
-                  </div>
+                  {raceConfigLoading ? (
+                    <>
+                      {[1, 2, 3].map((i) => (
+                        <div
+                          key={i}
+                          className="bg-slate-50 rounded-xl p-3 flex items-center justify-center"
+                        >
+                          <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      <div className="bg-slate-50 rounded-xl p-3">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                          1st Place
+                        </p>
+                        <p className="text-sm font-bold text-[#064E3B]">
+                          {raceConfig
+                            ? `${raceConfig.firstPlacePoints} pts`
+                            : "—"}
+                        </p>
+                      </div>
+                      <div className="bg-slate-50 rounded-xl p-3">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                          2nd Place
+                        </p>
+                        <p className="text-sm font-bold text-[#064E3B]">
+                          {raceConfig
+                            ? `${raceConfig.secondPlacePoints} pts`
+                            : "—"}
+                        </p>
+                      </div>
+                      <div className="bg-slate-50 rounded-xl p-3">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                          3rd Place
+                        </p>
+                        <p className="text-sm font-bold text-[#064E3B]">
+                          {raceConfig
+                            ? `${raceConfig.thirdPlacePoints} pts`
+                            : "—"}
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 

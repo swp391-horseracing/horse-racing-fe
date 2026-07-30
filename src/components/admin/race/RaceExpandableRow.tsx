@@ -37,6 +37,7 @@ export default function RaceExpandableRow({
     secondPlacePoints: number;
     thirdPlacePoints: number;
   } | null>(null);
+  const [raceConfigLoading, setRaceConfigLoading] = useState(false);
   const [showRefereePicker, setShowRefereePicker] = useState(false);
   const [availableReferees, setAvailableReferees] = useState<
     { id: string; fullName: string; email?: string }[]
@@ -86,6 +87,7 @@ export default function RaceExpandableRow({
       }
 
       try {
+        setRaceConfigLoading(true);
         const data = await AdminService.getRaceConfig(race.id);
         if (!ignore)
           setRaceConfig({
@@ -95,6 +97,8 @@ export default function RaceExpandableRow({
           });
       } catch {
         if (!ignore) setRaceConfig(null);
+      } finally {
+        if (!ignore) setRaceConfigLoading(false);
       }
     };
 
@@ -297,11 +301,18 @@ export default function RaceExpandableRow({
               <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
                 Points Config (1st / 2nd / 3rd)
               </p>
-              <p className="text-xs font-semibold text-[#064E3B]">
-                {raceConfig
-                  ? `${raceConfig.firstPlacePoints} / ${raceConfig.secondPlacePoints} / ${raceConfig.thirdPlacePoints} pts`
-                  : "9 / 8 / 7 pts"}
-              </p>
+              {raceConfigLoading ? (
+                <div className="flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin text-slate-400" />
+                  <span className="text-xs text-slate-400">Loading...</span>
+                </div>
+              ) : (
+                <p className="text-xs font-semibold text-[#064E3B]">
+                  {raceConfig
+                    ? `${raceConfig.firstPlacePoints} / ${raceConfig.secondPlacePoints} / ${raceConfig.thirdPlacePoints} pts`
+                    : "—"}
+                </p>
+              )}
             </div>
           </div>
 
