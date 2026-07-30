@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { WalletService } from "../services/WalletService";
 import type { WalletResponse, WalletTransaction } from "../types/wallet";
@@ -56,7 +56,7 @@ export default function WalletPage() {
       const [walletData, shopData, predictionsData] = await Promise.all([
         WalletService.getMyWallet(),
         ShopService.listItems(1, 20).catch(() => ({ data: [] })),
-        PredictionService.getMyPredictions({ limit: 100 }).catch(() => ({
+        PredictionService.getMyPredictions({ limit: 200 }).catch(() => ({
           data: [],
         })),
       ]);
@@ -99,6 +99,17 @@ export default function WalletPage() {
     };
   }, []);
 
+  // Listen for Escape key to close Guide Modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isGuideOpen) {
+        setIsGuideOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isGuideOpen]);
+
   // Map race UUID to race names from predictions list
   const raceNames = useMemo(() => {
     const map: Record<string, string> = {};
@@ -111,7 +122,7 @@ export default function WalletPage() {
   }, [predictions]);
 
   // Clean description to remove raw UUIDs and avoid "race Race" redundancy
-  const formatDescription = (description: string | null) => {
+  const formatDescription = useCallback((description: string | null) => {
     if (!description) return null;
     const uuidRegex =
       /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
@@ -132,7 +143,7 @@ export default function WalletPage() {
         .replace(id, "Race");
     }
     return description;
-  };
+  }, [raceNames]);
 
   // Filter & Search Hero Transactions (Search, Date Range, Tabs Supported)
   const filteredTransactions = useMemo(() => {
@@ -140,8 +151,10 @@ export default function WalletPage() {
       // 1. Search Query Filter
       if (searchQuery.trim() !== "") {
         const query = searchQuery.toLowerCase();
-        const descMatch =
-          tx.description?.toLowerCase().includes(query) ?? false;
+        const friendlyDesc =
+          formatDescription(tx.description)?.toLowerCase() ||
+          tx.type.toLowerCase();
+        const descMatch = friendlyDesc.includes(query);
         const typeMatch = tx.type.toLowerCase().includes(query);
         const idMatch = tx.id.toLowerCase().includes(query);
         if (!descMatch && !typeMatch && !idMatch) return false;
@@ -171,21 +184,26 @@ export default function WalletPage() {
         if (!isReward) return false;
       }
 
-      // 3. Date Range Filter
+      // 3. Date Range Filter (Using UTC boundaries to avoid local timezone shifts)
       if (startDate) {
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
+        const start = new Date(`${startDate}T00:00:00.000Z`);
         if (new Date(tx.createdAt) < start) return false;
       }
       if (endDate) {
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
+        const end = new Date(`${endDate}T23:59:59.999Z`);
         if (new Date(tx.createdAt) > end) return false;
       }
 
       return true;
     });
-  }, [wallet, searchQuery, txActiveTab, startDate, endDate]);
+  }, [
+    wallet,
+    searchQuery,
+    txActiveTab,
+    startDate,
+    endDate,
+    formatDescription,
+  ]);
 
   // Balance Flow Graph data calculation
   const chartData = useMemo(() => {
@@ -239,8 +257,8 @@ export default function WalletPage() {
       };
     }
     const balances = chartData.map((d) => d.balance);
-    const maxVal = Math.max(...balances, wallet?.balance || 10000);
-    const minVal = Math.min(...balances, wallet?.balance || 10000);
+    const maxVal = Math.max(...balances, wallet?.balance ?? 10000);
+    const minVal = Math.min(...balances, wallet?.balance ?? 10000);
 
     const padding = (maxVal - minVal) * 0.15 || 1000;
     const maxBal = maxVal + padding;
@@ -749,8 +767,7 @@ export default function WalletPage() {
           {/* Bottom Card: Trending Exchange-ables */}
           <div className="bg-white rounded-xl border border-slate-100 p-4 space-y-3 flex flex-col min-h-0 flex-1 overflow-hidden">
             <h3 className="font-bold text-slate-900 text-xs flex items-center gap-1.5 font-headline">
-              <ShoppingBag className="w-4 h-4 text-emerald-700" /> Trending
-              Items
+              <ShoppingBag className="w-4 h-4 text-emerald-700" /> Premium Items
             </h3>
             <div className="flex-1 overflow-y-auto pr-1 space-y-2.5">
               {trendingLoading ? (
@@ -815,11 +832,17 @@ export default function WalletPage() {
           onClick={() => setIsGuideOpen(false)}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="guide-modal-title"
             className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 shadow-xl border border-slate-100 flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-              <h3 className="font-headline font-bold text-lg text-[#064E3B] flex items-center gap-2">
+              <h3
+                id="guide-modal-title"
+                className="font-headline font-bold text-lg text-[#064E3B] flex items-center gap-2"
+              >
                 <BookOpen className="w-5 h-5 text-emerald-700" /> Wallet Guide &
                 FAQs
               </h3>

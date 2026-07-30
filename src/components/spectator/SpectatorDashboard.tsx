@@ -21,6 +21,7 @@ import { PredictionService } from "../../services/PredictionService";
 import { RaceService } from "../../services/RaceService";
 import type { Prediction } from "../../types/prediction";
 import type { RaceListItem } from "../../types/race";
+import type { WalletTransaction } from "../../types/wallet";
 
 interface SpectatorDashboardProps {
   setActiveTab?: (tab: string) => void;
@@ -36,7 +37,7 @@ export function SpectatorDashboard({ setActiveTab }: SpectatorDashboardProps) {
     RaceListItem[]
   >([]);
   const [loading, setLoading] = useState(true);
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [selectedWeekDate, setSelectedWeekDate] = useState<Date>(new Date());
 
   useEffect(() => {
@@ -288,7 +289,8 @@ export function SpectatorDashboard({ setActiveTab }: SpectatorDashboardProps) {
               <div
                 key={idx}
                 title={`${item.date.toLocaleDateString()}: ${item.count} activity logs`}
-                className={`w-9 h-9 rounded-lg border flex flex-col items-center justify-center p-0.5 transition-all duration-150 hover:scale-105 cursor-pointer ${levelColors[item.level]}`}
+                aria-label={`${item.date.toLocaleDateString()}: ${item.count} activity logs`}
+                className={`w-9 h-9 rounded-lg border flex flex-col items-center justify-center p-0.5 transition-all duration-150 cursor-default ${levelColors[item.level]}`}
               >
                 <span className="text-[8px] font-label font-bold uppercase leading-none opacity-85">
                   {item.dayLabel}
@@ -328,7 +330,7 @@ export function SpectatorDashboard({ setActiveTab }: SpectatorDashboardProps) {
       </div>
 
       {/* Main Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 flex-1 min-h-0 overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 flex-1 min-h-0 overflow-y-auto lg:overflow-hidden">
         {/* Quick Links Section */}
         <div className="lg:col-span-1 flex flex-col space-y-3 overflow-hidden shrink-0">
           <h3 className="font-bold font-headline text-base text-[#064E3B] border-b border-slate-100 pb-1.5">
@@ -421,7 +423,7 @@ export function SpectatorDashboard({ setActiveTab }: SpectatorDashboardProps) {
                   <button
                     key={p.id}
                     onClick={() => setActiveTab?.(ROUTES.SPECTATOR_PREDICTIONS)}
-                    className="bg-white border border-slate-100 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 relative shadow-xs hover:border-[#064E3B]/20 cursor-pointer transition-all text-left w-full block focus:outline-none"
+                    className="bg-white border border-slate-100 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 relative shadow-xs hover:border-[#064E3B]/20 cursor-pointer transition-all text-left w-full block focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B]/30"
                   >
                     <div
                       className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${
@@ -482,7 +484,7 @@ export function SpectatorDashboard({ setActiveTab }: SpectatorDashboardProps) {
                   onClick={() =>
                     setActiveTab?.(ROUTES.RACE_DETAIL.replace(":id", r.id))
                   }
-                  className="bg-white border border-slate-100 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 relative shadow-xs hover:border-[#064E3B]/20 cursor-pointer transition-all text-left w-full block focus:outline-none"
+                  className="bg-white border border-slate-100 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 relative shadow-xs hover:border-[#064E3B]/20 cursor-pointer transition-all text-left w-full block focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B]/30"
                 >
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#064E3B]/30 rounded-l-xl" />
                   <div className="pl-2">
