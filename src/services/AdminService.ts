@@ -208,4 +208,21 @@ export const AdminService = {
     const response = await api.delete(`/admin/violation-types/${id}`);
     return response.data;
   },
+
+  // ── Race Points Config ──
+
+  async updateRacePointsConfig(
+    raceId: string,
+    data: {
+      firstPlacePoints?: number;
+      secondPlacePoints?: number;
+      thirdPlacePoints?: number;
+    }
+  ): Promise<any> {
+    const response = await api.patch(
+      `/admin/races/${raceId}/points-config`,
+      data
+    );
+    return response.data;
+  },
 };

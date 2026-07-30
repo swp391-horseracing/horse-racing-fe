@@ -122,6 +122,13 @@ export default function AdminRaceDetailPage() {
     if (res.success === false) {
       return res.error ?? "Failed to update race.";
     }
+
+    await AdminService.updateRacePointsConfig(id, {
+      firstPlacePoints: data.firstPlacePoints,
+      secondPlacePoints: data.secondPlacePoints,
+      thirdPlacePoints: data.thirdPlacePoints,
+    });
+
     addToast("Race updated successfully.", "success");
     setRaceEditing(false);
     await getRaceDetail(id);
@@ -283,6 +290,9 @@ export default function AdminRaceDetailPage() {
                 laneCount: selectedRace.laneCount ?? 8,
                 raceNumber: selectedRace.raceNumber ?? undefined,
                 trackDistanceId: selectedRace.courseDistanceId ?? "",
+                firstPlacePoints: 9,
+                secondPlacePoints: 8,
+                thirdPlacePoints: 7,
               }}
               initialTrackId={selectedRace.course?.id ?? ""}
               onClose={() => setRaceEditing(false)}
