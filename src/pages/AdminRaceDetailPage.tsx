@@ -48,6 +48,11 @@ export default function AdminRaceDetailPage() {
   const [raceEditing, setRaceEditing] = useState(false);
   const [raceReferee, setRaceReferee] = useState<AssignedReferee | null>(null);
   const [raceEntries, setRaceEntries] = useState<RaceEntry[]>([]);
+  const [raceConfig, setRaceConfig] = useState<{
+    firstPlacePoints: number;
+    secondPlacePoints: number;
+    thirdPlacePoints: number;
+  } | null>(null);
   const [showRefereePicker, setShowRefereePicker] = useState(false);
   const [availableReferees, setAvailableReferees] = useState<
     { id: string; fullName: string; email?: string }[]
@@ -94,6 +99,13 @@ export default function AdminRaceDetailPage() {
       })
       .catch(() => {
         if (!ignore) setRaceEntries([]);
+      });
+    AdminService.getRaceConfig(id)
+      .then((data) => {
+        if (!ignore) setRaceConfig(data);
+      })
+      .catch(() => {
+        if (!ignore) setRaceConfig(null);
       });
     return () => {
       ignore = true;
@@ -290,9 +302,9 @@ export default function AdminRaceDetailPage() {
                 laneCount: selectedRace.laneCount ?? 8,
                 raceNumber: selectedRace.raceNumber ?? undefined,
                 trackDistanceId: selectedRace.courseDistanceId ?? "",
-                firstPlacePoints: 9,
-                secondPlacePoints: 8,
-                thirdPlacePoints: 7,
+                firstPlacePoints: raceConfig?.firstPlacePoints ?? 9,
+                secondPlacePoints: raceConfig?.secondPlacePoints ?? 8,
+                thirdPlacePoints: raceConfig?.thirdPlacePoints ?? 7,
               }}
               initialTrackId={selectedRace.course?.id ?? ""}
               onClose={() => setRaceEditing(false)}
@@ -322,7 +334,9 @@ export default function AdminRaceDetailPage() {
                     Race Number
                   </p>
                   <p className="text-xs font-semibold">
-                    {selectedRace.raceNumber != null ? `#${selectedRace.raceNumber}` : "-"}
+                    {selectedRace.raceNumber != null
+                      ? `#${selectedRace.raceNumber}`
+                      : "-"}
                   </p>
                 </div>
                 <div className="bg-slate-50 rounded-xl p-3">
@@ -392,19 +406,25 @@ export default function AdminRaceDetailPage() {
                     <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
                       1st Place
                     </p>
-                    <p className="text-sm font-bold text-[#064E3B]">9 pts</p>
+                    <p className="text-sm font-bold text-[#064E3B]">
+                      {raceConfig?.firstPlacePoints ?? 9} pts
+                    </p>
                   </div>
                   <div className="bg-slate-50 rounded-xl p-3">
                     <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
                       2nd Place
                     </p>
-                    <p className="text-sm font-bold text-[#064E3B]">8 pts</p>
+                    <p className="text-sm font-bold text-[#064E3B]">
+                      {raceConfig?.secondPlacePoints ?? 8} pts
+                    </p>
                   </div>
                   <div className="bg-slate-50 rounded-xl p-3">
                     <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
                       3rd Place
                     </p>
-                    <p className="text-sm font-bold text-[#064E3B]">7 pts</p>
+                    <p className="text-sm font-bold text-[#064E3B]">
+                      {raceConfig?.thirdPlacePoints ?? 7} pts
+                    </p>
                   </div>
                 </div>
               </div>

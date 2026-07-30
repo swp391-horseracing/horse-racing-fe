@@ -32,6 +32,11 @@ export default function RaceExpandableRow({
   const [entries, setEntries] = useState<RaceEntry[]>([]);
   const [entriesLoading, setEntriesLoading] = useState(false);
   const [raceReferee, setRaceReferee] = useState<AssignedReferee | null>(null);
+  const [raceConfig, setRaceConfig] = useState<{
+    firstPlacePoints: number;
+    secondPlacePoints: number;
+    thirdPlacePoints: number;
+  } | null>(null);
   const [showRefereePicker, setShowRefereePicker] = useState(false);
   const [availableReferees, setAvailableReferees] = useState<
     { id: string; fullName: string; email?: string }[]
@@ -78,6 +83,18 @@ export default function RaceExpandableRow({
         setRaceReferee(ref);
       } catch {
         if (!ignore) setRaceReferee(null);
+      }
+
+      try {
+        const data = await AdminService.getRaceConfig(race.id);
+        if (!ignore)
+          setRaceConfig({
+            firstPlacePoints: data.firstPlacePoints,
+            secondPlacePoints: data.secondPlacePoints,
+            thirdPlacePoints: data.thirdPlacePoints,
+          });
+      } catch {
+        if (!ignore) setRaceConfig(null);
       }
     };
 
@@ -281,7 +298,9 @@ export default function RaceExpandableRow({
                 Points Config (1st / 2nd / 3rd)
               </p>
               <p className="text-xs font-semibold text-[#064E3B]">
-                9 / 8 / 7 pts
+                {raceConfig
+                  ? `${raceConfig.firstPlacePoints} / ${raceConfig.secondPlacePoints} / ${raceConfig.thirdPlacePoints} pts`
+                  : "9 / 8 / 7 pts"}
               </p>
             </div>
           </div>
@@ -447,7 +466,6 @@ export default function RaceExpandableRow({
                   </button>
                 )}
               </div>
-
             </div>
           </div>
         </div>

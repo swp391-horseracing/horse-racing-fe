@@ -211,6 +211,20 @@ export const AdminService = {
 
   // ── Race Points Config ──
 
+  async getRaceConfig(raceId: string): Promise<{
+    raceId: string;
+    firstPlacePoints: number;
+    secondPlacePoints: number;
+    thirdPlacePoints: number;
+    predictionsEnabled: boolean;
+    predictionMinStake: number;
+    raceName: string;
+    raceStatus: string;
+  }> {
+    const response = await api.get(`/admin/race-configs/${raceId}`);
+    return response.data;
+  },
+
   async updateRacePointsConfig(
     raceId: string,
     data: {

@@ -763,8 +763,15 @@ export default function TournamentRaceManager({
                         }
                         onEditRace={async (r) => {
                           try {
-                            const detail = await RaceService.getRaceById(r.id);
-                            setEditingRace({ ...r, ...detail } as any);
+                            const [detail, config] = await Promise.all([
+                              RaceService.getRaceById(r.id),
+                              AdminService.getRaceConfig(r.id),
+                            ]);
+                            setEditingRace({
+                              ...r,
+                              ...detail,
+                              raceConfig: config,
+                            } as any);
                           } catch {
                             setEditingRace(r);
                           }
@@ -821,9 +828,12 @@ export default function TournamentRaceManager({
             laneCount: editingRace.laneCount ?? 8,
             raceNumber: (editingRace as any).raceNumber ?? undefined,
             trackDistanceId: (editingRace as any).courseDistanceId ?? "",
-            firstPlacePoints: 9,
-            secondPlacePoints: 8,
-            thirdPlacePoints: 7,
+            firstPlacePoints:
+              (editingRace as any).raceConfig?.firstPlacePoints ?? 9,
+            secondPlacePoints:
+              (editingRace as any).raceConfig?.secondPlacePoints ?? 8,
+            thirdPlacePoints:
+              (editingRace as any).raceConfig?.thirdPlacePoints ?? 7,
           }}
           initialTrackId={(editingRace as any).course?.id ?? ""}
           onClose={() => setEditingRace(null)}
