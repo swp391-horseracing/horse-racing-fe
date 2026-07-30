@@ -122,28 +122,31 @@ export default function WalletPage() {
   }, [predictions]);
 
   // Clean description to remove raw UUIDs and avoid "race Race" redundancy
-  const formatDescription = useCallback((description: string | null) => {
-    if (!description) return null;
-    const uuidRegex =
-      /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
-    const match = description.match(uuidRegex);
-    if (match) {
-      const id = match[0];
-      const name = raceNames[id];
-      if (name) {
-        // If the name already includes "Race", remove the redundant "race" prefix
+  const formatDescription = useCallback(
+    (description: string | null) => {
+      if (!description) return null;
+      const uuidRegex =
+        /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+      const match = description.match(uuidRegex);
+      if (match) {
+        const id = match[0];
+        const name = raceNames[id];
+        if (name) {
+          // If the name already includes "Race", remove the redundant "race" prefix
+          return description
+            .replace(`for race ${id}`, `for ${name}`)
+            .replace(`race ${id}`, name)
+            .replace(id, name);
+        }
         return description
-          .replace(`for race ${id}`, `for ${name}`)
-          .replace(`race ${id}`, name)
-          .replace(id, name);
+          .replace(`for race ${id}`, "for Race")
+          .replace(`race ${id}`, "Race")
+          .replace(id, "Race");
       }
-      return description
-        .replace(`for race ${id}`, "for Race")
-        .replace(`race ${id}`, "Race")
-        .replace(id, "Race");
-    }
-    return description;
-  }, [raceNames]);
+      return description;
+    },
+    [raceNames]
+  );
 
   // Filter & Search Hero Transactions (Search, Date Range, Tabs Supported)
   const filteredTransactions = useMemo(() => {
@@ -196,14 +199,7 @@ export default function WalletPage() {
 
       return true;
     });
-  }, [
-    wallet,
-    searchQuery,
-    txActiveTab,
-    startDate,
-    endDate,
-    formatDescription,
-  ]);
+  }, [wallet, searchQuery, txActiveTab, startDate, endDate, formatDescription]);
 
   // Balance Flow Graph data calculation
   const chartData = useMemo(() => {
