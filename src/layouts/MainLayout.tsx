@@ -137,27 +137,20 @@ export default function MainLayout() {
 
         {/* Actions Menu */}
         <div className="flex justify-center items-center ml-auto shrink-0 gap-2">
-          {isAuthenticated && (
-            <div className="flex items-center gap-1.5 text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 text-xs font-bold shadow-2xs">
-              <Wallet className="w-4 h-4 text-emerald-600" />
-              {balance.toLocaleString()} credits
-            </div>
-          )}
-
           {isAuthenticated && user?.role === "spectator" && (
-            <Button
+            <button
               onClick={() => navigate(ROUTES.SPECTATOR_WALLET)}
-              variant="ghost"
               title="Spectator Wallet"
-              className={`rounded-xl focus-visible:ring-0 focus-visible:ring-offset-0 p-2 text-xs font-bold ${
+              className={`flex items-center gap-1.5 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 text-xs font-bold shadow-2xs cursor-pointer transition-all hover:scale-[1.02] ${
                 location.pathname === ROUTES.SPECTATOR_WALLET ||
                 location.pathname === ROUTES.USER_WALLET
-                  ? "bg-[#064E3B]/10 text-[#064E3B]"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  ? "ring-2 ring-emerald-500 bg-emerald-100"
+                  : ""
               }`}
             >
-              <Wallet className="w-5 h-5" />
-            </Button>
+              <Wallet className="w-4 h-4 text-emerald-600" />
+              {balance.toLocaleString()} credits
+            </button>
           )}
 
           {isAuthenticated ? (
