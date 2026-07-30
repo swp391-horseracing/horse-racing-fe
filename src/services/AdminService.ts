@@ -208,4 +208,35 @@ export const AdminService = {
     const response = await api.delete(`/admin/violation-types/${id}`);
     return response.data;
   },
+
+  // ── Race Points Config ──
+
+  async getRaceConfig(raceId: string): Promise<{
+    raceId: string;
+    firstPlacePoints: number;
+    secondPlacePoints: number;
+    thirdPlacePoints: number;
+    predictionsEnabled: boolean;
+    predictionMinStake: number;
+    raceName: string;
+    raceStatus: string;
+  }> {
+    const response = await api.get(`/admin/race-configs/${raceId}`);
+    return response.data;
+  },
+
+  async updateRacePointsConfig(
+    raceId: string,
+    data: {
+      firstPlacePoints?: number;
+      secondPlacePoints?: number;
+      thirdPlacePoints?: number;
+    }
+  ): Promise<any> {
+    const response = await api.patch(
+      `/admin/races/${raceId}/points-config`,
+      data
+    );
+    return response.data;
+  },
 };

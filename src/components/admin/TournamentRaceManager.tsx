@@ -20,6 +20,8 @@ import RaceForm, { type RaceFormData } from "./race/RaceForm";
 import TournamentDetail from "./tournament/TournamentDetail";
 import useAdminTournament from "../../hooks/admin/useAdminTournament";
 import useAdminRace from "../../hooks/admin/useAdminRace";
+import { AdminService } from "../../services/AdminService";
+import { RaceService } from "../../services/RaceService";
 import { TournamentService } from "../../services/TournamentService";
 import { formatPrizePool } from "../../utils/formatters";
 import type {
@@ -264,6 +266,11 @@ export default function TournamentRaceManager({
 
     const res = await createRace(selectedTournamentId, payload);
     if (res.success) {
+      await AdminService.updateRacePointsConfig(res.data.id, {
+        firstPlacePoints: data.firstPlacePoints,
+        secondPlacePoints: data.secondPlacePoints,
+        thirdPlacePoints: data.thirdPlacePoints,
+      });
       addToast("Race created successfully.", "success");
       setShowCreateRace(false);
       await loadTournamentData(selectedTournamentId);
@@ -292,6 +299,11 @@ export default function TournamentRaceManager({
 
     const res = await updateRace(editingRace.id, payload);
     if (res.success) {
+      await AdminService.updateRacePointsConfig(editingRace.id, {
+        firstPlacePoints: data.firstPlacePoints,
+        secondPlacePoints: data.secondPlacePoints,
+        thirdPlacePoints: data.thirdPlacePoints,
+      });
       addToast("Race updated successfully.", "success");
       setEditingRace(null);
       if (selectedTournamentId) await loadTournamentData(selectedTournamentId);
@@ -749,7 +761,26 @@ export default function TournamentRaceManager({
                         onRaceUpdated={() =>
                           loadTournamentData(selectedTournamentId)
                         }
-                        onEditRace={(r) => setEditingRace(r)}
+                        onEditRace={async (r) => {
+                          try {
+                            const [detail, config] = await Promise.all([
+                              RaceService.getRaceById(r.id),
+                              AdminService.getRaceConfig(r.id),
+                            ]);
+                            setEditingRace({
+                              ...r,
+                              ...detail,
+                              raceConfig: config,
+                              raceConfigFailed: false,
+                            } as any);
+                          } catch {
+                            setEditingRace({
+                              ...r,
+                              raceConfig: null,
+                              raceConfigFailed: true,
+                            } as any);
+                          }
+                        }}
                         addToast={addToast}
                       />
                     ))}
@@ -802,6 +833,15 @@ export default function TournamentRaceManager({
             laneCount: editingRace.laneCount ?? 8,
             raceNumber: (editingRace as any).raceNumber ?? undefined,
             trackDistanceId: (editingRace as any).courseDistanceId ?? "",
+            firstPlacePoints: (editingRace as any).raceConfigFailed
+              ? 0
+              : ((editingRace as any).raceConfig?.firstPlacePoints ?? 9),
+            secondPlacePoints: (editingRace as any).raceConfigFailed
+              ? 0
+              : ((editingRace as any).raceConfig?.secondPlacePoints ?? 8),
+            thirdPlacePoints: (editingRace as any).raceConfigFailed
+              ? 0
+              : ((editingRace as any).raceConfig?.thirdPlacePoints ?? 7),
           }}
           initialTrackId={(editingRace as any).course?.id ?? ""}
           onClose={() => setEditingRace(null)}

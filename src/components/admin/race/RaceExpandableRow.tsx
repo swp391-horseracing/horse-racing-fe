@@ -32,6 +32,12 @@ export default function RaceExpandableRow({
   const [entries, setEntries] = useState<RaceEntry[]>([]);
   const [entriesLoading, setEntriesLoading] = useState(false);
   const [raceReferee, setRaceReferee] = useState<AssignedReferee | null>(null);
+  const [raceConfig, setRaceConfig] = useState<{
+    firstPlacePoints: number;
+    secondPlacePoints: number;
+    thirdPlacePoints: number;
+  } | null>(null);
+  const [raceConfigLoading, setRaceConfigLoading] = useState(false);
   const [showRefereePicker, setShowRefereePicker] = useState(false);
   const [availableReferees, setAvailableReferees] = useState<
     { id: string; fullName: string; email?: string }[]
@@ -78,6 +84,21 @@ export default function RaceExpandableRow({
         setRaceReferee(ref);
       } catch {
         if (!ignore) setRaceReferee(null);
+      }
+
+      try {
+        setRaceConfigLoading(true);
+        const data = await AdminService.getRaceConfig(race.id);
+        if (!ignore)
+          setRaceConfig({
+            firstPlacePoints: data.firstPlacePoints,
+            secondPlacePoints: data.secondPlacePoints,
+            thirdPlacePoints: data.thirdPlacePoints,
+          });
+      } catch {
+        if (!ignore) setRaceConfig(null);
+      } finally {
+        if (!ignore) setRaceConfigLoading(false);
       }
     };
 
@@ -250,6 +271,51 @@ export default function RaceExpandableRow({
       {/* Expanded Details Section */}
       {expanded && (
         <div className="border-t border-slate-100 bg-slate-50/50 p-4 space-y-4">
+          {/* Race Metadata & Points Info Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="bg-white rounded-xl border border-slate-200 p-3">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                Distance & Lanes
+              </p>
+              <p className="text-xs font-semibold text-slate-800">
+                {race.distanceMeters ?? 1200}m • {race.laneCount ?? 8} Lanes
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-slate-200 p-3">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                Track Condition
+              </p>
+              <p className="text-xs font-semibold text-slate-800 capitalize">
+                {race.trackCondition || "Dry"}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-slate-200 p-3">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                Venue / Track
+              </p>
+              <p className="text-xs font-semibold text-slate-800 truncate">
+                {race.venue || "Main Arena"}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-slate-200 p-3">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                Points Config (1st / 2nd / 3rd)
+              </p>
+              {raceConfigLoading ? (
+                <div className="flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin text-slate-400" />
+                  <span className="text-xs text-slate-400">Loading...</span>
+                </div>
+              ) : (
+                <p className="text-xs font-semibold text-[#064E3B]">
+                  {raceConfig
+                    ? `${raceConfig.firstPlacePoints} / ${raceConfig.secondPlacePoints} / ${raceConfig.thirdPlacePoints} pts`
+                    : "—"}
+                </p>
+              )}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Entries Section */}
             <div className="md:col-span-2 bg-white rounded-xl border border-slate-200 p-3.5 space-y-2">
@@ -410,11 +476,6 @@ export default function RaceExpandableRow({
                     <User className="w-3.5 h-3.5" /> Assign Referee
                   </button>
                 )}
-              </div>
-
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500">
-                <span>Lane Count: {race.laneCount ?? 8}</span>
-                <span>Distance: {race.distanceMeters ?? 1200}m</span>
               </div>
             </div>
           </div>

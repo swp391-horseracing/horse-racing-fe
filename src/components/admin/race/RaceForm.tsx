@@ -34,6 +34,9 @@ export type RaceFormData = {
   laneCount: number;
   raceNumber?: number;
   trackDistanceId: string;
+  firstPlacePoints: number;
+  secondPlacePoints: number;
+  thirdPlacePoints: number;
 };
 
 const initialForm: RaceFormData = {
@@ -45,6 +48,9 @@ const initialForm: RaceFormData = {
   laneCount: 8,
   raceNumber: undefined,
   trackDistanceId: "",
+  firstPlacePoints: 9,
+  secondPlacePoints: 8,
+  thirdPlacePoints: 7,
 };
 
 type Props = {
@@ -342,6 +348,68 @@ export default function RaceForm({
                 }
                 className="w-full border rounded-xl px-4 py-3"
               />
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-bold text-[#064E3B] mb-3 pt-2 border-t">
+              Points Configuration
+            </h3>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-semibold mb-2">
+                  1st Place
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={form.firstPlacePoints}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      firstPlacePoints: Number(e.target.value),
+                    }))
+                  }
+                  className="w-full border rounded-xl px-4 py-3"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">
+                  2nd Place
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={form.secondPlacePoints}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      secondPlacePoints: Number(e.target.value),
+                    }))
+                  }
+                  className="w-full border rounded-xl px-4 py-3"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">
+                  3rd Place
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={form.thirdPlacePoints}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      thirdPlacePoints: Number(e.target.value),
+                    }))
+                  }
+                  className="w-full border rounded-xl px-4 py-3"
+                />
+              </div>
             </div>
           </div>
 
