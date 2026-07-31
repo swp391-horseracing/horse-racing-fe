@@ -1,6 +1,6 @@
 import api from "../lib/api";
 import type { Tournament, TournamentResponse } from "../types/tournament";
-import type { UserResponse } from "../types/user";
+import type { User, UserResponse } from "../types/user";
 import type { Race, RaceReportListResponse } from "../types/race";
 
 export const AdminService = {
@@ -32,14 +32,20 @@ export const AdminService = {
     return response.data;
   },
 
-  async getUserById(id: string) {
+  async getUserById(id: string): Promise<User> {
     const response = await api.get(`/admin/users/${id}`);
-    return (
+    const raw =
       response.data.user ||
       response.data.User ||
       response.data.data ||
-      response.data
-    );
+      response.data;
+    return {
+      ...raw,
+      full_name: raw.full_name ?? raw.fullName ?? "",
+      avatar_url: raw.avatar_url ?? raw.avatarUrl ?? null,
+      created_at: raw.created_at ?? raw.createdAt ?? null,
+      updated_at: raw.updated_at ?? raw.updatedAt ?? null,
+    };
   },
 
   async updateUserRole(id: string, role: string): Promise<UserResponse> {
