@@ -15,10 +15,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+const isAuthRequest = (url?: string) =>
+  !!url && (url.includes("/auth/login") || url.includes("/auth/register"));
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error?.response?.status === 401) {
+    if (error?.response?.status === 401 && !isAuthRequest(error.config?.url)) {
       console.warn("API 401 Unauthorized — clearing session");
       localStorage.removeItem("token");
       localStorage.removeItem("userId");

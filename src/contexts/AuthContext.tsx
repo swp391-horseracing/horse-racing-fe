@@ -52,8 +52,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     }
   });
-  const [loading, setLoading] = useState<boolean>(() =>
-    Boolean(localStorage.getItem("token"))
+  const [loading, setLoading] = useState<boolean>(
+    () => !localStorage.getItem("token")
   );
 
   const clearAuth = useCallback(() => {

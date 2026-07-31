@@ -127,6 +127,7 @@ export default function Login() {
       }
 
       setError(errorMessage);
+      setCaptchaToken(null);
     } finally {
       setLoading(false);
     }

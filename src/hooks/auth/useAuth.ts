@@ -51,18 +51,18 @@ export default function useAuth() {
     }
   };
 
+  const resetCaptcha = () => {
+    if (typeof window !== "undefined" && window.grecaptcha) {
+      window.grecaptcha.reset();
+    }
+  };
+
   const logout = async () => {
     await ctxLogout();
   };
 
   const getUserByID = async (id: string) => {
     return UserService.getUser(id);
-  };
-
-  const resetCaptcha = () => {
-    if (typeof window !== "undefined" && window.grecaptcha) {
-      window.grecaptcha.reset();
-    }
   };
 
   return { token, login, logout, register, getToken, getUserByID };
