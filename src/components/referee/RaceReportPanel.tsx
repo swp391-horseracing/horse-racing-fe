@@ -390,7 +390,7 @@ export default function RaceReportPanel({
                       Jockey
                     </th>
                     <th className="text-left py-2 px-3 text-[10px] font-black text-slate-400 uppercase">
-                      Position
+                      Final Position
                     </th>
                     <th className="text-left py-2 px-3 text-[10px] font-black text-slate-400 uppercase">
                       Finish Time
@@ -517,7 +517,7 @@ export default function RaceReportPanel({
               <thead>
                 <tr className="border-b border-slate-100">
                   <th className="text-left py-2 px-3 text-[10px] font-black text-slate-400 uppercase">
-                    Pos
+                    Final Position
                   </th>
                   <th className="text-left py-2 px-3 text-[10px] font-black text-slate-400 uppercase">
                     Horse
