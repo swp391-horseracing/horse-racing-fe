@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { ROUTES } from "../router/routes";
@@ -26,8 +26,6 @@ import {
   Users,
   BarChart3,
   Play,
-  Sun,
-  Moon,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -384,23 +382,10 @@ export default function MainPage() {
   const navigate = useNavigate();
   const [activeRole, setActiveRole] = useState<RoleTab>("owner");
   const [flowRole, setFlowRole] = useState<RoleTab>("owner");
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof document !== "undefined") {
-      return document.documentElement.classList.contains("dark");
-    }
-    return false;
-  });
 
-  const toggleTheme = () => {
-    const html = document.documentElement;
-    if (isDarkMode) {
-      html.classList.remove("dark");
-      setIsDarkMode(false);
-    } else {
-      html.classList.add("dark");
-      setIsDarkMode(true);
-    }
-  };
+  useEffect(() => {
+    document.documentElement.classList.remove("dark");
+  }, []);
 
   const currentRole = ROLE_DATA[activeRole];
 
@@ -423,18 +408,6 @@ export default function MainPage() {
           </button>
           {/* Actions */}
           <div className="flex items-center gap-2">
-            <Button
-              onClick={toggleTheme}
-              variant="ghost"
-              size="icon"
-              className="rounded-xl"
-            >
-              {isDarkMode ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )}
-            </Button>
             <Button
               variant="outline"
               onClick={() => navigate(ROUTES.LOGIN)}

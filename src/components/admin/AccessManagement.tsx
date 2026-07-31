@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, Loader2, Eye } from "lucide-react";
-import { cn } from "../../lib/utils";
 import { formatStatus } from "../../utils/formatters";
 import type { ToastType } from "../../types/referee";
 import useAdmin from "../../hooks/admin/useAdmin";
 import UserSearch from "./user/UserSearch";
 import UserDetailsModal from "./user/UserDetailsModal";
+import { StatusBadge, USER_STATUS_STYLES } from "../ui/StatusBadge";
 
 type OpenMenuState =
   | {
@@ -184,16 +184,13 @@ export default function AccessManagement({
                     </td>
 
                     <td className="p-3">
-                      <span
-                        className={cn(
-                          "px-2 py-0.5 rounded text-[9px] font-black uppercase",
-                          u.status.toLowerCase() === "active"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : "bg-rose-50 text-rose-700 border border-rose-200"
-                        )}
-                      >
-                        {formatStatus(u.status)}
-                      </span>
+                      <StatusBadge
+                        status={u.status.toLowerCase()}
+                        styleMap={USER_STATUS_STYLES}
+                        label={formatStatus(u.status)}
+                        size="md"
+                        className="uppercase"
+                      />
                     </td>
 
                     <td className="p-3 text-right">

@@ -20,6 +20,11 @@ import type { ToastType } from "../../types/referee";
 import type { RefereeReport } from "../../types/referee";
 import type { RaceReportListItem, Pagination } from "../../types/race";
 import { STATUS_LABELS, STATUS_STYLES } from "../../types/report";
+import {
+  StatusBadge,
+  FINISH_STATUS_STYLES,
+  SEVERITY_STYLES,
+} from "../ui/StatusBadge";
 
 interface RefereeReviewReportsProps {
   addToast: (message: string, type?: ToastType) => void;
@@ -508,20 +513,12 @@ function ReportDetailView({
                       {formatFinishTime(p.finishTime)}
                     </td>
                     <td className="py-2.5 px-3">
-                      <span
-                        className={cn(
-                          "text-[9px] font-black uppercase px-2 py-0.5 rounded-full border",
-                          p.finishStatus === "finished"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : p.finishStatus === "dsq"
-                              ? "bg-red-50 text-red-700 border-red-200"
-                              : p.finishStatus === "dns"
-                                ? "bg-slate-100 text-slate-500 border-slate-200"
-                                : "bg-amber-50 text-amber-700 border-amber-200"
-                        )}
-                      >
-                        {p.finishStatus?.toUpperCase() || "—"}
-                      </span>
+                      <StatusBadge
+                        status={p.finishStatus || "finished"}
+                        styleMap={FINISH_STATUS_STYLES}
+                        size="sm"
+                        className="uppercase"
+                      />
                     </td>
                     <td className="py-2.5 px-3 font-label font-bold text-slate-600">
                       {p.points ?? "—"}
@@ -554,9 +551,12 @@ function ReportDetailView({
                     {v.violationType}
                     {v.note ? ` • ${v.note}` : ""}
                   </p>
-                  <p className="text-[9px] text-orange-600 mt-0.5 capitalize">
-                    {v.severity?.replace(/_/g, " ")}
-                  </p>
+                  <StatusBadge
+                    status={v.severity ?? "warning"}
+                    styleMap={SEVERITY_STYLES}
+                    size="sm"
+                    className="capitalize"
+                  />
                 </div>
                 <span className="text-[9px] font-label font-bold text-orange-700 ml-3 shrink-0">
                   {formatDate(v.occurredAt)}

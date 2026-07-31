@@ -38,6 +38,10 @@ export default function MainLayout() {
       label: "Tracks",
       to: ROUTES.TRACKS,
     },
+    {
+      label: "Leaderboard",
+      to: ROUTES.LEADERBOARD,
+    },
   ];
 
   const roleLinkMap: Record<string, LinkItem> = {

@@ -4,15 +4,9 @@ import { HorseService } from "../services/HorseService";
 import { JockeyService } from "../services/JockeyService";
 import type { TransformedHorseRow } from "../components/leaderboard/HorseLeaderboardView";
 import type { TransformedJockeyRow } from "../components/leaderboard/JockeyLeaderboardView";
-import type { Horse } from "../types/horse";
+import type { HorseLeaderboardEntry } from "../types/horse";
 
 export type LeaderboardTab = "horses" | "jockeys";
-
-interface LeaderboardHorse extends Horse {
-  earnings?: number;
-  winRate?: number;
-  speed?: number;
-}
 
 export function useLeaderboard() {
   const [activeTab, setActiveTab] = useState<LeaderboardTab>("horses");
@@ -41,36 +35,30 @@ export function useLeaderboard() {
 
       try {
         if (tab === "horses") {
-          const response = await HorseService.getHorses(
-            undefined,
-            undefined,
-            undefined,
+          const response = await HorseService.getLeaderboard(
             currentPage,
             limit
           );
           if (currentRequestId !== requestIdRef.current) return;
 
-          const rawHorses: Horse[] = response?.data || [];
+          const rawEntries: HorseLeaderboardEntry[] = response?.data || [];
 
-          const transformedRows: TransformedHorseRow[] = rawHorses.map(
-            (item: Horse, index: number) => {
-              const horse = item as LeaderboardHorse;
-
-              return {
-                rank: (currentPage - 1) * limit + (index + 1),
-                horse: {
-                  id: horse.id,
-                  name: horse.name,
-                  imageUrl: horse.imageUrl || null,
-                  earnings: horse.earnings ?? 0,
-                  winRate: horse.winRate ?? 0,
-                  speed: horse.speed ?? 0,
-                },
-              };
-            }
+          const transformedRows: TransformedHorseRow[] = rawEntries.map(
+            (item) => ({
+              rank: item.rank,
+              horse: {
+                id: item.horse.id,
+                name: item.horse.name,
+                imageUrl: item.horse.imageUrl ?? null,
+                points: item.totalPoints,
+                wins: item.wins,
+                totalRaces: item.totalRaces,
+                winRate: item.totalRaces > 0 ? item.wins / item.totalRaces : 0,
+              },
+            })
           );
 
-          const totalCount = response?.pagination?.total ?? rawHorses.length;
+          const totalCount = response?.pagination?.total ?? rawEntries.length;
           setTotalItems(totalCount);
 
           if (response?.pagination?.totalPages) {

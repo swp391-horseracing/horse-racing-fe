@@ -1,5 +1,13 @@
 // Shared types and helpers for Admin Race Reports components
 
+// Report/result statuses share the centralized status color + label maps.
+import {
+  RESULT_STATUS_STYLES as STATUS_STYLES,
+  STATUS_LABELS,
+} from "../components/ui/StatusBadge";
+
+export { STATUS_STYLES, STATUS_LABELS };
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ReportDetailRace {
@@ -67,20 +75,6 @@ export interface ReportDetailData {
 }
 
 export type StatusFilter = "" | "referee_confirmed" | "published";
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-export const STATUS_LABELS: Record<string, string> = {
-  draft: "Draft",
-  referee_confirmed: "Pending Publication",
-  published: "Published",
-};
-
-export const STATUS_STYLES: Record<string, string> = {
-  draft: "bg-slate-100 text-slate-600 border-slate-200",
-  referee_confirmed: "bg-amber-50 text-amber-800 border-amber-200",
-  published: "bg-emerald-50 text-emerald-800 border-emerald-200",
-};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

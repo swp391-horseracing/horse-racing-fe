@@ -4,9 +4,10 @@ export interface TransformedHorseRow {
     id: string;
     name: string;
     imageUrl: string | null;
-    earnings: number;
+    points: number;
+    wins: number;
+    totalRaces: number;
     winRate: number;
-    speed: number;
   };
 }
 
@@ -34,10 +35,6 @@ export function HorseLeaderboardView({
 
   return (
     <div className="space-y-6">
-      {/* keeping hero cards visible on page 1 so everyone can see the full UI layout.
-          the api doesn't have data for earnings/winrate/speed yet, so it will show 0 for now.
-          once the backend team adds those columns, this will populate automatically.
-      */}
       {page === 1 && sortedRows.length > 0 && top3.length > 0 && (
         <div
           className={`grid grid-cols-1 gap-6 md:grid-cols-3 transition-opacity duration-200 ${isLoading ? "opacity-50" : "opacity-100"}`}
@@ -74,10 +71,10 @@ export function HorseLeaderboardView({
                     </div>
                     <div className="text-right">
                       <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Earnings
+                        Points
                       </div>
                       <div className="text-xl font-black text-[#064E3B]">
-                        ${(horse.earnings * 1000).toLocaleString()}
+                        {horse.points.toLocaleString()}
                       </div>
                     </div>
                   </div>
@@ -92,10 +89,10 @@ export function HorseLeaderboardView({
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="font-semibold uppercase text-slate-500">
-                        Speed Figure
+                        Races
                       </span>
                       <span className="font-black text-slate-900">
-                        {horse.speed}
+                        {horse.totalRaces}
                       </span>
                     </div>
                   </div>
@@ -150,16 +147,17 @@ export function HorseLeaderboardView({
               <tr className="text-left text-xs uppercase tracking-wider text-slate-500">
                 <th className="py-2">Rank</th>
                 <th>Competitor</th>
-                <th>Earnings</th>
+                <th>Points</th>
+                <th>Wins</th>
                 <th>Overall Win %</th>
-                <th>Speed</th>
+                <th>Races</th>
               </tr>
             </thead>
             <tbody>
               {paginatedRows.length === 0 && !isLoading ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="py-12 text-center text-xs font-medium text-slate-400"
                   >
                     No registered competitors found in this database scope.
@@ -178,12 +176,15 @@ export function HorseLeaderboardView({
                       {r.horse.name}
                     </td>
                     <td className="py-3 text-slate-700">
-                      ${(r.horse.earnings * 1000).toLocaleString()}
+                      {r.horse.points.toLocaleString()}
                     </td>
+                    <td className="py-3 text-slate-700">{r.horse.wins}</td>
                     <td className="py-3 text-slate-700">
                       {(r.horse.winRate * 100).toFixed(1)}%
                     </td>
-                    <td className="py-3 text-slate-700">{r.horse.speed}</td>
+                    <td className="py-3 text-slate-700">
+                      {r.horse.totalRaces}
+                    </td>
                   </tr>
                 ))
               )}

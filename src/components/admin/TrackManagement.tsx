@@ -22,6 +22,7 @@ import type { ToastType } from "../../types/referee";
 import type { TrackDetail, TrackListItem, TrackShape } from "../../types/track";
 import { useTrack } from "../../hooks/useTrack";
 import { formatStatus } from "../../utils/formatters";
+import { TRACK_STATUS_STYLES } from "../ui/StatusBadge";
 
 type OpenMenuState = {
   id: string;
@@ -384,14 +385,8 @@ export default function TrackManagement({
                       <span
                         className={cn(
                           "inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase border",
-                          track.status === "active"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : track.status === "maintenance" ||
-                                track.status === "under_maintainance"
-                              ? "bg-amber-50 text-amber-700 border-amber-200"
-                              : track.status === "draft"
-                                ? "bg-slate-100 text-slate-600 border-slate-200"
-                                : "bg-rose-50 text-rose-700 border-rose-200"
+                          TRACK_STATUS_STYLES[track.status ?? ""] ??
+                            "bg-slate-100 text-slate-600 border-slate-200"
                         )}
                       >
                         {STATUS_LABEL_MAP[track.status ?? ""] ||
@@ -554,12 +549,8 @@ export default function TrackManagement({
                   <span
                     className={cn(
                       "px-2 py-0.5 rounded text-[9px] font-black uppercase border shrink-0",
-                      selectedTrack.status === "active"
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                        : selectedTrack.status === "maintenance" ||
-                            selectedTrack.status === "under_maintainance"
-                          ? "bg-amber-50 text-amber-700 border-amber-200"
-                          : "bg-slate-100 text-slate-600 border-slate-200"
+                      TRACK_STATUS_STYLES[selectedTrack.status ?? ""] ??
+                        "bg-slate-100 text-slate-600 border-slate-200"
                     )}
                   >
                     {STATUS_LABEL_MAP[selectedTrack.status ?? ""] ||
@@ -688,9 +679,8 @@ export default function TrackManagement({
                             <span
                               className={cn(
                                 "px-2 py-0.5 rounded text-[9px] font-bold uppercase",
-                                dist.status === "active"
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : "bg-slate-100 text-slate-500"
+                                TRACK_STATUS_STYLES[dist.status ?? ""] ??
+                                  "bg-slate-100 text-slate-500"
                               )}
                             >
                               {dist.status || "Active"}

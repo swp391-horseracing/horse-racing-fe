@@ -1,6 +1,20 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Gift, Search } from "lucide-react";
+import { StatusBadge, STATUS_STYLES } from "../ui/StatusBadge";
+
+const REDEMPTION_STATUS_STYLES: Record<string, string> = {
+  Completed: STATUS_STYLES.completed,
+  completed: STATUS_STYLES.completed,
+  Processing: STATUS_STYLES.processing,
+  processing: STATUS_STYLES.processing,
+  Pending: STATUS_STYLES.pending,
+  pending: STATUS_STYLES.pending,
+  Failed: STATUS_STYLES.failed,
+  failed: STATUS_STYLES.failed,
+  Cancelled: STATUS_STYLES.cancelled,
+  cancelled: STATUS_STYLES.cancelled,
+};
 
 export default function ProfileExchanges() {
   const [search, setSearch] = useState("");
@@ -105,17 +119,11 @@ export default function ProfileExchanges() {
                   {item.cost} tokens
                 </td>
                 <td className="py-4 text-center">
-                  <span
-                    className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                      item.status === "Completed"
-                        ? "bg-emerald-50 text-emerald-700"
-                        : item.status === "Processing"
-                          ? "bg-amber-50 text-amber-700"
-                          : "bg-red-50 text-red-700"
-                    }`}
-                  >
-                    {item.status}
-                  </span>
+                  <StatusBadge
+                    status={item.status}
+                    styleMap={REDEMPTION_STATUS_STYLES}
+                    size="sm"
+                  />
                 </td>
               </tr>
             ))}

@@ -13,6 +13,7 @@ import {
 import { type MockRace } from "../../types/referee";
 import { cn } from "../../lib/utils";
 import { formatStatus } from "../../utils/formatters";
+import { StatusBadge, INSPECTION_STATUS_STYLES } from "../ui/StatusBadge";
 
 interface PreRaceInspectionPanelProps {
   race: MockRace;
@@ -265,21 +266,13 @@ export default function PreRaceInspectionPanel({
                     <span className="text-[10px] font-black text-slate-400 uppercase font-label">
                       Lane {lane.laneNumber}
                     </span>
-                    <span
-                      className={cn(
-                        "text-[9px] font-black uppercase px-2 py-0.5 rounded-full border",
-                        lane.inspectionStatus === "cleared" &&
-                          "bg-emerald-100 text-emerald-700 border-emerald-200",
-                        lane.inspectionStatus === "pending" &&
-                          "bg-amber-50 text-amber-900 border-amber-300 font-extrabold",
-                        lane.inspectionStatus === "disqualified" &&
-                          "bg-red-50 text-red-950 border-red-300 font-extrabold",
-                        lane.inspectionStatus === "withdrawn" &&
-                          "bg-slate-100 text-slate-500 border-slate-200"
-                      )}
-                    >
-                      {formatStatus(lane.inspectionStatus)}
-                    </span>
+                    <StatusBadge
+                      status={lane.inspectionStatus}
+                      styleMap={INSPECTION_STATUS_STYLES}
+                      label={formatStatus(lane.inspectionStatus)}
+                      size="sm"
+                      className="uppercase"
+                    />
                   </div>
 
                   <p className="text-sm font-bold text-slate-800">

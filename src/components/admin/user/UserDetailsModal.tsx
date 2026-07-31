@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X, Loader2 } from "lucide-react";
-import { cn } from "../../../lib/utils";
 import { formatStatus } from "../../../utils/formatters";
 import type { User } from "../../../types/user";
+import { StatusBadge, USER_STATUS_STYLES } from "../../ui/StatusBadge";
 
 interface UserDetailsModalProps {
   isOpen: boolean;
@@ -148,16 +148,13 @@ export default function UserDetailsModal({
 
                 <div className="flex items-center justify-between py-2 border-b border-slate-100">
                   <span className="text-slate-600">Status</span>
-                  <span
-                    className={cn(
-                      "px-3 py-1 rounded-full text-xs font-black uppercase",
-                      user.status.toLowerCase() === "active"
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : "bg-rose-50 text-rose-700 border border-rose-200"
-                    )}
-                  >
-                    {formatStatus(user.status)}
-                  </span>
+                  <StatusBadge
+                    status={user.status.toLowerCase()}
+                    styleMap={USER_STATUS_STYLES}
+                    label={formatStatus(user.status)}
+                    size="md"
+                    className="uppercase"
+                  />
                 </div>
               </div>
             </div>

@@ -8,7 +8,6 @@ import { ToastContainer } from "../components/ui/toast";
 import AccessManagement from "../components/admin/AccessManagement";
 import RegistryApprovals from "../components/admin/RegistryApprovals";
 import TournamentRaceManager from "../components/admin/TournamentRaceManager";
-import VirtualEconomy from "../components/admin/VirtualEconomy";
 import ControlCenterOverview from "../components/admin/controlCenterOverview";
 import RaceReportsManager from "../components/admin/RaceReportsManager";
 import TrackManagement from "../components/admin/TrackManagement";
@@ -21,7 +20,6 @@ const TAB_ROUTE_MAP: Record<string, string> = {
   "/admin/access": "/admin/access",
   "/admin/registry": "/admin/registry",
   [ROUTES.ADMIN_TOURNAMENT_LIST]: "/admin/tournaments",
-  "/admin/economy": "/admin/economy",
   "/admin/track": "/admin/track",
   [ROUTES.ADMIN_REPORTS]: ROUTES.ADMIN_REPORTS,
   "/admin/violation-types": "/admin/violation-types",
@@ -63,8 +61,6 @@ export default function AdminPage() {
         return <RegistryApprovals addToast={addToast} />;
       case "/admin/tournaments":
         return <TournamentRaceManager addToast={addToast} />;
-      case "/admin/economy":
-        return <VirtualEconomy addToast={addToast} />;
       case ROUTES.ADMIN_REPORTS:
         return <RaceReportsManager addToast={addToast} />;
       case "/admin/violation-types":

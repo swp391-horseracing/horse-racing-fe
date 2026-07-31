@@ -24,6 +24,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import {
+  StatusBadge,
+  FINISH_STATUS_STYLES,
+  SEVERITY_STYLES,
+} from "../ui/StatusBadge";
 
 const SEVERITY_OPTIONS = [
   { value: "warning", label: "Warning" },
@@ -46,6 +51,7 @@ interface RaceReportPanelProps {
   onUpdateReportNotes: (notes: string) => void;
   onSaveReportDraft: () => void;
   onSubmitReport: () => void;
+  serverErrors?: ValidationError[];
   onUpdateViolation: (
     laneId: string,
     violationId: string,
@@ -114,7 +120,7 @@ function timeToSeconds(time: string): number {
   return minutes * 60 + seconds + fraction;
 }
 
-interface ValidationError {
+export interface ValidationError {
   field: string;
   laneId: string;
   message: string;
@@ -213,6 +219,7 @@ export default function RaceReportPanel({
   onUpdateReportNotes,
   onSaveReportDraft,
   onSubmitReport,
+  serverErrors = [],
   onUpdateViolation,
   onDeleteViolation,
   onCreateViolation,
@@ -257,6 +264,8 @@ export default function RaceReportPanel({
     markBlurred(`time-${laneId}`);
   };
 
+  const allErrors = [...validationErrors, ...serverErrors];
+
   const handleSubmit = () => {
     const cleared = race.lanes.filter((l) => l.inspectionStatus === "cleared");
     const result = validateResults(cleared);
@@ -267,7 +276,7 @@ export default function RaceReportPanel({
   };
 
   const hasFieldError = (field: string, laneId: string) =>
-    validationErrors.some((e) => e.field === field && e.laneId === laneId);
+    allErrors.some((e) => e.field === field && e.laneId === laneId);
 
   const openEditModal = (
     v: Violation & { laneId: string; horseName: string; laneNumber: number }
@@ -547,16 +556,12 @@ export default function RaceReportPanel({
                     </td>
                     <td className="py-2.5 px-3">
                       {lane.flag && (
-                        <span
-                          className={cn(
-                            "text-[9px] font-black uppercase px-2 py-0.5 rounded-full border",
-                            lane.flag === "dnf"
-                              ? "bg-slate-100 text-slate-500 border-slate-200"
-                              : "bg-red-50 text-red-700 border-red-200 font-bold"
-                          )}
-                        >
-                          {lane.flag}
-                        </span>
+                        <StatusBadge
+                          status={lane.flag}
+                          styleMap={FINISH_STATUS_STYLES}
+                          size="sm"
+                          className="uppercase"
+                        />
                       )}
                     </td>
                   </tr>
@@ -568,12 +573,12 @@ export default function RaceReportPanel({
       </div>
 
       {/* Validation Errors */}
-      {isEditable && validationErrors.length > 0 && (
+      {isEditable && allErrors.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-1.5">
           <p className="text-xs font-bold text-red-800 flex items-center gap-1.5">
             <AlertTriangle className="w-3.5 h-3.5" /> Validation Errors
           </p>
-          {validationErrors.map((err, i) => (
+          {allErrors.map((err, i) => (
             <p key={i} className="text-[10px] text-red-700 font-semibold pl-5">
               • {err.message}
             </p>
@@ -625,9 +630,12 @@ export default function RaceReportPanel({
                     {v.violationType}
                     {v.note ? ` • ${v.note}` : ""}
                   </p>
-                  <p className="text-[9px] text-orange-600 mt-0.5">
-                    {v.severity?.replace(/_/g, " ")}
-                  </p>
+                  <StatusBadge
+                    status={v.severity ?? "warning"}
+                    styleMap={SEVERITY_STYLES}
+                    size="sm"
+                    className="capitalize"
+                  />
                 </div>
                 <div className="flex items-center gap-2 ml-3 shrink-0">
                   <span className="text-[9px] font-label font-bold text-orange-700">

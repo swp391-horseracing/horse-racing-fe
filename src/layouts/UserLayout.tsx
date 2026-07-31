@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   Calendar,
   Mail,
-  TrendingUp,
   Activity,
   UserCheck,
   ClipboardList,
@@ -206,7 +205,6 @@ export default function UserLayout({
         icon: Calendar,
         key: "/admin/tournaments",
       },
-      { label: "Virtual Economy", icon: TrendingUp, key: "/admin/economy" },
       {
         label: "Race Reports",
         icon: ClipboardList,
@@ -350,7 +348,7 @@ export default function UserLayout({
                     {(userRole === "owner" || userRole === "horse_owner") &&
                       "Manage horses, register tournaments, recruit jockeys!"}
                     {userRole === "admin" &&
-                      "Control registry & approvals, manage tracks, manage economy!"}
+                      "Control registry & approvals, manage tracks!"}
                   </div>
                 </div>
               </div>

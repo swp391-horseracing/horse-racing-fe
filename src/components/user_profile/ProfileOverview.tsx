@@ -17,6 +17,12 @@ import {
 import type { UserRace, MyEntry } from "../../types/user";
 import type { WalletTransaction } from "../../types/wallet";
 import type { Prediction } from "../../types/prediction";
+import {
+  StatusBadge,
+  RACE_STATUS_STYLES,
+  REGISTRATION_STATUS_STYLES,
+  formatStatusLabel,
+} from "../ui/StatusBadge";
 
 interface ProfileOverviewProps {
   user: any;
@@ -524,15 +530,12 @@ export default function ProfileOverview({
                         </p>
                       </div>
                     </div>
-                    <span
-                      className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                        item.status === "completed"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-blue-50 text-blue-700"
-                      }`}
-                    >
-                      {item.status}
-                    </span>
+                    <StatusBadge
+                      status={item.status}
+                      styleMap={RACE_STATUS_STYLES}
+                      label={formatStatusLabel(item.status)}
+                      size="sm"
+                    />
                   </div>
                 ))}
                 {races.length === 0 && (
@@ -635,15 +638,12 @@ export default function ProfileOverview({
                         </p>
                       </div>
                     </div>
-                    <span
-                      className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                        item.status === "approved"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-amber-50 text-amber-700"
-                      }`}
-                    >
-                      {item.status}
-                    </span>
+                    <StatusBadge
+                      status={item.status}
+                      styleMap={REGISTRATION_STATUS_STYLES}
+                      label={formatStatusLabel(item.status)}
+                      size="sm"
+                    />
                   </div>
                 ))}
                 {entries.length === 0 && (

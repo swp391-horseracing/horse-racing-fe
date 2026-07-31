@@ -4,6 +4,7 @@ import useAdminRegistration from "../../hooks/admin/useAdminRegistration";
 import { AdminService } from "../../services/AdminService";
 import { RaceService } from "../../services/RaceService";
 import type { RaceListItem } from "../../types/race";
+import { StatusBadge, REGISTRATION_STATUS_STYLES } from "../ui/StatusBadge";
 
 export default function RegistryApprovals({
   addToast,
@@ -145,13 +146,21 @@ function TournamentEntriesTab({
                       Target: {reg.tournament.name}
                     </p>
                   </div>
-                  <span className="bg-amber-100 text-amber-800 text-[9px] px-2 py-0.5 rounded font-black uppercase">
-                    Pending
-                  </span>
+                  <StatusBadge
+                    status="pending"
+                    styleMap={REGISTRATION_STATUS_STYLES}
+                    size="sm"
+                    className="uppercase"
+                  />
                 </div>
 
                 <div className="text-[10px] bg-white p-2 rounded border border-slate-100 font-label text-slate-600">
-                  <p>Owner ID: {reg.horse.ownerId}</p>
+                  <p>
+                    Owner:{" "}
+                    {reg.owner?.fullName ??
+                      reg.horse.ownerId ??
+                      "Unknown Owner"}
+                  </p>
                   <p>
                     Submitted:{" "}
                     {new Date(reg.submittedAt).toLocaleDateString("en-GB")}

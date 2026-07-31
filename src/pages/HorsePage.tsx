@@ -12,6 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import type { Horse } from "../types/horse";
 import { formatStatus } from "../utils/formatters";
+import { HORSE_HEALTH_STYLES } from "../components/ui/StatusBadge";
 import {
   Layers,
   Zap,
@@ -39,6 +40,10 @@ function getAge(birthDate?: string) {
   return `${Math.max(age, 0)} yrs`;
 }
 
+function getHealthKey(healthStatus?: string): string {
+  return (healthStatus ?? "").toLowerCase().replace(/[\s]+/g, "_");
+}
+
 function getStatusLabel(horse: Horse): string {
   if (horse.isRetired) return "Retired";
   return horse.healthStatus ? formatStatus(horse.healthStatus) : "Active";
@@ -46,38 +51,24 @@ function getStatusLabel(horse: Horse): string {
 
 function getStatusDotColor(horse: Horse): string {
   if (horse.isRetired) return "bg-slate-400";
-  switch (horse.healthStatus?.toLowerCase()) {
-    case "healthy":
-      return "bg-green-500";
-    case "recovering":
-      return "bg-blue-500";
-    case "minor injury":
-      return "bg-yellow-500";
-    case "injured":
-      return "bg-red-500";
-    case "under observation":
-      return "bg-slate-200";
-    default:
-      return "bg-green-500";
-  }
+  const dotMap: Record<string, string> = {
+    healthy: "bg-emerald-500",
+    recovering: "bg-blue-500",
+    minor_injury: "bg-amber-400",
+    injured: "bg-red-500",
+    sick: "bg-amber-400",
+    rest: "bg-slate-300",
+    under_observation: "bg-slate-300",
+  };
+  return dotMap[getHealthKey(horse.healthStatus)] ?? "bg-emerald-500";
 }
 
 function getStatusBadgeStyle(horse: Horse): string {
-  if (horse.isRetired) return "bg-slate-50 border-slate-300 text-slate-600";
-  switch (horse.healthStatus?.toLowerCase()) {
-    case "healthy":
-      return "bg-emerald-50 border-emerald-200 text-emerald-700";
-    case "recovering":
-      return "bg-blue-50 border-blue-200 text-blue-700";
-    case "minor injury":
-      return "bg-yellow-50 border-yellow-200 text-yellow-700";
-    case "injured":
-      return "bg-red-50 border-red-200 text-red-700";
-    case "under observation":
-      return "bg-slate-50 border-slate-200 text-slate-500";
-    default:
-      return "bg-emerald-50 border-emerald-200 text-emerald-700";
-  }
+  if (horse.isRetired) return "bg-slate-100 border-slate-200 text-slate-600";
+  return (
+    HORSE_HEALTH_STYLES[getHealthKey(horse.healthStatus)] ??
+    HORSE_HEALTH_STYLES.healthy
+  );
 }
 
 function HorseRow({ horse, selected }: { horse: Horse; selected: boolean }) {

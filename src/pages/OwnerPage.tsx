@@ -58,6 +58,7 @@ export default function OwnerPage() {
     enterRace,
     eligibleHorsesByTournament,
     loadJockeys,
+    loadInvitations,
     inviteJockey,
   } = useOwner();
 
@@ -291,7 +292,9 @@ export default function OwnerPage() {
         <SendInvitesPage
           entries={entries}
           jockeys={jockeys}
+          invitations={invitations}
           loadJockeys={loadJockeys}
+          loadInvitations={loadInvitations}
           inviteJockey={inviteJockey}
         />
       );
@@ -306,7 +309,9 @@ export default function OwnerPage() {
         <SendInvitesPage
           entries={entries}
           jockeys={jockeys}
+          invitations={invitations}
           loadJockeys={loadJockeys}
+          loadInvitations={loadInvitations}
           inviteJockey={inviteJockey}
         />
       );
