@@ -30,3 +30,33 @@ export interface RetireHorseResponse {
   message: string;
   horse: Horse;
 }
+
+export interface HorseLeaderboardEntry {
+  rank: number;
+  totalPoints: number;
+  totalRaces: number;
+  wins: number;
+  horse: {
+    id: string;
+    name: string;
+    breed: string;
+    imageUrl: string | null;
+    healthStatus: string;
+    isRetired: boolean;
+  };
+  owner: {
+    id: string;
+    fullName: string;
+    avatarUrl: string | null;
+  };
+}
+
+export interface HorseLeaderboardResponse {
+  data: HorseLeaderboardEntry[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}

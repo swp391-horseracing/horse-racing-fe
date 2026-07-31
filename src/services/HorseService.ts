@@ -1,5 +1,9 @@
 import api from "../lib/api";
-import type { HorseListResponse, RetireHorseResponse } from "../types/horse";
+import type {
+  HorseLeaderboardResponse,
+  HorseListResponse,
+  RetireHorseResponse,
+} from "../types/horse";
 import type { HorseRaceHistoryEntry, RaceHistoryResponse } from "../types/race";
 
 export const HorseService = {
@@ -59,6 +63,16 @@ export const HorseService = {
       healthStatus: data.healthStatus,
       baseSpeed: data.baseSpeed,
       stamina: data.stamina,
+    });
+    return response.data;
+  },
+
+  async getLeaderboard(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<HorseLeaderboardResponse> {
+    const response = await api.get("/horses/leaderboard", {
+      params: { page, limit },
     });
     return response.data;
   },
