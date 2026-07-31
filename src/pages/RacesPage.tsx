@@ -1340,8 +1340,7 @@ export default function RacesPage() {
                                     (raceDetail?.status === "scheduled" ||
                                       raceDetail?.status === "pre_race") && (
                                       <td className="px-6 py-4.5 text-center">
-                                        {entry.entryStatus === "confirmed" &&
-                                        !currentPrediction ? (
+                                        {!currentPrediction ? (
                                           <button
                                             onClick={() => {
                                               setPreselectedEntry({

@@ -119,26 +119,6 @@ export function useJockey() {
     []
   );
 
-  const updateRideStatus = useCallback(
-    (rideId: string, status: "accepted" | "declined") => {
-      setRides((prev) =>
-        prev.map((r) =>
-          r.id === rideId
-            ? {
-                ...r,
-                entryStatus: status,
-                confirmedAt:
-                  status === "accepted"
-                    ? new Date().toISOString()
-                    : r.confirmedAt,
-              }
-            : r
-        )
-      );
-    },
-    []
-  );
-
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadRaces();
@@ -154,6 +134,5 @@ export function useJockey() {
     pagination,
     jockeysPagination,
     loadRaces,
-    updateRideStatus,
   };
 }

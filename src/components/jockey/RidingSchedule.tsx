@@ -44,8 +44,6 @@ interface RidingScheduleProps {
   rides: MyRide[];
   loading?: boolean;
   userRole: "jockey" | "owner";
-  onAcceptRide?: (id: string) => void;
-  onDeclineRide?: (id: string) => void;
 }
 
 const formatOrdinal = (num: number) => {
@@ -76,8 +74,6 @@ export function RidingSchedule({
   rides,
   loading = false,
   userRole,
-  onAcceptRide,
-  onDeclineRide,
 }: RidingScheduleProps) {
   const isJockey = userRole === "jockey";
 
@@ -379,8 +375,6 @@ export function RidingSchedule({
               <JockeyDetailPanel
                 ride={activeSelectedRide}
                 onClose={() => setSelectedRide(null)}
-                onAccept={onAcceptRide!}
-                onDecline={onDeclineRide!}
               />
             ) : (
               <OwnerDetailPanel
@@ -398,13 +392,9 @@ export function RidingSchedule({
 function JockeyDetailPanel({
   ride,
   onClose,
-  onAccept,
-  onDecline,
 }: {
   ride: MyRide;
   onClose: () => void;
-  onAccept: (id: string) => void;
-  onDecline: (id: string) => void;
 }) {
   const [activeTab, setActiveTab] = useState<RideDetailTab>("info");
   const [raceEntries, setRaceEntries] = useState<RaceEntry[]>([]);
@@ -583,38 +573,6 @@ function JockeyDetailPanel({
               </div>
             </div>
           </div>
-
-          {ride.entryStatus === "pending" && (
-            <div className="bg-white border-2 border-[#D97706]/20 rounded-xl p-5 shadow-md">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-[#D97706] mb-3 block">
-                Invitation Status
-              </h3>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <span className="text-sm font-bold text-slate-800 block">
-                    Invited by {ride.horseOwner}
-                  </span>
-                  <span className="text-xs text-slate-555 mt-0.5 block">
-                    Received recently · Pending response
-                  </span>
-                </div>
-                <div className="flex gap-2.5 shrink-0">
-                  <button
-                    onClick={() => onAccept(ride.id)}
-                    className="rounded-xl bg-[#064E3B] text-white hover:bg-[#043E2F] px-5 py-2.5 text-xs font-black shadow-sm transition active:scale-95 duration-200"
-                  >
-                    ✓ Accept Invitation
-                  </button>
-                  <button
-                    onClick={() => onDecline(ride.id)}
-                    className="rounded-xl border border-slate-200 bg-white text-slate-655 hover:bg-slate-50 px-5 py-2.5 text-xs font-black transition active:scale-95 duration-200"
-                  >
-                    Decline
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </>
       )}
 
@@ -693,9 +651,7 @@ function JockeyDetailPanel({
                         <td className="px-5 py-3.5 text-slate-600 font-medium">
                           {isOurs ? (
                             <span className="text-[#064E3B] font-bold">
-                              {ride.entryStatus === "declined"
-                                ? "— Refused —"
-                                : "You"}
+                              You
                             </span>
                           ) : (
                             entry.jockeyName

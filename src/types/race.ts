@@ -111,11 +111,11 @@ export type Ride = {
   laneNumber: number;
   entryStatus:
     | "pending"
-    | "accepted"
-    | "declined"
-    | "disqualified"
+    | "confirmed"
+    | "scratched"
+    | "withdrawn"
     | "did_not_finish"
-    | "scratched";
+    | "disqualified";
   confirmedAt: string | null;
   horseOwner: string;
   horsesId: string;

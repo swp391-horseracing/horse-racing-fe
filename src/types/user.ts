@@ -125,7 +125,13 @@ export interface UserRace {
 
   laneNumber?: number;
 
-  entryStatus?: "pending" | "accepted" | "declined";
+  entryStatus?:
+    | "pending"
+    | "confirmed"
+    | "scratched"
+    | "withdrawn"
+    | "did_not_finish"
+    | "disqualified";
 
   confirmedAt?: string | null;
 
