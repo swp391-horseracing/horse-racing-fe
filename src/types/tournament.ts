@@ -108,6 +108,11 @@ export interface TournamentRegistrationResponse {
   submittedAt: string;
   horse: Horse;
   tournament: Tournament;
+  owner?: {
+    id: string;
+    fullName: string;
+    email?: string;
+  };
 }
 
 export interface RaceItem {
