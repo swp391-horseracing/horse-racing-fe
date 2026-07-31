@@ -53,8 +53,7 @@ export function useLeaderboard() {
                 points: item.totalPoints,
                 wins: item.wins,
                 totalRaces: item.totalRaces,
-                winRate:
-                  item.totalRaces > 0 ? item.wins / item.totalRaces : 0,
+                winRate: item.totalRaces > 0 ? item.wins / item.totalRaces : 0,
               },
             })
           );
