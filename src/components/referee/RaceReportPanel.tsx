@@ -24,6 +24,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import {
+  StatusBadge,
+  FINISH_STATUS_STYLES,
+  SEVERITY_STYLES,
+} from "../ui/StatusBadge";
 
 const SEVERITY_OPTIONS = [
   { value: "warning", label: "Warning" },
@@ -547,16 +552,12 @@ export default function RaceReportPanel({
                     </td>
                     <td className="py-2.5 px-3">
                       {lane.flag && (
-                        <span
-                          className={cn(
-                            "text-[9px] font-black uppercase px-2 py-0.5 rounded-full border",
-                            lane.flag === "dnf"
-                              ? "bg-slate-100 text-slate-500 border-slate-200"
-                              : "bg-red-50 text-red-700 border-red-200 font-bold"
-                          )}
-                        >
-                          {lane.flag}
-                        </span>
+                        <StatusBadge
+                          status={lane.flag}
+                          styleMap={FINISH_STATUS_STYLES}
+                          size="sm"
+                          className="uppercase"
+                        />
                       )}
                     </td>
                   </tr>
@@ -625,9 +626,12 @@ export default function RaceReportPanel({
                     {v.violationType}
                     {v.note ? ` • ${v.note}` : ""}
                   </p>
-                  <p className="text-[9px] text-orange-600 mt-0.5">
-                    {v.severity?.replace(/_/g, " ")}
-                  </p>
+                  <StatusBadge
+                    status={v.severity ?? "warning"}
+                    styleMap={SEVERITY_STYLES}
+                    size="sm"
+                    className="capitalize"
+                  />
                 </div>
                 <div className="flex items-center gap-2 ml-3 shrink-0">
                   <span className="text-[9px] font-label font-bold text-orange-700">

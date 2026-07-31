@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Clock } from "lucide-react";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { JockeyService } from "../../services/JockeyService";
+import { StatusBadge, FINISH_STATUS_STYLES } from "../ui/StatusBadge";
 import type {
   JockeyRaceHistoryEntry,
   RaceHistoryStats,
@@ -150,15 +151,22 @@ export function RaceHistory() {
                       {row.horse?.name ?? "-"}
                     </td>
                     <td className="px-4 py-4">
-                      <span className="rounded bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-900">
-                        {row.finishStatus === "dnf"
-                          ? "DNF"
-                          : row.finishStatus === "dsq"
-                            ? "DSQ"
-                            : row.finishedPosition != null
-                              ? `#${row.finishedPosition}`
-                              : "-"}
-                      </span>
+                      {row.finishStatus === "dnf" ||
+                      row.finishStatus === "dsq" ||
+                      row.finishStatus === "dns" ? (
+                        <StatusBadge
+                          status={row.finishStatus}
+                          styleMap={FINISH_STATUS_STYLES}
+                          size="sm"
+                          className="uppercase"
+                        />
+                      ) : row.finishedPosition != null ? (
+                        <span className="rounded bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-900">
+                          #{row.finishedPosition}
+                        </span>
+                      ) : (
+                        "-"
+                      )}
                     </td>
                     <td className="px-4 py-4 text-slate-700">{row.venue}</td>
                     <td className="px-4 py-4 font-semibold text-slate-700">

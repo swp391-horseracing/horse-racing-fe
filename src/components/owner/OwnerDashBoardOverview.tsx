@@ -1,5 +1,7 @@
 import React from "react";
 import { Trophy } from "lucide-react";
+import { cn } from "../../lib/utils";
+import { HORSE_STATUS_STYLES } from "../ui/StatusBadge";
 import type {
   Horse,
   Tournament,
@@ -120,7 +122,13 @@ export function OwnerDashBoardOverview({
                       {horse.breed} • {(horse as { gender?: string }).gender}
                     </p>
                   </div>
-                  <span className="bg-emerald-50 text-emerald-800 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded border border-emerald-200">
+                  <span
+                    className={cn(
+                      "px-2 py-0.5 rounded text-[9px] font-extrabold uppercase border",
+                      HORSE_STATUS_STYLES[horse.status] ??
+                        "bg-emerald-50 text-emerald-800 border-emerald-200"
+                    )}
+                  >
                     {horse.status}
                   </span>
                 </div>

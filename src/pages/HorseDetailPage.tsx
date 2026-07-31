@@ -13,6 +13,12 @@ import {
 import useHorseDetail from "../hooks/useHorseDetail";
 import NotFoundContent from "../components/ui/NotFoundContent";
 import { formatStatus } from "../utils/formatters";
+import {
+  StatusBadge,
+  HORSE_STATUS_STYLES,
+  FINISH_STATUS_STYLES,
+  RACE_STATUS_STYLES,
+} from "../components/ui/StatusBadge";
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -282,9 +288,15 @@ export default function HorseDetailPage() {
                                 #{row.finishedPosition}
                               </span>
                             ) : (
-                              <span className="rounded bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600 uppercase">
-                                {row.finishStatus || row.raceStatus}
-                              </span>
+                              <StatusBadge
+                                status={row.finishStatus || row.raceStatus}
+                                styleMap={{
+                                  ...RACE_STATUS_STYLES,
+                                  ...FINISH_STATUS_STYLES,
+                                }}
+                                size="sm"
+                                className="uppercase"
+                              />
                             )}
                           </td>
                           <td className="px-4 py-4 text-slate-700 font-medium">
@@ -352,19 +364,27 @@ export default function HorseDetailPage() {
                   label="Status"
                   value={
                     horse.isRetired ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-300 px-2.5 py-0.5 text-xs font-bold text-slate-600">
-                        Retired
-                      </span>
+                      <StatusBadge
+                        status="Retired"
+                        styleMap={HORSE_STATUS_STYLES}
+                        size="md"
+                      />
                     ) : horse.isRacing ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-bold text-amber-700">
-                        <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-                        Racing
-                      </span>
+                      <StatusBadge
+                        status="Racing"
+                        styleMap={HORSE_STATUS_STYLES}
+                        size="md"
+                        showDot
+                        dotClassName="bg-amber-400"
+                      />
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
-                        <span className="h-2 w-2 rounded-full bg-green-500" />
-                        Active
-                      </span>
+                      <StatusBadge
+                        status="Active"
+                        styleMap={HORSE_STATUS_STYLES}
+                        size="md"
+                        showDot
+                        dotClassName="bg-emerald-500"
+                      />
                     )
                   }
                 />
@@ -385,13 +405,19 @@ export default function HorseDetailPage() {
                   label="DNF / DSQ Record"
                   value={
                     <div className="flex items-center gap-1 text-xs">
-                      <span className="rounded bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 font-bold">
-                        {stats.dnfCount} DNF
-                      </span>
+                      <StatusBadge
+                        status="dnf"
+                        styleMap={FINISH_STATUS_STYLES}
+                        label={`${stats.dnfCount} DNF`}
+                        size="md"
+                      />
                       <span className="text-slate-300 font-normal">|</span>
-                      <span className="rounded bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 font-bold">
-                        {stats.dsqCount} DSQ
-                      </span>
+                      <StatusBadge
+                        status="dsq"
+                        styleMap={FINISH_STATUS_STYLES}
+                        label={`${stats.dsqCount} DSQ`}
+                        size="md"
+                      />
                     </div>
                   }
                 />

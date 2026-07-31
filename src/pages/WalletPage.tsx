@@ -25,6 +25,11 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
+import {
+  StatusBadge,
+  WALLET_TX_STATUS_STYLES,
+  formatStatusLabel,
+} from "../components/ui/StatusBadge";
 
 export default function WalletPage() {
   const navigate = useNavigate();
@@ -319,34 +324,14 @@ export default function WalletPage() {
     }
   };
 
-  const getStatusBadge = (status: WalletTransaction["status"]) => {
-    switch (status) {
-      case "completed":
-        return (
-          <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 font-label">
-            Completed
-          </span>
-        );
-      case "pending":
-        return (
-          <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 font-label">
-            Pending
-          </span>
-        );
-      case "failed":
-        return (
-          <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-red-100 text-red-800 font-label">
-            Failed
-          </span>
-        );
-      case "cancelled":
-        return (
-          <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-800 font-label">
-            Cancelled
-          </span>
-        );
-    }
-  };
+  const getStatusBadge = (status: WalletTransaction["status"]) => (
+    <StatusBadge
+      status={status}
+      styleMap={WALLET_TX_STATUS_STYLES}
+      label={formatStatusLabel(status)}
+      size="md"
+    />
+  );
 
   const formatAmount = (tx: WalletTransaction) => {
     const isNegative =

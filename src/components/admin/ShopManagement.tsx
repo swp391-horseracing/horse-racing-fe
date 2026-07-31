@@ -21,6 +21,7 @@ import {
 import { useToast } from "../../hooks/useToast";
 import { ToastContainer } from "../ui/toast";
 import { cn } from "../../lib/utils";
+import { STATUS_STYLES } from "../ui/StatusBadge";
 
 const DEFAULT_ITEMS = [
   {
@@ -456,9 +457,7 @@ export default function ShopManagement() {
                         <span
                           className={cn(
                             "px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
-                            isActive
-                              ? "bg-emerald-50 text-emerald-800"
-                              : "bg-slate-100 text-slate-400"
+                            STATUS_STYLES[isActive ? "active" : "inactive"]
                           )}
                         >
                           {isActive ? "Active" : "Inactive"}

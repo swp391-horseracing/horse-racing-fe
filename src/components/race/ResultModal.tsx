@@ -1,6 +1,7 @@
 import { X, Trophy, Clock, Hourglass } from "lucide-react";
 import type { FeFinalPlacement } from "../../types/live";
 import type { RaceApiStatus } from "../../types/race";
+import { StatusBadge, FINISH_STATUS_STYLES } from "../ui/StatusBadge";
 
 const formatTime = (ms: number) => {
   const s = Math.floor(ms / 1000);
@@ -128,15 +129,16 @@ export function ResultModal({
                             </span>
                           </td>
                           <td className="px-3 py-3 text-right">
-                            <span
-                              className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full ${
-                                p.finishStatus === "placed"
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : "bg-red-100 text-red-700"
-                              }`}
-                            >
-                              {p.finishStatus === "placed" ? "Finished" : "DNF"}
-                            </span>
+                            <StatusBadge
+                              status={
+                                p.finishStatus === "placed" ? "finished" : "dnf"
+                              }
+                              styleMap={FINISH_STATUS_STYLES}
+                              size="sm"
+                              label={
+                                p.finishStatus === "placed" ? "Finished" : "DNF"
+                              }
+                            />
                           </td>
                         </tr>
                       ))}

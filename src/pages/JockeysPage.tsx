@@ -16,6 +16,7 @@ import {
   Ban,
 } from "lucide-react";
 import banner from "../assets/images/horse-banner.png";
+import { StatusBadge, HORSE_STATUS_STYLES } from "../components/ui/StatusBadge";
 
 function JockeyRow({
   jockey,
@@ -82,15 +83,21 @@ function JockeyRow({
       </div>
       <div className="flex items-center gap-2 shrink-0 pl-4">
         {jockey.isRacing && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-bold text-amber-700">
-            <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-            Racing
-          </span>
+          <StatusBadge
+            status="Racing"
+            styleMap={HORSE_STATUS_STYLES}
+            size="md"
+            showDot
+            dotClassName="bg-amber-400"
+          />
         )}
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border-emerald-200 text-emerald-700 border px-2.5 py-0.5 text-xs font-bold">
-          <span className="h-2 w-2 rounded-full bg-green-500" />
-          Active
-        </span>
+        <StatusBadge
+          status="Active"
+          styleMap={HORSE_STATUS_STYLES}
+          size="md"
+          showDot
+          dotClassName="bg-emerald-500"
+        />
       </div>
     </div>
   );
