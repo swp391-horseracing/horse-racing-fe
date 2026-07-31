@@ -59,6 +59,7 @@ export default function WalletPage() {
   const txLimit = 10;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTxPage(1);
   }, [searchQuery, txActiveTab, startDate, endDate]);
 
@@ -601,7 +602,18 @@ export default function WalletPage() {
             {txTotalPages > 1 && (
               <div className="flex items-center justify-between px-2 pt-3 border-t border-slate-100 shrink-0">
                 <p className="text-[10px] text-slate-500 font-semibold">
-                  Showing <span className="font-bold text-slate-700">{(txPage - 1) * txLimit + 1}</span>–<span className="font-bold text-slate-700">{Math.min(txPage * txLimit, filteredTransactions.length)}</span> of <span className="font-bold text-slate-700">{filteredTransactions.length}</span>
+                  Showing{" "}
+                  <span className="font-bold text-slate-700">
+                    {(txPage - 1) * txLimit + 1}
+                  </span>
+                  –
+                  <span className="font-bold text-slate-700">
+                    {Math.min(txPage * txLimit, filteredTransactions.length)}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-bold text-slate-700">
+                    {filteredTransactions.length}
+                  </span>
                 </p>
                 <div className="flex items-center gap-1">
                   <button
@@ -615,7 +627,9 @@ export default function WalletPage() {
                     {txPage} / {txTotalPages}
                   </span>
                   <button
-                    onClick={() => setTxPage((p) => Math.min(txTotalPages, p + 1))}
+                    onClick={() =>
+                      setTxPage((p) => Math.min(txTotalPages, p + 1))
+                    }
                     disabled={txPage >= txTotalPages}
                     className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                   >

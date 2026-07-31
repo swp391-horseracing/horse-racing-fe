@@ -185,7 +185,8 @@ export default function RefereePage() {
           timerRunning: false,
           reportNotes: "",
           reportStatus: r.resultStatus ?? null,
-          refereeCheckedIn: false,
+          refereeCheckedIn:
+            localStorage.getItem(`referee_checked_in_${r.id}`) === "true",
           tournamentId: r.tournamentId,
           carryWeight: null,
           lanes: [],
@@ -464,6 +465,7 @@ export default function RefereePage() {
   );
 
   const handleToggleCheckIn = (raceId: string, checkedIn: boolean) => {
+    localStorage.setItem(`referee_checked_in_${raceId}`, String(checkedIn));
     updateRace(raceId, (r) => ({ ...r, refereeCheckedIn: checkedIn }));
     addToast(
       checkedIn

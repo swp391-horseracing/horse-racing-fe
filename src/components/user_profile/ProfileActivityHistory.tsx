@@ -21,6 +21,7 @@ export default function ProfileActivityHistory({
   const limit = 10;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
   }, [search, typeFilter]);
 
@@ -200,7 +201,19 @@ export default function ProfileActivityHistory({
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-4 border-t border-slate-100">
           <p className="text-[10px] text-slate-500 font-semibold">
-            Showing <span className="font-bold text-slate-700">{(page - 1) * limit + 1}</span>–<span className="font-bold text-slate-700">{Math.min(page * limit, filteredActivities.length)}</span> of <span className="font-bold text-slate-700">{filteredActivities.length}</span> activities
+            Showing{" "}
+            <span className="font-bold text-slate-700">
+              {(page - 1) * limit + 1}
+            </span>
+            –
+            <span className="font-bold text-slate-700">
+              {Math.min(page * limit, filteredActivities.length)}
+            </span>{" "}
+            of{" "}
+            <span className="font-bold text-slate-700">
+              {filteredActivities.length}
+            </span>{" "}
+            activities
           </p>
           <div className="flex items-center gap-1">
             <button

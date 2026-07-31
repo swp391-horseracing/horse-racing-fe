@@ -60,7 +60,18 @@ export default function NotificationsPanel() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-4 border-t border-slate-100 shrink-0">
           <p className="text-[10px] text-slate-500 font-semibold">
-            Showing <span className="font-bold text-slate-700">{(page - 1) * limit + 1}</span>–<span className="font-bold text-slate-700">{Math.min(page * limit, NotificationList.length)}</span> of <span className="font-bold text-slate-700">{NotificationList.length}</span>
+            Showing{" "}
+            <span className="font-bold text-slate-700">
+              {(page - 1) * limit + 1}
+            </span>
+            –
+            <span className="font-bold text-slate-700">
+              {Math.min(page * limit, NotificationList.length)}
+            </span>{" "}
+            of{" "}
+            <span className="font-bold text-slate-700">
+              {NotificationList.length}
+            </span>
           </p>
           <div className="flex items-center gap-1">
             <button
