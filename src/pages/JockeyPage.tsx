@@ -72,19 +72,6 @@ export default function JockeyPage() {
     }
   };
 
-  const handleAcceptRide = (id: string) => {
-    const target = rides.find((r) => r.id === id);
-    addToast(
-      `Response recorded! Tentatively registered to ride ${target?.ride}. Awaiting final Owner confirmation.`,
-      "success"
-    );
-  };
-
-  const handleDeclineRide = (id: string) => {
-    const target = rides.find((r) => r.id === id);
-    addToast(`You declined the invitation to ride ${target?.ride}.`, "info");
-  };
-
   const renderContent = () => {
     switch (active) {
       case ROUTES.JOCKEY_DASHBOARD:
@@ -101,8 +88,6 @@ export default function JockeyPage() {
             rides={rides}
             loading={ridesLoading}
             userRole="jockey"
-            onAcceptRide={handleAcceptRide}
-            onDeclineRide={handleDeclineRide}
           />
         );
       case ROUTES.JOCKEY_INVITATIONS:

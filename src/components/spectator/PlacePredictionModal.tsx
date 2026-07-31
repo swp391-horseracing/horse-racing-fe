@@ -68,10 +68,7 @@ export function PlacePredictionModal({
 
   const filterEntries = useCallback(
     (list: RaceEntry[]) =>
-      list.filter(
-        (e) =>
-          e.entryStatus === "confirmed" && !predictedEntryIds?.includes(e.id)
-      ),
+      list.filter((e) => !predictedEntryIds?.includes(e.id)),
     [predictedEntryIds]
   );
 

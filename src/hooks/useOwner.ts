@@ -426,7 +426,7 @@ export function useOwner() {
           laneNumber: entry.laneNumber ?? 0,
           laneCount: race?.laneCount ?? 0,
           entryStatus: entry.status as Ride["entryStatus"],
-          confirmedAt: null,
+          confirmedAt: entry.confirmedAt ?? null,
           horseOwner: "",
           horsesId: entry.horseId,
           ownerId: "",
