@@ -447,12 +447,18 @@ export function JockeyRosterManagement() {
                 <div className="flex-1 p-6 overflow-y-auto space-y-4">
                   <div className="font-bold text-[#064E3B] text-lg border-b pb-3 flex justify-between items-center">
                     <span>{toPascalCase("invitations for this entry")}</span>
-                    <button
-                      onClick={() => handleFindJockey(selectedEntry)}
-                      className="px-3 py-1 text-xs font-bold rounded-xl bg-[#064E3B] text-white hover:bg-[#043E2F] transition-colors"
-                    >
-                      {toPascalCase("invite jockey")}
-                    </button>
+                    {selectedEntry.jockeyName ? (
+                      <span className="text-xs font-semibold text-emerald-600 shrink-0">
+                        Assigned: {selectedEntry.jockeyName}
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => handleFindJockey(selectedEntry)}
+                        className="px-3 py-1 text-xs font-bold rounded-xl bg-[#064E3B] text-white hover:bg-[#043E2F] transition-colors"
+                      >
+                        {toPascalCase("invite jockey")}
+                      </button>
+                    )}
                   </div>
                   {relatedInvitations.length === 0 ? (
                     <div className="text-center py-16 text-slate-400 border border-dashed rounded-2xl">
