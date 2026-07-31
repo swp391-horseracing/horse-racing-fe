@@ -157,7 +157,9 @@ function TournamentEntriesTab({
                 <div className="text-[10px] bg-white p-2 rounded border border-slate-100 font-label text-slate-600">
                   <p>
                     Owner:{" "}
-                    {reg.owner?.fullName ?? reg.horse.ownerId ?? "Unknown Owner"}
+                    {reg.owner?.fullName ??
+                      reg.horse.ownerId ??
+                      "Unknown Owner"}
                   </p>
                   <p>
                     Submitted:{" "}

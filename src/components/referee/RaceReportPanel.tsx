@@ -51,6 +51,7 @@ interface RaceReportPanelProps {
   onUpdateReportNotes: (notes: string) => void;
   onSaveReportDraft: () => void;
   onSubmitReport: () => void;
+  serverErrors?: ValidationError[];
   onUpdateViolation: (
     laneId: string,
     violationId: string,
@@ -119,7 +120,7 @@ function timeToSeconds(time: string): number {
   return minutes * 60 + seconds + fraction;
 }
 
-interface ValidationError {
+export interface ValidationError {
   field: string;
   laneId: string;
   message: string;
@@ -218,6 +219,7 @@ export default function RaceReportPanel({
   onUpdateReportNotes,
   onSaveReportDraft,
   onSubmitReport,
+  serverErrors = [],
   onUpdateViolation,
   onDeleteViolation,
   onCreateViolation,
@@ -262,6 +264,8 @@ export default function RaceReportPanel({
     markBlurred(`time-${laneId}`);
   };
 
+  const allErrors = [...validationErrors, ...serverErrors];
+
   const handleSubmit = () => {
     const cleared = race.lanes.filter((l) => l.inspectionStatus === "cleared");
     const result = validateResults(cleared);
@@ -272,7 +276,7 @@ export default function RaceReportPanel({
   };
 
   const hasFieldError = (field: string, laneId: string) =>
-    validationErrors.some((e) => e.field === field && e.laneId === laneId);
+    allErrors.some((e) => e.field === field && e.laneId === laneId);
 
   const openEditModal = (
     v: Violation & { laneId: string; horseName: string; laneNumber: number }
@@ -569,12 +573,12 @@ export default function RaceReportPanel({
       </div>
 
       {/* Validation Errors */}
-      {isEditable && validationErrors.length > 0 && (
+      {isEditable && allErrors.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-1.5">
           <p className="text-xs font-bold text-red-800 flex items-center gap-1.5">
             <AlertTriangle className="w-3.5 h-3.5" /> Validation Errors
           </p>
-          {validationErrors.map((err, i) => (
+          {allErrors.map((err, i) => (
             <p key={i} className="text-[10px] text-red-700 font-semibold pl-5">
               • {err.message}
             </p>

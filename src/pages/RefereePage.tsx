@@ -21,7 +21,9 @@ import RefereeDashboard from "../components/referee/RefereeDashboard";
 import RefereeRaceList from "../components/referee/RefereeRaceList";
 import PreRaceInspectionPanel from "../components/referee/PreRaceInspectionPanel";
 import LiveMonitorPanel from "../components/referee/LiveMonitorPanel";
-import RaceReportPanel from "../components/referee/RaceReportPanel";
+import RaceReportPanel, {
+  type ValidationError,
+} from "../components/referee/RaceReportPanel";
 import RefereeReviewReports from "../components/referee/RefereeReviewReports";
 import { UserService } from "../services/UserService";
 import { RefereeService } from "../services/RefereeService";
@@ -90,6 +92,57 @@ function parseMSSToSecondsString(
   return `${totalSeconds}${fractionStr}`;
 }
 
+const PLACEMENT_FIELD_LABELS: Record<string, string> = {
+  finishedPosition: "finish position",
+  finishTime: "finish time",
+  finishStatus: "finish status",
+  points: "points",
+};
+
+function mapPlacementServerErrors(
+  errors: unknown,
+  lanes: LaneEntry[]
+): ValidationError[] {
+  if (!Array.isArray(errors)) return [];
+  return errors.flatMap((raw) => {
+    const err = raw as { field?: unknown; message?: unknown };
+    const field = typeof err.field === "string" ? err.field : "";
+    const message =
+      typeof err.message === "string" ? err.message : "Invalid value";
+
+    if (field === "placements") {
+      return [
+        {
+          field: "position",
+          laneId: "",
+          message: `At least one placement is required: ${message}`,
+        },
+      ];
+    }
+
+    const match = field.match(/^placements\.(\d+)(?:\.(\w+))?$/);
+    if (!match) return [];
+    const index = parseInt(match[1], 10);
+    const lane = lanes[index];
+    if (!lane) return [];
+
+    const prop = match[2] || "entry";
+    const label = PLACEMENT_FIELD_LABELS[prop] ?? prop;
+    return [
+      {
+        field:
+          prop === "finishedPosition"
+            ? "position"
+            : prop === "finishTime"
+              ? "time"
+              : label,
+        laneId: lane.id,
+        message: `Lane ${lane.laneNumber} (${lane.horseName}) — ${label}: ${message}`,
+      },
+    ];
+  });
+}
+
 export default function RefereePage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -102,6 +155,9 @@ export default function RefereePage() {
   const [loading, setLoading] = useState(false);
   const [violationTypeConfigs, setViolationTypeConfigs] = useState<
     ViolationTypeConfig[]
+  >([]);
+  const [placementServerErrors, setPlacementServerErrors] = useState<
+    ValidationError[]
   >([]);
 
   // Clear selected race when navigating away from the race list
@@ -585,11 +641,15 @@ export default function RefereePage() {
     const race = apiRaces.find((r) => r.id === raceId);
     if (!race) return;
 
+    setPlacementServerErrors([]);
+
+    const eligible = race.lanes.filter((l) => l.finishPosition != null);
+
     try {
       const payload = {
-        placements: race.lanes.map((l) => ({
+        placements: eligible.map((l) => ({
           entryId: l.id,
-          finishedPosition: l.finishPosition ?? null,
+          finishedPosition: l.finishPosition,
           finishTime: parseMSSToSecondsString(l.finishTime) || undefined,
           finishStatus: (l.inspectionStatus === "withdrawn"
             ? "dns"
@@ -602,10 +662,22 @@ export default function RefereePage() {
       await RefereeService.updatePlacements(raceId, payload);
       return true;
     } catch (e: any) {
-      addToast(
-        e.response?.data?.message || "Failed to save placements",
-        "error"
+      const mappedErrors = mapPlacementServerErrors(
+        e.response?.data?.errors,
+        eligible
       );
+      if (mappedErrors.length > 0) {
+        setPlacementServerErrors(mappedErrors);
+        addToast(
+          `Placements not saved — ${mappedErrors.length} field error(s). See highlighted rows.`,
+          "error"
+        );
+      } else {
+        addToast(
+          e.response?.data?.message || "Failed to save placements",
+          "error"
+        );
+      }
       return false;
     }
   };
@@ -882,6 +954,7 @@ export default function RefereePage() {
                     handleSaveReportDraft(race.id, race.reportNotes)
                   }
                   onSubmitReport={() => handleSubmitReport(race.id)}
+                  serverErrors={placementServerErrors}
                   onUpdateViolation={(
                     laneId,
                     violationId,

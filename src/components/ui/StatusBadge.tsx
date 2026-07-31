@@ -73,7 +73,7 @@ export const STATUS_STYLES: Record<string, string> = {
   live_now: "bg-rose-50 text-rose-700 border-rose-200",
 
   // Negative / red
-  cancelled: "bg-red-50 text-red-700 border-red-200",
+  cancelled: "bg-slate-50 text-slate-700 border-slate-200",
   failed: "bg-red-50 text-red-700 border-red-200",
   rejected: "bg-red-50 text-red-700 border-red-200",
   declined: "bg-red-50 text-red-700 border-red-200",
@@ -113,7 +113,7 @@ export const STATUS_DARK_STYLES: Record<string, string> = {
   ongoing: "bg-rose-500/20 border-rose-400/50 text-rose-200",
   live: "bg-rose-500/20 border-rose-400/50 text-rose-200",
   live_now: "bg-rose-500/20 border-rose-400/50 text-rose-200",
-  cancelled: "bg-red-500/20 border-red-400/50 text-red-200",
+  cancelled: "bg-slate-500/20 border-slate-400/50 text-slate-200",
   failed: "bg-red-500/20 border-red-400/50 text-red-200",
   declined: "bg-red-500/20 border-red-400/50 text-red-200",
   disqualified: "bg-red-500/20 border-red-400/50 text-red-200",
@@ -262,7 +262,7 @@ export const RIDE_STATUS_DARK_STYLES: Record<string, string> = {
   disqualified: "bg-red-600 text-white! border-transparent",
   scratched: "bg-amber-600 text-white! border-transparent",
   withdrawn: "bg-slate-600 text-white! border-transparent",
-  cancelled: "bg-red-600 text-white! border-transparent",
+  cancelled: "bg-slate-600 text-white! border-transparent",
 };
 
 export const INVITATION_STATUS_STYLES: Record<string, string> = {
