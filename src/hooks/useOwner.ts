@@ -94,17 +94,29 @@ export function useOwner() {
 
   const loadJockeys = useCallback(async () => {
     try {
-      const response = await JockeyService.getJockeys({
-        page: jockeyPage,
-        limit: 10,
+      const all: Jockey[] = [];
+      let page = 1;
+      let totalPages = 1;
+      do {
+        const response = await JockeyService.getJockeys({
+          page,
+          limit: 100,
+        });
+        all.push(...(response.data ?? []));
+        totalPages = response.pagination?.totalPages ?? 1;
+        page++;
+      } while (page <= totalPages);
+      setJockeys(all);
+      setJockeysPagination({
+        page: 1,
+        limit: all.length,
+        total: all.length,
+        totalPages: 1,
       });
-
-      setJockeys(response.data ?? []);
-      setJockeysPagination(response.pagination);
     } catch (error) {
       console.error("Failed to load jockeys:", error);
     }
-  }, [jockeyPage]);
+  }, []);
 
   const loadTournamentsList = useCallback(async () => {
     try {
@@ -458,12 +470,6 @@ export function useOwner() {
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => loadJockeys(), 0);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jockeyPage]);
 
   useEffect(() => {
     const timer = setTimeout(() => loadEntries(), 0);
