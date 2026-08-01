@@ -10,7 +10,7 @@ import { useToast } from "../../hooks/useToast";
 import { ToastContainer } from "../ui/toast";
 import {
   deriveEntryStatus,
-  DERIVED_ENTRY_STATUS_LABELS,
+  resolveEntryStatusLabel,
 } from "../../utils/entryStatus";
 
 interface OwnerEntriesProps {
@@ -56,9 +56,6 @@ export function OwnerEntries({
       setWithdrawing(null);
     }
   };
-
-  const entryStatusLabel = (status: string) =>
-    status.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
@@ -162,7 +159,7 @@ export function OwnerEntries({
                             <StatusBadge
                               status={entry.entryStatus}
                               styleMap={ENTRY_STATUS_STYLES}
-                              label={entryStatusLabel(entry.entryStatus)}
+                              label={resolveEntryStatusLabel(entry)}
                               size="xs"
                               className="rounded uppercase"
                             />
@@ -170,7 +167,7 @@ export function OwnerEntries({
                             <StatusBadge
                               status={derivedStatus}
                               styleMap={DERIVED_ENTRY_STATUS_STYLES}
-                              label={DERIVED_ENTRY_STATUS_LABELS[derivedStatus]}
+                              label={resolveEntryStatusLabel(entry)}
                               size="xs"
                               className="rounded uppercase"
                             />

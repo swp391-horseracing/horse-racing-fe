@@ -7,10 +7,15 @@ import { ToastContainer } from "../ui/toast";
 import { useToast } from "../../hooks/useToast";
 import {
   deriveEntryStatus,
-  DERIVED_ENTRY_STATUS_LABELS,
+  resolveEntryStatusLabel,
 } from "../../utils/entryStatus";
 
 const SIDEBAR_PAGE_SIZE = 8;
+const AWAITING_STATUSES = new Set([
+  "awaiting_jockey",
+  "awaiting_owner",
+  "awaiting_referee",
+]);
 
 interface JockeyRosterManagementProps {
   invitations: Invitation[];
@@ -39,23 +44,26 @@ export function JockeyRosterManagement({
   const selectedEntryId = searchParams.get("selected");
   const tabParam = searchParams.get("tab");
   const { toasts, addToast } = useToast(3000);
-  // Entries without a fully confirmed jockey pairing.
-  // Previously checked invitation.status === "confirmed", a value that
-  // invitation.status can never hold (it's only pending/accepted/declined/
-  // cancelled), so this filter was always a no-op. Use entry.jockeyId /
-  // entry.entryStatus instead, which are the fields that actually track this.
+  // Entries still awaiting a jockey pairing (any of the three "not yet
+  // confirmed" sub-states). Previously checked invitation.status ===
+  // "confirmed", a value that invitation.status can never hold, so this
+  // filter was always a no-op. Also previously checked `!== "confirmed"`
+  // directly, which wrongly admitted terminal states (withdrawn/scratched/
+  // disqualified/did_not_finish) — those aren't "confirmed" either, but
+  // they're not awaiting anything and shouldn't show a "Find Jockey" button.
   //
   // Filtered from allEntries (the full, unpaginated list) rather than a
   // paginated page — filtering a single page first would make entries
   // appear/disappear from this list depending on which page happened to be
   // showing, independent of whether they actually need a jockey.
-  const entriesWithoutJockey = allEntries.filter(
-    (entry) =>
+  const entriesWithoutJockey = allEntries.filter((entry) =>
+    AWAITING_STATUSES.has(
       deriveEntryStatus({
         entryStatus: entry.entryStatus,
         jockeyId: entry.jockeyId,
         confirmedAt: entry.confirmedAt,
-      }) !== "confirmed"
+      })
+    )
   );
 
   const sidebarTotalPages = Math.max(
@@ -103,17 +111,6 @@ export function JockeyRosterManagement({
       .split(/[_\s-]+/)
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(" ");
-  };
-
-  const describeEntryStatus = (entry: Entry): string => {
-    const derived = deriveEntryStatus({
-      entryStatus: entry.entryStatus,
-      jockeyId: entry.jockeyId,
-      confirmedAt: entry.confirmedAt,
-    });
-    return derived === "other"
-      ? toPascalCase(entry.entryStatus)
-      : DERIVED_ENTRY_STATUS_LABELS[derived];
   };
 
   // entryId from URL available for future redirect handling
@@ -243,7 +240,7 @@ export function JockeyRosterManagement({
             <div className="flex items-center justify-center gap-3 p-4 border-t bg-slate-50">
               <button
                 disabled={clampedSidebarPage <= 1}
-                onClick={() => setSidebarPage((p) => p - 1)}
+                onClick={() => setSidebarPage(clampedSidebarPage - 1)}
                 className="rounded-lg border bg-white px-3 py-1 text-xs font-semibold disabled:opacity-50 hover:bg-slate-100 transition"
               >
                 {toPascalCase("prev")}
@@ -255,7 +252,7 @@ export function JockeyRosterManagement({
 
               <button
                 disabled={clampedSidebarPage >= sidebarTotalPages}
-                onClick={() => setSidebarPage((p) => p + 1)}
+                onClick={() => setSidebarPage(clampedSidebarPage + 1)}
                 className="rounded-lg border bg-white px-3 py-1 text-xs font-semibold disabled:opacity-50 hover:bg-slate-100 transition"
               >
                 {toPascalCase("next")}
@@ -352,7 +349,7 @@ export function JockeyRosterManagement({
                     {selectedEntry.entryStatus && (
                       <div className="px-4 py-1.5 text-xs font-bold rounded-xl bg-slate-100 text-slate-700 border border-slate-200">
                         {toPascalCase("entry")}:{" "}
-                        {describeEntryStatus(selectedEntry)}
+                        {resolveEntryStatusLabel(selectedEntry)}
                       </div>
                     )}
                   </div>
@@ -461,7 +458,7 @@ export function JockeyRosterManagement({
                             {toPascalCase("entry status")}
                           </div>
                           <div className="font-semibold text-slate-800 capitalize mt-0.5">
-                            {describeEntryStatus(selectedEntry)}
+                            {resolveEntryStatusLabel(selectedEntry)}
                           </div>
                         </div>
                         <div>

@@ -335,7 +335,10 @@ export function useOwner() {
       message
     );
 
-    await loadInvitations(entryId);
+    await Promise.all([
+      loadInvitations(entryId),
+      loadPendingInvitesSummary(allEntries),
+    ]);
 
     return response;
   };
@@ -362,7 +365,11 @@ export function useOwner() {
       throw error;
     }
 
-    await Promise.all([loadInvitations(raceId), loadEntries()]);
+    await Promise.all([
+      loadInvitations(raceId),
+      loadEntries(),
+      loadPendingInvitesSummary(allEntries),
+    ]);
   };
 
   const loadRegistration = useCallback(async (id: string, regId: string) => {
@@ -398,6 +405,8 @@ export function useOwner() {
     await UserService.cancelInvitation(raceId, invitationId);
 
     setInvitations((prev) => prev.filter((item) => item.id !== invitationId));
+
+    await loadPendingInvitesSummary(allEntries);
 
     return true;
   };
@@ -464,12 +473,13 @@ export function useOwner() {
 
       const approvedHorseIds = new Set(approved.map((reg) => reg.horse.id));
 
-      // Full entry list, not the paginated `entries` — the previous
-      // single-page fetch here silently dropped an owner's races past the
-      // first page of entries.
-      const entries = await loadAllEntries();
-
-      const ownerEntries = entries.filter((e: Entry) =>
+      // Full entry list (allEntries), not the paginated `entries` — the
+      // previous single-page fetch here silently dropped an owner's races
+      // past the first page of entries. Reads the already-loaded allEntries
+      // state instead of re-fetching it — loadAllEntries() already ran once
+      // at mount, and calling it again here duplicated that entire paginated
+      // sweep every time `registrations` changed.
+      const ownerEntries = allEntries.filter((e: Entry) =>
         approvedHorseIds.has(e.horseId)
       );
 
@@ -534,7 +544,7 @@ export function useOwner() {
     } finally {
       setScheduleLoading(false);
     }
-  }, [registrations, loadAllEntries]);
+  }, [registrations, allEntries]);
 
   useEffect(() => {
     const initialize = async () => {
@@ -545,12 +555,13 @@ export function useOwner() {
         // intentionally NOT called here — the [entriesPage] effect below
         // already fires once on mount (entriesPage starts at 1), so adding
         // it here would just double-fetch the same first page.
-        const [, , , , allEntriesResult] = await Promise.all([
+        const allEntriesPromise = loadAllEntries();
+        const [allEntriesResult] = await Promise.all([
+          allEntriesPromise,
           loadHorses(),
           loadRegistrations(),
           loadJockeys(),
           loadTournamentsList(),
-          loadAllEntries(),
           loadAllHorses(),
         ]);
 

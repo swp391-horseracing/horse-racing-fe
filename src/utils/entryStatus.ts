@@ -1,3 +1,5 @@
+import { formatStatus } from "./formatters";
+
 export type DerivedEntryStatus =
   | "awaiting_jockey"
   | "awaiting_owner"
@@ -41,4 +43,22 @@ export function deriveEntryStatus(input: {
   }
 
   return "awaiting_referee";
+}
+
+/**
+ * Resolves the display label for an entry's status — the derived
+ * awaiting-state label when applicable, otherwise a formatted version of
+ * the raw entryStatus. Single source of truth for this fallback so the
+ * three call sites (Jockey Roster, My Entries, Tournament Register) can't
+ * drift into slightly different formatting.
+ */
+export function resolveEntryStatusLabel(entry: {
+  entryStatus: string;
+  jockeyId?: string | null;
+  confirmedAt?: string | null;
+}): string {
+  const derived = deriveEntryStatus(entry);
+  return derived === "other"
+    ? formatStatus(entry.entryStatus)
+    : DERIVED_ENTRY_STATUS_LABELS[derived];
 }

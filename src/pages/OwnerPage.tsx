@@ -293,31 +293,13 @@ export default function OwnerPage() {
         </div>
       );
 
-    const sendInvitesMatch = matchPath(
-      "/entries/:entryId/send-invites",
-      active
-    );
+    const sendInvitesMatch =
+      matchPath("/entries/:entryId/send-invites", active) ??
+      matchPath("/owner/entries/:entryId/send-invites", active);
     if (sendInvitesMatch) {
       return (
         <SendInvitesPage
-          entries={entries}
-          jockeys={jockeys}
-          invitations={invitations}
-          loadJockeys={loadJockeys}
-          loadInvitations={loadInvitations}
-          inviteJockey={inviteJockey}
-        />
-      );
-    }
-
-    const ownerEntrySendInvitesMatch = matchPath(
-      "/owner/entries/:entryId/send-invites",
-      active
-    );
-    if (ownerEntrySendInvitesMatch) {
-      return (
-        <SendInvitesPage
-          entries={entries}
+          entries={allEntries}
           jockeys={jockeys}
           invitations={invitations}
           loadJockeys={loadJockeys}
