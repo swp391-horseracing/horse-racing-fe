@@ -5,6 +5,7 @@ import { JockeyService } from "../services/JockeyService";
 import type { TransformedHorseRow } from "../components/leaderboard/HorseLeaderboardView";
 import type { TransformedJockeyRow } from "../components/leaderboard/JockeyLeaderboardView";
 import type { HorseLeaderboardEntry } from "../types/horse";
+import type { JockeyLeaderboardEntry } from "../types/jockey";
 
 export type LeaderboardTab = "horses" | "jockeys";
 
@@ -68,46 +69,26 @@ export function useLeaderboard() {
           }
           setHorseRows(transformedRows);
         } else {
-          const response = await JockeyService.getJockeys({
-            page: currentPage,
-            limit,
-          });
+          const response = await JockeyService.getLeaderboard(
+            currentPage,
+            limit
+          );
           if (currentRequestId !== requestIdRef.current) return;
 
-          const rawJockeys: any[] = response?.data || [];
-
-          const statsResults = await Promise.allSettled(
-            rawJockeys.map((j: any) =>
-              JockeyService.getJockeyRaceHistory(String(j.id), {
-                page: 1,
-                limit: 1,
-              })
-            )
-          );
+          const rawJockeys: JockeyLeaderboardEntry[] = response?.data || [];
 
           const transformedRows: TransformedJockeyRow[] = rawJockeys.map(
-            (item: any, index: number) => {
-              const stats =
-                statsResults[index]?.status === "fulfilled"
-                  ? statsResults[index].value.stats
-                  : { totalRaces: 0, wins: 0, places: 0 };
-
-              const totalRuns = stats.totalRaces ?? 0;
-              const wins = stats.wins ?? 0;
-              const podiums = wins + (stats.places ?? 0);
-              const winRate = totalRuns > 0 ? wins / totalRuns : 0;
-
-              return {
-                rank: (currentPage - 1) * limit + (index + 1),
-                jockey: {
-                  id: item.id,
-                  name: item.fullName || item.name || "Unknown Jockey",
-                  winRate,
-                  totalRuns,
-                  podiums,
-                },
-              };
-            }
+            (item) => ({
+              rank: item.rank,
+              jockey: {
+                id: item.jockey.id,
+                name: item.jockey.fullName || "Unknown Jockey",
+                points: item.totalPoints,
+                wins: item.wins,
+                totalRuns: item.totalRaces,
+                winRate: item.totalRaces > 0 ? item.wins / item.totalRaces : 0,
+              },
+            })
           );
 
           const totalCount = response?.pagination?.total ?? rawJockeys.length;

@@ -5,9 +5,10 @@ export interface TransformedJockeyRow {
   jockey: {
     id: string | number;
     name: string;
-    winRate: number;
+    points: number;
+    wins: number;
     totalRuns: number;
-    podiums: number;
+    winRate: number;
   };
 }
 
@@ -75,10 +76,10 @@ export function JockeyLeaderboardView({
                     </div>
                     <div className="text-right">
                       <div className="text-xs font-semibold uppercase text-slate-500 tracking-wider">
-                        Win Rate
+                        Points
                       </div>
                       <div className="text-xl font-black text-[#064E3B]">
-                        {formatWinRate(jockey.winRate)}
+                        {jockey.points.toLocaleString()}
                       </div>
                     </div>
                   </div>
@@ -86,18 +87,18 @@ export function JockeyLeaderboardView({
                   <div className="w-full space-y-2 border-t border-slate-100 pt-4 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold uppercase text-slate-500">
-                        Total Runs
+                        Win %
                       </span>
                       <span className="font-black text-slate-900">
-                        {jockey.totalRuns}
+                        {formatWinRate(jockey.winRate)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="font-semibold uppercase text-slate-500">
-                        Podiums
+                        Total Runs
                       </span>
                       <span className="font-black text-slate-900">
-                        {jockey.podiums}
+                        {jockey.totalRuns}
                       </span>
                     </div>
                   </div>
@@ -151,16 +152,17 @@ export function JockeyLeaderboardView({
               <tr className="text-left text-xs text-slate-500">
                 <th className="py-2">Rank</th>
                 <th>Jockey</th>
+                <th>Points</th>
+                <th>Wins</th>
                 <th>Win %</th>
                 <th>Runs</th>
-                <th>Podiums</th>
               </tr>
             </thead>
             <tbody>
               {sortedRows.length === 0 && !isLoading ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="py-12 text-center text-xs font-medium text-slate-400"
                   >
                     No registered jockeys found in this database scope.
@@ -179,13 +181,14 @@ export function JockeyLeaderboardView({
                       {row.jockey.name}
                     </td>
                     <td className="py-3 text-slate-700">
+                      {row.jockey.points.toLocaleString()}
+                    </td>
+                    <td className="py-3 text-slate-700">{row.jockey.wins}</td>
+                    <td className="py-3 text-slate-700">
                       {formatWinRate(row.jockey.winRate)}
                     </td>
                     <td className="py-3 text-slate-700">
                       {row.jockey.totalRuns}
-                    </td>
-                    <td className="py-3 text-slate-700">
-                      {row.jockey.podiums}
                     </td>
                   </tr>
                 ))
