@@ -369,7 +369,11 @@ function useLocalOwner() {
         );
         await Promise.all([loadEntries(), loadAllEntries()]);
       } else {
-        await Promise.all([loadInvitations(raceId), loadEntries(), loadAllEntries()]);
+        await Promise.all([
+          loadInvitations(raceId),
+          loadEntries(),
+          loadAllEntries(),
+        ]);
       }
       throw error;
     }

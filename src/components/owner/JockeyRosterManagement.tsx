@@ -538,13 +538,13 @@ export function JockeyRosterManagement({
                             />
                             {inv.status === "accepted" &&
                               !selectedEntry.jockeyId && (
-                              <button
-                                onClick={() => handleConfirm(inv)}
-                                className="rounded-xl bg-emerald-600 px-3 py-1 text-xs font-bold text-white hover:bg-emerald-700 shadow-sm transition"
-                              >
-                                {toPascalCase("confirm")}
-                              </button>
-                            )}
+                                <button
+                                  onClick={() => handleConfirm(inv)}
+                                  className="rounded-xl bg-emerald-600 px-3 py-1 text-xs font-bold text-white hover:bg-emerald-700 shadow-sm transition"
+                                >
+                                  {toPascalCase("confirm")}
+                                </button>
+                              )}
                             {inv.status === "pending" && (
                               <button
                                 onClick={() => handleCancel(inv)}
