@@ -14,7 +14,6 @@ import { RaceAndHorseDetails } from "../components/race/RaceAndHorseDetails";
 import { TournamentSidebar } from "../components/race/TournamentSidebar";
 import { TournamentService } from "../services/TournamentService";
 import type { TournamentDetail, RaceItem } from "../types/tournament";
-import { useAuthContext } from "../contexts/AuthContext";
 
 // Keyframe animations for rank changes
 const rankChangeAnimations = `
@@ -73,8 +72,6 @@ const formatTime = (ms: number) => {
 export default function RaceReplay() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuthContext();
-  const isSpectator = user?.role === "spectator";
   const {
     detail: RaceDetail,
     loading: detailLoading,
@@ -97,6 +94,8 @@ export default function RaceReplay() {
       return null;
     }
   })();
+
+  const isSpectator = user?.role === "spectator";
   const isAdmin = user?.role?.toLowerCase() === "admin";
 
   const [simulating, setSimulating] = useState(false);
