@@ -547,7 +547,12 @@ export default function RefereePage() {
       // check in the startRace handler (admin.ts) before allowing a
       // Role.REFEREE caller to proceed.
       await RaceService.startRaceAdmin(raceId);
-      updateRace(raceId, (r) => ({ ...r, phase: "live", timerRunning: true }));
+      updateRace(raceId, (r) => ({
+        ...r,
+        status: "ongoing",
+        phase: "live",
+        timerRunning: true,
+      }));
       addToast("Race is now Live. Prediction pools are locked.", "success");
     } catch (e: any) {
       addToast(
