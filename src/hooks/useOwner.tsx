@@ -1,4 +1,13 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  createContext,
+  useContext,
+  type ReactNode,
+} from "react";
 import { HorseService } from "../services/HorseService";
 import { UserService } from "../services/UserService";
 import { JockeyService } from "../services/JockeyService";
@@ -35,7 +44,7 @@ export interface HorseOption {
   reason?: string;
 }
 
-export function useOwner() {
+function useLocalOwner() {
   const [horses, setHorses] = useState<Horse[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [registrations, setRegistrations] = useState<
@@ -648,4 +657,26 @@ export function useOwner() {
     confirmPairing,
     cancelInvite,
   };
+}
+
+export type OwnerStore = ReturnType<typeof useLocalOwner>;
+
+const OwnerContext = createContext<OwnerStore | null>(null);
+
+export function OwnerProvider({ children }: { children: ReactNode }) {
+  const store = useLocalOwner();
+
+  return (
+    <OwnerContext.Provider value={store}>{children}</OwnerContext.Provider>
+  );
+}
+
+export function useOwner(): OwnerStore {
+  const ctx = useContext(OwnerContext);
+  if (!ctx) throw new Error("useOwner must be used within OwnerProvider");
+  return ctx;
+}
+
+export function useOwnerStandalone(): OwnerStore {
+  return useLocalOwner();
 }

@@ -17,7 +17,7 @@ import {
   Send,
 } from "lucide-react";
 import useTournament from "../hooks/useTournament";
-import { useOwner } from "../hooks/useOwner";
+import { useOwnerStandalone } from "../hooks/useOwner";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { formatStatus, formatAge, formatPrizePool } from "../utils/formatters";
 import {
@@ -162,7 +162,7 @@ export default function TournamentsPage() {
     horses: ownerHorses,
     registrations: ownerRegistrations,
     registerTournament,
-  } = useOwner();
+  } = useOwnerStandalone();
 
   const [selectedRegHorseId, setSelectedRegHorseId] = useState("");
   const [regStatus, setRegStatus] = useState<{
