@@ -1,5 +1,6 @@
 import api from "../lib/api";
 import type { TournamentApiStatus } from "../types/tournament";
+import type { JockeyLeaderboardResponse } from "../types/jockey";
 import type {
   JockeyRaceHistoryEntry,
   RaceHistoryResponse,
@@ -21,6 +22,16 @@ export const JockeyService = {
       },
     });
 
+    return response.data;
+  },
+
+  getLeaderboard: async (
+    page: number = 1,
+    limit: number = 10
+  ): Promise<JockeyLeaderboardResponse> => {
+    const response = await api.get("/jockeys/leaderboard", {
+      params: { page, limit },
+    });
     return response.data;
   },
 
