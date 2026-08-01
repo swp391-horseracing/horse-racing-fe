@@ -15,6 +15,7 @@ import {
   ArrowRight,
   AlertCircle,
   Send,
+  Settings,
 } from "lucide-react";
 import useTournament from "../hooks/useTournament";
 import { useOwnerStandalone } from "../hooks/useOwner";
@@ -26,6 +27,8 @@ import {
   RACE_STATUS_STYLES,
 } from "../components/ui/StatusBadge";
 import { HorseStatusIndicator } from "../components/owner/HorseStatusIndicator";
+import TournamentDetailAdmin from "../components/admin/tournament/TournamentDetail";
+import useAdminTournament from "../hooks/admin/useAdminTournament";
 
 function StatFilterCard({
   label,
@@ -158,11 +161,41 @@ export default function TournamentsPage() {
 
   const { user } = useUserProfile();
   const isOwner = user?.role === "horse_owner";
+  const isAdmin = user?.role === "admin";
   const {
     horses: ownerHorses,
     registrations: ownerRegistrations,
     registerTournament,
   } = useOwnerStandalone();
+
+  // Admin editing hooks
+  const {
+    updateTournament: adminUpdateTournament,
+    updateTournamentStatus: adminUpdateTournamentStatus,
+  } = useAdminTournament();
+
+  const handleAdminUpdateTournament = async (
+    tId: string,
+    data: Record<string, unknown>
+  ): Promise<true | string> => {
+    const result = await adminUpdateTournament(tId, data as any);
+    if (result === true) {
+      // Re-fetch the tournament detail to reflect changes
+      openTournament(tId);
+    }
+    return result;
+  };
+
+  const handleAdminStatusChange = async (
+    tId: string,
+    status: string
+  ): Promise<true | string> => {
+    const result = await adminUpdateTournamentStatus(tId, status);
+    if (result === true) {
+      openTournament(tId);
+    }
+    return result;
+  };
 
   const [selectedRegHorseId, setSelectedRegHorseId] = useState("");
   const [regStatus, setRegStatus] = useState<{
@@ -466,6 +499,20 @@ export default function TournamentsPage() {
                       Registration
                     </button>
                   )}
+
+                {isAdmin && (
+                  <button
+                    onClick={() => setDetailTab("manage" as any)}
+                    className={`py-2.5 px-4 text-xs font-bold border-b-2 transition-all -mb-[1px] flex items-center gap-1.5 ${
+                      detailTab === ("manage" as any)
+                        ? "border-primary text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Settings className="h-3 w-3" />
+                    Manage
+                  </button>
+                )}
               </div>
 
               <div className="p-6 max-h-[550px] overflow-y-auto custom-scrollbar">
@@ -867,6 +914,22 @@ export default function TournamentsPage() {
                     )}
                   </div>
                 )}
+
+                {(detailTab as string) === "manage" &&
+                  isAdmin &&
+                  selectedTournament && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                        <Settings className="h-3.5 w-3.5" />
+                        Admin Quick-Edit — Changes apply immediately
+                      </div>
+                      <TournamentDetailAdmin
+                        tournament={selectedTournament as any}
+                        onUpdate={handleAdminUpdateTournament}
+                        onStatusChange={handleAdminStatusChange}
+                      />
+                    </div>
+                  )}
               </div>
             </div>
           )}
