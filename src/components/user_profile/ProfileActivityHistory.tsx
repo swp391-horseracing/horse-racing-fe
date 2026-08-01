@@ -1,4 +1,4 @@
-import { useState, useMemo, type ReactNode } from "react";
+import { useState, useMemo, useEffect, type ReactNode } from "react";
 import { Search, Calendar, Coins, Target, Bell } from "lucide-react";
 import type { WalletTransaction } from "../../types/wallet";
 import type { Prediction } from "../../types/prediction";
@@ -16,6 +16,14 @@ export default function ProfileActivityHistory({
 }: ProfileActivityHistoryProps) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPage(1);
+  }, [search, typeFilter]);
 
   const activities = useMemo(() => {
     const list: Array<{
@@ -98,6 +106,13 @@ export default function ProfileActivityHistory({
     });
   }, [activities, search, typeFilter]);
 
+  const paginatedActivities = useMemo(() => {
+    const start = (page - 1) * limit;
+    return filteredActivities.slice(start, start + limit);
+  }, [filteredActivities, page]);
+
+  const totalPages = Math.ceil(filteredActivities.length / limit) || 1;
+
   return (
     <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm space-y-6">
       {/* Title */}
@@ -139,7 +154,7 @@ export default function ProfileActivityHistory({
 
       {/* Timeline Stream */}
       <div className="relative border-l border-slate-100 pl-6 ml-3 space-y-6 py-2">
-        {filteredActivities.map((act) => (
+        {paginatedActivities.map((act) => (
           <div
             key={act.id}
             className="relative group flex items-start justify-between gap-4"
@@ -182,6 +197,45 @@ export default function ProfileActivityHistory({
           </div>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+          <p className="text-[10px] text-slate-500 font-semibold">
+            Showing{" "}
+            <span className="font-bold text-slate-700">
+              {(page - 1) * limit + 1}
+            </span>
+            –
+            <span className="font-bold text-slate-700">
+              {Math.min(page * limit, filteredActivities.length)}
+            </span>{" "}
+            of{" "}
+            <span className="font-bold text-slate-700">
+              {filteredActivities.length}
+            </span>{" "}
+            activities
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            >
+              Previous
+            </button>
+            <span className="text-xs font-label text-slate-500 px-1">
+              {page} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

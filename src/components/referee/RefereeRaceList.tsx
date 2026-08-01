@@ -1,4 +1,4 @@
-import { Flag, Clock, ShieldCheck, AlertTriangle } from "lucide-react";
+import { Clock, ShieldCheck, AlertTriangle } from "lucide-react";
 import { type MockRace, type RacePhase } from "../../types/referee";
 import { StatusBadge } from "../ui/StatusBadge";
 import { cn } from "../../lib/utils";
@@ -102,9 +102,6 @@ export default function RefereeRaceList({
                 onClick={() => onSelectRace(race.id)}
                 className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition cursor-pointer relative overflow-hidden group"
               >
-                <div className="absolute right-0 bottom-0 translate-y-4 translate-x-4 opacity-5 group-hover:scale-110 duration-500 text-[#064E3B]">
-                  <Flag className="w-24 h-24" />
-                </div>
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="font-bold font-headline text-[#064E3B] text-sm">

@@ -55,6 +55,14 @@ export default function WalletPage() {
   const [isTimeFilterOpen, setIsTimeFilterOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
 
+  const [txPage, setTxPage] = useState(1);
+  const txLimit = 10;
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTxPage(1);
+  }, [searchQuery, txActiveTab, startDate, endDate]);
+
   const loadWalletData = async (isMounted = { current: true }) => {
     try {
       setTrendingLoading(true);
@@ -205,6 +213,13 @@ export default function WalletPage() {
       return true;
     });
   }, [wallet, searchQuery, txActiveTab, startDate, endDate, formatDescription]);
+
+  const paginatedTransactions = useMemo(() => {
+    const start = (txPage - 1) * txLimit;
+    return filteredTransactions.slice(start, start + txLimit);
+  }, [filteredTransactions, txPage]);
+
+  const txTotalPages = Math.ceil(filteredTransactions.length / txLimit) || 1;
 
   // Balance Flow Graph data calculation
   const chartData = useMemo(() => {
@@ -545,12 +560,12 @@ export default function WalletPage() {
                 <div className="py-20 text-center text-slate-400 text-sm font-semibold">
                   Loading transactions...
                 </div>
-              ) : filteredTransactions.length === 0 ? (
+              ) : paginatedTransactions.length === 0 ? (
                 <div className="py-20 text-center text-slate-400 text-sm font-semibold">
                   No transactions found.
                 </div>
               ) : (
-                filteredTransactions.map((tx) => (
+                paginatedTransactions.map((tx) => (
                   <div
                     key={tx.id}
                     className="py-3 flex items-center justify-between gap-3 hover:bg-slate-50/50 px-2 rounded-xl transition-colors"
@@ -582,6 +597,47 @@ export default function WalletPage() {
                 ))
               )}
             </div>
+
+            {/* Pagination */}
+            {txTotalPages > 1 && (
+              <div className="flex items-center justify-between px-2 pt-3 border-t border-slate-100 shrink-0">
+                <p className="text-[10px] text-slate-500 font-semibold">
+                  Showing{" "}
+                  <span className="font-bold text-slate-700">
+                    {(txPage - 1) * txLimit + 1}
+                  </span>
+                  –
+                  <span className="font-bold text-slate-700">
+                    {Math.min(txPage * txLimit, filteredTransactions.length)}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-bold text-slate-700">
+                    {filteredTransactions.length}
+                  </span>
+                </p>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setTxPage((p) => Math.max(1, p - 1))}
+                    disabled={txPage <= 1}
+                    className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-xs font-label text-slate-500 px-1">
+                    {txPage} / {txTotalPages}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setTxPage((p) => Math.min(txTotalPages, p + 1))
+                    }
+                    disabled={txPage >= txTotalPages}
+                    className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
