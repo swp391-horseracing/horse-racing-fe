@@ -1,27 +1,9 @@
-import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import useHorse from "../hooks/horse/useHorse";
 import { useSpotlightHorse } from "../hooks/useSpotlightEntity";
 import HorseSearch from "../components/horse/HorseSearch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../components/ui/select";
-import { useNavigate } from "react-router-dom";
 import type { Horse } from "../types/horse";
-import { formatStatus } from "../utils/formatters";
-import { HORSE_HEALTH_STYLES } from "../components/ui/StatusBadge";
-import {
-  Layers,
-  Zap,
-  Activity,
-  ShieldAlert,
-  Star,
-  ArrowRight,
-  Ban,
-} from "lucide-react";
+import { Layers, Zap, ShieldAlert, Star, ArrowRight, Ban } from "lucide-react";
 import banner from "../assets/images/horse-banner.png";
 
 function getAge(birthDate?: string) {
@@ -38,37 +20,6 @@ function getAge(birthDate?: string) {
   }
 
   return `${Math.max(age, 0)} yrs`;
-}
-
-function getHealthKey(healthStatus?: string): string {
-  return (healthStatus ?? "").toLowerCase().replace(/[\s]+/g, "_");
-}
-
-function getStatusLabel(horse: Horse): string {
-  if (horse.isRetired) return "Retired";
-  return horse.healthStatus ? formatStatus(horse.healthStatus) : "Active";
-}
-
-function getStatusDotColor(horse: Horse): string {
-  if (horse.isRetired) return "bg-slate-400";
-  const dotMap: Record<string, string> = {
-    healthy: "bg-emerald-500",
-    recovering: "bg-blue-500",
-    minor_injury: "bg-amber-400",
-    injured: "bg-red-500",
-    sick: "bg-amber-400",
-    rest: "bg-slate-300",
-    under_observation: "bg-slate-300",
-  };
-  return dotMap[getHealthKey(horse.healthStatus)] ?? "bg-emerald-500";
-}
-
-function getStatusBadgeStyle(horse: Horse): string {
-  if (horse.isRetired) return "bg-slate-100 border-slate-200 text-slate-600";
-  return (
-    HORSE_HEALTH_STYLES[getHealthKey(horse.healthStatus)] ??
-    HORSE_HEALTH_STYLES.healthy
-  );
 }
 
 function HorseRow({ horse, selected }: { horse: Horse; selected: boolean }) {
@@ -126,14 +77,6 @@ function HorseRow({ horse, selected }: { horse: Horse; selected: boolean }) {
             Racing
           </span>
         )}
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${getStatusBadgeStyle(horse)}`}
-        >
-          <span
-            className={`h-2 w-2 rounded-full ${getStatusDotColor(horse)}`}
-          />
-          {getStatusLabel(horse)}
-        </span>
       </div>
     </div>
   );
@@ -142,17 +85,7 @@ function HorseRow({ horse, selected }: { horse: Horse; selected: boolean }) {
 export default function HorsePage() {
   const navigate = useNavigate();
   const { horses, loading, error, pagination, setPagination } = useHorse();
-  const spotlight = useSpotlightHorse(horses);
-
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-
-  const filteredHorses = useMemo(() => {
-    if (statusFilter === "all") return horses;
-    if (statusFilter === "retired") return horses.filter((h) => h.isRetired);
-    return horses.filter(
-      (h) => !h.isRetired && h.healthStatus?.toLowerCase() === statusFilter
-    );
-  }, [horses, statusFilter]);
+  const spotlight = useSpotlightHorse();
 
   return (
     <div className="h-full w-full px-40 overflow-y-auto bg-background">
@@ -192,8 +125,8 @@ export default function HorsePage() {
                 </p>
               </div>
 
-              {/* 4 Quick Stat Pills */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+              {/* Quick Stat Pills */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
                 <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur px-4 py-3 text-left">
                   <div className="flex items-center gap-2 text-emerald-200 text-xs font-semibold uppercase tracking-wider mb-1">
                     <Layers className="h-4 w-4" /> Total
@@ -209,15 +142,6 @@ export default function HorsePage() {
                   </div>
                   <div className="text-2xl font-bold text-white">
                     {horses.filter((h) => h.isRacing).length}
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur px-4 py-3 text-left">
-                  <div className="flex items-center gap-2 text-emerald-300 text-xs font-semibold uppercase tracking-wider mb-1">
-                    <Activity className="h-4 w-4 text-emerald-300" /> Active
-                  </div>
-                  <div className="text-2xl font-bold text-white">
-                    {horses.filter((h) => !h.isRetired && !h.isRacing).length}
                   </div>
                 </div>
 
@@ -280,7 +204,7 @@ export default function HorsePage() {
                   <div className="flex items-center justify-between pt-3 border-t border-white/15 z-10">
                     <div>
                       <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-200">
-                        Last month win rate
+                        Overall win rate
                       </div>
                       <div className="text-2xl font-black text-white">
                         {spotlight.winRate}%
@@ -352,28 +276,6 @@ export default function HorsePage() {
                   ? "Not Racing"
                   : "All"}
             </button>
-            <Select
-              value={statusFilter}
-              onValueChange={(value) => {
-                setStatusFilter(value);
-                setPagination((prev) => ({ ...prev, page: 1 }));
-              }}
-            >
-              <SelectTrigger className="w-full sm:w-44 h-10 rounded-xl">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="healthy">Healthy</SelectItem>
-                <SelectItem value="recovering">Recovering</SelectItem>
-                <SelectItem value="minor injury">Minor Injury</SelectItem>
-                <SelectItem value="injured">Injured</SelectItem>
-                <SelectItem value="under observation">
-                  Under Observation
-                </SelectItem>
-                <SelectItem value="retired">Retired</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
 
@@ -384,18 +286,16 @@ export default function HorsePage() {
                 Loading horses...
               </p>
             </div>
-          ) : filteredHorses.length > 0 ? (
+          ) : horses.length > 0 ? (
             <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden divide-y divide-border">
-              {filteredHorses.map((horse) => (
+              {horses.map((horse) => (
                 <HorseRow key={horse.id} horse={horse} selected={false} />
               ))}
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
               <p className="text-sm font-semibold text-muted-foreground">
-                {statusFilter !== "all"
-                  ? "No horses match the selected status."
-                  : "No horses found."}
+                No horses found.
               </p>
             </div>
           )}

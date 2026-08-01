@@ -32,6 +32,10 @@ export interface CreatePredictionPayload {
   stakeAmount: number;
 }
 
+export interface CreatePredictionsPayload {
+  predictions: CreatePredictionPayload[];
+}
+
 export interface PredictionListResponse {
   data: Prediction[];
   pagination: {

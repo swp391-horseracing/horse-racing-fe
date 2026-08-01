@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Search,
   ChevronLeft,
@@ -14,9 +14,10 @@ import { usePredictions } from "../../hooks/usePredictions";
 import { useRaces } from "../../hooks/useRaces";
 import { useWallet } from "../../hooks/useWallet";
 import { RaceService } from "../../services/RaceService";
+import { PredictionService } from "../../services/PredictionService";
 import { PlacePredictionModal } from "./PlacePredictionModal";
 import { ScheduleCalendar } from "../schedule/ScheduleCalendar";
-import type { PredictionStatus } from "../../types/prediction";
+import type { PredictionStatus, Prediction } from "../../types/prediction";
 import type { RaceEntry, RaceListItem } from "../../types/race";
 import type { DateRange } from "react-day-picker";
 import { cn } from "../../lib/utils";
@@ -92,6 +93,33 @@ function OpenRacesTab() {
   const [viewMonth, setViewMonth] = useState<Date>(new Date());
 
   const { toasts, addToast } = useToast();
+
+  const [myPredictions, setMyPredictions] = useState<
+    Record<string, Prediction[]>
+  >({});
+
+  const loadMyPredictions = useCallback(async () => {
+    try {
+      const res = await PredictionService.getMyPredictions({
+        page: 1,
+        limit: 100,
+      });
+      const map: Record<string, Prediction[]> = {};
+      for (const p of res.data) {
+        (map[p.race.id] ||= []).push(p);
+      }
+      setMyPredictions(map);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadMyPredictions();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [loadMyPredictions]);
 
   const viewYear = viewMonth.getFullYear();
   const viewMonthIndex = viewMonth.getMonth();
@@ -303,6 +331,11 @@ function OpenRacesTab() {
                         <MapPin className="w-3.5 h-3.5" />
                         {race.venue}
                       </span>
+                      {(myPredictions[race.id]?.length ?? 0) > 0 && (
+                        <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-black text-[#064E3B]">
+                          {myPredictions[race.id]?.length ?? 0} / 3 predicted
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -320,11 +353,18 @@ function OpenRacesTab() {
                           race.predictionMinStake
                         )
                       }
-                      disabled={loadingRaceId === race.id}
+                      disabled={
+                        loadingRaceId === race.id ||
+                        (myPredictions[race.id]?.length ?? 0) >= 3
+                      }
                       className="flex items-center gap-1.5 bg-[#EAB308] text-[#064E3B] font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-[#D9A207] hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                       <Target className="w-4 h-4" />
-                      {loadingRaceId === race.id ? "Loading..." : "Predict"}
+                      {loadingRaceId === race.id
+                        ? "Loading..."
+                        : (myPredictions[race.id]?.length ?? 0) >= 3
+                          ? "3/3 Max"
+                          : "Predict"}
                     </button>
                   </div>
                 </div>
@@ -351,9 +391,14 @@ function OpenRacesTab() {
           }}
           onSuccess={() => {
             refetchWallet();
+            loadMyPredictions();
           }}
           addToast={addToast}
           balance={balance}
+          predictedEntryIds={(myPredictions[selectedRace.id] || []).map(
+            (p) => p.predictedEntry.entryId
+          )}
+          existingPredictionCount={myPredictions[selectedRace.id]?.length ?? 0}
           predictionMinStake={selectedRace.raceMinStake ?? 10}
         />
       )}

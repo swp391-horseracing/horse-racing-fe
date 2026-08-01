@@ -8,7 +8,7 @@ import {
   Edit2,
 } from "lucide-react";
 import { StatusBadge, RACE_STATUS_STYLES } from "../../ui/StatusBadge";
-import { STATUS_LABELS } from "../race/raceStatus";
+import { RACE_STATUS_FLOW, STATUS_LABELS } from "../race/raceStatus";
 import type { RaceItem } from "../../../types/tournament";
 import type { RaceEntry } from "../../../types/race";
 import type { AssignedReferee } from "../../../types/referee";
@@ -188,6 +188,7 @@ export default function RaceExpandableRow({
   };
 
   const raceNumber = (race as any).raceNumber;
+  const availableStatuses = RACE_STATUS_FLOW[race.status] ?? [];
 
   return (
     <div className="border border-slate-200 rounded-xl bg-white overflow-hidden transition-all shadow-xs">
@@ -251,11 +252,16 @@ export default function RaceExpandableRow({
             disabled={actionLoading}
             className="border border-slate-200 rounded-lg px-2 py-1 text-[10px] font-semibold bg-slate-50 text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#064E3B]"
           >
-            <option value="scheduled">Scheduled</option>
-            <option value="pre_race">Pre Race</option>
-            <option value="running">Running</option>
-            <option value="finished">Finished</option>
-            <option value="cancelled">Cancelled</option>
+            <option value={race.status}>
+              {STATUS_LABELS[race.status] ?? race.status.replaceAll("_", " ")}
+            </option>
+            {availableStatuses
+              .filter((s) => s !== race.status)
+              .map((s) => (
+                <option key={s} value={s}>
+                  {STATUS_LABELS[s] ?? s.replaceAll("_", " ")}
+                </option>
+              ))}
           </select>
 
           <button

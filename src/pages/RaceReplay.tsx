@@ -91,9 +91,7 @@ export default function RaceReplay() {
   const [showResultModal, setShowResultModal] = useState(false);
   const dismissedResultRef = useRef(false);
   const manuallyStoppedRef = useRef(false);
-  const [predictedHorseName, setPredictedHorseName] = useState<string | null>(
-    null
-  );
+  const [predictedHorseName, setPredictedHorseName] = useState<string[]>([]);
   const [hoveredHorse, setHoveredHorse] = useState<any | null>(null);
   const [selectedHorse, setSelectedHorse] = useState<any | null>(null);
   const [countdownText, setCountdownText] = useState<string | null>(null);
@@ -190,8 +188,8 @@ export default function RaceReplay() {
     }
   }, [latestTick, simulating, finalPlacements, RaceDetail?.status]);
 
-  const handlePredictionChange = useCallback((name: string | null) => {
-    setPredictedHorseName(name);
+  const handlePredictionChange = useCallback((names: string[]) => {
+    setPredictedHorseName(names);
   }, []);
 
   const { toasts, addToast } = useToast();
@@ -582,7 +580,7 @@ export default function RaceReplay() {
                   ["disqualified", "dnf", "dns", "scratched"].includes(
                     horse.entryStatus?.toLowerCase() || ""
                   );
-                const isPredicted = predictedHorseName === horse.name;
+                const isPredicted = predictedHorseName.includes(horse.name);
 
                 return (
                   <div
@@ -772,7 +770,7 @@ export default function RaceReplay() {
               const rankData = rankChanges[horse.horseId];
               const change = rankData?.change ?? 0;
               const isActive = !!rankData;
-              const isPredicted = predictedHorseName === horse.name;
+              const isPredicted = predictedHorseName.includes(horse.name);
               const isSelected = selectedHorse?.name === horse.name;
 
               // Top 3 Styling

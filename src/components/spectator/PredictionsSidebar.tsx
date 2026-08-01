@@ -24,7 +24,7 @@ interface PredictionsSidebarProps {
   raceName?: string;
   entries?: RaceEntry[];
   firstHorseName?: string;
-  onPredictionChange: (horseName: string | null) => void;
+  onPredictionChange: (horseNames: string[]) => void;
   isSimulating?: boolean;
   elapsedMs?: number;
   predictionMinStake?: number;
@@ -114,7 +114,7 @@ export function PredictionsSidebar({
   const { balance, refetch: refetchWallet } = useWallet();
   const { toasts, addToast } = useToast();
 
-  const [prediction, setPrediction] = useState<Prediction | null>(null);
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [loading, setLoading] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
 
@@ -132,7 +132,9 @@ export function PredictionsSidebar({
     elapsedMs > 0 ||
     !["scheduled", "pre_race"].includes(raceStatus || "");
 
-  const canPlacePrediction = isSpectator && !prediction && !isRaceStarted;
+  const predictedEntryIds = predictions.map((p) => p.predictedEntry.entryId);
+  const canPlacePrediction =
+    isSpectator && predictions.length === 0 && !isRaceStarted;
 
   const loadPrediction = useCallback(async () => {
     if (!raceId) return;
@@ -142,17 +144,17 @@ export function PredictionsSidebar({
       const isRaceScheduled =
         raceStatus === "scheduled" || raceStatus === "pre_race";
       if (isRaceScheduled) {
-        setPrediction((prev) => {
-          if (prev && prev.race.id === raceId) {
-            onPredictionChange(prev.predictedEntry.horseName);
+        setPredictions((prev) => {
+          if (prev.some((p) => p.race.id === raceId)) {
+            onPredictionChange(prev.map((p) => p.predictedEntry.horseName));
             return prev;
           }
-          onPredictionChange(null);
-          return null;
+          onPredictionChange([]);
+          return [];
         });
       } else if (firstHorseName) {
-        setPrediction((prev) => {
-          if (prev && prev.race.id === raceId) return prev;
+        setPredictions((prev) => {
+          if (prev.some((p) => p.race.id === raceId)) return prev;
           const mock = {
             id: "preview-mock-id-00000001",
             race: {
@@ -174,8 +176,8 @@ export function PredictionsSidebar({
             rewardAmount: null as unknown as string,
             stakeAmount: 0,
           };
-          onPredictionChange(firstHorseName);
-          return mock;
+          onPredictionChange([firstHorseName]);
+          return [mock];
         });
       }
       return;
@@ -187,14 +189,14 @@ export function PredictionsSidebar({
         page: 1,
         limit: 50,
       });
-      const match = data.data.find((p) => p.race.id === raceId);
-      setPrediction(match || null);
+      const matched = data.data.filter((p) => p.race.id === raceId);
+      setPredictions(matched);
       setIsPreview(false);
-      onPredictionChange(match?.predictedEntry.horseName || null);
+      onPredictionChange(matched.map((p) => p.predictedEntry.horseName));
     } catch {
-      setPrediction(null);
+      setPredictions([]);
       setIsPreview(false);
-      onPredictionChange(null);
+      onPredictionChange([]);
     } finally {
       setLoading(false);
     }
@@ -237,9 +239,9 @@ export function PredictionsSidebar({
 
   const startPicking = () => {
     if (isRaceStarted) return;
-    setSelectedEntryId(prediction?.predictedEntry.entryId || "");
-    setSelectedPosition(prediction?.predictedPosition || 1);
-    setStakeAmount(prediction?.stakeAmount || predictionMinStake);
+    setSelectedEntryId("");
+    setSelectedPosition(1);
+    setStakeAmount(predictionMinStake);
     setIsPicking(true);
   };
 
@@ -264,31 +266,43 @@ export function PredictionsSidebar({
     const horseName =
       (entries || []).find((e) => e.id === selectedEntryId)?.name || "Unknown";
 
+    if (predictions.length >= 3) {
+      addToast("Maximum 3 predictions per race.", "warning");
+      setIsPicking(false);
+      return;
+    }
+
+    const buildPrediction = (id: string): Prediction => ({
+      id,
+      race: {
+        id: raceId,
+        name: raceName || "Race",
+        distanceMeters: 0,
+        scheduledAt: new Date().toISOString(),
+        venue: "",
+        status: raceStatus || "draft",
+        predictionMinStake,
+      },
+      predictedEntry: {
+        entryId: selectedEntryId,
+        horseName: horseName,
+      },
+      predictedPosition: selectedPosition,
+      placedAt: new Date().toISOString(),
+      isCorrect: null,
+      rewardAmount: null as unknown as string,
+      stakeAmount,
+    });
+
     if (!isSpectator) {
       setSubmitting(true);
       setTimeout(() => {
-        setPrediction({
-          id: `preview-mock-id-${Date.now()}`,
-          race: {
-            id: raceId,
-            name: raceName || "Race",
-            distanceMeters: 0,
-            scheduledAt: new Date().toISOString(),
-            venue: "",
-            status: raceStatus || "draft",
-            predictionMinStake,
-          },
-          predictedEntry: {
-            entryId: selectedEntryId,
-            horseName: horseName,
-          },
-          predictedPosition: selectedPosition,
-          placedAt: new Date().toISOString(),
-          isCorrect: null,
-          rewardAmount: null as unknown as string,
-          stakeAmount,
+        const mock = buildPrediction(`preview-mock-id-${Date.now()}`);
+        setPredictions((prev) => {
+          const next = [...prev, mock];
+          onPredictionChange(next.map((p) => p.predictedEntry.horseName));
+          return next;
         });
-        onPredictionChange(horseName);
         setIsPicking(false);
         setSubmitting(false);
         addToast("Showcase prediction placed successfully!", "success");
@@ -305,17 +319,16 @@ export function PredictionsSidebar({
         stakeAmount
       );
 
-      addToast(
-        prediction
-          ? "Prediction updated successfully!"
-          : "Prediction placed successfully!",
-        "success"
-      );
+      addToast("Prediction added successfully!", "success");
 
       refetchWallet();
-      onPredictionChange(horseName);
+      const newPrediction = buildPrediction(`prediction-local-${Date.now()}`);
+      setPredictions((prev) => {
+        const next = [...prev, newPrediction];
+        onPredictionChange(next.map((p) => p.predictedEntry.horseName));
+        return next;
+      });
       setIsPicking(false);
-      loadPrediction();
     } catch (err: unknown) {
       const error = err as {
         response?: { data?: { message?: string }; status?: number };
@@ -344,9 +357,6 @@ export function PredictionsSidebar({
     }
   };
 
-  const ticketStatus = getTicketStatus(prediction, isPreview);
-  const statusCfg = STATUS_CONFIG[ticketStatus];
-
   return (
     <>
       <div className="flex flex-col h-full overflow-hidden">
@@ -358,12 +368,12 @@ export function PredictionsSidebar({
               My Prediction
             </span>
           </div>
-          {!showPickingForm && (!prediction || isPreview) && !isRaceStarted && (
+          {!showPickingForm && predictions.length < 3 && !isRaceStarted && (
             <button
               onClick={startPicking}
               className="inline-flex items-center gap-1 rounded bg-[#D4AF37] hover:bg-[#c59f2f] text-slate-900 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider transition-colors shadow-xs cursor-pointer animate-pulse"
             >
-              {prediction && isPreview ? "Change" : "Predict"}
+              {predictions.length > 0 ? "Add Prediction" : "Predict"}
             </button>
           )}
         </div>
@@ -402,12 +412,16 @@ export function PredictionsSidebar({
                   className="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#064E3B] cursor-pointer"
                 >
                   <option value="">-- Choose a horse --</option>
-                  {(entries || []).map((entry) => (
-                    <option key={entry.id} value={entry.id}>
-                      {entry.name}{" "}
-                      {entry.jockeyName ? `(Jockey: ${entry.jockeyName})` : ""}
-                    </option>
-                  ))}
+                  {(entries || [])
+                    .filter((e) => !predictedEntryIds.includes(e.id))
+                    .map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.name}{" "}
+                        {entry.jockeyName
+                          ? `(Jockey: ${entry.jockeyName})`
+                          : ""}
+                      </option>
+                    ))}
                 </select>
               </div>
 
@@ -489,90 +503,110 @@ export function PredictionsSidebar({
                 {submitting ? "Submitting..." : "Confirm Prediction"}
               </button>
             </div>
-          ) : prediction ? (
-            /* ─── Ticket Receipt ─── */
-            <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden transition-all duration-300 ease-in-out">
-              {/* Ticket header with dashed border */}
-              <div className="px-3 py-2.5 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-dashed border-slate-300 flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <Ticket size={12} className="text-[#064E3B]" />
-                  <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">
-                    Prediction Slip
-                  </span>
-                </div>
-                {ticketStatus !== "preview" && (
-                  <span
-                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold ${statusCfg.bg} ${statusCfg.text}`}
-                  >
-                    {statusCfg.icon}
-                    {statusCfg.label}
-                  </span>
-                )}
-              </div>
-
-              {/* Horse details */}
-              <div className="px-3 py-2.5 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">
-                    {POSITION_EMOJI[prediction.predictedPosition] || "🏇"}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-xs text-[#064E3B] truncate">
-                      {prediction.predictedEntry.horseName}
-                    </p>
-                    <p className="text-[10px] text-slate-500 font-medium">
-                      {POSITION_LABELS[prediction.predictedPosition] ||
-                        `Position ${prediction.predictedPosition}`}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bet specs grid */}
-              <div className="px-3 py-2 grid grid-cols-2 gap-y-1.5 border-b border-slate-100">
-                <div className="flex items-center gap-1.5">
-                  <Target size={11} className="text-slate-400" />
-                  <span className="text-[9px] text-slate-500 uppercase font-semibold">
-                    Position
-                  </span>
-                </div>
-                <p className="text-[11px] font-bold text-right text-slate-700">
-                  {POSITION_LABELS[prediction.predictedPosition] ||
-                    `#${prediction.predictedPosition}`}
-                </p>
-
-                <div className="flex items-center gap-1.5">
-                  <Coins size={11} className="text-amber-500" />
-                  <span className="text-[9px] text-slate-500 uppercase font-semibold">
-                    Stake
-                  </span>
-                </div>
-                <p className="text-[11px] font-bold text-right text-slate-700">
-                  {prediction.stakeAmount
-                    ? `${prediction.stakeAmount.toLocaleString()} PTS`
-                    : "—"}
-                </p>
-              </div>
-
-              {/* Payout row (for won predictions) */}
-              {prediction.rewardAmount && (
-                <div className="px-3 py-2 bg-amber-50 border-b border-amber-100 flex items-center justify-between">
-                  <span className="text-[9px] text-amber-700 uppercase font-bold tracking-wide">
-                    Payout
-                  </span>
-                  <span className="text-xs font-black text-amber-700">
-                    +{Number(prediction.rewardAmount).toLocaleString()} PTS
-                  </span>
-                </div>
-              )}
-
-              {/* Timestamp footer */}
-              <div className="px-3 py-1.5 flex items-center gap-1.5 bg-slate-50">
-                <Clock size={10} className="text-slate-400" />
-                <span className="text-[9px] text-slate-400 font-medium">
-                  Placed {formatPlacedAt(prediction.placedAt)}
+          ) : predictions.length > 0 ? (
+            /* ─── Prediction Tickets ─── */
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between px-0.5">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  Predictions
+                </span>
+                <span className="text-[10px] font-black text-[#064E3B]">
+                  {predictions.length} / 3
                 </span>
               </div>
+              {predictions.map((prediction) => {
+                const ticketStatus = getTicketStatus(prediction, isPreview);
+                const statusCfg = STATUS_CONFIG[ticketStatus];
+                return (
+                  <div
+                    key={prediction.id}
+                    className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden transition-all duration-300 ease-in-out"
+                  >
+                    {/* Ticket header with dashed border */}
+                    <div className="px-3 py-2.5 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-dashed border-slate-300 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <Ticket size={12} className="text-[#064E3B]" />
+                        <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">
+                          Prediction Slip
+                        </span>
+                      </div>
+                      {ticketStatus !== "preview" && (
+                        <span
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold ${statusCfg.bg} ${statusCfg.text}`}
+                        >
+                          {statusCfg.icon}
+                          {statusCfg.label}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Horse details */}
+                    <div className="px-3 py-2.5 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">
+                          {POSITION_EMOJI[prediction.predictedPosition] || "🏇"}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-xs text-[#064E3B] truncate">
+                            {prediction.predictedEntry.horseName}
+                          </p>
+                          <p className="text-[10px] text-slate-500 font-medium">
+                            {POSITION_LABELS[prediction.predictedPosition] ||
+                              `Position ${prediction.predictedPosition}`}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bet specs grid */}
+                    <div className="px-3 py-2 grid grid-cols-2 gap-y-1.5 border-b border-slate-100">
+                      <div className="flex items-center gap-1.5">
+                        <Target size={11} className="text-slate-400" />
+                        <span className="text-[9px] text-slate-500 uppercase font-semibold">
+                          Position
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-bold text-right text-slate-700">
+                        {POSITION_LABELS[prediction.predictedPosition] ||
+                          `#${prediction.predictedPosition}`}
+                      </p>
+
+                      <div className="flex items-center gap-1.5">
+                        <Coins size={11} className="text-amber-500" />
+                        <span className="text-[9px] text-slate-500 uppercase font-semibold">
+                          Stake
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-bold text-right text-slate-700">
+                        {prediction.stakeAmount
+                          ? `${prediction.stakeAmount.toLocaleString()} PTS`
+                          : "—"}
+                      </p>
+                    </div>
+
+                    {/* Payout row (for won predictions) */}
+                    {prediction.rewardAmount && (
+                      <div className="px-3 py-2 bg-amber-50 border-b border-amber-100 flex items-center justify-between">
+                        <span className="text-[9px] text-amber-700 uppercase font-bold tracking-wide">
+                          Payout
+                        </span>
+                        <span className="text-xs font-black text-amber-700">
+                          +{Number(prediction.rewardAmount).toLocaleString()}{" "}
+                          PTS
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Timestamp footer */}
+                    <div className="px-3 py-1.5 flex items-center gap-1.5 bg-slate-50">
+                      <Clock size={10} className="text-slate-400" />
+                      <span className="text-[9px] text-slate-400 font-medium">
+                        Placed {formatPlacedAt(prediction.placedAt)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : canPlacePrediction ? (
             /* ─── No prediction yet, offer to place one ─── */

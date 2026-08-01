@@ -5,16 +5,7 @@ import JockeySearch from "../components/jockey/JockeySearch";
 
 import { useNavigate } from "react-router-dom";
 import type { Jockey } from "../types/jockey";
-import {
-  Layers,
-  Zap,
-  Activity,
-  Star,
-  ArrowRight,
-  User,
-  X,
-  Ban,
-} from "lucide-react";
+import { Layers, Zap, Star, ArrowRight, User, Ban } from "lucide-react";
 import banner from "../assets/images/horse-banner.png";
 import { StatusBadge, HORSE_STATUS_STYLES } from "../components/ui/StatusBadge";
 
@@ -91,13 +82,6 @@ function JockeyRow({
             dotClassName="bg-amber-400"
           />
         )}
-        <StatusBadge
-          status="Active"
-          styleMap={HORSE_STATUS_STYLES}
-          size="md"
-          showDot
-          dotClassName="bg-emerald-500"
-        />
       </div>
     </div>
   );
@@ -106,7 +90,7 @@ function JockeyRow({
 export default function JockeysPage() {
   const navigate = useNavigate();
   const { jockeys, loading, error, pagination, setPagination } = useJockeys();
-  const spotlight = useSpotlightJockey(jockeys);
+  const spotlight = useSpotlightJockey();
 
   const handleSearchChange = useCallback(
     (value: string) => {
@@ -164,8 +148,8 @@ export default function JockeysPage() {
                 </p>
               </div>
 
-              {/* 3 Quick Stat Pills */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+              {/* Quick Stat Pills */}
+              <div className="grid grid-cols-2 gap-3 pt-2">
                 <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur px-4 py-3 text-left">
                   <div className="flex items-center gap-2 text-emerald-200 text-xs font-semibold uppercase tracking-wider mb-1">
                     <Layers className="h-4 w-4" /> Total Jockeys
@@ -181,15 +165,6 @@ export default function JockeysPage() {
                   </div>
                   <div className="text-2xl font-bold text-white">
                     {jockeys.filter((j) => j.isRacing).length}
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur px-4 py-3 text-left">
-                  <div className="flex items-center gap-2 text-emerald-300 text-xs font-semibold uppercase tracking-wider mb-1">
-                    <Activity className="h-4 w-4 text-emerald-300" /> Active
-                  </div>
-                  <div className="text-2xl font-bold text-white">
-                    {jockeys.filter((j) => !j.isRacing).length}
                   </div>
                 </div>
               </div>
@@ -247,7 +222,7 @@ export default function JockeysPage() {
                   <div className="flex items-center justify-between pt-3 border-t border-white/15 z-10">
                     <div>
                       <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-200">
-                        Last month win rate
+                        Overall win rate
                       </div>
                       <div className="text-2xl font-black text-white">
                         {spotlight.winRate}%
@@ -310,32 +285,6 @@ export default function JockeysPage() {
                 : pagination.status === "not_racing"
                   ? "Not Racing"
                   : "All"}
-            </button>
-            <button
-              onClick={() =>
-                setPagination((prev) => ({
-                  ...prev,
-                  status: prev.status === "active" ? "all" : "active",
-                  page: 1,
-                }))
-              }
-              className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-bold transition ${
-                pagination.status === "active"
-                  ? "bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm"
-                  : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
-              }`}
-            >
-              <Activity
-                className={`h-3.5 w-3.5 ${
-                  pagination.status === "active"
-                    ? "text-emerald-500"
-                    : "text-slate-400"
-                }`}
-              />
-              Active
-              {pagination.status === "active" && (
-                <X className="h-3 w-3 ml-0.5" />
-              )}
             </button>
           </div>
         </div>
