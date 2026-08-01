@@ -219,7 +219,7 @@ export function JockeyRosterManagement({
                       )}
                       {entry.pendingCount > 0 && (
                         <div className="px-2 py-0.5 text-[9px] font-bold rounded-lg bg-amber-100 text-amber-800 border border-amber-200">
-                          {entry.pendingCount} {toPascalCase("pending")}
+                          {toPascalCase("pending")}
                         </div>
                       )}
                       {entry.responsesCount > 0 && (
@@ -328,12 +328,7 @@ export function JockeyRosterManagement({
                     )}
                     {selectedEntry.pendingCount > 0 && (
                       <div className="px-4 py-1.5 text-xs font-bold rounded-xl bg-amber-100 text-amber-800 border border-amber-200">
-                        {selectedEntry.pendingCount}{" "}
-                        {toPascalCase(
-                          selectedEntry.pendingCount > 1
-                            ? "pending invites"
-                            : "pending invite"
-                        )}
+                        {toPascalCase("pending")}
                       </div>
                     )}
                     {selectedEntry.responsesCount > 0 && (
