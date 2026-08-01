@@ -17,6 +17,7 @@ import {
   Send,
   Play,
   Award,
+  Settings,
 } from "lucide-react";
 import { ROUTES } from "../router/routes";
 
@@ -44,6 +45,10 @@ import { PlacePredictionModal } from "../components/spectator/PlacePredictionMod
 import { EnterRaceModal } from "../components/owner/EnterRaceModal";
 import { ResultModal } from "../components/race/ResultModal";
 import { TrackService } from "../services/TrackService";
+import RaceForm, { type RaceFormData } from "../components/admin/race/RaceForm";
+import RaceStatusButton from "../components/admin/race/RaceStatusButton";
+import useAdminRace from "../hooks/admin/useAdminRace";
+import { AdminService } from "../services/AdminService";
 
 let _venueCache: Map<string, { distance: string; surface: string }> | null =
   null;
@@ -651,6 +656,96 @@ export default function RacesPage() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
   const user = JSON.parse(localStorage.getItem("user") ?? "null");
+  const isAdmin = user?.role === "admin";
+
+  // Admin race editing state
+  const [adminEditingRace, setAdminEditingRace] = useState(false);
+  const [adminRaceConfig, setAdminRaceConfig] = useState<{
+    firstPlacePoints: number;
+    secondPlacePoints: number;
+    thirdPlacePoints: number;
+  } | null>(null);
+  const [adminRaceConfigLoading, setAdminRaceConfigLoading] = useState(false);
+
+  const {
+    updateRace: adminUpdateRace,
+    updateRaceStatus: adminUpdateRaceStatus,
+    actionLoading: adminActionLoading,
+  } = useAdminRace();
+
+  // Determine if race detail editing is locked (pre_race onwards)
+  const isRaceEditLocked =
+    raceDetail?.status === "pre_race" ||
+    raceDetail?.status === "ongoing" ||
+    raceDetail?.status === "completed" ||
+    raceDetail?.status === "postponed" ||
+    raceDetail?.status === "cancelled";
+
+  // Load race config when admin starts editing
+  const handleAdminEditRace = async () => {
+    if (!raceDetail) return;
+    setAdminRaceConfigLoading(true);
+    try {
+      const config = await AdminService.getRaceConfig(raceDetail.id);
+      setAdminRaceConfig(config);
+      setAdminEditingRace(true);
+    } catch {
+      setAdminRaceConfig(null);
+      addToast("Failed to load race points configuration.", "error");
+    } finally {
+      setAdminRaceConfigLoading(false);
+    }
+  };
+
+  const handleAdminUpdateRace = async (
+    data: RaceFormData
+  ): Promise<string | null> => {
+    if (!raceDetail) return "No active race.";
+    if (!data.scheduledAt) return "Schedule date is required.";
+    const scheduledDate = new Date(data.scheduledAt);
+    if (Number.isNaN(scheduledDate.getTime())) return "Invalid schedule date.";
+
+    const payload: Record<string, unknown> = {
+      name: data.name,
+      raceNumber: data.raceNumber,
+      courseDistanceId: data.trackDistanceId,
+      distanceMeters: data.distanceMeters,
+      trackCondition: data.trackCondition,
+      scheduleAt: scheduledDate.toISOString(),
+      venue: data.venue,
+      laneCount: data.laneCount,
+    };
+    const res = await adminUpdateRace(raceDetail.id, payload);
+    if (res.success === false) {
+      return res.error ?? "Failed to update race.";
+    }
+
+    try {
+      await AdminService.updateRacePointsConfig(raceDetail.id, {
+        firstPlacePoints: data.firstPlacePoints,
+        secondPlacePoints: data.secondPlacePoints,
+        thirdPlacePoints: data.thirdPlacePoints,
+      });
+    } catch {
+      return "Race details saved, but points configuration failed to update.";
+    }
+
+    addToast("Race updated successfully.", "success");
+    setAdminEditingRace(false);
+    loadDetail();
+    return null;
+  };
+
+  const handleAdminRaceStatusChange = async (status: string) => {
+    if (!raceDetail) return;
+    const result = await adminUpdateRaceStatus(raceDetail.id, status);
+    if (result === true) {
+      addToast("Race status updated.", "success");
+      loadDetail();
+    } else {
+      addToast(result || "Failed to update race status.", "error");
+    }
+  };
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
@@ -925,7 +1020,6 @@ export default function RacesPage() {
               )}
             </div>
           </div>
-
           {panelOpen && (
             <div
               className={`${isCalendarMode ? "lg:col-span-7 xl:col-span-8" : "lg:col-span-8 xl:col-span-9"}`}
@@ -1204,7 +1298,7 @@ export default function RacesPage() {
                               : "Predict"}
                           </button>
                         )}
-                      {user?.role === "admin" &&
+                      {isAdmin &&
                         (raceDetail?.status === "scheduled" ||
                           raceDetail?.status === "pre_race") && (
                           <button
@@ -1226,7 +1320,7 @@ export default function RacesPage() {
                             Start Race
                           </button>
                         )}
-                      {user?.role === "admin" && (
+                      {isAdmin && (
                         <button
                           onClick={() =>
                             navigate(`/races/${raceDetail.id}/live`)
@@ -1236,6 +1330,32 @@ export default function RacesPage() {
                           <Play size={10} fill="currentColor" />
                           Simulate
                         </button>
+                      )}
+                      {isAdmin && !isRaceEditLocked && (
+                        <button
+                          onClick={handleAdminEditRace}
+                          disabled={adminRaceConfigLoading}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-500 text-white font-bold text-[10px] border border-white/20 hover:bg-amber-600 transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
+                        >
+                          <Settings size={10} />
+                          Edit Race
+                        </button>
+                      )}
+                      {isAdmin && isRaceEditLocked && (
+                        <span
+                          title="Editing is locked once a race reaches pre-race status or beyond"
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/10 text-white/40 font-bold text-[10px] border border-white/10 cursor-not-allowed select-none"
+                        >
+                          <Settings size={10} />
+                          Edit Locked
+                        </span>
+                      )}
+                      {isAdmin && raceDetail && (
+                        <RaceStatusButton
+                          currentStatus={raceDetail.status}
+                          onStatusChange={handleAdminRaceStatusChange}
+                          actionLoading={adminActionLoading}
+                        />
                       )}
                     </>
                   }
@@ -1402,9 +1522,7 @@ export default function RacesPage() {
               ) : null}
             </div>
           )}
-
           <ToastContainer toasts={toasts} />
-
           {raceDetail && (
             <ResultModal
               open={showResultModal}
@@ -1414,7 +1532,6 @@ export default function RacesPage() {
               placements={finalPlacements}
             />
           )}
-
           {/* Place Prediction Modal */}
           {raceDetail && (
             <EnterRaceModal
@@ -1475,6 +1592,29 @@ export default function RacesPage() {
               existingPredictionCount={currentPredictions.length}
               balance={balance}
               predictionMinStake={raceDetail.predictionMinStake ?? 10}
+            />
+          )}
+          {/* Admin Edit Race Modal */}
+          {adminEditingRace && raceDetail && (
+            <RaceForm
+              initial={{
+                name: raceDetail.name,
+                distanceMeters: raceDetail.distanceMeters ?? 1200,
+                trackCondition: raceDetail.trackCondition ?? "good",
+                scheduledAt: raceDetail.scheduledAt ?? "",
+                venue: raceDetail.venue ?? "",
+                laneCount: raceDetail.laneCount ?? 8,
+                raceNumber: raceDetail.raceNumber ?? undefined,
+                trackDistanceId: raceDetail.courseDistanceId ?? "",
+                firstPlacePoints: adminRaceConfig?.firstPlacePoints ?? 9,
+                secondPlacePoints: adminRaceConfig?.secondPlacePoints ?? 8,
+                thirdPlacePoints: adminRaceConfig?.thirdPlacePoints ?? 7,
+              }}
+              initialTrackId={raceDetail.course?.id ?? ""}
+              onClose={() => setAdminEditingRace(false)}
+              onSubmit={handleAdminUpdateRace}
+              actionLoading={adminActionLoading}
+              onError={(msg) => addToast(msg, "error")}
             />
           )}
         </div>
