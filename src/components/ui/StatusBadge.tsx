@@ -246,6 +246,13 @@ export const DERIVED_ENTRY_STATUS_STYLES: Record<string, string> = {
   confirmed: STATUS_STYLES.confirmed,
 };
 
+export const DERIVED_ENTRY_STATUS_DARK_STYLES: Record<string, string> = {
+  awaiting_jockey: STATUS_DARK_STYLES.pending,
+  awaiting_owner: "bg-orange-500/20 border-orange-400/50 text-orange-200",
+  awaiting_referee: "bg-amber-500/20 border-amber-400/50 text-amber-200",
+  confirmed: STATUS_DARK_STYLES.confirmed,
+};
+
 export const TRACK_STATUS_STYLES: Record<string, string> = {
   active: STATUS_STYLES.active,
   inactive: STATUS_STYLES.inactive,

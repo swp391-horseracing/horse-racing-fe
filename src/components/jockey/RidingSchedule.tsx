@@ -27,7 +27,7 @@ import {
   ScheduleDetailFrame,
   type TabConfig,
 } from "../schedule/ScheduleDetailFrame";
-import { UserService } from "../../services/UserService";
+import { RaceService } from "../../services/RaceService";
 import type { RaceEntry } from "../../types/race";
 import { formatStatus } from "../../utils/formatters";
 import {
@@ -37,6 +37,7 @@ import {
   RIDE_STATUS_STYLES,
   RIDE_STATUS_DARK_STYLES,
   DERIVED_ENTRY_STATUS_STYLES,
+  DERIVED_ENTRY_STATUS_DARK_STYLES,
 } from "../ui/StatusBadge";
 import {
   deriveEntryStatus,
@@ -113,7 +114,9 @@ function RideStatusBadge({
   return (
     <StatusBadge
       status={derived}
-      styleMap={DERIVED_ENTRY_STATUS_STYLES}
+      styleMap={
+        onDark ? DERIVED_ENTRY_STATUS_DARK_STYLES : DERIVED_ENTRY_STATUS_STYLES
+      }
       label={DERIVED_ENTRY_STATUS_LABELS[derived]}
       size="sm"
       className="rounded-[4px] uppercase shadow-sm"
@@ -458,19 +461,19 @@ function JockeyDetailPanel({
       setEntriesError(null);
       setRaceEntries([]);
     });
-    UserService.getMyRaceDetail(ride.id)
-      .then((data) => {
+    RaceService.getRaceEntries(ride.id)
+      .then((data: any) => {
         if (!cancelled) {
-          const mapped = (data.entries ?? []).map((e: any) => ({
-            id: e.id,
-            horseId: e.horseId,
-            name: e.horseName,
-            laneNumber: "",
-            weightKg: "",
-            entryStatus: "",
-            jockeyId: e.jockeyId ?? "",
-            jockeyName: e.jockeyName ?? "",
-            clothNumber: e.clothNumber,
+          const mapped = (Array.isArray(data) ? data : []).map((e: any) => ({
+            id: e.entryId || e.id,
+            horseId: e.horse?.id ?? e.horseId,
+            name: e.horse?.name ?? e.horseName ?? e.name,
+            laneNumber: e.laneNumber ?? null,
+            weightKg: e.horse?.weightKg ?? "",
+            entryStatus: e.entryStatus ?? "",
+            jockeyId: e.jockey?.id ?? e.jockeyId ?? "",
+            jockeyName: e.jockey?.name ?? e.jockeyName ?? "",
+            clothNumber: e.laneNumber ?? null,
             trainerName: e.trainerName,
           }));
           setRaceEntries(mapped);
@@ -575,7 +578,7 @@ function JockeyDetailPanel({
                   Lane Draw
                 </span>
                 <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
-                  Lane {ride.laneNumber}
+                  {ride.laneNumber ? `Lane ${ride.laneNumber}` : "Unassigned"}
                 </span>
                 <span className="text-xs text-slate-500 mt-0.5 block">
                   of {ride.laneCount} runners
@@ -685,7 +688,7 @@ function JockeyDetailPanel({
                                 : "bg-white text-slate-700 border-slate-200"
                             )}
                           >
-                            {entry.clothNumber}
+                            {entry.clothNumber || "—"}
                           </span>
                         </td>
                         <td className="px-5 py-3.5">
@@ -818,7 +821,7 @@ function OwnerDetailPanel({
               Lane Draw
             </span>
             <span className="text-base font-black font-headline text-[#064E3B] block mt-1">
-              Lane {ride.laneNumber}
+              {ride.laneNumber ? `Lane ${ride.laneNumber}` : "Unassigned"}
             </span>
             <span className="text-xs text-slate-500 mt-0.5 block">
               of {ride.laneCount} runners
