@@ -35,13 +35,13 @@ export function JockeyRosterManagement({
   confirmPairing,
   cancelInvite,
 }: JockeyRosterManagementProps) {
-  const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
   const [subTab, setSubTab] = useState<"detail" | "invitation">("detail");
   const [sidebarPage, setSidebarPage] = useState(1);
 
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const selectedEntryId = searchParams.get("selected");
+  const urlSelectedEntryId = searchParams.get("selected");
   const tabParam = searchParams.get("tab");
   const { toasts, addToast } = useToast(3000);
   // Entries still awaiting a jockey pairing (any of the three "not yet
@@ -77,6 +77,8 @@ export function JockeyRosterManagement({
   );
 
   // Related invitations for selected entry
+  const selectedEntry =
+    allEntries.find((e) => e.entryId === selectedEntryId) ?? null;
   const relatedInvitations = selectedEntry
     ? invitations.filter((inv) => inv.horse.id === selectedEntry.horseId)
     : [];
@@ -126,14 +128,14 @@ export function JockeyRosterManagement({
   const autoSelectDone = useRef(false);
   useEffect(() => {
     if (autoSelectDone.current) return;
-    if (!selectedEntryId || allEntries.length === 0) return;
+    if (!urlSelectedEntryId || allEntries.length === 0) return;
 
-    const entry = allEntries.find((e) => e.entryId === selectedEntryId);
+    const entry = allEntries.find((e) => e.entryId === urlSelectedEntryId);
     if (!entry) return;
 
     autoSelectDone.current = true;
     const timer = setTimeout(() => {
-      setSelectedEntry(entry);
+      setSelectedEntryId(entry.entryId);
       if (tabParam === "invitation" && entry.raceId) {
         setSubTab("invitation");
         void loadInvitations(entry.raceId);
@@ -147,7 +149,7 @@ export function JockeyRosterManagement({
     }, 0);
     return () => clearTimeout(timer);
   }, [
-    selectedEntryId,
+    urlSelectedEntryId,
     tabParam,
     allEntries,
     loadInvitations,
@@ -188,7 +190,7 @@ export function JockeyRosterManagement({
                   <div
                     key={entry.entryId}
                     onClick={() => {
-                      setSelectedEntry(entry);
+                      setSelectedEntryId(entry.entryId);
                       setSubTab("detail");
                     }}
                     className={cn(
@@ -309,7 +311,7 @@ export function JockeyRosterManagement({
                       </div>
                     </div>
                     <button
-                      onClick={() => setSelectedEntry(null)}
+                      onClick={() => setSelectedEntryId(null)}
                       className="text-slate-400 hover:text-slate-600 text-lg p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
                     >
                       ✕
@@ -534,7 +536,8 @@ export function JockeyRosterManagement({
                               size="xs"
                               className="rounded uppercase"
                             />
-                            {inv.status === "accepted" && (
+                            {inv.status === "accepted" &&
+                              !selectedEntry.jockeyId && (
                               <button
                                 onClick={() => handleConfirm(inv)}
                                 className="rounded-xl bg-emerald-600 px-3 py-1 text-xs font-bold text-white hover:bg-emerald-700 shadow-sm transition"

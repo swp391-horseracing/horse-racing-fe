@@ -367,17 +367,18 @@ function useLocalOwner() {
               : inv
           )
         );
-        await loadEntries();
+        await Promise.all([loadEntries(), loadAllEntries()]);
       } else {
-        await Promise.all([loadInvitations(raceId), loadEntries()]);
+        await Promise.all([loadInvitations(raceId), loadEntries(), loadAllEntries()]);
       }
       throw error;
     }
 
+    const freshAllEntries = await loadAllEntries();
     await Promise.all([
       loadInvitations(raceId),
       loadEntries(),
-      loadPendingInvitesSummary(allEntries),
+      loadPendingInvitesSummary(freshAllEntries),
     ]);
   };
 
