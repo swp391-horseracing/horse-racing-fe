@@ -677,7 +677,9 @@ export default function RacesPage() {
   const isRaceEditLocked =
     raceDetail?.status === "pre_race" ||
     raceDetail?.status === "ongoing" ||
-    raceDetail?.status === "completed";
+    raceDetail?.status === "completed" ||
+    raceDetail?.status === "postponed" ||
+    raceDetail?.status === "cancelled";
 
   // Load race config when admin starts editing
   const handleAdminEditRace = async () => {
@@ -686,11 +688,12 @@ export default function RacesPage() {
     try {
       const config = await AdminService.getRaceConfig(raceDetail.id);
       setAdminRaceConfig(config);
+      setAdminEditingRace(true);
     } catch {
       setAdminRaceConfig(null);
+      addToast("Failed to load race points configuration.", "error");
     } finally {
       setAdminRaceConfigLoading(false);
-      setAdminEditingRace(true);
     }
   };
 
@@ -717,11 +720,15 @@ export default function RacesPage() {
       return res.error ?? "Failed to update race.";
     }
 
-    await AdminService.updateRacePointsConfig(raceDetail.id, {
-      firstPlacePoints: data.firstPlacePoints,
-      secondPlacePoints: data.secondPlacePoints,
-      thirdPlacePoints: data.thirdPlacePoints,
-    });
+    try {
+      await AdminService.updateRacePointsConfig(raceDetail.id, {
+        firstPlacePoints: data.firstPlacePoints,
+        secondPlacePoints: data.secondPlacePoints,
+        thirdPlacePoints: data.thirdPlacePoints,
+      });
+    } catch {
+      return "Race details saved, but points configuration failed to update.";
+    }
 
     addToast("Race updated successfully.", "success");
     setAdminEditingRace(false);
@@ -1291,7 +1298,7 @@ export default function RacesPage() {
                               : "Predict"}
                           </button>
                         )}
-                      {user?.role === "admin" &&
+                      {isAdmin &&
                         (raceDetail?.status === "scheduled" ||
                           raceDetail?.status === "pre_race") && (
                           <button
@@ -1313,7 +1320,7 @@ export default function RacesPage() {
                             Start Race
                           </button>
                         )}
-                      {user?.role === "admin" && (
+                      {isAdmin && (
                         <button
                           onClick={() =>
                             navigate(`/races/${raceDetail.id}/live`)
@@ -1609,7 +1616,7 @@ export default function RacesPage() {
               actionLoading={adminActionLoading}
               onError={(msg) => addToast(msg, "error")}
             />
-          )}{" "}
+          )}
         </div>
       </div>
     </div>

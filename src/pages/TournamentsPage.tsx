@@ -174,14 +174,16 @@ export default function TournamentsPage() {
     updateTournamentStatus: adminUpdateTournamentStatus,
   } = useAdminTournament();
 
+  const { refetchTournamentDetail, reloadTournaments } = useTournament();
+
   const handleAdminUpdateTournament = async (
     tId: string,
     data: Record<string, unknown>
   ): Promise<true | string> => {
     const result = await adminUpdateTournament(tId, data as any);
     if (result === true) {
-      // Re-fetch the tournament detail to reflect changes
-      openTournament(tId);
+      await refetchTournamentDetail();
+      await reloadTournaments();
     }
     return result;
   };
@@ -192,7 +194,8 @@ export default function TournamentsPage() {
   ): Promise<true | string> => {
     const result = await adminUpdateTournamentStatus(tId, status);
     if (result === true) {
-      openTournament(tId);
+      await refetchTournamentDetail();
+      await reloadTournaments();
     }
     return result;
   };
