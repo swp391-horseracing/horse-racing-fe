@@ -339,6 +339,28 @@ export function useRaceDetail(raceId: string | null) {
     };
   }, [raceId, refetchIndex]);
 
+  useEffect(() => {
+    if (!raceId || detail?.status !== "completed" || finalPlacements) return;
+    let cancelled = false;
+    RaceService.getRaceResults(raceId).then((results) => {
+      if (cancelled || !results) return;
+      setFinalPlacements(
+        results.map((r) => ({
+          horseId: r.horseId,
+          name: r.horseName,
+          position: r.finishedPosition ?? 0,
+          finishTimeMs: r.finishTime
+            ? Math.round(Number(r.finishTime) * 1000)
+            : 0,
+          finishStatus: r.finishStatus === "finished" ? "placed" : "dnf",
+        }))
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [raceId, detail?.status, finalPlacements]);
+
   const detailToken = useMemo(() => localStorage.getItem("token"), []);
   const detailTopics = useMemo(
     () => (raceId ? [`race:${raceId}`] : null),

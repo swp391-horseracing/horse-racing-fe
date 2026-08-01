@@ -42,6 +42,7 @@ import { ScheduleDetailFrame } from "../components/schedule/ScheduleDetailFrame"
 import { PredictionService } from "../services/PredictionService";
 import { PlacePredictionModal } from "../components/spectator/PlacePredictionModal";
 import { EnterRaceModal } from "../components/owner/EnterRaceModal";
+import { ResultModal } from "../components/race/ResultModal";
 import { TrackService } from "../services/TrackService";
 
 let _venueCache: Map<string, { distance: string; surface: string }> | null =
@@ -371,8 +372,10 @@ export default function RacesPage() {
     loading: detailLoading,
     error: detailError,
     refetch: loadDetail,
+    finalPlacements,
   } = useRaceDetail(raceId);
 
+  const [showResultModal, setShowResultModal] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   useEffect(() => {
@@ -968,6 +971,14 @@ export default function RacesPage() {
                           Watch Live
                         </button>
                       )}
+                      {raceDetail.status === "completed" && (
+                        <button
+                          onClick={() => setShowResultModal(true)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/50 bg-amber-500/20 text-amber-200 px-2.5 py-1 font-bold hover:bg-amber-600/40 text-[11px] transition-all"
+                        >
+                          View Results
+                        </button>
+                      )}
                     </div>
                   }
                   subtitle={null}
@@ -1393,6 +1404,16 @@ export default function RacesPage() {
           )}
 
           <ToastContainer toasts={toasts} />
+
+          {raceDetail && (
+            <ResultModal
+              open={showResultModal}
+              onClose={() => setShowResultModal(false)}
+              raceName={raceDetail.name}
+              status={raceDetail.status}
+              placements={finalPlacements}
+            />
+          )}
 
           {/* Place Prediction Modal */}
           {raceDetail && (
