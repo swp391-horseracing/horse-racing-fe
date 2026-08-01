@@ -94,13 +94,6 @@ export function JockeyRosterManagement({
     try {
       await confirmPairing(inv.raceId, inv.id);
       addToast("Pairing confirmed successfully.", "success");
-      if (selectedEntry) {
-        setSelectedEntry({
-          ...selectedEntry,
-          confirmedAt: new Date().toISOString(),
-          jockeyName: inv.jockey.fullName,
-        });
-      }
     } catch (error: any) {
       const message =
         error?.response?.data?.message || "Failed to confirm pairing.";
