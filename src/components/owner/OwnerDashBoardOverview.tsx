@@ -6,15 +6,15 @@ import type {
   Horse,
   Tournament,
   TournamentRegistration,
-  Invitation,
   Jockey,
 } from "../../hooks/useOwner";
 
 export interface OwnerDashBoardOverviewProps {
   horses: Horse[];
+  allHorses: Horse[];
   tournaments: Tournament[];
   registrations: TournamentRegistration[];
-  invitations: Invitation[];
+  pendingInvitesCount: number;
   jockeys: Jockey[];
   setActiveTab: (tab: string) => void;
   pagination: {
@@ -26,22 +26,23 @@ export interface OwnerDashBoardOverviewProps {
 
 export function OwnerDashBoardOverview({
   horses,
+  allHorses,
   tournaments,
   registrations,
-  invitations,
+  pendingInvitesCount,
   jockeys,
   setActiveTab,
   pagination,
   setPage,
 }: OwnerDashBoardOverviewProps) {
-  const activeHorsesCount = horses.filter(
+  // Computed from allHorses (the full account-wide list), not the current
+  // page of `horses` — otherwise this undercounts for owners with more
+  // horses than fit on one page of the Horse Manager table.
+  const activeHorsesCount = allHorses.filter(
     (h: Horse) => h.status === "Active"
   ).length;
   const pendingRegCount = registrations.filter(
     (r: TournamentRegistration) => r.status === "pending"
-  ).length;
-  const pendingInvCount = invitations.filter(
-    (i: Invitation) => i.status === "pending"
   ).length;
 
   return (
@@ -76,7 +77,7 @@ export function OwnerDashBoardOverview({
           },
           {
             label: "Pending Invites",
-            val: `${pendingInvCount} Sent`,
+            val: `${pendingInvitesCount} Sent`,
             action: () => setActiveTab("/owner/jockeys"),
           },
         ].map((card, idx) => (

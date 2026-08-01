@@ -1,20 +1,40 @@
-import { useState } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { Clock, Trophy, MapPin, CalendarDays, X } from "lucide-react";
-import { useOwner, type Entry } from "../../hooks/useOwner";
-import { StatusBadge, ENTRY_STATUS_STYLES } from "../ui/StatusBadge";
+import type { Entry } from "../../hooks/useOwner";
+import {
+  StatusBadge,
+  ENTRY_STATUS_STYLES,
+  DERIVED_ENTRY_STATUS_STYLES,
+} from "../ui/StatusBadge";
 import { useToast } from "../../hooks/useToast";
 import { ToastContainer } from "../ui/toast";
+import {
+  deriveEntryStatus,
+  resolveEntryStatusLabel,
+} from "../../utils/entryStatus";
 
-export function OwnerEntries() {
-  const {
-    entries,
-    entriesLoading,
-    entriesPage,
-    setEntriesPage,
-    entriesPagination,
-    withdrawEntry,
-  } = useOwner();
+interface OwnerEntriesProps {
+  entries: Entry[];
+  entriesLoading: boolean;
+  entriesPage: number;
+  setEntriesPage: Dispatch<SetStateAction<number>>;
+  entriesPagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  withdrawEntry: (raceId: string, entryId: string) => Promise<void>;
+}
 
+export function OwnerEntries({
+  entries,
+  entriesLoading,
+  entriesPage,
+  setEntriesPage,
+  entriesPagination,
+  withdrawEntry,
+}: OwnerEntriesProps) {
   const { toasts, addToast } = useToast(3000);
   const [withdrawing, setWithdrawing] = useState<string | null>(null);
 
@@ -36,9 +56,6 @@ export function OwnerEntries() {
       setWithdrawing(null);
     }
   };
-
-  const entryStatusLabel = (status: string) =>
-    status.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background custom-scrollbar">
@@ -96,6 +113,11 @@ export function OwnerEntries() {
                 <tbody className="divide-y divide-border">
                   {entries.map((entry) => {
                     const isScheduled = entry.raceStatus === "scheduled";
+                    const derivedStatus = deriveEntryStatus({
+                      entryStatus: entry.entryStatus,
+                      jockeyId: entry.jockeyId,
+                      confirmedAt: entry.confirmedAt,
+                    });
                     return (
                       <tr
                         key={entry.entryId}
@@ -133,13 +155,23 @@ export function OwnerEntries() {
                           </span>
                         </td>
                         <td className="px-5 py-4">
-                          <StatusBadge
-                            status={entry.entryStatus}
-                            styleMap={ENTRY_STATUS_STYLES}
-                            label={entryStatusLabel(entry.entryStatus)}
-                            size="xs"
-                            className="rounded uppercase"
-                          />
+                          {derivedStatus === "other" ? (
+                            <StatusBadge
+                              status={entry.entryStatus}
+                              styleMap={ENTRY_STATUS_STYLES}
+                              label={resolveEntryStatusLabel(entry)}
+                              size="xs"
+                              className="rounded uppercase"
+                            />
+                          ) : (
+                            <StatusBadge
+                              status={derivedStatus}
+                              styleMap={DERIVED_ENTRY_STATUS_STYLES}
+                              label={resolveEntryStatusLabel(entry)}
+                              size="xs"
+                              className="rounded uppercase"
+                            />
+                          )}
                         </td>
                         <td className="px-5 py-4 text-right">
                           {isScheduled && (

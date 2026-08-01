@@ -12,6 +12,7 @@ import {
 import { cn } from "../../lib/utils";
 import { formatTournamentStatus } from "../../styles/schema/tournamentStatusFlow";
 import { StatusBadge, TOURNAMENT_STATUS_STYLES } from "../ui/StatusBadge";
+import { resolveEntryStatusLabel } from "../../utils/entryStatus";
 import type {
   Tournament,
   TournamentRegistrationResponse,
@@ -695,10 +696,7 @@ export function TournamentRegister({
                                             )}
                                             {entry.entryStatus ? (
                                               <span className="capitalize">
-                                                {entry.entryStatus.replaceAll(
-                                                  "_",
-                                                  " "
-                                                )}
+                                                {resolveEntryStatusLabel(entry)}
                                               </span>
                                             ) : null}
                                           </div>

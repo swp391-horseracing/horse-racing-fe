@@ -1,37 +1,80 @@
 import { useState, useEffect, useRef } from "react";
 import { cn } from "../../lib/utils";
-import { type Entry, type Invitation, useOwner } from "../../hooks/useOwner";
+import type { Entry, Invitation } from "../../hooks/useOwner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { StatusBadge, JOCKEY_ROSTER_STATUS_STYLES } from "../ui/StatusBadge";
 import { ToastContainer } from "../ui/toast";
 import { useToast } from "../../hooks/useToast";
+import {
+  deriveEntryStatus,
+  resolveEntryStatusLabel,
+} from "../../utils/entryStatus";
 
-export function JockeyRosterManagement() {
-  const {
-    invitations,
-    entries,
-    loadInvitations,
-    confirmPairing,
-    cancelInvite,
-    entriesPagination,
-    entriesPage,
-    setEntriesPage,
-  } = useOwner();
+const SIDEBAR_PAGE_SIZE = 8;
+const AWAITING_STATUSES = new Set([
+  "awaiting_jockey",
+  "awaiting_owner",
+  "awaiting_referee",
+]);
+
+interface JockeyRosterManagementProps {
+  invitations: Invitation[];
+  allEntries: Entry[];
+  loadInvitations: (
+    raceId: string,
+    status?: "pending" | "approved" | "rejected"
+  ) => Promise<void>;
+  confirmPairing: (raceId: string, invitationId: string) => Promise<void>;
+  cancelInvite: (raceId: string, invitationId: string) => Promise<boolean>;
+}
+
+export function JockeyRosterManagement({
+  invitations,
+  allEntries,
+  loadInvitations,
+  confirmPairing,
+  cancelInvite,
+}: JockeyRosterManagementProps) {
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
   const [subTab, setSubTab] = useState<"detail" | "invitation">("detail");
+  const [sidebarPage, setSidebarPage] = useState(1);
 
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedEntryId = searchParams.get("selected");
   const tabParam = searchParams.get("tab");
   const { toasts, addToast } = useToast(3000);
-  // Entries without confirmed jockey
-  const entriesWithoutJockey = entries.filter((entry) => {
-    const hasConfirmed = invitations.some(
-      (i) => i.horse.id === entry.horseId && i.status === "confirmed"
-    );
-    return !hasConfirmed;
-  });
+  // Entries still awaiting a jockey pairing (any of the three "not yet
+  // confirmed" sub-states). Previously checked invitation.status ===
+  // "confirmed", a value that invitation.status can never hold, so this
+  // filter was always a no-op. Also previously checked `!== "confirmed"`
+  // directly, which wrongly admitted terminal states (withdrawn/scratched/
+  // disqualified/did_not_finish) — those aren't "confirmed" either, but
+  // they're not awaiting anything and shouldn't show a "Find Jockey" button.
+  //
+  // Filtered from allEntries (the full, unpaginated list) rather than a
+  // paginated page — filtering a single page first would make entries
+  // appear/disappear from this list depending on which page happened to be
+  // showing, independent of whether they actually need a jockey.
+  const entriesWithoutJockey = allEntries.filter((entry) =>
+    AWAITING_STATUSES.has(
+      deriveEntryStatus({
+        entryStatus: entry.entryStatus,
+        jockeyId: entry.jockeyId,
+        confirmedAt: entry.confirmedAt,
+      })
+    )
+  );
+
+  const sidebarTotalPages = Math.max(
+    1,
+    Math.ceil(entriesWithoutJockey.length / SIDEBAR_PAGE_SIZE)
+  );
+  const clampedSidebarPage = Math.min(sidebarPage, sidebarTotalPages);
+  const pagedEntriesWithoutJockey = entriesWithoutJockey.slice(
+    (clampedSidebarPage - 1) * SIDEBAR_PAGE_SIZE,
+    clampedSidebarPage * SIDEBAR_PAGE_SIZE
+  );
 
   // Related invitations for selected entry
   const relatedInvitations = selectedEntry
@@ -83,9 +126,9 @@ export function JockeyRosterManagement() {
   const autoSelectDone = useRef(false);
   useEffect(() => {
     if (autoSelectDone.current) return;
-    if (!selectedEntryId || entries.length === 0) return;
+    if (!selectedEntryId || allEntries.length === 0) return;
 
-    const entry = entries.find((e) => e.entryId === selectedEntryId);
+    const entry = allEntries.find((e) => e.entryId === selectedEntryId);
     if (!entry) return;
 
     autoSelectDone.current = true;
@@ -106,7 +149,7 @@ export function JockeyRosterManagement() {
   }, [
     selectedEntryId,
     tabParam,
-    entries,
+    allEntries,
     loadInvitations,
     searchParams,
     setSearchParams,
@@ -137,7 +180,7 @@ export function JockeyRosterManagement() {
                 </p>
               </div>
             ) : (
-              entriesWithoutJockey.map((entry) => {
+              pagedEntriesWithoutJockey.map((entry) => {
                 const isSelected = selectedEntry?.entryId === entry.entryId;
                 const hasJockey = !!entry.jockeyName && entry.jockeyName !== "";
 
@@ -193,23 +236,23 @@ export function JockeyRosterManagement() {
               })
             )}
           </div>
-          {entriesPagination.totalPages > 1 && (
+          {sidebarTotalPages > 1 && (
             <div className="flex items-center justify-center gap-3 p-4 border-t bg-slate-50">
               <button
-                disabled={entriesPage <= 1}
-                onClick={() => setEntriesPage((p) => p - 1)}
+                disabled={clampedSidebarPage <= 1}
+                onClick={() => setSidebarPage(clampedSidebarPage - 1)}
                 className="rounded-lg border bg-white px-3 py-1 text-xs font-semibold disabled:opacity-50 hover:bg-slate-100 transition"
               >
                 {toPascalCase("prev")}
               </button>
 
               <span className="text-xs text-muted-foreground">
-                {entriesPage} / {entriesPagination.totalPages}
+                {clampedSidebarPage} / {sidebarTotalPages}
               </span>
 
               <button
-                disabled={entriesPage >= entriesPagination.totalPages}
-                onClick={() => setEntriesPage((p) => p + 1)}
+                disabled={clampedSidebarPage >= sidebarTotalPages}
+                onClick={() => setSidebarPage(clampedSidebarPage + 1)}
                 className="rounded-lg border bg-white px-3 py-1 text-xs font-semibold disabled:opacity-50 hover:bg-slate-100 transition"
               >
                 {toPascalCase("next")}
@@ -306,7 +349,7 @@ export function JockeyRosterManagement() {
                     {selectedEntry.entryStatus && (
                       <div className="px-4 py-1.5 text-xs font-bold rounded-xl bg-slate-100 text-slate-700 border border-slate-200">
                         {toPascalCase("entry")}:{" "}
-                        {toPascalCase(selectedEntry.entryStatus)}
+                        {resolveEntryStatusLabel(selectedEntry)}
                       </div>
                     )}
                   </div>
@@ -415,7 +458,7 @@ export function JockeyRosterManagement() {
                             {toPascalCase("entry status")}
                           </div>
                           <div className="font-semibold text-slate-800 capitalize mt-0.5">
-                            {toPascalCase(selectedEntry.entryStatus)}
+                            {resolveEntryStatusLabel(selectedEntry)}
                           </div>
                         </div>
                         <div>

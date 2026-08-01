@@ -53,6 +53,9 @@ export const STATUS_STYLES: Record<string, string> = {
   registration_open: "bg-amber-50 text-amber-700 border-amber-200",
   racing: "bg-amber-50 text-amber-700 border-amber-200",
   minor_injury: "bg-amber-50 text-amber-700 border-amber-200",
+  awaiting_jockey: "bg-amber-50 text-amber-700 border-amber-200",
+  awaiting_owner: "bg-orange-50 text-orange-700 border-orange-200",
+  awaiting_referee: "bg-amber-100 text-amber-800 border-amber-300",
 
   // Success / emerald
   active: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -178,6 +181,9 @@ export const STATUS_LABELS: Record<string, string> = {
   racing: "Racing",
   not_racing: "Not Racing",
   processing: "Processing",
+  awaiting_jockey: "Awaiting Jockey Response",
+  awaiting_owner: "Awaiting Owner Confirmation",
+  awaiting_referee: "Awaiting Referee Clearance",
 };
 
 export function formatStatusLabel(status: string): string {
@@ -231,6 +237,13 @@ export const ENTRY_STATUS_STYLES: Record<string, string> = {
   accepted: STATUS_STYLES.accepted,
   scheduled: STATUS_STYLES.scheduled,
   declined: STATUS_STYLES.declined,
+};
+
+export const DERIVED_ENTRY_STATUS_STYLES: Record<string, string> = {
+  awaiting_jockey: STATUS_STYLES.awaiting_jockey,
+  awaiting_owner: STATUS_STYLES.awaiting_owner,
+  awaiting_referee: STATUS_STYLES.awaiting_referee,
+  confirmed: STATUS_STYLES.confirmed,
 };
 
 export const TRACK_STATUS_STYLES: Record<string, string> = {

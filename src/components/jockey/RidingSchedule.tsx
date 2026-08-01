@@ -36,7 +36,12 @@ import {
   RACE_STATUS_DETAIL_STYLES,
   RIDE_STATUS_STYLES,
   RIDE_STATUS_DARK_STYLES,
+  DERIVED_ENTRY_STATUS_STYLES,
 } from "../ui/StatusBadge";
+import {
+  deriveEntryStatus,
+  DERIVED_ENTRY_STATUS_LABELS,
+} from "../../utils/entryStatus";
 
 type RideDetailTab = "info" | "runners";
 
@@ -52,18 +57,64 @@ const formatOrdinal = (num: number) => {
   return num + (suffixes[(val - 20) % 10] || suffixes[val] || suffixes[0]);
 };
 
+// Groups a jockey's ride by the same derived status shown on its badge —
+// the 3 "awaiting" sub-states for a pending entry, or the raw entryStatus
+// otherwise (terminal states like withdrawn/scratched keep their own
+// bucket instead of collapsing into one "Other" group).
+function jockeyStatKey(ride: {
+  entryStatus: string;
+  confirmedAt?: string | null;
+}) {
+  const derived = deriveEntryStatus({
+    entryStatus: ride.entryStatus,
+    jockeyId: "self",
+    confirmedAt: ride.confirmedAt,
+  });
+  return derived === "other" ? ride.entryStatus || "pending" : derived;
+}
+
+function jockeyStatLabel(key: string) {
+  return (
+    (DERIVED_ENTRY_STATUS_LABELS as Record<string, string>)[key] ||
+    formatStatus(key)
+  );
+}
+
 function RideStatusBadge({
   status,
+  confirmedAt,
   onDark,
 }: {
   status: string;
+  confirmedAt?: string | null;
   onDark?: boolean;
 }) {
+  // A ride the jockey can see already implies they're paired to it — the
+  // only ambiguity left is whether the owner has confirmed the pairing yet
+  // (entry_status stays "pending" for both cases, see utils/entryStatus.ts).
+  const derived = deriveEntryStatus({
+    entryStatus: status,
+    jockeyId: "self",
+    confirmedAt,
+  });
+
+  if (derived === "other") {
+    return (
+      <StatusBadge
+        status={status}
+        styleMap={onDark ? RIDE_STATUS_DARK_STYLES : RIDE_STATUS_STYLES}
+        label={formatStatus(status)}
+        size="sm"
+        className="rounded-[4px] uppercase shadow-sm"
+      />
+    );
+  }
+
   return (
     <StatusBadge
-      status={status}
-      styleMap={onDark ? RIDE_STATUS_DARK_STYLES : RIDE_STATUS_STYLES}
-      label={formatStatus(status)}
+      status={derived}
+      styleMap={DERIVED_ENTRY_STATUS_STYLES}
+      label={DERIVED_ENTRY_STATUS_LABELS[derived]}
       size="sm"
       className="rounded-[4px] uppercase shadow-sm"
     />
@@ -99,17 +150,14 @@ export function RidingSchedule({
   const entryStatusCounts = useMemo(() => {
     const map = new Map<string, number>();
     ridesInRange.forEach((r) => {
-      const key = r.entryStatus || "pending";
+      const key = jockeyStatKey(r);
       map.set(key, (map.get(key) ?? 0) + 1);
     });
     return map;
   }, [ridesInRange]);
 
   const uniqueEntryStatuses = useMemo(
-    () => [
-      "All",
-      ...new Set(ridesInRange.map((r) => r.entryStatus || "pending")),
-    ],
+    () => ["All", ...new Set(ridesInRange.map((r) => jockeyStatKey(r)))],
     [ridesInRange]
   );
 
@@ -131,7 +179,7 @@ export function RidingSchedule({
     return rides
       .filter((r) => {
         if (statusFilter === "All") return true;
-        if (isJockey) return r.entryStatus === statusFilter;
+        if (isJockey) return jockeyStatKey(r) === statusFilter;
         return r.status === statusFilter;
       })
       .filter((r) => {
@@ -214,7 +262,7 @@ export function RidingSchedule({
               return (
                 <ScheduleStatCard
                   key={key}
-                  label={isAll ? "Total" : formatStatus(key)}
+                  label={isAll ? "Total" : jockeyStatLabel(key)}
                   value={
                     isAll
                       ? ridesInRange.length
@@ -222,7 +270,7 @@ export function RidingSchedule({
                   }
                   active={statusFilter === key}
                   onClick={() => setStatusFilter(key)}
-                  liveDot={key === "pending"}
+                  liveDot={key.startsWith("awaiting_")}
                 />
               );
             })}
@@ -334,7 +382,10 @@ export function RidingSchedule({
                             </div>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0 pl-3">
-                            <RideStatusBadge status={ride.entryStatus} />
+                            <RideStatusBadge
+                              status={ride.entryStatus}
+                              confirmedAt={ride.confirmedAt}
+                            />
                           </div>
                         </div>
                       ) : (
@@ -468,13 +519,17 @@ function JockeyDetailPanel({
             <Compass className="w-3.5 h-3.5" />
             {ride.distanceMeters}m · {ride.trackCondition}
           </span>
-          <RideStatusBadge status={ride.entryStatus} onDark />
+          <RideStatusBadge
+            status={ride.entryStatus}
+            confirmedAt={ride.confirmedAt}
+            onDark
+          />
         </div>
       }
       onClose={onClose}
       tabs={tabs}
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={(tab) => setActiveTab(tab as RideDetailTab)}
     >
       {activeTab === "info" && (
         <>
@@ -659,7 +714,10 @@ function JockeyDetailPanel({
                         </td>
                         <td className="px-5 py-3.5 text-right">
                           {isOurs ? (
-                            <RideStatusBadge status={ride.entryStatus} />
+                            <RideStatusBadge
+                              status={ride.entryStatus}
+                              confirmedAt={ride.confirmedAt}
+                            />
                           ) : (
                             <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded border bg-emerald-50 border-emerald-200 text-emerald-700">
                               Confirmed

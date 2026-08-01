@@ -55,11 +55,21 @@ export default function OwnerPage() {
     scheduleRides,
     scheduleLoading,
     entries,
+    entriesLoading,
+    entriesPage,
+    setEntriesPage,
+    entriesPagination,
+    allEntries,
+    allHorses,
+    pendingInvitesCount,
     enterRace,
+    withdrawEntry,
     eligibleHorsesByTournament,
     loadJockeys,
     loadInvitations,
     inviteJockey,
+    confirmPairing,
+    cancelInvite,
   } = useOwner();
 
   useEffect(() => {
@@ -283,31 +293,13 @@ export default function OwnerPage() {
         </div>
       );
 
-    const sendInvitesMatch = matchPath(
-      "/entries/:entryId/send-invites",
-      active
-    );
+    const sendInvitesMatch =
+      matchPath("/entries/:entryId/send-invites", active) ??
+      matchPath("/owner/entries/:entryId/send-invites", active);
     if (sendInvitesMatch) {
       return (
         <SendInvitesPage
-          entries={entries}
-          jockeys={jockeys}
-          invitations={invitations}
-          loadJockeys={loadJockeys}
-          loadInvitations={loadInvitations}
-          inviteJockey={inviteJockey}
-        />
-      );
-    }
-
-    const ownerEntrySendInvitesMatch = matchPath(
-      "/owner/entries/:entryId/send-invites",
-      active
-    );
-    if (ownerEntrySendInvitesMatch) {
-      return (
-        <SendInvitesPage
-          entries={entries}
+          entries={allEntries}
           jockeys={jockeys}
           invitations={invitations}
           loadJockeys={loadJockeys}
@@ -322,9 +314,10 @@ export default function OwnerPage() {
         return (
           <OwnerDashBoardOverview
             horses={horses}
+            allHorses={allHorses}
             tournaments={tournaments}
             registrations={registrations}
-            invitations={invitations}
+            pendingInvitesCount={pendingInvitesCount}
             jockeys={jockeys}
             pagination={pagination}
             setPage={setPage}
@@ -352,7 +345,7 @@ export default function OwnerPage() {
             horses={horses}
             tournaments={tournaments}
             registrations={registrations}
-            entries={entries}
+            entries={allEntries}
             onEnterRace={async (raceId, raceName, laneCount, tournamentId) => {
               let currentEntryCount = 0;
               try {
@@ -382,9 +375,26 @@ export default function OwnerPage() {
           />
         );
       case "/owner/jockeys":
-        return <JockeyRosterManagement />;
+        return (
+          <JockeyRosterManagement
+            invitations={invitations}
+            allEntries={allEntries}
+            loadInvitations={loadInvitations}
+            confirmPairing={confirmPairing}
+            cancelInvite={cancelInvite}
+          />
+        );
       case "/owner/entries":
-        return <OwnerEntries />;
+        return (
+          <OwnerEntries
+            entries={entries}
+            entriesLoading={entriesLoading}
+            entriesPage={entriesPage}
+            setEntriesPage={setEntriesPage}
+            entriesPagination={entriesPagination}
+            withdrawEntry={withdrawEntry}
+          />
+        );
       case "/owner/schedule":
         return (
           <RidingSchedule
