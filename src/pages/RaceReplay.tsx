@@ -14,6 +14,7 @@ import { RaceAndHorseDetails } from "../components/race/RaceAndHorseDetails";
 import { TournamentSidebar } from "../components/race/TournamentSidebar";
 import { TournamentService } from "../services/TournamentService";
 import type { TournamentDetail, RaceItem } from "../types/tournament";
+import { useAuthContext } from "../contexts/AuthContext";
 
 // Keyframe animations for rank changes
 const rankChangeAnimations = `
@@ -72,6 +73,8 @@ const formatTime = (ms: number) => {
 export default function RaceReplay() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuthContext();
+  const isSpectator = user?.role === "spectator";
   const {
     detail: RaceDetail,
     loading: detailLoading,
@@ -435,19 +438,21 @@ export default function RaceReplay() {
       {/* ═══ Left Column: Predictions + Tournament ═══ */}
       <div className="shrink-0 w-72 h-full flex flex-col gap-3 overflow-hidden">
         {/* Predictions Panel — sized to fit prediction slip perfectly */}
-        <div className="h-[310px] shrink-0 flex flex-col bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
-          <PredictionsSidebar
-            raceId={id!}
-            raceStatus={RaceDetail?.status}
-            raceName={RaceDetail?.name}
-            entries={RaceDetail?.entries}
-            firstHorseName={horseMeta[0]?.name}
-            onPredictionChange={handlePredictionChange}
-            isSimulating={simulating}
-            elapsedMs={latestTick?.elapsedMs}
-            predictionMinStake={RaceDetail?.predictionMinStake ?? 10}
-          />
-        </div>
+        {isSpectator && (
+          <div className="h-[310px] shrink-0 flex flex-col bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
+            <PredictionsSidebar
+              raceId={id!}
+              raceStatus={RaceDetail?.status}
+              raceName={RaceDetail?.name}
+              entries={RaceDetail?.entries}
+              firstHorseName={horseMeta[0]?.name}
+              onPredictionChange={handlePredictionChange}
+              isSimulating={simulating}
+              elapsedMs={latestTick?.elapsedMs}
+              predictionMinStake={RaceDetail?.predictionMinStake ?? 10}
+            />
+          </div>
+        )}
 
         {/* Tournament schedule card — flex-1 to take remaining space */}
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">

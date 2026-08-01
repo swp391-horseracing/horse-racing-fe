@@ -420,11 +420,11 @@ export default function RaceReportPanel({
                       </td>
                       <td className="py-2.5 px-3">
                         <Select
-                          value={lane.finishPosition?.toString() ?? ""}
+                          value={lane.finishPosition?.toString() ?? "__none__"}
                           onValueChange={(val) =>
                             onSetPlacement(
                               lane.id,
-                              val ? parseInt(val, 10) : null
+                              val === "__none__" ? null : parseInt(val, 10)
                             )
                           }
                           disabled={!!lane.flag}
@@ -447,6 +447,7 @@ export default function RaceReportPanel({
                             <SelectValue placeholder="#" />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="__none__">—</SelectItem>
                             {allPositions
                               .filter(
                                 (pos) =>
