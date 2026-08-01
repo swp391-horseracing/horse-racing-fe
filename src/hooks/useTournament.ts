@@ -351,5 +351,6 @@ export default function useTournament() {
     participantsPagination,
 
     reloadTournaments: loadAllTournaments,
+    refetchTournamentDetail: loadTournamentDetail,
   };
 }
