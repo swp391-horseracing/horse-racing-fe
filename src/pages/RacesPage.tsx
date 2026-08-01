@@ -656,7 +656,7 @@ export default function RacesPage() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
   const user = JSON.parse(localStorage.getItem("user") ?? "null");
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role?.toLowerCase() === "admin";
 
   // Admin race editing state
   const [adminEditingRace, setAdminEditingRace] = useState(false);

@@ -11,11 +11,6 @@ import {
 } from "../../utils/entryStatus";
 
 const SIDEBAR_PAGE_SIZE = 8;
-const AWAITING_STATUSES = new Set([
-  "awaiting_jockey",
-  "awaiting_owner",
-  "awaiting_referee",
-]);
 
 interface JockeyRosterManagementProps {
   invitations: Invitation[];
@@ -56,15 +51,17 @@ export function JockeyRosterManagement({
   // paginated page — filtering a single page first would make entries
   // appear/disappear from this list depending on which page happened to be
   // showing, independent of whether they actually need a jockey.
-  const entriesWithoutJockey = allEntries.filter((entry) =>
-    AWAITING_STATUSES.has(
-      deriveEntryStatus({
-        entryStatus: entry.entryStatus,
-        jockeyId: entry.jockeyId,
-        confirmedAt: entry.confirmedAt,
-      })
-    )
-  );
+  const entriesWithoutJockey = allEntries.filter((entry) => {
+    const isComplete =
+      Boolean(entry.confirmedAt) || entry.entryStatus === "confirmed";
+    if (isComplete) return false;
+    const status = deriveEntryStatus({
+      entryStatus: entry.entryStatus,
+      jockeyId: entry.jockeyId,
+      confirmedAt: entry.confirmedAt,
+    });
+    return status === "awaiting_jockey" || status === "awaiting_owner";
+  });
 
   const sidebarTotalPages = Math.max(
     1,
@@ -83,6 +80,12 @@ export function JockeyRosterManagement({
     ? invitations.filter((inv) => inv.horse.id === selectedEntry.horseId)
     : [];
 
+  const isPairupComplete = selectedEntry
+    ? Boolean(selectedEntry.confirmedAt) ||
+      selectedEntry.entryStatus === "confirmed" ||
+      relatedInvitations.some((inv) => inv.status === "confirmed")
+    : false;
+
   const handleFindJockey = (entry: Entry) => {
     navigate(`/owner/entries/${entry.entryId}/send-invites`);
   };
@@ -91,6 +94,13 @@ export function JockeyRosterManagement({
     try {
       await confirmPairing(inv.raceId, inv.id);
       addToast("Pairing confirmed successfully.", "success");
+      if (selectedEntry) {
+        setSelectedEntry({
+          ...selectedEntry,
+          confirmedAt: new Date().toISOString(),
+          jockeyName: inv.jockey.fullName,
+        });
+      }
     } catch (error: any) {
       const message =
         error?.response?.data?.message || "Failed to confirm pairing.";
@@ -536,15 +546,14 @@ export function JockeyRosterManagement({
                               size="xs"
                               className="rounded uppercase"
                             />
-                            {inv.status === "accepted" &&
-                              !selectedEntry.jockeyId && (
-                                <button
-                                  onClick={() => handleConfirm(inv)}
-                                  className="rounded-xl bg-emerald-600 px-3 py-1 text-xs font-bold text-white hover:bg-emerald-700 shadow-sm transition"
-                                >
-                                  {toPascalCase("confirm")}
-                                </button>
-                              )}
+                            {!isPairupComplete && inv.status === "accepted" && (
+                              <button
+                                onClick={() => handleConfirm(inv)}
+                                className="rounded-xl bg-emerald-600 px-3 py-1 text-xs font-bold text-white hover:bg-emerald-700 shadow-sm transition"
+                              >
+                                {toPascalCase("confirm")}
+                              </button>
+                            )}
                             {inv.status === "pending" && (
                               <button
                                 onClick={() => handleCancel(inv)}

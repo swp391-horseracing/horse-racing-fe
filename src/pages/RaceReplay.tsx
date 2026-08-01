@@ -89,6 +89,16 @@ export default function RaceReplay() {
     Record<string, { change: number; timestamp: number }>
   >({});
 
+  const user = (() => {
+    try {
+      const raw = localStorage.getItem("user");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  })();
+  const isAdmin = user?.role?.toLowerCase() === "admin";
+
   const [simulating, setSimulating] = useState(false);
   const [simLoading, setSimLoading] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
@@ -481,26 +491,27 @@ export default function RaceReplay() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {!simulating ? (
-              <button
-                onClick={handleStartSimulate}
-                disabled={simLoading}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 text-white px-3 py-1.5 text-xs font-bold hover:bg-emerald-700 transition disabled:opacity-50"
-              >
-                <Play size={14} fill="currentColor" />
-                Simulate
-              </button>
-            ) : (
-              <button
-                onClick={handleStopSimulate}
-                disabled={simLoading}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 text-white px-3 py-1.5 text-xs font-bold hover:bg-red-700 transition disabled:opacity-50"
-              >
-                <Square size={14} />
-                Stop
-              </button>
-            )}
-            {isSpectator && countdownText ? (
+            {isAdmin &&
+              (!simulating ? (
+                <button
+                  onClick={handleStartSimulate}
+                  disabled={simLoading}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 text-white px-3 py-1.5 text-xs font-bold hover:bg-emerald-700 transition disabled:opacity-50"
+                >
+                  <Play size={14} fill="currentColor" />
+                  Simulate
+                </button>
+              ) : (
+                <button
+                  onClick={handleStopSimulate}
+                  disabled={simLoading}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 text-white px-3 py-1.5 text-xs font-bold hover:bg-red-700 transition disabled:opacity-50"
+                >
+                  <Square size={14} />
+                  Stop
+                </button>
+              ))}
+            {countdownText ? (
               <div
                 className="flex items-center gap-2 bg-slate-900/60 shadow-inner px-4 py-1.5 rounded-lg border border-white/10"
                 title="Predictions close in"
