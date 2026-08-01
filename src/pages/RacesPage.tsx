@@ -336,7 +336,7 @@ export default function RacesPage() {
   const [myPredictions, setMyPredictions] = useState<
     Map<
       string,
-      { entryId: string; horseName: string; predictedPosition: number }
+      { entryId: string; horseName: string; predictedPosition: number }[]
     >
   >(new Map());
 
@@ -346,14 +346,17 @@ export default function RacesPage() {
       .then((res) => {
         const map = new Map<
           string,
-          { entryId: string; horseName: string; predictedPosition: number }
+          { entryId: string; horseName: string; predictedPosition: number }[]
         >();
         for (const p of res.data) {
-          map.set(p.race.id, {
+          const pick = {
             entryId: p.predictedEntry.entryId,
             horseName: p.predictedEntry.horseName,
             predictedPosition: p.predictedPosition,
-          });
+          };
+          const arr = map.get(p.race.id);
+          if (arr) arr.push(pick);
+          else map.set(p.race.id, [pick]);
         }
         setMyPredictions(map);
       })
@@ -435,12 +438,10 @@ export default function RacesPage() {
     isCountdownEligible &&
     (userToggleOverride !== null ? userToggleOverride : isAutoCountdown);
 
-  const currentPrediction = raceDetail
-    ? myPredictions.get(raceDetail.id)
-    : undefined;
-  const predictedEntryIds = currentPrediction
-    ? [currentPrediction.entryId]
+  const currentPredictions = raceDetail
+    ? (myPredictions.get(raceDetail.id) ?? [])
     : [];
+  const predictedEntryIds = currentPredictions.map((p) => p.entryId);
 
   const eligibleHorsesForRace = raceDetail?.tournamentId
     ? (eligibleHorsesByTournament.get(raceDetail.tournamentId) ?? [])
@@ -1176,6 +1177,7 @@ export default function RacesPage() {
                         </button>
                       )}
                       {isSpectator &&
+                        currentPredictions.length < 3 &&
                         (raceDetail?.status === "scheduled" ||
                           raceDetail?.status === "pre_race") && (
                           <button
@@ -1186,8 +1188,8 @@ export default function RacesPage() {
                             className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#EAB308] text-[#064E3B] font-bold text-[10px] hover:bg-[#D9A207] transition-all cursor-pointer shadow-sm active:scale-95"
                           >
                             <Target className="w-3 h-3" />
-                            {currentPrediction
-                              ? "Update Prediction"
+                            {currentPredictions.length > 0
+                              ? "Add Prediction"
                               : "Predict"}
                           </button>
                         )}
@@ -1229,20 +1231,28 @@ export default function RacesPage() {
                   onClose={handleCloseDetail}
                   containerClass="border-slate-200 bg-white shadow-lg"
                 >
-                  {currentPrediction && (
+                  {currentPredictions.length > 0 && (
                     <div className="bg-amber-50/50 border border-[#EAB308]/20 rounded-xl p-4">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
                             Your Prediction
                           </p>
-                          <p className="font-bold text-[#064E3B] text-sm">
-                            {currentPrediction.horseName} →{" "}
-                            {
-                              { 1: "1st", 2: "2nd", 3: "3rd" }[
-                                currentPrediction.predictedPosition
-                              ]
-                            }
+                          {currentPredictions.map((p) => (
+                            <p
+                              key={p.entryId}
+                              className="font-bold text-[#064E3B] text-sm"
+                            >
+                              {p.horseName} →{" "}
+                              {
+                                { 1: "1st", 2: "2nd", 3: "3rd" }[
+                                  p.predictedPosition
+                                ]
+                              }
+                            </p>
+                          ))}
+                          <p className="text-[10px] font-bold text-slate-400 mt-1">
+                            {currentPredictions.length} / 3 predictions
                           </p>
                         </div>
                         <button
@@ -1283,7 +1293,7 @@ export default function RacesPage() {
                                 Status
                               </th>
                               {isSpectator &&
-                                !currentPrediction &&
+                                currentPredictions.length < 3 &&
                                 (raceDetail?.status === "scheduled" ||
                                   raceDetail?.status === "pre_race") && (
                                   <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 w-24 text-center">
@@ -1337,10 +1347,13 @@ export default function RacesPage() {
                                     {formatStatus(entry.entryStatus)}
                                   </td>
                                   {isSpectator &&
+                                    currentPredictions.length < 3 &&
                                     (raceDetail?.status === "scheduled" ||
                                       raceDetail?.status === "pre_race") && (
                                       <td className="px-6 py-4.5 text-center">
-                                        {!currentPrediction ? (
+                                        {!predictedEntryIds.includes(
+                                          entry.id
+                                        ) ? (
                                           <button
                                             onClick={() => {
                                               setPreselectedEntry({
@@ -1358,7 +1371,7 @@ export default function RacesPage() {
                                           </button>
                                         ) : (
                                           <span className="text-[10px] text-slate-300 font-medium">
-                                            —
+                                            ✓
                                           </span>
                                         )}
                                       </td>
@@ -1427,7 +1440,10 @@ export default function RacesPage() {
               onPlaced={(data) => {
                 setMyPredictions((prev) => {
                   const next = new Map(prev);
-                  next.set(raceDetail.id, data);
+                  const arr = next.get(raceDetail.id) ?? [];
+                  if (!arr.some((p) => p.entryId === data.entryId)) {
+                    next.set(raceDetail.id, [...arr, data]);
+                  }
                   return next;
                 });
                 setPreselectedEntry(null);
@@ -1435,6 +1451,7 @@ export default function RacesPage() {
               }}
               preselectedEntry={preselectedEntry}
               predictedEntryIds={predictedEntryIds}
+              existingPredictionCount={currentPredictions.length}
               balance={balance}
               predictionMinStake={raceDetail.predictionMinStake ?? 10}
             />

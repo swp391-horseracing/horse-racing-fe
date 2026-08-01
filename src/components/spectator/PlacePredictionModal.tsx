@@ -30,6 +30,7 @@ interface PlacePredictionModalProps {
   }) => void;
   preselectedEntry?: PreselectedEntry | null;
   predictedEntryIds?: string[];
+  existingPredictionCount?: number;
   balance?: number;
   predictionMinStake?: number;
 }
@@ -53,6 +54,7 @@ export function PlacePredictionModal({
   onPlaced,
   preselectedEntry,
   predictedEntryIds,
+  existingPredictionCount = 0,
   balance = 0,
   predictionMinStake = 10,
 }: PlacePredictionModalProps) {
@@ -171,7 +173,7 @@ export function PlacePredictionModal({
         stakeAmount
       );
       const horseName = preselectedName;
-      addToast("Prediction placed successfully!", "success");
+      addToast("Prediction added successfully!", "success");
       onPlaced?.({
         entryId: selectedEntryId,
         horseName,
@@ -226,12 +228,17 @@ export function PlacePredictionModal({
               Place Prediction
             </h2>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
-          >
-            <X className="w-5 h-5 text-slate-400" />
-          </button>
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-black text-slate-500 bg-slate-100 rounded-full px-2 py-1">
+              {existingPredictionCount} / 3
+            </span>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5 text-slate-400" />
+            </button>
+          </div>
         </div>
 
         <div className="p-6 space-y-6">

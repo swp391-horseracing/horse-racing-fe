@@ -19,10 +19,8 @@ export const PredictionService = {
     stakeAmount: number
   ) {
     const response = await api.post(`/races/${raceId}/predictions`, {
-      predictedEntryId,
-      predictedPosition,
-      stakeAmount,
+      predictions: [{ predictedEntryId, predictedPosition, stakeAmount }],
     });
-    return response.data;
+    return response.data.predictions;
   },
 };
