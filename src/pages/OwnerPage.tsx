@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, matchPath } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
 import { ROUTES } from "../router/routes";
-import { useOwner } from "../hooks/useOwner";
+import { OwnerProvider, useOwner } from "../hooks/useOwner";
 import { RaceService } from "../services/RaceService";
 
 import type { Horse } from "../types/horse";
@@ -34,6 +34,14 @@ const healthStatusMap: Record<string, string> = {
 };
 
 export default function OwnerPage() {
+  return (
+    <OwnerProvider>
+      <OwnerPageContent />
+    </OwnerProvider>
+  );
+}
+
+function OwnerPageContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const active = location.pathname;

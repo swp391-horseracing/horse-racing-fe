@@ -25,7 +25,7 @@ import { useRaces, useRaceDetail } from "../hooks/useRaces";
 import type { RaceListItem, RaceApiStatus, RaceEntry } from "../types/race";
 import type { DateRange } from "react-day-picker";
 import { useToast } from "../hooks/useToast";
-import { useOwner } from "../hooks/useOwner";
+import { useOwnerStandalone } from "../hooks/useOwner";
 import { useWallet } from "../hooks/useWallet";
 import { formatStatus, formatRaceCountdown } from "../utils/formatters";
 import {
@@ -317,7 +317,7 @@ export default function RacesPage() {
   const isOwner = userSession?.role === "horse_owner";
 
   const { enterRace, approvedTournamentIds, eligibleHorsesByTournament } =
-    useOwner();
+    useOwnerStandalone();
 
   const [enterRaceModalOpen, setEnterRaceModalOpen] = useState(false);
 
