@@ -56,6 +56,21 @@ export function useOwner() {
     totalPages: 0,
   });
 
+  // Full, unpaginated entry list — for consumers that need to check
+  // existence/status across ALL of an owner's entries (Tournament Register,
+  // Horse Schedule, Jockey Roster's "needs a jockey" list), as opposed to
+  // the 8-per-page `entries` above, which is only correct for the "My
+  // Entries" table itself.
+  const [allEntries, setAllEntries] = useState<Entry[]>([]);
+  const [allEntriesLoading, setAllEntriesLoading] = useState(false);
+
+  // Full, unpaginated horse list — for dashboard stats that need a true
+  // account-wide count (e.g. "Active Stable"), as opposed to the 10-per-page
+  // `horses` below, which backs the Horse Manager table/pager.
+  const [allHorses, setAllHorses] = useState<Horse[]>([]);
+
+  const [pendingInvitesCount, setPendingInvitesCount] = useState(0);
+
   const [loading, setLoading] = useState(false);
 
   const [pagination, setPagination] = useState({
@@ -164,16 +179,45 @@ export function useOwner() {
     []
   );
 
+  // No backend endpoint returns "all my pending invitations across every
+  // race" for an owner (getRaceInvitations requires a raceId; getMyInvitations
+  // is jockey-scoped). Reconstruct the count client-side by looping the
+  // existing per-race endpoint over the owner's distinct races — bounded by
+  // how many races an owner actually has, which is small.
+  const loadPendingInvitesSummary = useCallback(async (source: Entry[]) => {
+    try {
+      const raceIds = [...new Set(source.map((e) => e.raceId))];
+      if (raceIds.length === 0) {
+        setPendingInvitesCount(0);
+        return;
+      }
+      const results = await Promise.all(
+        raceIds.map((raceId) =>
+          UserService.getRaceInvitations(raceId, "pending", 1, 1)
+        )
+      );
+      const total = results.reduce(
+        (sum, r) => sum + (r?.pagination?.total ?? 0),
+        0
+      );
+      setPendingInvitesCount(total);
+    } catch (error) {
+      console.error("Failed to load pending invites summary:", error);
+    }
+  }, []);
+
   const loadEntries = useCallback(
     async (status?: string) => {
       setEntriesLoading(true);
       try {
+        // Backend no longer defaults /me/entries to status="scheduled"
+        // (fixed in horse-racing-api commit 32873c5) — omitting status now
+        // correctly returns entries across all race statuses.
         const response = await UserService.getMyEntries(
           status,
           entriesPage,
           entriesPagination.limit
         );
-        console.log("ownerEntries is here:", response);
         setEntries(response.data ?? []);
         setEntriesPagination(response.pagination);
       } catch (error) {
@@ -182,8 +226,54 @@ export function useOwner() {
         setEntriesLoading(false);
       }
     },
-    [entriesPage, entriesPagination]
+    [entriesPage, entriesPagination.limit]
   );
+
+  const loadAllEntries = useCallback(async () => {
+    setAllEntriesLoading(true);
+    try {
+      const all: Entry[] = [];
+      let page = 1;
+      let totalPages = 1;
+      do {
+        const response = await UserService.getMyEntries(undefined, page, 100);
+        all.push(...(response.data ?? []));
+        totalPages = response.pagination?.totalPages ?? 1;
+        page++;
+      } while (page <= totalPages);
+      setAllEntries(all);
+      return all;
+    } catch (error) {
+      console.error("Failed to load all entries:", error);
+      return [];
+    } finally {
+      setAllEntriesLoading(false);
+    }
+  }, []);
+
+  const loadAllHorses = useCallback(async () => {
+    const ownerId = localStorage.getItem("userId");
+    if (!ownerId) return [];
+    try {
+      const all: Horse[] = [];
+      let page = 1;
+      let totalPages = 1;
+      do {
+        const response = await HorseService.getHorsesByOwnerId(ownerId, {
+          page,
+          limit: 100,
+        });
+        all.push(...(response.data ?? []));
+        totalPages = response.pagination?.totalPages ?? 1;
+        page++;
+      } while (page <= totalPages);
+      setAllHorses(all);
+      return all;
+    } catch (error) {
+      console.error("Failed to load all horses:", error);
+      return [];
+    }
+  }, []);
 
   const addHorse = async (payload: {
     name: string;
@@ -374,8 +464,10 @@ export function useOwner() {
 
       const approvedHorseIds = new Set(approved.map((reg) => reg.horse.id));
 
-      const entriesResponse = await UserService.getMyEntries();
-      const entries = entriesResponse.data ?? [];
+      // Full entry list, not the paginated `entries` — the previous
+      // single-page fetch here silently dropped an owner's races past the
+      // first page of entries.
+      const entries = await loadAllEntries();
 
       const ownerEntries = entries.filter((e: Entry) =>
         approvedHorseIds.has(e.horseId)
@@ -442,20 +534,27 @@ export function useOwner() {
     } finally {
       setScheduleLoading(false);
     }
-  }, [registrations]);
+  }, [registrations, loadAllEntries]);
 
   useEffect(() => {
     const initialize = async () => {
       try {
         setLoading(true);
 
-        await Promise.all([
+        // Note: `loadEntries()` (the paginated "My Entries" fetch) is
+        // intentionally NOT called here — the [entriesPage] effect below
+        // already fires once on mount (entriesPage starts at 1), so adding
+        // it here would just double-fetch the same first page.
+        const [, , , , allEntriesResult] = await Promise.all([
           loadHorses(),
           loadRegistrations(),
           loadJockeys(),
           loadTournamentsList(),
-          loadEntries(),
+          loadAllEntries(),
+          loadAllHorses(),
         ]);
+
+        await loadPendingInvitesSummary(allEntriesResult);
       } finally {
         setLoading(false);
       }
@@ -513,6 +612,15 @@ export function useOwner() {
     entriesPage,
     setEntriesPage,
     entriesPagination,
+
+    allEntries,
+    allEntriesLoading,
+    loadAllEntries,
+
+    allHorses,
+    loadAllHorses,
+
+    pendingInvitesCount,
 
     addHorse,
     editHorse,

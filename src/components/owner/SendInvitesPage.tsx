@@ -2,21 +2,21 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Search } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { useOwner, type Entry, type Jockey } from "../../hooks/useOwner";
+import type { Entry, Jockey } from "../../hooks/useOwner";
 import type { Invitation } from "../../types/invitation";
 import { useToast } from "../../hooks/useToast";
 import { ToastContainer } from "../ui/toast";
 
 interface SendInvitesPageProps {
-  entries?: Entry[];
-  jockeys?: Jockey[];
-  invitations?: Invitation[];
-  loadJockeys?: () => Promise<void>;
-  loadInvitations?: (
+  entries: Entry[];
+  jockeys: Jockey[];
+  invitations: Invitation[];
+  loadJockeys: () => Promise<void>;
+  loadInvitations: (
     raceId: string,
     status?: "pending" | "approved" | "rejected"
   ) => Promise<void>;
-  inviteJockey?: (
+  inviteJockey: (
     title: string,
     entryId: string,
     jockeyId: string,
@@ -26,46 +26,28 @@ interface SendInvitesPageProps {
 }
 
 export function SendInvitesPage({
-  entries: propEntries,
-  jockeys: propJockeys,
-  invitations: propInvitations,
-  loadJockeys: propLoadJockeys,
-  loadInvitations: propLoadInvitations,
-  inviteJockey: propInviteJockey,
-}: SendInvitesPageProps = {}) {
+  entries,
+  jockeys,
+  invitations,
+  loadJockeys,
+  loadInvitations,
+  inviteJockey,
+}: SendInvitesPageProps) {
   const { entryId } = useParams<{ entryId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const returnTo = (location.state as { returnTo?: string })?.returnTo;
 
-  const {
-    entries: hookEntries,
-    jockeys: hookJockeys,
-    invitations: hookInvitations,
-    loadJockeys: hookLoadJockeys,
-    loadInvitations: hookLoadInvitations,
-    inviteJockey: hookInviteJockey,
-  } = useOwner();
-
-  const entries = propEntries ?? hookEntries;
-  const jockeys = propJockeys ?? hookJockeys;
-  const invitations = propInvitations ?? hookInvitations;
-  const loadJockeys = propLoadJockeys ?? hookLoadJockeys;
-  const loadInvitations = propLoadInvitations ?? hookLoadInvitations;
-  const inviteJockey = propInviteJockey ?? hookInviteJockey;
-
   const { toasts, addToast } = useToast(3000);
 
   useEffect(() => {
-    if (loadJockeys) {
-      void loadJockeys();
-    }
+    void loadJockeys();
   }, [loadJockeys]);
 
   const entry = entries.find((e: Entry) => e.entryId === entryId);
 
   useEffect(() => {
-    if (entry?.raceId && loadInvitations) {
+    if (entry?.raceId) {
       void loadInvitations(entry.raceId);
     }
   }, [entry?.raceId, loadInvitations]);

@@ -36,7 +36,12 @@ import {
   RACE_STATUS_DETAIL_STYLES,
   RIDE_STATUS_STYLES,
   RIDE_STATUS_DARK_STYLES,
+  DERIVED_ENTRY_STATUS_STYLES,
 } from "../ui/StatusBadge";
+import {
+  deriveEntryStatus,
+  DERIVED_ENTRY_STATUS_LABELS,
+} from "../../utils/entryStatus";
 
 type RideDetailTab = "info" | "runners";
 
@@ -54,16 +59,39 @@ const formatOrdinal = (num: number) => {
 
 function RideStatusBadge({
   status,
+  confirmedAt,
   onDark,
 }: {
   status: string;
+  confirmedAt?: string | null;
   onDark?: boolean;
 }) {
+  // A ride the jockey can see already implies they're paired to it — the
+  // only ambiguity left is whether the owner has confirmed the pairing yet
+  // (entry_status stays "pending" for both cases, see utils/entryStatus.ts).
+  const derived = deriveEntryStatus({
+    entryStatus: status,
+    jockeyId: "self",
+    confirmedAt,
+  });
+
+  if (derived === "other") {
+    return (
+      <StatusBadge
+        status={status}
+        styleMap={onDark ? RIDE_STATUS_DARK_STYLES : RIDE_STATUS_STYLES}
+        label={formatStatus(status)}
+        size="sm"
+        className="rounded-[4px] uppercase shadow-sm"
+      />
+    );
+  }
+
   return (
     <StatusBadge
-      status={status}
-      styleMap={onDark ? RIDE_STATUS_DARK_STYLES : RIDE_STATUS_STYLES}
-      label={formatStatus(status)}
+      status={derived}
+      styleMap={DERIVED_ENTRY_STATUS_STYLES}
+      label={DERIVED_ENTRY_STATUS_LABELS[derived]}
       size="sm"
       className="rounded-[4px] uppercase shadow-sm"
     />
@@ -334,7 +362,10 @@ export function RidingSchedule({
                             </div>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0 pl-3">
-                            <RideStatusBadge status={ride.entryStatus} />
+                            <RideStatusBadge
+                              status={ride.entryStatus}
+                              confirmedAt={ride.confirmedAt}
+                            />
                           </div>
                         </div>
                       ) : (
@@ -468,13 +499,17 @@ function JockeyDetailPanel({
             <Compass className="w-3.5 h-3.5" />
             {ride.distanceMeters}m · {ride.trackCondition}
           </span>
-          <RideStatusBadge status={ride.entryStatus} onDark />
+          <RideStatusBadge
+            status={ride.entryStatus}
+            confirmedAt={ride.confirmedAt}
+            onDark
+          />
         </div>
       }
       onClose={onClose}
       tabs={tabs}
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={(tab) => setActiveTab(tab as RideDetailTab)}
     >
       {activeTab === "info" && (
         <>
@@ -659,7 +694,10 @@ function JockeyDetailPanel({
                         </td>
                         <td className="px-5 py-3.5 text-right">
                           {isOurs ? (
-                            <RideStatusBadge status={ride.entryStatus} />
+                            <RideStatusBadge
+                              status={ride.entryStatus}
+                              confirmedAt={ride.confirmedAt}
+                            />
                           ) : (
                             <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded border bg-emerald-50 border-emerald-200 text-emerald-700">
                               Confirmed

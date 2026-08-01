@@ -12,6 +12,10 @@ import {
 import { cn } from "../../lib/utils";
 import { formatTournamentStatus } from "../../styles/schema/tournamentStatusFlow";
 import { StatusBadge, TOURNAMENT_STATUS_STYLES } from "../ui/StatusBadge";
+import {
+  deriveEntryStatus,
+  DERIVED_ENTRY_STATUS_LABELS,
+} from "../../utils/entryStatus";
 import type {
   Tournament,
   TournamentRegistrationResponse,
@@ -693,14 +697,32 @@ export function TournamentRegister({
                                                 No jockey
                                               </span>
                                             )}
-                                            {entry.entryStatus ? (
-                                              <span className="capitalize">
-                                                {entry.entryStatus.replaceAll(
-                                                  "_",
-                                                  " "
-                                                )}
-                                              </span>
-                                            ) : null}
+                                            {entry.entryStatus
+                                              ? (() => {
+                                                  const derived =
+                                                    deriveEntryStatus({
+                                                      entryStatus:
+                                                        entry.entryStatus,
+                                                      jockeyId: entry.jockeyId,
+                                                      confirmedAt:
+                                                        entry.confirmedAt,
+                                                    });
+                                                  const label =
+                                                    derived === "other"
+                                                      ? entry.entryStatus.replaceAll(
+                                                          "_",
+                                                          " "
+                                                        )
+                                                      : DERIVED_ENTRY_STATUS_LABELS[
+                                                          derived
+                                                        ];
+                                                  return (
+                                                    <span className="capitalize">
+                                                      {label}
+                                                    </span>
+                                                  );
+                                                })()
+                                              : null}
                                           </div>
                                         </div>
                                         {hasJockey ? (
