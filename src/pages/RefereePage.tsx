@@ -27,6 +27,7 @@ import RaceReportPanel, {
 import RefereeReviewReports from "../components/referee/RefereeReviewReports";
 import { UserService } from "../services/UserService";
 import { RefereeService } from "../services/RefereeService";
+import { RaceService } from "../services/RaceService";
 import { HorseService } from "../services/HorseService";
 import { TournamentService } from "../services/TournamentService";
 
@@ -522,7 +523,7 @@ export default function RefereePage() {
     }
   };
 
-  const handleTransitionToLive = (raceId: string) => {
+  const handleTransitionToLive = async (raceId: string) => {
     const race = apiRaces.find((r) => r.id === raceId);
     if (!race) return;
     const pending = race.lanes.filter((l) => l.inspectionStatus === "pending");
@@ -533,8 +534,32 @@ export default function RefereePage() {
       );
       return;
     }
-    updateRace(raceId, (r) => ({ ...r, phase: "live", timerRunning: true }));
-    addToast("Race is now Live. Prediction pools are locked.", "success");
+    try {
+      // NOTE: hits POST /admin/races/:raceId/start. Despite the "/admin" path
+      // prefix, the backend already authorizes Role.REFEREE for this route
+      // (route/admin.ts, "feat: allow referee to start race") and accepts
+      // pre_race status ("fix: allow start race at pre_race"). This is
+      // currently UNSCOPED by design (temporary): any referee can start any
+      // race, not just one they're assigned to. TODO(recommended, backend):
+      // scope this to the referee assigned to the race via the
+      // refereeAssignments table, matching the assignment-check pattern
+      // already used in controller/referee.ts (e.g. lines 78-92) — add a
+      // check in the startRace handler (admin.ts) before allowing a
+      // Role.REFEREE caller to proceed.
+      await RaceService.startRaceAdmin(raceId);
+      updateRace(raceId, (r) => ({
+        ...r,
+        status: "ongoing",
+        phase: "live",
+        timerRunning: true,
+      }));
+      addToast("Race is now Live. Prediction pools are locked.", "success");
+    } catch (e: any) {
+      addToast(
+        e.response?.data?.message || "Failed to start race. Please try again.",
+        "error"
+      );
+    }
   };
 
   const handleDelayRace = (raceId: string) => {
